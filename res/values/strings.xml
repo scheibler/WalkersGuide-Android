@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- main activity -->
+    <string name="app_name">WalkersGuide-NG</string>
+    <string name="menuItemRouterTab">Router</string>
+    <string name="menuItemPOITab">POI</string>
+    <string name="menuItemSettings">Settings</string>
+
+    <!-- router fragment -->
+    <string name="buttonRouteCommandList">Commands</string>
+    <string name="buttonRecalculateRoute">Recalculate</string>
+    <string name="buttonNewRoute">New route</string>
+    <string name="buttonPreviousRouteObject">Previous</string>
+    <string name="buttonNextRouteObject">Next</string>
+    <string name="buttonSelectPOIProfile">POI profile</string>
+
+    <!-- poi fragment -->
+    <string name="buttonRefresh">Refresh</string>
+    <string name="buttonSearch">Search</string>
+
+    <!-- settings activity -->
+    <string name="settingsActivityTitle">Settings</string>
+
+    <!-- point -->
+    <string name="wayPointName">Way point</string>
+
+    <!-- POIPoint -->
+    <string name="entranceSingular">entrance</string>
+    <string name="entrancePlural">entrances</string>
+
+    <!-- StationPoint -->
+    <string name="platformNumber">, platform</string>
+    <string name="transportLines">Lines</string>
+    <string name="roStationLineDirection">to</string>
+    <string name="roStationExactStopPosition">, precise station location available</string>
+    <string name="roStationNoExactStopPosition">, precise station location not available</string>
+
+    <!-- POIListObject -->
+    <string name="poiListObjectDescription">%1$s\nIn %2$d meters, %3$s</string>
+
+    <!-- standard messages, which are used in more than one component -->
+    <string name="dialogYes">Yes</string>
+    <string name="dialogNo">No</string>
+    <string name="dialogOK">OK</string>
+    <string name="dialogCancel">Cancel</string>
+    <string name="messageUnknownError">Due to an unknown error, the navigation server is not accessible.</string>
+    <string name="messageErrorFromServer">Error: %s</string>
+    <string name="messageJSONError">Error during : %s</string>
+    <string name="messageNetworkError">Due to an network error, the navigation server is not accessible.\n\n%s</string>
+    <string name="messagePleaseWait">Please wait...</string>
+
+
+</resources>
