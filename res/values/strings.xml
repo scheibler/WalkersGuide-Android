@@ -3,9 +3,18 @@
 
     <!-- main activity -->
     <string name="app_name">WalkersGuide-NG</string>
-    <string name="menuItemRouterTab">Router</string>
-    <string name="menuItemPOITab">POI</string>
+    <string name="openNavigationDrawer">Open tab menu</string>
+    <string name="closeNavigationDrawer">Close tab menu</string>
+
+    <!-- main activity menu -->
     <string name="menuItemSettings">Settings</string>
+
+    <!-- fragment names -->
+    <string name="fragmentSearchName">Search</string>
+    <string name="fragmentFavoriteName">Favorites</string>
+    <string name="fragmentRouterName">Router</string>
+    <string name="fragmentPOIName">POI</string>
+    <string name="fragmentLocationAndDirectionName">Location and Direction</string>
 
     <!-- router fragment -->
     <string name="buttonRouteCommandList">Commands</string>
@@ -25,6 +34,9 @@
     <!-- point -->
     <string name="wayPointName">Way point</string>
 
+    <!-- gps point -->
+    <string name="currentLocationName">Current location</string>
+
     <!-- POIPoint -->
     <string name="entranceSingular">entrance</string>
     <string name="entrancePlural">entrances</string>
@@ -36,19 +48,50 @@
     <string name="roStationExactStopPosition">, precise station location available</string>
     <string name="roStationNoExactStopPosition">, precise station location not available</string>
 
-    <!-- POIListObject -->
-    <string name="poiListObjectDescription">%1$s\nIn %2$d meters, %3$s</string>
+
+    <!-- POICategory -->
+    <string name="labelPOICategoryBusTram">Bus and tram stations</string>
+    <string name="labelPOICategoryTrain">Train, suburban train and subway stations</string>
+    <string name="labelPOICategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
+    <string name="labelPOICategoryTaxi">Cabs</string>
+    <string name="labelPOICategoryFood">Food</string>
+    <string name="labelPOICategoryTourism">Tourism</string>
+    <string name="labelPOICategoryShop">Shopping</string>
+    <string name="labelPOICategoryHealth">Health</string>
+    <string name="labelPOICategoryEducation">Education</string>
+    <string name="labelPOICategoryFinance">Finance</string>
+    <string name="labelPOICategoryEntertainment">Sports and entertainment</string>
+    <string name="labelPOICategoryPublicService">Public services</string>
+    <string name="labelPOICategoryBuildingsWithName">All buildings with a name</string>
+    <string name="labelPOICategorySurveillance">Surveillance cameras</string>
+    <string name="labelPOICategoryBench">Benches</string>
+    <string name="labelPOICategoryTrash">Trash cans</string>
+    <string name="labelPOICategoryNature">Lakes and mountains</string>
+    <string name="labelPOICategoryBridge">Bridges</string>
+    <string name="labelPOICategoryNamedIntersection">Intersections with name</string>
+    <string name="labelPOICategoryOtherIntersection">Intersections without name</string>
+    <string name="labelPOICategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
+
+    <!-- PointListObject -->
+    <string name="pointListObjectDescription">%1$s\nIn %2$d meters, %3$s</string>
 
     <!-- standard messages, which are used in more than one component -->
     <string name="dialogYes">Yes</string>
     <string name="dialogNo">No</string>
     <string name="dialogOK">OK</string>
     <string name="dialogCancel">Cancel</string>
-    <string name="messageUnknownError">Due to an unknown error, the navigation server is not accessible.</string>
-    <string name="messageErrorFromServer">Error: %s</string>
-    <string name="messageJSONError">Error during : %s</string>
-    <string name="messageNetworkError">Due to an network error, the navigation server is not accessible.\n\n%s</string>
     <string name="messagePleaseWait">Please wait...</string>
 
+    <!-- return code errors -->
+    <string name="messageError1000">Cancelled</string>
+    <string name="messageError1001">Error: POI profile not found.</string>
+    <string name="messageError1002">Error: No POI categories selected.</string>
+    <string name="messageError1003">Error: No internet connection available.</string>
+    <string name="messageError1004">Error: No location found.</string>
+    <string name="messageError1005">Error: No viewing direction.</string>
+    <string name="messageError1010">Error: Can\'t connect to server.</string>
+    <string name="messageError1011">Error: Invalid server response.</string>
+    <string name="messageError1012">Error from server: %1$s</string>
+    <string name="messageUnknownError">Unknown error: %1$d</string>
 
 </resources>

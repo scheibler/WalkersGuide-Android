@@ -1,21 +1,27 @@
-package org.walkersguide.android;
+package org.walkersguide.android.ui.activity;
 
-import org.walkersguide.android.interfaces.FragmentCommunicator;
-import org.walkersguide.android.ui.AbstractActivity;
-import org.walkersguide.android.ui.POIFragment;
-import org.walkersguide.android.ui.RouterFragment;
-import org.walkersguide.android.ui.SettingsActivity;
-import org.walkersguide.android.utils.SettingsManager.GeneralSettings;
-import org.walkersguide.android.utils.TTSWrapper;
+import org.walkersguide.android.R;
+import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.ui.fragment.FavoriteFragment;
+import org.walkersguide.android.ui.fragment.LocationAndDirectionFragment;
+import org.walkersguide.android.ui.fragment.POIFragment;
+import org.walkersguide.android.ui.fragment.RouterFragment;
+import org.walkersguide.android.ui.fragment.SearchFragment;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsManager.GeneralSettings;
+import org.walkersguide.android.util.TTSWrapper;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,8 +30,15 @@ import android.view.MenuItem;
 public class MainActivity extends AbstractActivity {
 
 	// communicate with attached fragments
+	public FragmentCommunicator searchFragmentCommunicator;
+	public FragmentCommunicator favoriteFragmentCommunicator;
 	public FragmentCommunicator routerFragmentCommunicator;
 	public FragmentCommunicator poiFragmentCommunicator;
+	public FragmentCommunicator locationAndDirectionFragmentCommunicator;
+
+	// navigation drawer
+	private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
 
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -63,11 +76,22 @@ public class MainActivity extends AbstractActivity {
 		// of the app.
 		mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(this);
 
+        // navigation drawer
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        navigationView = (NavigationView) findViewById(R.id.navigationView);
+        navigationView.setItemIconTintList(null);
+
         // toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(
-                getResources().getString(R.string.app_name));
+        		mAppSectionsPagerAdapter.getPageTitle(
+                    settingsManagerInstance.getGeneralSettings().getRecentOpenTab())
+                .toString());
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.openNavigationDrawer, R.string.closeNavigationDrawer);
+        drawerLayout.setDrawerListener(drawerToggle);
+        drawerToggle.syncState();
 
 		// Set up the ViewPager, attaching the adapter and setting up a listener
 		// for when the
@@ -79,6 +103,9 @@ public class MainActivity extends AbstractActivity {
                 GeneralSettings generalSettings = settingsManagerInstance.getGeneralSettings();
     			if (generalSettings.getRecentOpenTab() != position) {
                     leaveActiveFragment();
+                    // set toolbar title
+        			String activeTabName = mAppSectionsPagerAdapter.getPageTitle(position).toString();
+                    getSupportActionBar().setTitle(activeTabName);
                     // announce if switched by gesture
                     if (switchFragmentGestureDetected) {
                         ttsWrapperInstance.speak(
@@ -89,6 +116,30 @@ public class MainActivity extends AbstractActivity {
     				generalSettings.setRecentOpenTab(position);
                     enterActiveFragment();
                 }
+            }
+        });
+
+        // Setup click events on the Navigation View Items.
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override public boolean onNavigationItemSelected(MenuItem menuItem) {
+                drawerLayout.closeDrawers();
+                if (menuItem.getItemId() == R.id.menuItemSearchFragment) {
+                    switchFragmentGestureDetected = false;
+                    mViewPager.setCurrentItem(Constants.FRAGMENT.SEARCH);
+                } else if (menuItem.getItemId() == R.id.menuItemFavoriteFragment) {
+                    switchFragmentGestureDetected = false;
+                    mViewPager.setCurrentItem(Constants.FRAGMENT.FAVORITE);
+                } else if (menuItem.getItemId() == R.id.menuItemRouterFragment) {
+                    switchFragmentGestureDetected = false;
+                    mViewPager.setCurrentItem(Constants.FRAGMENT.ROUTER);
+                } else if (menuItem.getItemId() == R.id.menuItemPOIFragment) {
+                    switchFragmentGestureDetected = false;
+                    mViewPager.setCurrentItem(Constants.FRAGMENT.POI);
+                } else if (menuItem.getItemId() == R.id.menuItemLocationAndDirectionFragment) {
+                    switchFragmentGestureDetected = false;
+                    mViewPager.setCurrentItem(Constants.FRAGMENT.LOCATION_AND_DIRECTION);
+                }
+                return true;
             }
         });
 
@@ -125,14 +176,6 @@ public class MainActivity extends AbstractActivity {
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menuItemRouterTab:
-                switchFragmentGestureDetected = false;
-                mViewPager.setCurrentItem(0);
-                break;
-            case R.id.menuItemPOITab:
-                switchFragmentGestureDetected = false;
-                mViewPager.setCurrentItem(1);
-                break;
             case R.id.menuItemSettings:
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
@@ -163,15 +206,33 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case 0:
+                case Constants.FRAGMENT.SEARCH:
+                    if (searchFragmentCommunicator != null) {
+                        searchFragmentCommunicator.onFragmentDisabled();
+                        return;
+                    }
+                    break;
+                case Constants.FRAGMENT.FAVORITE:
+                    if (favoriteFragmentCommunicator != null) {
+                        favoriteFragmentCommunicator.onFragmentDisabled();
+                        return;
+                    }
+                    break;
+                case Constants.FRAGMENT.ROUTER:
                     if (routerFragmentCommunicator != null) {
                         routerFragmentCommunicator.onFragmentDisabled();
                         return;
                     }
                     break;
-                case 1:
+                case Constants.FRAGMENT.POI:
                     if (poiFragmentCommunicator != null) {
                         poiFragmentCommunicator.onFragmentDisabled();
+                        return;
+                    }
+                    break;
+                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
+                    if (locationAndDirectionFragmentCommunicator != null) {
+                        locationAndDirectionFragmentCommunicator.onFragmentDisabled();
                         return;
                     }
                     break;
@@ -201,17 +262,34 @@ public class MainActivity extends AbstractActivity {
 		}
 
         @Override public void run() {
-            System.out.println("xxx mainActivity enter " + currentFragment + " (counter = " + counter + ")");
             switch (currentFragment) {
-                case 0:
+                case Constants.FRAGMENT.SEARCH:
+                    if (searchFragmentCommunicator != null) {
+                        searchFragmentCommunicator.onFragmentEnabled();
+                        return;
+                    }
+                    break;
+                case Constants.FRAGMENT.FAVORITE:
+                    if (favoriteFragmentCommunicator != null) {
+                        favoriteFragmentCommunicator.onFragmentEnabled();
+                        return;
+                    }
+                    break;
+                case Constants.FRAGMENT.ROUTER:
                     if (routerFragmentCommunicator != null) {
                         routerFragmentCommunicator.onFragmentEnabled();
                         return;
                     }
                     break;
-                case 1:
+                case Constants.FRAGMENT.POI:
                     if (poiFragmentCommunicator != null) {
                         poiFragmentCommunicator.onFragmentEnabled();
+                        return;
+                    }
+                    break;
+                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
+                    if (locationAndDirectionFragmentCommunicator != null) {
+                        locationAndDirectionFragmentCommunicator.onFragmentEnabled();
                         return;
                     }
                     break;
@@ -230,35 +308,49 @@ public class MainActivity extends AbstractActivity {
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
 	 * one of the primary sections of the app.
 	 */
-	public class AppSectionsPagerAdapter extends FragmentStatePagerAdapter {
 
-		private String[] tabTitles;
+	public class AppSectionsPagerAdapter extends FragmentStatePagerAdapter {
 
 		public AppSectionsPagerAdapter(FragmentActivity activity) {
 			super(activity.getSupportFragmentManager());
-            this.tabTitles = new String[] {
-    				getResources().getString(R.string.menuItemRouterTab),
-    				getResources().getString(R.string.menuItemPOITab)
-            };
 		}
 
         @Override public Fragment getItem(int position) {
             switch (position) {
-                case 0:
+                case Constants.FRAGMENT.SEARCH:
+                    return SearchFragment.newInstance();
+                case Constants.FRAGMENT.FAVORITE:
+                    return FavoriteFragment.newInstance();
+                case Constants.FRAGMENT.ROUTER:
                     return RouterFragment.newInstance();
-                case 1:
+                case Constants.FRAGMENT.POI:
                     return POIFragment.newInstance();
+                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
+                    return LocationAndDirectionFragment.newInstance();
                 default:
                     return null;
             }
         }
 
-		@Override public int getCount() {
-			return this.tabTitles.length;
+		@Override public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case Constants.FRAGMENT.SEARCH:
+    				return getResources().getString(R.string.fragmentSearchName);
+                case Constants.FRAGMENT.FAVORITE:
+    				return getResources().getString(R.string.fragmentFavoriteName);
+                case Constants.FRAGMENT.ROUTER:
+    				return getResources().getString(R.string.fragmentRouterName);
+                case Constants.FRAGMENT.POI:
+    				return getResources().getString(R.string.fragmentPOIName);
+                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
+    				return getResources().getString(R.string.fragmentLocationAndDirectionName);
+                default:
+                    return "";
+            }
 		}
 
-		@Override public CharSequence getPageTitle(int position) {
-			return this.tabTitles[position];
+		@Override public int getCount() {
+			return Constants.MainActivityFragmentValueArray.length;
 		}
 	}
 

@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui;
+package org.walkersguide.android.ui.activity;
 
 import org.walkersguide.android.R;
 

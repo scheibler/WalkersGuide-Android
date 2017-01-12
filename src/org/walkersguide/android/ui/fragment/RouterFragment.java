@@ -1,11 +1,10 @@
-package org.walkersguide.android.ui;
+package org.walkersguide.android.ui.fragment;
 
-import org.walkersguide.android.MainActivity;
 import org.walkersguide.android.R;
-import org.walkersguide.android.interfaces.FragmentCommunicator;
-import org.walkersguide.android.utils.GlobalInstance;
-import org.walkersguide.android.utils.SettingsManager;
-import org.walkersguide.android.utils.TTSWrapper;
+import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.TTSWrapper;
 
 import android.app.Activity;
 import android.content.Context;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 public class RouterFragment extends Fragment implements FragmentCommunicator {
 
 	// Store instance variables
-	private GlobalInstance globalInstance;
 	private SettingsManager settingsManagerInstance;
     private TTSWrapper ttsWrapperInstance;
 
@@ -45,8 +43,6 @@ public class RouterFragment extends Fragment implements FragmentCommunicator {
 			// instanciate FragmentCommunicator interface to get data from MainActivity
 			((MainActivity) activity).routerFragmentCommunicator = this;
 		}
-        // global instance
-		globalInstance = ((GlobalInstance) context.getApplicationContext());
         // settings manager
 		settingsManagerInstance = SettingsManager.getInstance(context);
         // tts

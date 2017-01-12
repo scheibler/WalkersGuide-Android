@@ -3,14 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/menuItemRouterTab"
-        android:title="@string/menuItemRouterTab"
-        app:showAsAction="always" />
-    <item
-        android:id="@+id/menuItemPOITab"
-        android:title="@string/menuItemPOITab"
-        app:showAsAction="always" />
-    <item
         android:id="@+id/menuItemSettings"
         android:title="@string/menuItemSettings"
         app:showAsAction="never" />

@@ -1,4 +1,4 @@
-package org.walkersguide.android.utils;
+package org.walkersguide.android.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,8 +38,8 @@ public class TTSWrapper extends UtteranceProgressListener {
         tts = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
             @Override public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
+                    tts.setLanguage(Locale.getDefault());
                     tts.setOnUtteranceProgressListener(TTSWrapper.this);
-                    //tts.setLanguage(Locale.getDefault());
                 } else {
                     tts = null;
                 }
