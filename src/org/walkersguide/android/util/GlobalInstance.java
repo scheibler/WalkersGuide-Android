@@ -2,6 +2,7 @@ package org.walkersguide.android.util;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
@@ -12,6 +13,9 @@ public class GlobalInstance extends Application {
 
     private static final long MAX_ACTIVITY_TRANSITION_TIME_MS = 2000;
 
+    // session id
+    private String sessionId;
+
     // background detection
     private Timer mActivityTransitionTimer;
     private TimerTask mActivityTransitionTimerTask;
@@ -19,7 +23,12 @@ public class GlobalInstance extends Application {
 
     @Override public void onCreate() {
         super.onCreate();
+        this.sessionId = UUID.randomUUID().toString();
         this.wasInBackground = true;
+    }
+
+    public String getSessionId() {
+        return this.sessionId;
     }
 
 
@@ -41,7 +50,7 @@ public class GlobalInstance extends Application {
             public void run() {
                 // is run, when application was sent to background or the screen was turned off
                 ((GlobalInstance) getApplicationContext()).setApplicationInBackground(true);
-                // activate sensors
+                // deactivate sensors
                 PositionManager.getInstance(getApplicationContext()).stopGPS();
                 DirectionManager.getInstance(getApplicationContext()).stopSensors();
             }

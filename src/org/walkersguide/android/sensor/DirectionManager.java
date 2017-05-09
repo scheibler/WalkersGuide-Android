@@ -1,6 +1,10 @@
 package org.walkersguide.android.sensor;
 
-import org.walkersguide.android.basic.point.GPS;
+import java.util.HashMap;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.DirectionSettings;
@@ -19,27 +23,42 @@ import com.google.common.primitives.Ints;
 
 public class DirectionManager implements SensorEventListener {
 
+    // direction thresholds
+    public interface THRESHOLD0 {
+        public static final int ID = 0;
+        public static final int BEARING = 0;
+    }
+    public interface THRESHOLD1 {
+        public static final int ID = 1;
+        public static final int BEARING = 11;
+    }
+    public interface THRESHOLD2 {
+        public static final int ID = 2;
+        public static final int BEARING = 22;
+    }
+
+    // time between compass values
+    public static final int MIN_COMPASS_VALUE_DELAY = 250;          // 250 ms
+
     // shake detection
     private static final int TIME_THRESHOLD = 100;
     private static final int SHAKE_TIMEOUT = 500;
     private static final int SHAKE_DURATION = 1000;
     private static final int SHAKE_COUNT = 3;
-    // update thresholds
-    public static final int UPDATE_DIRECTION_THRESHOLD_1 = 22;            // 22 degree
 
     private Context context;
     private static DirectionManager directionManagerInstance;
     private SettingsManager settingsManagerInstance;
 
     // direction variables
-    private int compassDirection, gpsDirection, manualDirection, lastDirection;
-    private int directionSource;
+    private HashMap<Integer,Integer> lastDirectionMap;
 
     // sensor variables
     private SensorManager sensorManager;
     private float[] valuesAccelerometer, valuesMagneticField;
     private boolean hasAccelerometerData, hasMagneticFieldData;
-    private int[] bearingOfMagneticField;
+    private int[] compassDirectionArray;
+    private long timeOfLastCompassDirection;
 
     // shake detection
     private int mShakeCount;
@@ -57,27 +76,20 @@ public class DirectionManager implements SensorEventListener {
         this.sensorManager = null;
         this.settingsManagerInstance = SettingsManager.getInstance(context);
 
-        // load direction settings
-        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
-        this.directionSource = directionSettings.getSelectedDirectionSource();
-        this.compassDirection = directionSettings.getCompassDirection();
-        this.gpsDirection = directionSettings.getGPSDirection();
-        this.manualDirection = directionSettings.getManualDirection();
-        this.lastDirection = 0;
+        // last direction map
+        this.lastDirectionMap = new HashMap<Integer,Integer>();
 
         // compass specific variables
-        valuesAccelerometer = new float[]{-1.0f,-1.0f,-1.0f};
-        valuesMagneticField = new float[]{-1.0f,-1.0f,-1.0f};
+        valuesAccelerometer = new float[]{-1.0f, -1.0f, -1.0f};
+        valuesMagneticField = new float[]{-1.0f, -1.0f, -1.0f};
         hasAccelerometerData = false;
         hasMagneticFieldData = false;
-        bearingOfMagneticField = new int[5];
-        for (int i : bearingOfMagneticField) {
-            i = 0;
-        }
+        compassDirectionArray = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        timeOfLastCompassDirection = System.currentTimeMillis();
 
         // listen for new gps position broadcasts
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_NEW_GPS_POSITION);
+        filter.addAction(Constants.ACTION_NEW_GPS_LOCATION);
         LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
     }
 
@@ -85,19 +97,6 @@ public class DirectionManager implements SensorEventListener {
     /**
      * direction management
      */
-
-    public int getCurrentDirection() {
-        switch (this.directionSource) {
-            case Constants.DIRECTION_SOURCE.COMPASS:
-                return this.compassDirection;
-            case Constants.DIRECTION_SOURCE.GPS:
-                return this.gpsDirection;
-            case Constants.DIRECTION_SOURCE.MANUAL:
-                return this.manualDirection;
-            default:
-                return -1;
-        }
-    }
 
     public void stopSensors() {
         if (sensorManager != null) {
@@ -119,63 +118,91 @@ public class DirectionManager implements SensorEventListener {
                     this,
                     sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
                     SensorManager.SENSOR_DELAY_NORMAL);
+            // reset direction source if simulation
+            DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+            if (directionSettings.getSelectedDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION) {
+                setDirectionSource(
+                        directionSettings.getPreviousDirectionSource());
+            }
+        }
+    }
+
+    public int getDirectionSource() {
+        return settingsManagerInstance.getDirectionSettings().getSelectedDirectionSource();
+    }
+
+    public int getPreviousDirectionSource() {
+        return settingsManagerInstance.getDirectionSettings().getPreviousDirectionSource();
+    }
+
+    public void setDirectionSource(int newDirectionSource) {
+        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+        if (Ints.contains(Constants.DirectionSourceValueArray, newDirectionSource)
+                && directionSettings.getSelectedDirectionSource() != newDirectionSource) {
+            // new direction broadcast
+            if (directionSettings.getSelectedDirectionSource() != Constants.DIRECTION_SOURCE.SIMULATION) {
+                directionSettings.setPreviousDirectionSource(
+                        directionSettings.getSelectedDirectionSource());
+            }
+            directionSettings.setSelectedDirectionSource(newDirectionSource);
+            broadcastCurrentDirection();
         }
     }
 
 
     /**
-     * direction source
+     * current direction
      */
 
-    public int getDirectionSource() {
-        return this.directionSource;
-    }
-
-    public void setDirectionSource(int newDirectionSource) {
-        if (Ints.contains(Constants.DirectionSourceValueArray, newDirectionSource)
-                && this.directionSource != newDirectionSource) {
-            this.directionSource = newDirectionSource;
-            // save
-            DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
-            directionSettings.setSelectedDirectionSource(newDirectionSource);
-            // new direction broadcast
-            sendNewDirectionBroadcast();
+    public int getCurrentDirection() {
+        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+        switch (directionSettings.getSelectedDirectionSource()) {
+            case Constants.DIRECTION_SOURCE.COMPASS:
+                return directionSettings.getCompassDirection();
+            case Constants.DIRECTION_SOURCE.GPS:
+                return directionSettings.getGPSDirection();
+            case Constants.DIRECTION_SOURCE.SIMULATION:
+                return directionSettings.getSimulatedDirection();
+            default:
+                return -1;
         }
     }
 
-    private void sendNewDirectionBroadcast() {
-        Intent intent;
-        switch (this.directionSource) {
-            case Constants.DIRECTION_SOURCE.COMPASS:
-                intent = new Intent(Constants.ACTION_NEW_DIRECTION);
-                if (Math.abs(this.lastDirection-this.compassDirection) > UPDATE_DIRECTION_THRESHOLD_1) {
-                    this.lastDirection = this.compassDirection;
-                    intent.putExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_UPDATE_THRESHOLD, 1);
-                } else {
-                    intent.putExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_UPDATE_THRESHOLD, 0);
-                }
-                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                break;
-            case Constants.DIRECTION_SOURCE.GPS:
-                intent = new Intent(Constants.ACTION_NEW_DIRECTION);
-                if (Math.abs(this.lastDirection-this.gpsDirection) > UPDATE_DIRECTION_THRESHOLD_1) {
-                    this.lastDirection = this.gpsDirection;
-                    intent.putExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_UPDATE_THRESHOLD, 1);
-                } else {
-                    intent.putExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_UPDATE_THRESHOLD, 0);
-                }
-                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                break;
-            case Constants.DIRECTION_SOURCE.MANUAL:
-                intent = new Intent(Constants.ACTION_NEW_DIRECTION);
-                if (Math.abs(this.lastDirection-this.manualDirection) > UPDATE_DIRECTION_THRESHOLD_1) {
-                    this.lastDirection = this.manualDirection;
-                    intent.putExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_UPDATE_THRESHOLD, 1);
-                } else {
-                    intent.putExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_UPDATE_THRESHOLD, 0);
-                }
-                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                break;
+    public void requestCurrentDirection() {
+        broadcastCurrentDirection();
+    }
+
+    private void broadcastCurrentDirection() {
+        int currentDirection = getCurrentDirection();
+        if (currentDirection != -1) {
+            Intent intent = new Intent(Constants.ACTION_NEW_DIRECTION);
+            // direction value
+            intent.putExtra(
+                    Constants.ACTION_NEW_DIRECTION_ATTR.INT_DIRECTION_IN_DEGREE,
+                    currentDirection);
+            // source
+            intent.putExtra(
+                    Constants.ACTION_NEW_DIRECTION_ATTR.INT_SOURCE,
+                    settingsManagerInstance.getDirectionSettings().getSelectedDirectionSource());
+            // bearing threshold
+            intent.putExtra(
+                    Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID,
+                    THRESHOLD0.ID);
+            if (lastDirectionMap.get(THRESHOLD1.ID) == null
+                    || Math.abs(lastDirectionMap.get(THRESHOLD1.ID)-currentDirection) > THRESHOLD1.BEARING) {
+                lastDirectionMap.put(THRESHOLD1.ID, currentDirection);
+                intent.putExtra(
+                        Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID,
+                        THRESHOLD1.ID);
+            }
+            if (lastDirectionMap.get(THRESHOLD2.ID) == null
+                    || Math.abs(lastDirectionMap.get(THRESHOLD2.ID)-currentDirection) > THRESHOLD2.BEARING) {
+                lastDirectionMap.put(THRESHOLD2.ID, currentDirection);
+                intent.putExtra(
+                        Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID,
+                        THRESHOLD2.ID);
+            }
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
     }
 
@@ -185,8 +212,19 @@ public class DirectionManager implements SensorEventListener {
      * implements SensorEventListener
      */
 
-    public int getCompassDirection() {
-        return this.compassDirection;
+    public void requestCompassDirection() {
+        broadcastCompassDirection();
+    }
+
+    private void broadcastCompassDirection() {
+        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+        if (directionSettings.getCompassDirection() != -1) {
+            Intent intent = new Intent(Constants.ACTION_NEW_COMPASS_DIRECTION);
+            intent.putExtra(
+                    Constants.ACTION_NEW_DIRECTION_ATTR.INT_DIRECTION_IN_DEGREE,
+                    directionSettings.getCompassDirection());
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
     }
 
     public void onSensorChanged(SensorEvent event) {
@@ -212,21 +250,24 @@ public class DirectionManager implements SensorEventListener {
             boolean success = SensorManager.getRotationMatrix(
                     matrixR, matrixI, valuesAccelerometer, valuesMagneticField);
             if(success) {
+                DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+
+                // calculate new compass value
                 SensorManager.getOrientation(matrixR, orientationValues);
-                System.arraycopy(bearingOfMagneticField, 0, bearingOfMagneticField, 1, bearingOfMagneticField.length-1);
-                bearingOfMagneticField[0] = (
+                System.arraycopy(compassDirectionArray, 0, compassDirectionArray, 1, compassDirectionArray.length-1);
+                compassDirectionArray[0] = (
                         (int) Math.round(
                             Math.toDegrees(orientationValues[0])
-                            + settingsManagerInstance.getDirectionSettings().getDifferenceToTrueNorth())
+                            + directionSettings.getDifferenceToTrueNorth())
                         + 360) % 360;
 
                 // calculate average compass value
                 // Mitsuta method: http://abelian.org/vlf/bearings.html
-                int sum = bearingOfMagneticField[0];
-                int D = bearingOfMagneticField[0];
+                int sum = compassDirectionArray[0];
+                int D = compassDirectionArray[0];
                 int delta = 0;
-                for (int i=1; i<bearingOfMagneticField.length; i++) {
-                    delta = bearingOfMagneticField[i] - D;
+                for (int i=1; i<compassDirectionArray.length; i++) {
+                    delta = compassDirectionArray[i] - D;
                     if (delta < -180) {
                         D = D + delta + 360;
                     } else if (delta < 180) {
@@ -236,20 +277,18 @@ public class DirectionManager implements SensorEventListener {
                     }
                     sum += D;
                 }
-                int average = (((int) sum / bearingOfMagneticField.length) + 360) % 360;
+                int average = (((int) sum / compassDirectionArray.length) + 360) % 360;
 
                 // decide, if we accept the compass value as new device wide bearing value
-                if (this.compassDirection != average) {
-                    this.compassDirection = average;
-                    // save
-                    DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+                if (directionSettings.getCompassDirection() != average
+                        && (System.currentTimeMillis()-this.timeOfLastCompassDirection) > MIN_COMPASS_VALUE_DELAY) {
                     directionSettings.setCompassDirection(average);
+                    this.timeOfLastCompassDirection = System.currentTimeMillis();
                     // broadcast new compass direction action
-                    Intent intent = new Intent(Constants.ACTION_NEW_COMPASS_DIRECTION);
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                    broadcastCompassDirection();
                     // new direction broadcast
-                    if (this.directionSource == Constants.DIRECTION_SOURCE.COMPASS) {
-                        sendNewDirectionBroadcast();
+                    if (directionSettings.getSelectedDirectionSource() == Constants.DIRECTION_SOURCE.COMPASS) {
+                        broadcastCurrentDirection();
                     }
                 }
             }
@@ -262,23 +301,44 @@ public class DirectionManager implements SensorEventListener {
      * direction from gps
      */
 
-    public int getGPSDirection() {
-        return this.gpsDirection;
+    public void requestGPSDirection() {
+        broadcastGPSDirection();
+    }
+
+    private void broadcastGPSDirection() {
+        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+        if (directionSettings.getGPSDirection() != -1) {
+            Intent intent = new Intent(Constants.ACTION_NEW_GPS_DIRECTION);
+            intent.putExtra(
+                    Constants.ACTION_NEW_DIRECTION_ATTR.INT_DIRECTION_IN_DEGREE,
+                    directionSettings.getGPSDirection());
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_GPS_POSITION)) {
-                GPS currentGPSPosition = PositionManager.getInstance(context).getCurrentGPSPosition();
-                if (currentGPSPosition != null
-                        && currentGPSPosition.getBearing() >= 0.0f) {
-                    gpsDirection = Math.round(currentGPSPosition.getBearing());
-                    // save
-                    DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
-                    directionSettings.setGPSDirection(gpsDirection);
-                    // new direction broadcast
-                    if (directionSource == Constants.DIRECTION_SOURCE.GPS) {
-                        sendNewDirectionBroadcast();
+            if (intent.getAction().equals(Constants.ACTION_NEW_GPS_LOCATION)) {
+                GPS gpsLocation = null;
+                try {
+                    gpsLocation = new GPS(
+                            context,
+                            new JSONObject(
+                                intent.getStringExtra(Constants.ACTION_NEW_GPS_LOCATION_ATTR.STRING_POINT_SERIALIZED))
+                            );
+                } catch (JSONException e) {
+                    gpsLocation = null;
+                } finally {
+                    if (gpsLocation != null
+                            && gpsLocation.getBearing() >= 0.0f) {
+                        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+                        directionSettings.setGPSDirection(Math.round(gpsLocation.getBearing()));
+                        // broadcast new gps direction action
+                        broadcastGPSDirection();
+                        // new direction broadcast
+                        if (directionSettings.getSelectedDirectionSource() == Constants.DIRECTION_SOURCE.GPS) {
+                            broadcastCurrentDirection();
+                        }
                     }
                 }
             }
@@ -287,22 +347,35 @@ public class DirectionManager implements SensorEventListener {
 
 
     /**
-     * manual
+     * simulated direction
      */
 
-    public int getManualDirection() {
-        return this.manualDirection;
+    public void requestSimulatedDirection() {
+        broadcastSimulatedDirection();
     }
 
-    public void setManualDirection(int newDirection) {
-        if (newDirection>= 0 && newDirection < 360) {
-            this.manualDirection = newDirection;
-            // save
-            DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
-            directionSettings.setManualDirection(newDirection);
-            // new direction broadcast
-            if (this.directionSource == Constants.DIRECTION_SOURCE.MANUAL) {
-                sendNewDirectionBroadcast();
+    private void broadcastSimulatedDirection() {
+        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+        if (directionSettings.getSimulatedDirection() != -1) {
+            Intent intent = new Intent(Constants.ACTION_NEW_SIMULATED_DIRECTION);
+            intent.putExtra(
+                    Constants.ACTION_NEW_SIMULATED_DIRECTION_ATTR.INT_DIRECTION_IN_DEGREE,
+                    directionSettings.getSimulatedDirection());
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
+    }
+
+    public void setSimulatedDirection(int newDirection) {
+        DirectionSettings directionSettings = settingsManagerInstance.getDirectionSettings();
+        if (newDirection >= 0
+                && newDirection <= 359
+                && newDirection != directionSettings.getSimulatedDirection()) {
+            directionSettings.setSimulatedDirection(newDirection);
+            // broadcast new simulated direction action
+            broadcastSimulatedDirection();
+            // broadcast new direction action
+            if (directionSettings.getSelectedDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION) {
+                broadcastCurrentDirection();
             }
         }
     }

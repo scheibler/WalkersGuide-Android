@@ -4,19 +4,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="@dimen/activityHorizontalMargin"
-    android:layout_marginRight="@dimen/activityHorizontalMargin"
+    android:padding="@dimen/activityMargin"
     android:orientation="vertical" >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:elevation="6dp"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    <include
+        layout="@layout/layout_toolbar" />
 
     <android.support.v4.widget.DrawerLayout
         android:id="@+id/drawerLayout"

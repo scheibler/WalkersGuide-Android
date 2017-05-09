@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- abstract activity menu -->
+    <string name="menuItemDirection">Direction</string>
+    <string name="menuItemLocation">Location</string>
+    <string name="menuItemSaveCurrentPosition">Save position</string>
+    <string name="menuItemSettings">Settings</string>
+    <string name="menuItemInfo">Info</string>
+
+    <!--
+         main activity and fragments
+    -->
+
     <!-- main activity -->
     <string name="app_name">WalkersGuide-NG</string>
     <string name="openNavigationDrawer">Open tab menu</string>
     <string name="closeNavigationDrawer">Close tab menu</string>
-
-    <!-- main activity menu -->
-    <string name="menuItemSettings">Settings</string>
 
     <!-- fragment names -->
     <string name="fragmentSearchName">Search</string>
     <string name="fragmentFavoriteName">Favorites</string>
     <string name="fragmentRouterName">Router</string>
     <string name="fragmentPOIName">POI</string>
-    <string name="fragmentLocationAndDirectionName">Location and Direction</string>
 
     <!-- router fragment -->
     <string name="buttonRouteCommandList">Commands</string>
@@ -22,32 +29,225 @@
     <string name="buttonNewRoute">New route</string>
     <string name="buttonPreviousRouteObject">Previous</string>
     <string name="buttonNextRouteObject">Next</string>
-    <string name="buttonSelectPOIProfile">POI profile</string>
+
+    <!-- favorites and poi fragments -->
+    <string name="buttonPreviousProfile">Previous profile</string>
+    <string name="buttonNextProfile">Next profile</string>
+    <string name="emptyProfileList">No profile selected</string>
+    <string name="buttonRefresh">Refresh</string>
+    <string name="buttonCancel">Cancel</string>
+    <string name="buttonFilter">Filter</string>
+    <string name="buttonMore">More</string>
+    <!-- more button menu -->
+    <string name="menuItemNewProfile">New profile</string>
+    <string name="menuItemEditProfile">Edit profile</string>
+    <string name="menuItemClearProfile">Clear profile</string>
+    <string name="menuItemRemoveProfile">Remove profile</string>
+
+    <!-- select profile dialog -->
+    <string name="selectProfileDialogTitle">Select profile</string>
+
+    <!-- new / edit profile dialog -->
+    <string name="newProfileDialogTitle">Create profile</string>
+    <string name="editProfileDialogTitle">Edit profile</string>
+    <string name="labelProfileName">Name:</string>
+    <string name="messageProfileNameMissing">Please enter a profile name.</string>
+    <string name="messageProfileExists">The profile with the name %1$s already exists.</string>
+    <string name="messageCouldNotCreateProfile">The profile could not be created.</string>
+    <string name="messageCouldNotEditProfile">The profile could not be modified.</string>
+
+    <!-- clear or remove profile dialog -->
+    <string name="clearProfileDialogTitle">Do you want to clear the profile %1$s?</string>
+    <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
+
+    <!-- favorites fragment -->
+    <string name="labelFavoritesFragmentHeaderSuccessSingular">1 favorite found.\nOrder: %1$s</string>
+    <string name="labelFavoritesFragmentHeaderSuccessSingularFiltered">1 favorite found.\nOrder: %1$s, filtered</string>
+    <string name="labelFavoritesFragmentHeaderSuccessPlural">%1$d favorites found.\nOrder: %2$s</string>
+    <string name="labelFavoritesFragmentHeaderSuccessPluralFiltered">%1$d favorites found.\nOrder: %2$s, filtered</string>
+
+    <!-- new / edit favorites profile dialog -->
+    <string name="labelFavoritesProfileSortCriteria">Sort criteria:</string>
+    <string name="radioButtonSortDistanceAsc">Distance, ascending</string>
+    <string name="radioButtonSortDistanceDesc">Distance, descending</string>
+    <string name="radioButtonSortNameAsc">Name, ascending</string>
+    <string name="radioButtonSortNameDesc">Name, descending</string>
+    <string name="radioButtonSortOrderAsc">Date, ascending</string>
+    <string name="radioButtonSortOrderDesc">Date, descending</string>
+    <string name="messageNoSortCriteria">Please select a sort criteria from the list.</string>
 
     <!-- poi fragment -->
-    <string name="buttonRefresh">Refresh</string>
-    <string name="buttonSearch">Search</string>
+    <string name="labelPOIFragmentHeaderSuccess">%1$d POI found.\nRadius: %2$d meters</string>
+    <string name="labelPOIFragmentHeaderSuccessFiltered">%1$d POI found.\nRadius: %2$d meters (filtered)</string>
+    <string name="labelMoreResults">Get more POI</string>
+
+    <!-- new / edit poi profile dialog -->
+    <string name="labelPOIProfileCategories">POI categories:</string>
+
+
+    <!--
+         other activities
+    -->
+
+    <!-- point details activity -->
+    <string name="pointDetailsActivityTitle">Details</string>
+    <string name="labelGeneralPointDetails">General:</string>
+    <string name="labelPointName">Name: %1$s</string>
+    <string name="labelPointType">Type: %1$s</string>
+    <string name="labelPointDistanceAndBearing">Distance: %1$d meters, %2$s</string>
+    <string name="buttonPointFavorite">Favorite</string>
+    <string name="buttonPointSimulateLocation">Simulate</string>
+    <string name="labelAttributesPointDetails">Attributes:</string>
+
+    <!-- DeparturesFragment -->
+    <string name="fragmentDeparturesName">Departures</string>
+    <string name="labelNextDepartures">Next departures:</string>
+    <string name="buttonRefreshDepartureList">Refresh departure list</string>
+    <string name="labelRequestingDepartures">Requesting next departures. Please wait.</string>
+    <string name="labelNoDeparturesFound">No departures found.</string>
+
+    <!-- EntrancesFragment -->
+    <string name="fragmentEntrancesName">Entrances</string>
+    <string name="labelNumberOfEntrancesSingular">POI has 1 entrance:</string>
+    <string name="labelNumberOfEntrancesPlural">POI has %1$d entrances:</string>
+
+    <!-- IntersectionWaysFragment -->
+    <string name="fragmentIntersectionWaysName">Ways</string>
+    <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$d streets\nDirection: %2$s</string>
+
+    <!-- PedestrianCrossingsFragment -->
+    <string name="fragmentPedestrianCrossingsName">Crossings</string>
+    <string name="labelNumberOfPedestrianCrossingsSingular">1 crossing nearby:</string>
+    <string name="labelNumberOfPedestrianCrossingsPlural">%1$d crossings nearby:</string>
+
+    <!-- PointDetailsFragment -->
+    <string name="fragmentPointDetailsName">Details</string>
+
+    <!-- segment details activity -->
+    <string name="segmentDetailsActivityTitle">Details</string>
+    <string name="labelGeneralSegmentDetails">General:</string>
+    <string name="labelSegmentName">Name: %1$s</string>
+    <string name="labelSegmentType">Type: %1$s</string>
+    <string name="labelSegmentAbsoluteBearing">Bearing: %1$d degree (%2$s)</string>
+    <string name="labelSegmentRelativeBearing">Relative: %1$s</string>
+    <string name="buttonSegmentExcludeFromRouting">Exclude</string>
+    <string name="buttonSegmentSimulateDirection">Simulate</string>
+    <string name="labelAttributesSegmentDetails">Attributes:</string>
+
+    <!-- SegmentDetailsFragment -->
+    <string name="fragmentSegmentDetailsName">Details</string>
+
+    <!-- NextIntersectionsFragment -->
+    <string name="fragmentNextIntersectionsName">Intersections</string>
 
     <!-- settings activity -->
     <string name="settingsActivityTitle">Settings</string>
+    <string name="labelServerSettingsHeader">Server settings:</string>
+    <string name="buttonServerURL">URL: %1$s</string>
+    <string name="buttonServerURLNoSelection">URL: None selected</string>
+    <string name="buttonServerMap">Map: %1$s</string>
+    <string name="buttonServerMapNoSelection">Map: None selected</string>
+    <string name="buttonServerPublicTransportProvider">Provider: %1$s</string>
+    <string name="buttonServerPublicTransportProviderNoSelection">Provider: None selected</string>
+
+    <!-- new server dialog -->
+    <string name="newServerDialogTitle">New server</string>
+    <string name="editHintServerURL">Server URL</string>
+    <string name="messageServerURLMissing">Please enter a server URL.</string>
+
+    <!-- select map dialog -->
+    <string name="selectMapDialogTitle">Select map</string>
+
+    <!-- select public transport provider  dialog -->
+    <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
+
+    <!-- info activity -->
+    <string name="infoActivityTitle">Info</string>
+    <string name="labelAppInformationHeader">WalkersGuide:</string>
+    <string name="labelInfoProgramVersion">Version</string>
+    <string name="labelInfoEMail">Contact: support@walkersguide.org</string>
+    <string name="labelInfoURL">Website: http://walkersguide.org</string>
+    <string name="labelSelectedMapHeader">Selected Map:</string>
+    <string name="labelSelectedMapName">Name:</string>
+    <string name="labelSelectedMapVersion">Version:</string>
+    <string name="labelSelectedMapCreated">Created:</string>
+
+
+    <!--
+         dialogs and layouts
+    -->
+
+    <!-- enter address dialog -->
+    <string name="enterAddressDialogName">Enter Address:</string>
+    <string name="editHintAddress">city, street and house number</string>
+    <string name="messageAddressMissing">Please enter an address.</string>
+
+    <!-- select direction source dialog -->
+    <string name="selectDirectionSourceDialogName">Directional source:</string>
+    <string name="formattedDirectionValue">%1$s: %2$d degree (%3$s)</string>
+    <string name="directionSourceCompass">Compass</string>
+    <string name="directionSourceGPS">GPS</string>
+    <string name="directionSourceSimulated">Simulation</string>
+    <string name="labelNoDirectionAvailable">No direction available</string>
+    <string name="editHintDirectionInDegree">Direction in degree between 0 and 359.</string>
+
+    <!-- select location source dialog -->
+    <string name="selectLocationSourceDialogName">Location source:</string>
+    <string name="locationSourceGPS">GPS</string>
+    <string name="labelGPSLatitude">Latitude:</string>
+    <string name="labelGPSLongitude">Longitude:</string>
+    <string name="labelGPSProvider">Provider:</string>
+    <string name="labelGPSAccuracy">Accuracy:</string>
+    <string name="labelGPSAltitude">Altitude:</string>
+    <string name="labelGPSBearing">Bearing:</string>
+    <string name="labelGPSSpeed">Speed:</string>
+    <string name="labelGPSTime">Last fix:</string>
+    <string name="labelNoGPSLocationAvailable">Got no location fix</string>
+    <string name="locationSourceSimulatedPoint">Simulation</string>
+    <string name="labelNoSimulatedPointSelected">No point selected</string>
+
+    <!-- single edit text layout -->
+    <string name="buttonDelete">Delete</string>
+
+
+    <!--
+         points
+    -->
 
     <!-- point -->
     <string name="wayPointName">Way point</string>
 
     <!-- gps point -->
-    <string name="currentLocationName">Current location</string>
+    <string name="currentLocationName">GPS location</string>
+
+    <!-- intersection point -->
+    <string name="intersectionDescription">%1$s\nIntersection with %2$d streets</string>
 
     <!-- POIPoint -->
     <string name="entranceSingular">entrance</string>
     <string name="entrancePlural">entrances</string>
 
     <!-- StationPoint -->
-    <string name="platformNumber">, platform</string>
-    <string name="transportLines">Lines</string>
-    <string name="roStationLineDirection">to</string>
+    <string name="stationLines">Lines: %1$s</string>
     <string name="roStationExactStopPosition">, precise station location available</string>
     <string name="roStationNoExactStopPosition">, precise station location not available</string>
 
+    <!-- street address point -->
+    <string name="streetAddressPointName">Address</string>
+
+    <!-- line -->
+    <string name="lineNrAndDirection">%1$s to %2$s</string>
+
+
+    <!--
+         poi management
+    -->
+
+    <!-- FavoritesProfile -->
+    <string name="fpNameAllPoints">All points</string>
+    <string name="fpNameAddresses">Addresses</string>
+    <string name="fpNameSimulatedPoints">Simulated points</string>
+    <string name="fpNameMyEntrances">My entrances</string>
 
     <!-- POICategory -->
     <string name="labelPOICategoryBusTram">Bus and tram stations</string>
@@ -63,6 +263,7 @@
     <string name="labelPOICategoryEntertainment">Sports and entertainment</string>
     <string name="labelPOICategoryPublicService">Public services</string>
     <string name="labelPOICategoryBuildingsWithName">All buildings with a name</string>
+    <string name="labelPOICategoryEntrance">Entrances</string>
     <string name="labelPOICategorySurveillance">Surveillance cameras</string>
     <string name="labelPOICategoryBench">Benches</string>
     <string name="labelPOICategoryTrash">Trash cans</string>
@@ -72,26 +273,63 @@
     <string name="labelPOICategoryOtherIntersection">Intersections without name</string>
     <string name="labelPOICategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
 
-    <!-- PointListObject -->
+    <!-- PointWrapper Object -->
     <string name="pointListObjectDescription">%1$s\nIn %2$d meters, %3$s</string>
+
+
+    <!--
+         helpers and utils
+    -->
 
     <!-- standard messages, which are used in more than one component -->
     <string name="dialogYes">Yes</string>
     <string name="dialogNo">No</string>
     <string name="dialogOK">OK</string>
     <string name="dialogCancel">Cancel</string>
+    <string name="dialogNext">Next</string>
+    <string name="dialogClear">Clear</string>
+    <string name="dialogClose">Close</string>
     <string name="messagePleaseWait">Please wait...</string>
+
+    <!-- units -->
+    <string name="unitDegree">degree</string>
+    <string name="unitKMH">km/h</string>
+    <string name="unitMeters">meters</string>
+    <string name="unitSatellites">satellites</string>
 
     <!-- return code errors -->
     <string name="messageError1000">Cancelled</string>
-    <string name="messageError1001">Error: POI profile not found.</string>
-    <string name="messageError1002">Error: No POI categories selected.</string>
+    <string name="messageError1001">Error: No POI profile selected.</string>
+    <string name="messageError1002">Error: No POI category selected.</string>
     <string name="messageError1003">Error: No internet connection available.</string>
     <string name="messageError1004">Error: No location found.</string>
-    <string name="messageError1005">Error: No viewing direction.</string>
+    <string name="messageError1005">Error: No direction found.</string>
+    <string name="messageError1006">Error: No map selected.</string>
+    <string name="messageError1007">Error: This app is outdated..</string>
     <string name="messageError1010">Error: Can\'t connect to server.</string>
     <string name="messageError1011">Error: Invalid server response.</string>
     <string name="messageError1012">Error from server: %1$s</string>
+    <string name="messageError1013">Found no coordinates for the entered address.</string>
     <string name="messageUnknownError">Unknown error: %1$d</string>
+
+    <!-- instruction directions -->
+    <string name="directionStraightforward">straight ahead</string>
+    <string name="directionTurnRightSlightly">slight right</string>
+    <string name="directionTurnRight">right</string>
+    <string name="directionTurnRightStrongly">sharp right</string>
+    <string name="directionBehindYou">in your back</string>
+    <string name="directionTurnLeftStrongly">sharp left</string>
+    <string name="directionTurnLeft">left</string>
+    <string name="directionTurnLeftSlightly">slight left</string>
+
+    <!-- geographic directions -->
+    <string name="directionNorth">North</string>
+    <string name="directionNorthEast">Northeast</string>
+    <string name="directionEast">East</string>
+    <string name="directionSouthEast">Southeast</string>
+    <string name="directionSouth">South</string>
+    <string name="directionSouthWest">Southwest</string>
+    <string name="directionWest">West</string>
+    <string name="directionNorthWest">Northwest</string>
 
 </resources>

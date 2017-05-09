@@ -1,14 +1,14 @@
 package org.walkersguide.android.util;
 
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.basic.point.GPS;
-import org.walkersguide.android.basic.point.Point;
+import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.server.Map;
+import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.poi.POIProfile;
+import org.walkersguide.android.sensor.PositionManager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -19,20 +19,18 @@ import com.google.common.primitives.Ints;
 
 public class SettingsManager {
 
-    // static settings
-    public static final String SERVER_URL = "https://wasserbett.ath.cx:19021";
-
     // class variables
     private static SettingsManager settingsManagerInstance;
     private Context context;
     private SharedPreferences settings;
 
     // settings
-    private String uniqueId;
     private GeneralSettings generalSettings;
     private DirectionSettings directionSettings;
     private LocationSettings locationSettings;
-    private POISettings poiSettings;
+    private FavoritesFragmentSettings favoritesFragmentSettings;
+    private POIFragmentSettings poiFragmentSettings;
+    private ServerSettings serverSettings;
 
 	public static SettingsManager getInstance(Context context) {
 		if (settingsManagerInstance == null) {
@@ -45,21 +43,7 @@ public class SettingsManager {
 	private SettingsManager(Context context) {
 		this.context = context;
 		this.settings = context.getSharedPreferences("WalkersGuide-Android-Settings", Context.MODE_PRIVATE);
-        this.uniqueId = UUID.randomUUID().toString();
 	}
-
-    public String getClientVersion() {
-        try {
-            return context.getPackageManager().getPackageInfo(
-                    context.getPackageName(), 0).versionName;
-        } catch (NameNotFoundException e) {
-            return "";
-        }
-    }
-
-    public String getSessionId() {
-        return this.uniqueId;
-    }
 
 	public GeneralSettings getGeneralSettings() {
         if (generalSettings == null) {
@@ -100,17 +84,43 @@ public class SettingsManager {
 		return locationSettings;
 	}
 
-	public POISettings getPOISettings() {
-        if (poiSettings == null) {
-            JSONObject jsonPOISettings;
+	public FavoritesFragmentSettings getFavoritesFragmentSettings() {
+        if (favoritesFragmentSettings == null) {
+            JSONObject jsonFavoritesFragmentSettings;
             try {
-    		    jsonPOISettings = new JSONObject(settings.getString("poiSettings", "{}"));
+    		    jsonFavoritesFragmentSettings = new JSONObject(settings.getString("favoritesFragmentSettings", "{}"));
     		} catch (JSONException e) {
-                jsonPOISettings = new JSONObject();
+                jsonFavoritesFragmentSettings = new JSONObject();
             }
-            poiSettings = new POISettings(jsonPOISettings);
+            favoritesFragmentSettings = new FavoritesFragmentSettings(jsonFavoritesFragmentSettings);
         }
-		return poiSettings;
+		return favoritesFragmentSettings;
+	}
+
+	public POIFragmentSettings getPOIFragmentSettings() {
+        if (poiFragmentSettings == null) {
+            JSONObject jsonPOIFragmentSettings;
+            try {
+    		    jsonPOIFragmentSettings = new JSONObject(settings.getString("poiFragmentSettings", "{}"));
+    		} catch (JSONException e) {
+                jsonPOIFragmentSettings = new JSONObject();
+            }
+            poiFragmentSettings = new POIFragmentSettings(jsonPOIFragmentSettings);
+        }
+		return poiFragmentSettings;
+	}
+
+	public ServerSettings getServerSettings() {
+        if (serverSettings == null) {
+            JSONObject jsonServerSettings;
+            try {
+    		    jsonServerSettings = new JSONObject(settings.getString("serverSettings", "{}"));
+    		} catch (JSONException e) {
+                jsonServerSettings = new JSONObject();
+            }
+            serverSettings = new ServerSettings(jsonServerSettings);
+        }
+		return serverSettings;
 	}
 
 
@@ -120,7 +130,7 @@ public class SettingsManager {
         private int shakeIntensity;
 
         public GeneralSettings(JSONObject jsonObject) {
-            this.recentOpenTab = Constants.FRAGMENT.ROUTER;
+            this.recentOpenTab = Constants.MAIN_FRAGMENT.ROUTER;
             try {
                 int tab = jsonObject.getInt("recentOpenTab");
                 if (Ints.contains(Constants.MainActivityFragmentValueArray, tab)) {
@@ -134,6 +144,15 @@ public class SettingsManager {
                     this.shakeIntensity = intensity;
                 }
             } catch (JSONException e) {}
+        }
+
+        public String getClientVersion() {
+            try {
+                return context.getPackageManager().getPackageInfo(
+                        context.getPackageName(), 0).versionName;
+            } catch (NameNotFoundException e) {
+                return "";
+            }
         }
 
         public int getRecentOpenTab() {
@@ -176,8 +195,8 @@ public class SettingsManager {
 
     public class DirectionSettings {
 
-        private int selectedDirectionSource;
-        private int compassDirection, gpsDirection, manualDirection;
+        private int selectedDirectionSource, previousDirectionSource;
+        private int compassDirection, gpsDirection, simulatedDirection;
         private float differenceToTrueNorth;
 
         public DirectionSettings(JSONObject jsonObject) {
@@ -188,25 +207,32 @@ public class SettingsManager {
                     this.selectedDirectionSource = directionSource;
                 }
             } catch (JSONException e) {}
-            this.compassDirection = 0;
+            this.previousDirectionSource = Constants.DIRECTION_SOURCE.COMPASS;
+            try {
+                int directionSource = jsonObject.getInt("previousDirectionSource");
+                if (Ints.contains(Constants.DirectionSourceValueArray, directionSource)) {
+                    this.previousDirectionSource = directionSource;
+                }
+            } catch (JSONException e) {}
+            this.compassDirection = Constants.DUMMY.DIRECTION;
             try {
                 int compass = jsonObject.getInt("compassDirection");
-                if (compass >= 0 && compass < 360) {
+                if (compass >= 0 && compass <= 359) {
                     this.compassDirection = compass;
                 }
             } catch (JSONException e) {}
-            this.gpsDirection = 0;
+            this.gpsDirection = Constants.DUMMY.DIRECTION;
             try {
                 int gps = jsonObject.getInt("gpsDirection");
-                if (gps >= 0 && gps < 360) {
+                if (gps >= 0 && gps <= 359) {
                     this.gpsDirection = gps;
                 }
             } catch (JSONException e) {}
-            this.manualDirection = 0;
+            this.simulatedDirection = Constants.DUMMY.DIRECTION;
             try {
-                int manual = jsonObject.getInt("manualDirection");
-                if (manual >= 0 && manual < 360) {
-                    this.manualDirection = manual;
+                int simulated = jsonObject.getInt("simulatedDirection");
+                if (simulated >= 0 && simulated <= 359) {
+                    this.simulatedDirection = simulated;
                 }
             } catch (JSONException e) {}
             this.differenceToTrueNorth = 0.0f;
@@ -226,12 +252,23 @@ public class SettingsManager {
             }
         }
 
+        public int getPreviousDirectionSource() {
+            return this.previousDirectionSource;
+        }
+
+        public void setPreviousDirectionSource(int newDirectionSource) {
+            if (Ints.contains(Constants.DirectionSourceValueArray, newDirectionSource)) {
+                this.previousDirectionSource = newDirectionSource;
+                storeDirectionSettings();
+            }
+        }
+
         public int getCompassDirection() {
             return this.compassDirection;
         }
 
         public void setCompassDirection(int newCompassDirection) {
-            if (newCompassDirection>= 0 && newCompassDirection < 360) {
+            if (newCompassDirection>= 0 && newCompassDirection <= 359) {
                 this.compassDirection = newCompassDirection;
                 storeDirectionSettings();
             }
@@ -242,19 +279,19 @@ public class SettingsManager {
         }
 
         public void setGPSDirection(int newGPSDirection) {
-            if (newGPSDirection>= 0 && newGPSDirection < 360) {
+            if (newGPSDirection>= 0 && newGPSDirection <= 359) {
                 this.gpsDirection = newGPSDirection;
                 storeDirectionSettings();
             }
         }
 
-        public int getManualDirection() {
-            return this.manualDirection;
+        public int getSimulatedDirection() {
+            return this.simulatedDirection;
         }
 
-        public void setManualDirection(int newManualDirection) {
-            if (newManualDirection>= 0 && newManualDirection < 360) {
-                this.manualDirection = newManualDirection;
+        public void setSimulatedDirection(int newSimulatedDirection) {
+            if (newSimulatedDirection>= 0 && newSimulatedDirection <= 359) {
+                this.simulatedDirection = newSimulatedDirection;
                 storeDirectionSettings();
             }
         }
@@ -262,7 +299,6 @@ public class SettingsManager {
         public float getDifferenceToTrueNorth() {
             return this.differenceToTrueNorth;
         }
-
 
         public void setDifferenceToTrueNorth(float newDifference) {
             this.differenceToTrueNorth = newDifference;
@@ -275,13 +311,16 @@ public class SettingsManager {
                 jsonDirectionSettings.put("selectedDirectionSource", this.selectedDirectionSource);
             } catch (JSONException e) {}
             try {
+                jsonDirectionSettings.put("previousDirectionSource", this.previousDirectionSource);
+            } catch (JSONException e) {}
+            try {
                 jsonDirectionSettings.put("compassDirection", this.compassDirection);
             } catch (JSONException e) {}
             try {
                 jsonDirectionSettings.put("gpsDirection", this.gpsDirection);
             } catch (JSONException e) {}
             try {
-                jsonDirectionSettings.put("manualDirection", this.manualDirection);
+                jsonDirectionSettings.put("simulatedDirection", this.simulatedDirection);
             } catch (JSONException e) {}
             try {
                 jsonDirectionSettings.put("differenceToTrueNorth", this.differenceToTrueNorth);
@@ -300,8 +339,7 @@ public class SettingsManager {
     public class LocationSettings {
 
         private int selectedLocationSource;
-        private GPS currentGPSPosition;
-        private Point simulatedLocation;
+        private PointWrapper gpsLocation, simulatedLocation;
 
         public LocationSettings(JSONObject jsonObject) {
             this.selectedLocationSource = Constants.LOCATION_SOURCE.GPS;
@@ -311,16 +349,16 @@ public class SettingsManager {
                     this.selectedLocationSource = locationSource;
                 }
             } catch (JSONException e) {}
-            // current location
-            this.currentGPSPosition = null;
+            // gps location
+            this.gpsLocation = PositionManager.getDummyLocation(context);
             try {
-                this.currentGPSPosition = new GPS(
-                        context, jsonObject.getJSONObject("currentGPSPosition"));
+                this.gpsLocation = new PointWrapper(
+                        context, jsonObject.getJSONObject("gpsLocation"));
             } catch (JSONException e) {}
             // simulated location
-            this.simulatedLocation = null;
+            this.simulatedLocation = PositionManager.getDummyLocation(context);
             try {
-                this.simulatedLocation = new Point(
+                this.simulatedLocation = new PointWrapper(
                         context, jsonObject.getJSONObject("simulatedLocation"));
             } catch (JSONException e) {}
         }
@@ -336,22 +374,22 @@ public class SettingsManager {
             }
         }
 
-        public GPS getCurrentGPSPosition() {
-            return this.currentGPSPosition;
+        public PointWrapper getGPSLocation() {
+            return this.gpsLocation;
         }
 
-        public void setCurrentGPSPosition(GPS newLocation) {
+        public void setGPSLocation(PointWrapper newLocation) {
             if (newLocation != null) {
-                this.currentGPSPosition = newLocation;
+                this.gpsLocation = newLocation;
                 storeLocationSettings();
             }
         }
 
-        public Point getSimulatedLocation() {
+        public PointWrapper getSimulatedLocation() {
             return this.simulatedLocation;
         }
 
-        public void setSimulatedLocation(Point newLocation) {
+        public void setSimulatedLocation(PointWrapper newLocation) {
             if (newLocation != null) {
                 this.simulatedLocation = newLocation;
                 storeLocationSettings();
@@ -363,9 +401,9 @@ public class SettingsManager {
             try {
                 jsonLocationSettings.put("selectedLocationSource", this.selectedLocationSource);
             } catch (JSONException e) {}
-            if (this.currentGPSPosition != null) {
+            if (this.gpsLocation != null) {
                 try {
-                    jsonLocationSettings.put("currentGPSPosition", this.currentGPSPosition.toJson());
+                    jsonLocationSettings.put("gpsLocation", this.gpsLocation.toJson());
                 } catch (JSONException e) {}
             }
             if (this.simulatedLocation != null) {
@@ -383,39 +421,131 @@ public class SettingsManager {
     }
 
 
-    public class POISettings {
+    public abstract class PointFragmentSettings {
+
+        private int selectedPositionInPointList;
+        private boolean directionFilter;
+
+        public PointFragmentSettings(JSONObject jsonObject) {
+            // direction filter
+            this.directionFilter = false;
+            try {
+                this.directionFilter = jsonObject.getBoolean("directionFilter");
+            } catch (JSONException e) {}
+            // position in list
+            this.selectedPositionInPointList = 0;
+            try {
+                this.selectedPositionInPointList = jsonObject.getInt("selectedPositionInPointList");
+            } catch (JSONException e) {}
+        }
+
+        public boolean filterPointListByDirection() {
+            return this.directionFilter;
+        }
+
+        public void setDirectionFilterStatus(boolean newStatus) {
+            this.directionFilter = newStatus;
+            this.selectedPositionInPointList = 0;
+        }
+
+        public int getSelectedPositionInPointList() {
+            return this.selectedPositionInPointList;
+        }
+
+        public void setSelectedPositionInPointList(int newPosition) {
+            this.selectedPositionInPointList = newPosition;
+        }
+
+        public JSONObject toJson() {
+            JSONObject jsonSettings = new JSONObject();
+            try {
+                jsonSettings.put("directionFilter", this.directionFilter);
+            } catch (JSONException e) {}
+            try {
+                jsonSettings.put("selectedPositionInPointList", this.selectedPositionInPointList);
+            } catch (JSONException e) {}
+            return jsonSettings;
+        }
+    }
+
+
+    public class FavoritesFragmentSettings extends PointFragmentSettings {
+
+        private int selectedFavoritesProfileId;
+
+        public FavoritesFragmentSettings(JSONObject jsonObject) {
+            super(jsonObject);
+            // profile id
+            int restoredFavoritesProfileId = -1;
+            try {
+                restoredFavoritesProfileId = jsonObject.getInt("selectedFavoritesProfileId");
+            } catch (JSONException e) {}
+            // verify, that profile still exists
+            TreeMap<Integer,String> favoritesProfileMap = AccessDatabase.getInstance(context).getFavoritesProfileMap();
+            if (favoritesProfileMap.containsKey(restoredFavoritesProfileId)) {
+                this.selectedFavoritesProfileId = restoredFavoritesProfileId;
+            } else if (! favoritesProfileMap.isEmpty()) {
+                this.selectedFavoritesProfileId = favoritesProfileMap.firstKey();
+            } else {
+                this.selectedFavoritesProfileId = -1;
+            }
+        }
+
+        public int getSelectedFavoritesProfileId() {
+            return this.selectedFavoritesProfileId;
+        }
+
+        public void setSelectedFavoritesProfileId(int newFavoritesProfileId) {
+            this.selectedFavoritesProfileId = newFavoritesProfileId;
+            storeFavoritesFragmentSettings();
+        }
+
+        @Override public void setDirectionFilterStatus(boolean newStatus) {
+            super.setDirectionFilterStatus(newStatus);
+            storeFavoritesFragmentSettings();
+        }
+
+        @Override public void setSelectedPositionInPointList(int newPosition) {
+            if (newPosition >= 0) {
+                super.setSelectedPositionInPointList(newPosition);
+                storeFavoritesFragmentSettings();
+            }
+        }
+
+        public void storeFavoritesFragmentSettings() {
+            JSONObject jsonFavoritesFragmentSettings = super.toJson();
+            try {
+                jsonFavoritesFragmentSettings.put("selectedFavoritesProfileId", this.selectedFavoritesProfileId);
+            } catch (JSONException e) {}
+            // save settings
+            Editor editor = settings.edit();
+            editor.putString("favoritesFragmentSettings", jsonFavoritesFragmentSettings.toString());
+            editor.commit();
+            // null FavoritesFragmentSettings object to force reload on next getFavoritesFragmentSettings()
+            favoritesFragmentSettings = null;
+        }
+    }
+
+
+    public class POIFragmentSettings extends PointFragmentSettings {
 
         private int selectedPOIProfileId;
-        private int selectedPositionInPOIList;
 
-        public POISettings(JSONObject jsonObject) {
-            this.selectedPOIProfileId = -1;
-            ArrayList<POIProfile> poiProfileList = AccessDatabase.getInstance(context).getPOIProfileList();
-            if (! poiProfileList.isEmpty()) {
-                // restore poi profile id from settings
-                int restoredPOIProfileId;
-                try {
-                    restoredPOIProfileId = jsonObject.getInt("selectedPOIProfileId");
-                } catch (JSONException e) {
-                    restoredPOIProfileId = -1;
-                }
-                // verify, that profile still exists
-                for (POIProfile poiProfile : poiProfileList) {
-                    if (restoredPOIProfileId == poiProfile.getId()) {
-                        this.selectedPOIProfileId = restoredPOIProfileId;
-                        break;
-                    }
-                }
-                // if not found, get the first profile
-                if (this.selectedPOIProfileId == -1) {
-                    this.selectedPOIProfileId = poiProfileList.get(0).getId();
-                }
-            }
-            // position in list
+        public POIFragmentSettings(JSONObject jsonObject) {
+            super(jsonObject);
+            // restore poi profile id from settings
+            int restoredPOIProfileId = -1;
             try {
-                this.selectedPositionInPOIList = jsonObject.getInt("selectedPositionInPOIList");
-            } catch (JSONException e) {
-                this.selectedPositionInPOIList = 0;
+                restoredPOIProfileId = jsonObject.getInt("selectedPOIProfileId");
+            } catch (JSONException e) {}
+            // verify, that profile still exists
+            TreeMap<Integer,String> poiProfileMap = AccessDatabase.getInstance(context).getPOIProfileMap();
+            if (poiProfileMap.containsKey(restoredPOIProfileId)) {
+                this.selectedPOIProfileId = restoredPOIProfileId;
+            } else if (! poiProfileMap.isEmpty()) {
+                this.selectedPOIProfileId = poiProfileMap.firstKey();
+            } else {
+                this.selectedPOIProfileId = -1;
             }
         }
 
@@ -423,37 +553,114 @@ public class SettingsManager {
             return this.selectedPOIProfileId;
         }
 
-        public void setSelectedPOIProfileId(int newProfileId) {
-            this.selectedPOIProfileId = newProfileId;
-            this.selectedPositionInPOIList = 0;
-            storePOISettings();
+        public void setSelectedPOIProfileId(int newPOIProfileId) {
+            this.selectedPOIProfileId = newPOIProfileId;
+            storePOIFragmentSettings();
         }
 
-        public int getSelectedPositionInPOIList() {
-            return this.selectedPositionInPOIList;
+        @Override public void setDirectionFilterStatus(boolean newStatus) {
+            super.setDirectionFilterStatus(newStatus);
+            storePOIFragmentSettings();
         }
 
-        public void setSelectedPositionInPOIList(int newPosition) {
+        @Override public void setSelectedPositionInPointList(int newPosition) {
             if (newPosition >= 0) {
-                this.selectedPositionInPOIList = newPosition;
-                storePOISettings();
+                super.setSelectedPositionInPointList(newPosition);
+                storePOIFragmentSettings();
             }
         }
 
-        public void storePOISettings() {
-            JSONObject jsonPOISettings = new JSONObject();
+        public void storePOIFragmentSettings() {
+            JSONObject jsonPOIFragmentSettings = super.toJson();
             try {
-                jsonPOISettings.put("selectedPOIProfileId", this.selectedPOIProfileId);
+                jsonPOIFragmentSettings.put("selectedPOIProfileId", this.selectedPOIProfileId);
             } catch (JSONException e) {}
+            // save settings
+            Editor editor = settings.edit();
+            editor.putString("poiFragmentSettings", jsonPOIFragmentSettings.toString());
+            editor.commit();
+            // null POIFragmentSettings object to force reload on next getPOIFragmentSettings()
+            poiFragmentSettings = null;
+        }
+    }
+
+
+    public class ServerSettings {
+
+        private String serverURL;
+        private Map selectedMap;
+        private PublicTransportProvider selectedPublicTransportProvider;
+
+        public ServerSettings(JSONObject jsonObject) {
+            this.serverURL = Constants.DEFAULT.SERVER_URL;
             try {
-                jsonPOISettings.put("selectedPositionInPOIList", this.selectedPositionInPOIList);
+                this.serverURL = jsonObject.getString("serverURL");
             } catch (JSONException e) {}
+            // map
+            this.selectedMap = null;
+            try {
+                this.selectedMap = AccessDatabase.getInstance(context).getMap(
+                        jsonObject.getString("selectedMapName"));
+            } catch (JSONException e) {}
+            // public transport provider
+            this.selectedPublicTransportProvider = null;
+            try {
+                this.selectedPublicTransportProvider = AccessDatabase.getInstance(context).getPublicTransportProvider(
+                        jsonObject.getString("selectedPublicTransportProviderIdentifier"));
+            } catch (JSONException e) {}
+        }
+
+        public String getServerURL() {
+            return this.serverURL;
+        }
+
+        public void setServerURL(String newServerURL) {
+            this.serverURL = newServerURL;
+            this.selectedMap = null;
+            this.selectedPublicTransportProvider = null;
+            storeServerSettings();
+        }
+
+        public Map getSelectedMap() {
+            return this.selectedMap;
+        }
+
+        public void setSelectedMap(Map newMap) {
+            System.out.println("xxx newMap: " + newMap);
+            this.selectedMap = newMap;
+            storeServerSettings();
+        }
+
+        public PublicTransportProvider getSelectedPublicTransportProvider() {
+            return this.selectedPublicTransportProvider;
+        }
+
+        public void setSelectedPublicTransportProvider(PublicTransportProvider newProvider) {
+            this.selectedPublicTransportProvider = newProvider;
+            storeServerSettings();
+        }
+
+        public void storeServerSettings() {
+            JSONObject jsonServerSettings = new JSONObject();
+            try {
+                jsonServerSettings.put("serverURL", this.serverURL);
+            } catch (JSONException e) {}
+            if (this.selectedMap != null) {
+                try {
+                    jsonServerSettings.put("selectedMapName", this.selectedMap.getName());
+                } catch (JSONException e) {}
+            }
+            if (this.selectedPublicTransportProvider != null) {
+                try {
+                    jsonServerSettings.put("selectedPublicTransportProviderIdentifier", this.selectedPublicTransportProvider.getIdentifier());
+                } catch (JSONException e) {}
+            }
     		// save settings
 	    	Editor editor = settings.edit();
-		    editor.putString("poiSettings", jsonPOISettings.toString());
+		    editor.putString("serverSettings", jsonServerSettings.toString());
     		editor.commit();
-            // null POISettings object to force reload on next getPOISettings()
-            poiSettings = null;
+            // null ServerSettings object to force reload on next getServerSettings()
+            serverSettings = null;
         }
     }
 

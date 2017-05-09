@@ -12,7 +12,4 @@
     <item
         android:id="@+id/menuItemPOIFragment"
         android:title="@string/fragmentPOIName" />
-    <item
-        android:id="@+id/menuItemLocationAndDirectionFragment"
-        android:title="@string/fragmentLocationAndDirectionName" />
 </menu>

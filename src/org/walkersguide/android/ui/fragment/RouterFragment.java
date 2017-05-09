@@ -25,7 +25,6 @@ public class RouterFragment extends Fragment implements FragmentCommunicator {
 
 	// ui components
     private TextView labelDistanceAndBearing, labelRoutePosition;
-	private Button buttonNewRoute, buttonSelectPOIProfile;
     private ScrollView scrollviewDescription;
     private TextView labelRouteSegmentDescription, labelRoutePointDescription, labelIntersectionDescription;
 
@@ -70,7 +69,7 @@ public class RouterFragment extends Fragment implements FragmentCommunicator {
         });
 
         // content layout
-        buttonNewRoute = (Button) view.findViewById(R.id.buttonNewRoute);
+        Button buttonNewRoute = (Button) view.findViewById(R.id.buttonNewRoute);
         buttonNewRoute.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
             }
@@ -95,12 +94,6 @@ public class RouterFragment extends Fragment implements FragmentCommunicator {
 
         Button buttonNextRouteObject = (Button) view.findViewById(R.id.buttonNextRouteObject);
         buttonNextRouteObject.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-            }
-        });
-
-        buttonSelectPOIProfile = (Button) view.findViewById(R.id.buttonSelectPOIProfile);
-        buttonSelectPOIProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
             }
         });

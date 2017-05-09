@@ -7,7 +7,88 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     public static final String INTERNAL_DATABASE_NAME = "walkersguide.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
+
+    // map table
+    public static final String TABLE_MAP = "map";
+    public static final String MAP_NAME = "name";
+    public static final String MAP_URL = "url";
+    public static final String[] TABLE_MAP_ALL_COLUMNS = {
+        MAP_NAME, MAP_URL
+    };
+    public static final String CREATE_MAP_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_MAP + "("
+        + MAP_NAME + " text not null primary key, "
+        + MAP_URL + " text not null);";
+    public static final String DROP_MAP_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_MAP + ";";
+
+    // public transport provider table
+    public static final String TABLE_PUBLIC_TRANSPORT_PROVIDER = "public_transport_provider";
+    public static final String PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER = "identifier";
+    public static final String PUBLIC_TRANSPORT_PROVIDER_NAME = "name";
+    public static final String[] TABLE_PUBLIC_TRANSPORT_PROVIDER_ALL_COLUMNS = {
+        PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER, PUBLIC_TRANSPORT_PROVIDER_NAME
+    };
+    public static final String CREATE_PUBLIC_TRANSPORT_PROVIDER_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_PUBLIC_TRANSPORT_PROVIDER + "("
+        + PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER + " text not null primary key, "
+        + PUBLIC_TRANSPORT_PROVIDER_NAME + " text not null);";
+    public static final String DROP_PUBLIC_TRANSPORT_PROVIDER_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_PUBLIC_TRANSPORT_PROVIDER + ";";
+
+    // favorites profile table
+    public static final String TABLE_FAVORITES_PROFILE = "favorites_profile";
+    public static final String FAVORITES_PROFILE_ID = "_id";
+    public static final String FAVORITES_PROFILE_NAME = "name";
+    public static final String FAVORITES_PROFILE_SORT_CRITERIA = "sort_criteria";
+    public static final String FAVORITES_PROFILE_CENTER = "center";
+    public static final String FAVORITES_PROFILE_DIRECTION = "direction";
+    public static final String[] TABLE_FAVORITES_PROFILE_ALL_COLUMNS = {
+        FAVORITES_PROFILE_ID, FAVORITES_PROFILE_NAME, FAVORITES_PROFILE_SORT_CRITERIA,
+        FAVORITES_PROFILE_CENTER, FAVORITES_PROFILE_DIRECTION
+    };
+    public static final String CREATE_FAVORITES_PROFILE_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_FAVORITES_PROFILE + "("
+        + FAVORITES_PROFILE_ID + " integer primary key autoincrement, "
+        + FAVORITES_PROFILE_NAME + " text unique not null, "
+        + FAVORITES_PROFILE_SORT_CRITERIA + " integer, "
+        + FAVORITES_PROFILE_CENTER + " text, "
+        + FAVORITES_PROFILE_DIRECTION + " integer, "
+        + "UNIQUE(" + FAVORITES_PROFILE_NAME + ") ON CONFLICT IGNORE);";
+    public static final String DROP_FAVORITES_PROFILE_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_FAVORITES_PROFILE + ";";
+
+    // point table
+    public static final String TABLE_POINT = "point";
+    public static final String POINT_ID = "_id";
+    public static final String POINT_DATA = "data";
+    public static final String[] TABLE_POINT_ALL_COLUMNS = {
+        POINT_ID, POINT_DATA
+    };
+    public static final String CREATE_POINT_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_POINT + "("
+        + POINT_ID + " integer primary key, "
+        + POINT_DATA + " text not null);";
+    public static final String DROP_POINT_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_POINT + ";";
+
+    // favorites profile point table
+    public static final String TABLE_FP_POINTS = "fp_points";
+    public static final String FP_POINTS_PROFILE_ID = "profile_id";
+    public static final String FP_POINTS_POINT_ID = "point_id";
+    public static final String FP_POINTS_ORDER = "ordering";
+    public static final String[] TABLE_FP_POINTS_ALL_COLUMNS = {
+        FP_POINTS_PROFILE_ID, FP_POINTS_POINT_ID, FP_POINTS_ORDER
+    };
+    public static final String CREATE_FP_POINTS_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_FP_POINTS + "("
+        + FP_POINTS_PROFILE_ID + " integer, "
+        + FP_POINTS_POINT_ID + " integer, "
+        + FP_POINTS_ORDER + " integer, "
+        + "PRIMARY KEY (" + FP_POINTS_PROFILE_ID + ", " + FP_POINTS_POINT_ID + "));";
+    public static final String DROP_FP_POINTS_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_FP_POINTS + ";";
 
     // poi profile table
     public static final String TABLE_POI_PROFILE = "poi_profile";
@@ -57,6 +138,11 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override public void onCreate(SQLiteDatabase database) {
         // create tables
+        database.execSQL(CREATE_MAP_TABLE);
+        database.execSQL(CREATE_PUBLIC_TRANSPORT_PROVIDER_TABLE);
+        database.execSQL(CREATE_FAVORITES_PROFILE_TABLE);
+        database.execSQL(CREATE_POINT_TABLE);
+        database.execSQL(CREATE_FP_POINTS_TABLE);
         database.execSQL(CREATE_POI_PROFILE_TABLE);
         database.execSQL(CREATE_POI_CATEGORY_TABLE);
     }

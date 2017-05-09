@@ -3,7 +3,6 @@ package org.walkersguide.android.ui.activity;
 import org.walkersguide.android.R;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.ui.fragment.FavoriteFragment;
-import org.walkersguide.android.ui.fragment.LocationAndDirectionFragment;
 import org.walkersguide.android.ui.fragment.POIFragment;
 import org.walkersguide.android.ui.fragment.RouterFragment;
 import org.walkersguide.android.ui.fragment.SearchFragment;
@@ -11,7 +10,6 @@ import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
 import org.walkersguide.android.util.TTSWrapper;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -23,8 +21,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class MainActivity extends AbstractActivity {
@@ -34,7 +30,6 @@ public class MainActivity extends AbstractActivity {
 	public FragmentCommunicator favoriteFragmentCommunicator;
 	public FragmentCommunicator routerFragmentCommunicator;
 	public FragmentCommunicator poiFragmentCommunicator;
-	public FragmentCommunicator locationAndDirectionFragmentCommunicator;
 
 	// navigation drawer
 	private DrawerLayout drawerLayout;
@@ -125,19 +120,16 @@ public class MainActivity extends AbstractActivity {
                 drawerLayout.closeDrawers();
                 if (menuItem.getItemId() == R.id.menuItemSearchFragment) {
                     switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.FRAGMENT.SEARCH);
+                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.SEARCH);
                 } else if (menuItem.getItemId() == R.id.menuItemFavoriteFragment) {
                     switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.FRAGMENT.FAVORITE);
+                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.FAVORITE);
                 } else if (menuItem.getItemId() == R.id.menuItemRouterFragment) {
                     switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.FRAGMENT.ROUTER);
+                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.ROUTER);
                 } else if (menuItem.getItemId() == R.id.menuItemPOIFragment) {
                     switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.FRAGMENT.POI);
-                } else if (menuItem.getItemId() == R.id.menuItemLocationAndDirectionFragment) {
-                    switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.FRAGMENT.LOCATION_AND_DIRECTION);
+                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.POI);
                 }
                 return true;
             }
@@ -165,27 +157,6 @@ public class MainActivity extends AbstractActivity {
 
 
     /**
-     * toolbar menu
-     */
-
-    @Override public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_activity_main, menu);
-        return true;
-    }
-
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menuItemSettings:
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    /**
      * fragment management
      */
 
@@ -206,33 +177,27 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case Constants.FRAGMENT.SEARCH:
+                case Constants.MAIN_FRAGMENT.SEARCH:
                     if (searchFragmentCommunicator != null) {
                         searchFragmentCommunicator.onFragmentDisabled();
                         return;
                     }
                     break;
-                case Constants.FRAGMENT.FAVORITE:
+                case Constants.MAIN_FRAGMENT.FAVORITE:
                     if (favoriteFragmentCommunicator != null) {
                         favoriteFragmentCommunicator.onFragmentDisabled();
                         return;
                     }
                     break;
-                case Constants.FRAGMENT.ROUTER:
+                case Constants.MAIN_FRAGMENT.ROUTER:
                     if (routerFragmentCommunicator != null) {
                         routerFragmentCommunicator.onFragmentDisabled();
                         return;
                     }
                     break;
-                case Constants.FRAGMENT.POI:
+                case Constants.MAIN_FRAGMENT.POI:
                     if (poiFragmentCommunicator != null) {
                         poiFragmentCommunicator.onFragmentDisabled();
-                        return;
-                    }
-                    break;
-                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
-                    if (locationAndDirectionFragmentCommunicator != null) {
-                        locationAndDirectionFragmentCommunicator.onFragmentDisabled();
                         return;
                     }
                     break;
@@ -263,33 +228,27 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case Constants.FRAGMENT.SEARCH:
+                case Constants.MAIN_FRAGMENT.SEARCH:
                     if (searchFragmentCommunicator != null) {
                         searchFragmentCommunicator.onFragmentEnabled();
                         return;
                     }
                     break;
-                case Constants.FRAGMENT.FAVORITE:
+                case Constants.MAIN_FRAGMENT.FAVORITE:
                     if (favoriteFragmentCommunicator != null) {
                         favoriteFragmentCommunicator.onFragmentEnabled();
                         return;
                     }
                     break;
-                case Constants.FRAGMENT.ROUTER:
+                case Constants.MAIN_FRAGMENT.ROUTER:
                     if (routerFragmentCommunicator != null) {
                         routerFragmentCommunicator.onFragmentEnabled();
                         return;
                     }
                     break;
-                case Constants.FRAGMENT.POI:
+                case Constants.MAIN_FRAGMENT.POI:
                     if (poiFragmentCommunicator != null) {
                         poiFragmentCommunicator.onFragmentEnabled();
-                        return;
-                    }
-                    break;
-                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
-                    if (locationAndDirectionFragmentCommunicator != null) {
-                        locationAndDirectionFragmentCommunicator.onFragmentEnabled();
                         return;
                     }
                     break;
@@ -317,16 +276,14 @@ public class MainActivity extends AbstractActivity {
 
         @Override public Fragment getItem(int position) {
             switch (position) {
-                case Constants.FRAGMENT.SEARCH:
+                case Constants.MAIN_FRAGMENT.SEARCH:
                     return SearchFragment.newInstance();
-                case Constants.FRAGMENT.FAVORITE:
+                case Constants.MAIN_FRAGMENT.FAVORITE:
                     return FavoriteFragment.newInstance();
-                case Constants.FRAGMENT.ROUTER:
+                case Constants.MAIN_FRAGMENT.ROUTER:
                     return RouterFragment.newInstance();
-                case Constants.FRAGMENT.POI:
+                case Constants.MAIN_FRAGMENT.POI:
                     return POIFragment.newInstance();
-                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
-                    return LocationAndDirectionFragment.newInstance();
                 default:
                     return null;
             }
@@ -334,16 +291,14 @@ public class MainActivity extends AbstractActivity {
 
 		@Override public CharSequence getPageTitle(int position) {
             switch (position) {
-                case Constants.FRAGMENT.SEARCH:
+                case Constants.MAIN_FRAGMENT.SEARCH:
     				return getResources().getString(R.string.fragmentSearchName);
-                case Constants.FRAGMENT.FAVORITE:
+                case Constants.MAIN_FRAGMENT.FAVORITE:
     				return getResources().getString(R.string.fragmentFavoriteName);
-                case Constants.FRAGMENT.ROUTER:
+                case Constants.MAIN_FRAGMENT.ROUTER:
     				return getResources().getString(R.string.fragmentRouterName);
-                case Constants.FRAGMENT.POI:
+                case Constants.MAIN_FRAGMENT.POI:
     				return getResources().getString(R.string.fragmentPOIName);
-                case Constants.FRAGMENT.LOCATION_AND_DIRECTION:
-    				return getResources().getString(R.string.fragmentLocationAndDirectionName);
                 default:
                     return "";
             }

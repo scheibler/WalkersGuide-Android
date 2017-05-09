@@ -12,11 +12,30 @@
         android:layout_marginBottom="10dp"
         android:orientation="horizontal" >
 
+        <ImageButton
+            android:id="@+id/buttonPreviousProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:background="@null"
+            android:src="@drawable/arrow_left"
+            android:contentDescription="@string/buttonPreviousProfile" />
+
         <Button
-            android:id="@+id/buttonSelectPOIProfile"
+            android:id="@+id/buttonSelectProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/buttonSelectPOIProfile" />
+            android:layout_weight="1.0"
+            android:text="@string/emptyProfileList" />
+
+        <ImageButton
+            android:id="@+id/buttonNextProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:background="@null"
+            android:src="@drawable/arrow_right"
+            android:contentDescription="@string/buttonNextProfile" />
     </LinearLayout>
 
     <LinearLayout
@@ -34,19 +53,46 @@
             android:layout_weight="1.0"
             android:text="@string/buttonRefresh" />
 
-        <Button
-            android:id="@+id/buttonSearch"
+        <Switch
+            android:id="@+id/buttonFilter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="@string/buttonSearch" />
+            android:text="@string/buttonFilter" />
+
+        <Button
+            android:id="@+id/buttonMore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.0"
+            android:text="@string/buttonMore" />
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/listViewPOI"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:layout_below="@id/layoutTop"
-        android:layout_above="@id/layoutBottom" />
+        android:layout_above="@id/layoutBottom" >
+
+        <TextView
+            android:id="@+id/labelPOIFragmentHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:textStyle="bold"
+            android:textColor="@color/heading" />
+
+        <ListView
+            android:id="@+id/listViewPOI"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/labelListViewPOIEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true" />
+    </LinearLayout>
 
 </RelativeLayout>

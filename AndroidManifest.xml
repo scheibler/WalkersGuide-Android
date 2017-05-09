@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.walkersguide.android"
     android:versionCode="1"
-    android:versionName="1.0.0" >
+    android:versionName="0.1.0" >
 
     <uses-sdk
         android:minSdkVersion="16"
@@ -31,16 +31,34 @@
         </activity>
 
         <activity
+            android:name=".ui.activity.PointDetailsActivity"
+            android:label="@string/pointDetailsActivityTitle"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.activity.MainActivity" />
+
+        <activity
+            android:name=".ui.activity.SegmentDetailsActivity"
+            android:label="@string/segmentDetailsActivityTitle"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.activity.MainActivity" />
+
+        <activity
             android:name=".ui.activity.SettingsActivity"
             android:label="@string/settingsActivityTitle"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.activity.MainActivity" />
+
+        <activity
+            android:name=".ui.activity.InfoActivity"
+            android:label="@string/infoActivityTitle"
             android:launchMode="singleTop"
             android:parentActivityName=".ui.activity.MainActivity" />
 
         <!--
         <service
             android:name="org.walkersguide.android.utils.LocationService" />
-
         -->
+
     </application>
 
 </manifest>

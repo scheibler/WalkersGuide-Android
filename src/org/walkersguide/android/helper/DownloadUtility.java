@@ -131,6 +131,10 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.messageError1004);
             case 1005:      // no direction found
                 return context.getResources().getString(R.string.messageError1005);
+            case 1006:      // no map selected
+                return context.getResources().getString(R.string.messageError1006);
+            case 1007:      // app outdated
+                return context.getResources().getString(R.string.messageError1007);
             case 1010:      // no connection to server
                 return context.getResources().getString(R.string.messageError1010);
             case 1011:      // input output error

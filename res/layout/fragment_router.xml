@@ -81,12 +81,6 @@
                 android:paddingBottom="10dp"
                 android:text="@string/buttonNextRouteObject" />
         </LinearLayout>
-
-        <Button
-            android:id="@+id/buttonSelectPOIProfile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/buttonSelectPOIProfile" />
     </LinearLayout>
 
     <Button
