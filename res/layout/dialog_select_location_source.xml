@@ -12,28 +12,14 @@
             android:id="@+id/radioGPSLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:text="@string/locationSourceGPS" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
-            android:paddingBottom="10dp"
             android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/labelGPSLatitude"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSLatitude" />
-
-            <TextView
-                android:id="@+id/labelGPSLongitude"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSLongitude" />
 
             <TextView
                 android:id="@+id/labelGPSProvider"
@@ -50,27 +36,6 @@
                 android:text="@string/labelGPSAccuracy" />
 
             <TextView
-                android:id="@+id/labelGPSAltitude"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSAltitude" />
-
-            <TextView
-                android:id="@+id/labelGPSBearing"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSBearing" />
-
-            <TextView
-                android:id="@+id/labelGPSSpeed"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSSpeed" />
-
-            <TextView
                 android:id="@+id/labelGPSTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -78,18 +43,51 @@
                 android:text="@string/labelGPSTime" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/buttonGPSAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/buttonGPSAddress" />
+
+            <Button
+                android:id="@+id/buttonGPSDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/buttonGPSDetails" />
+
+            <Button
+                android:id="@+id/buttonGPSSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/buttonGPSSave" />
+        </LinearLayout>
+
         <RadioButton
             android:id="@+id/radioSimulatedLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:text="@string/locationSourceSimulatedPoint" />
 
         <Button
             android:id="@+id/buttonSimulatedLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
             android:text="@string/labelNoSimulatedPointSelected" />
 
     </LinearLayout>

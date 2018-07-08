@@ -1,18 +1,23 @@
 package org.walkersguide.android.database;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.FavoritesProfile;
 import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.data.poi.POIProfile;
 import org.walkersguide.android.data.poi.PointProfileObject;
-import org.walkersguide.android.data.server.Map;
+import org.walkersguide.android.data.route.Route;
+import org.walkersguide.android.data.route.RouteObject;
+import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.util.Constants;
 
@@ -21,6 +26,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Location;
 
 public class AccessDatabase {
 
@@ -39,6 +45,11 @@ public class AccessDatabase {
         this.context = context;
         SQLiteHelper dbHelper = new SQLiteHelper(context);
         this.database = dbHelper.getWritableDatabase();
+        // route table
+        //database.execSQL(SQLiteHelper.DROP_ROUTE_TABLE);
+        //database.execSQL(SQLiteHelper.CREATE_ROUTE_TABLE);
+        //database.execSQL(SQLiteHelper.DROP_ADDRESS_TABLE);
+        //database.execSQL(SQLiteHelper.CREATE_ADDRESS_TABLE);
 
         // insert some default favorites profiles if table is empty
         //database.delete(SQLiteHelper.TABLE_POINT, null, null);
@@ -63,8 +74,17 @@ public class AccessDatabase {
             database.execSQL(
                     sqlInsertFavoritesProfileQuery,
                     new String[] {
-                        String.valueOf(FavoritesProfile.ID_ADDRESSES),
-                        context.getResources().getString(R.string.fpNameAddresses),
+                        String.valueOf(FavoritesProfile.ID_ADDRESS_POINTS),
+                        context.getResources().getString(R.string.fpNameAddressPoints),
+                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
+                        Constants.DUMMY.LOCATION,
+                        String.valueOf(Constants.DUMMY.DIRECTION)});
+            // route points
+            database.execSQL(
+                    sqlInsertFavoritesProfileQuery,
+                    new String[] {
+                        String.valueOf(FavoritesProfile.ID_ROUTE_POINTS),
+                        context.getResources().getString(R.string.fpNameRoutePoints),
                         String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
                         Constants.DUMMY.LOCATION,
                         String.valueOf(Constants.DUMMY.DIRECTION)});
@@ -77,15 +97,31 @@ public class AccessDatabase {
                         String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
                         Constants.DUMMY.LOCATION,
                         String.valueOf(Constants.DUMMY.DIRECTION)});
-            // user defined entrances
+            // user created
+            database.execSQL(
+                    sqlInsertFavoritesProfileQuery,
+                    new String[] {
+                        String.valueOf(FavoritesProfile.ID_USER_CREATED_POINTS),
+                        context.getResources().getString(R.string.fpNameUserCreatedPoints),
+                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
+                        Constants.DUMMY.LOCATION,
+                        String.valueOf(Constants.DUMMY.DIRECTION)});
+            // create a custom profile and delete immediately
             database.execSQL(
                     sqlInsertFavoritesProfileQuery,
                     new String[] {
                         String.valueOf(FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE),
-                        context.getResources().getString(R.string.fpNameMyEntrances),
+                        "placeholder",
                         String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
                         Constants.DUMMY.LOCATION,
                         String.valueOf(Constants.DUMMY.DIRECTION)});
+            database.execSQL(
+                    String.format(
+                        "DELETE FROM %1$s WHERE %2$s = ?",
+                        SQLiteHelper.TABLE_FAVORITES_PROFILE,
+                        SQLiteHelper.FAVORITES_PROFILE_ID),
+                    new String[] {
+                        String.valueOf(FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE)});
         }
     }
 
@@ -94,11 +130,11 @@ public class AccessDatabase {
      * maps
      */
 
-	public ArrayList<Map> getMapList() {
+	public ArrayList<OSMMap> getMapList() {
 		Cursor cursor = database.query(
                 SQLiteHelper.TABLE_MAP, SQLiteHelper.TABLE_MAP_ALL_COLUMNS,
                 null, null, null, null, SQLiteHelper.MAP_NAME + " ASC");
-		ArrayList<Map> mapList = new ArrayList<Map>(cursor.getCount());
+		ArrayList<OSMMap> mapList = new ArrayList<OSMMap>(cursor.getCount());
         while (cursor.moveToNext()) {
 			mapList.add(
                     cursorToMap(cursor));
@@ -107,12 +143,12 @@ public class AccessDatabase {
 		return mapList;
 	}
 
-    public Map getMap(String name) {
+    public OSMMap getMap(String name) {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_MAP, SQLiteHelper.TABLE_MAP_ALL_COLUMNS,
                 SQLiteHelper.MAP_NAME + " = " + DatabaseUtils.sqlEscapeString(name),
                 null, null, null, null);
-        Map map = null;
+        OSMMap map = null;
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             map = cursorToMap(cursor);
@@ -139,8 +175,8 @@ public class AccessDatabase {
                 new String[] {name});
     }
 
-    private Map cursorToMap(Cursor cursor) {
-        return new Map(
+    private OSMMap cursorToMap(Cursor cursor) {
+        return new OSMMap(
                 cursor.getString(
                     cursor.getColumnIndex(SQLiteHelper.MAP_NAME)),
                 cursor.getString(
@@ -203,6 +239,72 @@ public class AccessDatabase {
                     cursor.getColumnIndex(SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER)),
                 cursor.getString(
                     cursor.getColumnIndex(SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_NAME)));
+    }
+
+
+    /**
+     * addresses
+     */
+
+    public PointWrapper getAddress(double latitude, double longitude) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ADDRESS, SQLiteHelper.TABLE_ADDRESS_ALL_COLUMNS,
+                String.format(
+                    Locale.ROOT,
+                    "%1$s > %2$f AND %3$s < %4$f AND %5$s > %6$f AND %7$s < %8$f",
+                    SQLiteHelper.ADDRESS_LATITUDE, latitude-0.001,
+                    SQLiteHelper.ADDRESS_LATITUDE, latitude+0.001,
+                    SQLiteHelper.ADDRESS_LONGITUDE, longitude-0.001,
+                    SQLiteHelper.ADDRESS_LONGITUDE, longitude+0.001),
+                null, null, null, null);
+        TreeMap<Float,PointWrapper> addressPointMap = new TreeMap<Float,PointWrapper>();
+        while (cursor.moveToNext()) {
+            // get distance
+            float[] results = new float[1];
+            Location.distanceBetween(
+                    latitude,
+                    longitude,
+                    cursor.getDouble(cursor.getColumnIndex(SQLiteHelper.ADDRESS_LATITUDE)),
+                    cursor.getDouble(cursor.getColumnIndex(SQLiteHelper.ADDRESS_LONGITUDE)),
+                    results);
+            // get point
+            PointWrapper addressPoint = null;
+            try {
+                addressPoint = new PointWrapper(
+                        this.context,
+                        new JSONObject(
+                            cursor.getString(
+                                cursor.getColumnIndex(SQLiteHelper.ADDRESS_POINT))));
+            } catch (JSONException e) {
+                break;
+            }
+            // add to map
+            addressPointMap.put(results[0], addressPoint);
+        }
+        cursor.close();
+        // return closest addres, max 20 meters away
+        Map.Entry<Float,PointWrapper> addressEntry = addressPointMap.firstEntry ();
+        if (addressEntry != null
+                && addressEntry.getKey() < 20.0f) {
+            return addressEntry.getValue();
+        }
+        return null;
+    }
+
+    public void addAddress(double latitude, double longitude, PointWrapper addressPoint) {
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.ADDRESS_LATITUDE, latitude);
+        values.put(SQLiteHelper.ADDRESS_LONGITUDE, longitude);
+        try {
+            values.put(SQLiteHelper.ADDRESS_POINT, addressPoint.toJson().toString());
+        } catch (JSONException e) {
+            return;
+        }
+        database.insertWithOnConflict(
+                SQLiteHelper.TABLE_ADDRESS,
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_IGNORE);
     }
 
 
@@ -385,6 +487,23 @@ public class AccessDatabase {
         deleteOrphanPointsOfFavoriteProfile(id);
     }
 
+    public TreeSet<Integer> getCheckedFavoritesProfileIdsForPoint(PointWrapper pointWrapper) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.TABLE_FP_POINTS_ALL_COLUMNS,
+                String.format(
+                    "%1$s = %2$d", 
+                    SQLiteHelper.FP_POINTS_POINT_ID,
+                    pointWrapper.hashCode()),
+                null, null, null, SQLiteHelper.FP_POINTS_PROFILE_ID + " ASC");
+        TreeSet<Integer> profileIdSet = new TreeSet<Integer>();
+        while (cursor.moveToNext()) {
+            profileIdSet.add(
+                    cursor.getInt(cursor.getColumnIndex(SQLiteHelper.FP_POINTS_PROFILE_ID)));
+        }
+        cursor.close();
+        return profileIdSet;
+    }
+
     public void addPointToFavoritesProfile(PointWrapper pointToAdd, int profileId) {
         if (pointToAdd == null) {
             return;
@@ -429,7 +548,7 @@ public class AccessDatabase {
                 new String[] {
                     String.valueOf(profileId), String.valueOf(pointToRemove.hashCode())});
         // delete point from points table if not longer part of any favorites profile
-        deleteOrphanPointsOfFavoriteProfile(profileId);
+        //deleteOrphanPointsOfFavoriteProfile(profileId);
     }
 
     private void deleteOrphanPointsOfFavoriteProfile(int id) {
@@ -577,6 +696,8 @@ public class AccessDatabase {
             jsonPOICategoryIdList.put(category.getId());
         }
         values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, jsonPOICategoryIdList.toString());
+        values.put(SQLiteHelper.POI_PROFILE_RADIUS, POIProfile.INITIAL_RADIUS);
+        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
         values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
         int numberOfRowsAffected = database.updateWithOnConflict(
                 SQLiteHelper.TABLE_POI_PROFILE,
@@ -690,6 +811,224 @@ public class AccessDatabase {
                     cursor.getColumnIndex(SQLiteHelper.POI_CATEGORY_ID)),
                 cursor.getString(
                     cursor.getColumnIndex(SQLiteHelper.POI_CATEGORY_TAG)));
+    }
+
+
+    /**
+     * routes
+     */
+
+    public TreeMap<Integer,String> getRouteMap() {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                null, null, null, null, SQLiteHelper.ROUTE_CREATED + " DESC");
+        TreeMap<Integer,String> routeMap = new TreeMap<Integer,String>();
+        while (cursor.moveToNext()) {
+            try {
+                routeMap.put(
+                        cursor.getInt(cursor.getColumnIndex(SQLiteHelper.ROUTE_ID)),
+                        String.format(
+                            "%1$s: %2$s\n%3$s: %4$s",
+                            context.getResources().getString(R.string.buttonStartPoint),
+                            (new JSONObject(
+                                cursor.getString(cursor.getColumnIndex(SQLiteHelper.ROUTE_START)))).getString("name"),
+                            context.getResources().getString(R.string.buttonDestinationPoint),
+                            (new JSONObject(
+                                cursor.getString(cursor.getColumnIndex(SQLiteHelper.ROUTE_DESTINATION)))).getString("name"))
+                        );
+            } catch (JSONException e) {}
+        }
+        cursor.close();
+        return routeMap;
+    }
+
+    public Route getRoute(int id) throws JSONException {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        Route route= null;
+        if (cursor.moveToFirst()) {
+            route = new Route(
+                    this.context,
+                    cursor.getInt(
+                        cursor.getColumnIndex(SQLiteHelper.ROUTE_ID)),
+                    new JSONObject(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_START))),
+                    new JSONObject(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_DESTINATION))),
+                    cursor.getString(
+                        cursor.getColumnIndex(SQLiteHelper.ROUTE_DESCRIPTION)),
+                    cursor.getInt(
+                        cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX)),
+                    new JSONArray(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_OBJECT_LIST))));
+        }
+        cursor.close();
+        return route;
+    }
+
+    public int getCurrentObjectIndexOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        int currentObjectIndex = -1;
+        if (cursor.moveToFirst()) {
+            currentObjectIndex = cursor.getInt(
+                    cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX));
+        }
+        cursor.close();
+        return currentObjectIndex;
+    }
+
+    public boolean setCurrentObjectIndexOfRoute(int id, int newObjectIndex) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        if (cursor.moveToFirst()) {
+            int currentObjectIndex = cursor.getInt(
+                    cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX));
+            JSONArray jsonRouteObjectList = null;
+            try {
+                jsonRouteObjectList = new JSONArray(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_OBJECT_LIST)));
+            } catch (JSONException e) {
+                jsonRouteObjectList = new JSONArray();
+            }
+            if (newObjectIndex != currentObjectIndex
+                    && newObjectIndex >= 0
+                    && newObjectIndex < jsonRouteObjectList.length()) {
+                ContentValues values = null;
+                try {
+                    values = new ContentValues();
+                    values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX, newObjectIndex);
+                    values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_DATA, jsonRouteObjectList.getJSONObject(newObjectIndex).toString());
+                } catch (JSONException e) {
+                    values = null;
+                }
+                if (values != null) {
+                    int numberOfRowsAffected = database.updateWithOnConflict(
+                            SQLiteHelper.TABLE_ROUTE,
+                            values,
+                            SQLiteHelper.ROUTE_ID + " = ?",
+                            new String[]{String.valueOf(id)},
+                            SQLiteDatabase.CONFLICT_REPLACE);
+                    return numberOfRowsAffected == 1 ? true : false;
+                }
+            }
+        }
+        return false;
+    }
+
+    public PointWrapper getStartPointOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        PointWrapper startPoint = null;
+        if (cursor.moveToFirst()) {
+            try {
+                startPoint = new PointWrapper(
+                        this.context,
+                        new JSONObject(
+                            cursor.getString(
+                                cursor.getColumnIndex(SQLiteHelper.ROUTE_START))));
+            } catch (JSONException e) {}
+        }
+        cursor.close();
+        return startPoint;
+    }
+
+    public PointWrapper getDestinationPointOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        PointWrapper destinationPoint = null;
+        if (cursor.moveToFirst()) {
+            try {
+                destinationPoint = new PointWrapper(
+                        this.context,
+                        new JSONObject(
+                            cursor.getString(
+                                cursor.getColumnIndex(SQLiteHelper.ROUTE_DESTINATION))));
+            } catch (JSONException e) {}
+        }
+        cursor.close();
+        return destinationPoint;
+    }
+
+    public RouteObject getCurrentObjectDataOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        RouteObject routeObject = null;
+        if (cursor.moveToFirst()) {
+            try {
+                routeObject = new RouteObject(
+                        this.context,
+                        cursor.getInt(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX)),
+                        new JSONObject(
+                            cursor.getString(
+                                cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_DATA))));
+            } catch (JSONException e) {}
+        }
+        cursor.close();
+        return routeObject;
+    }
+
+    public int addRoute(PointWrapper startPoint, PointWrapper destinationPoint,
+            String description, ArrayList<RouteObject> routeObjectList) throws JSONException {
+        // prepare table row to insert
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.ROUTE_START, startPoint.toJson().toString());
+        values.put(SQLiteHelper.ROUTE_DESTINATION, destinationPoint.toJson().toString());
+        values.put(SQLiteHelper.ROUTE_DESCRIPTION, description);
+        values.put(SQLiteHelper.ROUTE_CREATED, System.currentTimeMillis());
+        values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX, 0);
+        values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_DATA, routeObjectList.get(0).toJson().toString());
+        JSONArray jsonRouteObjectList = new JSONArray();
+        for (RouteObject routeObject : routeObjectList) {
+            jsonRouteObjectList.put(routeObject.toJson());
+        }
+        values.put(SQLiteHelper.ROUTE_OBJECT_LIST, jsonRouteObjectList.toString());
+        // try to insert
+        int id = (int) database.insertWithOnConflict(
+                SQLiteHelper.TABLE_ROUTE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        System.out.println("xxx insert route: " + id);
+        // if insertion fails, update the existing row
+        if (id == -1) {
+            Cursor cursor = database.query(
+                    SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                    String.format(
+                        "%1$s = %2$s AND %3$s = %4$s AND %5$s = %6$s",
+                        SQLiteHelper.ROUTE_START,
+                        DatabaseUtils.sqlEscapeString(values.getAsString(SQLiteHelper.ROUTE_START)),
+                        SQLiteHelper.ROUTE_DESTINATION,
+                        DatabaseUtils.sqlEscapeString(values.getAsString(SQLiteHelper.ROUTE_DESTINATION)),
+                        SQLiteHelper.ROUTE_DESCRIPTION,
+                        DatabaseUtils.sqlEscapeString(values.getAsString(SQLiteHelper.ROUTE_DESCRIPTION))),
+                    null, null, null, null);
+            if (cursor.moveToFirst()) {
+                id = cursor.getInt(cursor.getColumnIndex(SQLiteHelper.ROUTE_ID));
+                database.update(
+                        SQLiteHelper.TABLE_ROUTE,
+                        values,
+                        String.format("%1$s = ?", SQLiteHelper.ROUTE_ID),
+                        new String[]{String.valueOf(id)});
+                System.out.println("xxx updated route: " + id);
+            }
+            cursor.close();
+        }
+        return id;
     }
 
 }

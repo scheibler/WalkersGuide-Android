@@ -1,4 +1,4 @@
-package org.walkersguide.android.data.basic.wrapper;
+package org.walkersguide.android.data.basic.point;
 
 import java.util.ArrayList;
 
@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.station.Line;
 
 import android.content.Context;

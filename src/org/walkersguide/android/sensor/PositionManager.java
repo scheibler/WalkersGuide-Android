@@ -6,7 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.util.Constants;
@@ -39,6 +39,10 @@ public class PositionManager implements android.location.LocationListener {
     public interface THRESHOLD2 {
         public static final int ID = 2;
         public static final float DISTANCE = 50.0f;          // 50 meters
+    }
+    public interface THRESHOLD3 {
+        public static final int ID = 3;
+        public static final float DISTANCE = 100.0f;          // 100 meters
     }
 
     // high speed
@@ -247,7 +251,7 @@ public class PositionManager implements android.location.LocationListener {
                 if (locationExtras.containsKey("satellites")
                         && locationExtras.getInt("satellites") >= 0) {
                     jsonNewLocation.put("number_of_satellites", locationExtras.getInt("satellites"));
-                        }
+                }
             }
             if (newLocationObject.hasSpeed()) {
                 jsonNewLocation.put("speed", newLocationObject.getSpeed());

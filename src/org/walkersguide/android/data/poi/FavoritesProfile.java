@@ -3,7 +3,7 @@ package org.walkersguide.android.data.poi;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.util.Constants;
 
@@ -15,8 +15,10 @@ public class FavoritesProfile extends PointProfile {
 
     // ids of default profiles
     public static final int ID_ALL_POINTS = 0;
-    public static final int ID_ADDRESSES = 1;
-    public static final int ID_SIMULATED_POINTS = 2;
+    public static final int ID_ADDRESS_POINTS = 1;
+    public static final int ID_ROUTE_POINTS = 2;
+    public static final int ID_SIMULATED_POINTS = 3;
+    public static final int ID_USER_CREATED_POINTS = 4;
     public static final int ID_FIRST_USER_CREATED_PROFILE = 100;
 
     private AccessDatabase accessDatabaseInstance;

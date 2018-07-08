@@ -9,14 +9,21 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/menuItemLocation"
-        android:icon="@drawable/satellite"
+        android:icon="@drawable/pin"
         android:title="@string/menuItemLocation"
         app:showAsAction="always" />
     <item
+        android:id="@+id/menuItemPlanRoute"
+        android:title="@string/menuItemPlanRoute"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menuItemRequestAddress"
+        android:title="@string/menuItemRequestAddress"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menuItemSaveCurrentPosition"
-        android:icon="@drawable/pin"
         android:title="@string/menuItemSaveCurrentPosition"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/menuItemSettings"
         android:title="@string/menuItemSettings"

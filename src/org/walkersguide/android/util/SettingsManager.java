@@ -4,8 +4,8 @@ import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.basic.point.PointWrapper;
-import org.walkersguide.android.data.server.Map;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.sensor.PositionManager;
@@ -15,6 +15,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
 
+import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
 public class SettingsManager {
@@ -30,6 +31,7 @@ public class SettingsManager {
     private LocationSettings locationSettings;
     private FavoritesFragmentSettings favoritesFragmentSettings;
     private POIFragmentSettings poiFragmentSettings;
+    private RouteSettings routeSettings;
     private ServerSettings serverSettings;
 
 	public static SettingsManager getInstance(Context context) {
@@ -108,6 +110,19 @@ public class SettingsManager {
             poiFragmentSettings = new POIFragmentSettings(jsonPOIFragmentSettings);
         }
 		return poiFragmentSettings;
+	}
+
+	public RouteSettings getRouteSettings() {
+        if (routeSettings == null) {
+            JSONObject jsonRouteSettings;
+            try {
+    		    jsonRouteSettings = new JSONObject(settings.getString("routeSettings", "{}"));
+    		} catch (JSONException e) {
+                jsonRouteSettings = new JSONObject();
+            }
+            routeSettings = new RouteSettings(jsonRouteSettings);
+        }
+		return routeSettings;
 	}
 
 	public ServerSettings getServerSettings() {
@@ -585,10 +600,118 @@ public class SettingsManager {
     }
 
 
+    public class RouteSettings {
+
+        private int selectedRouteId;
+        private PointWrapper start, destination;
+        private double indirectionFactor;
+
+        public RouteSettings(JSONObject jsonObject) {
+            int restoredRouteId = -1;
+            try {
+                restoredRouteId = jsonObject.getInt("selectedRouteId");
+            } catch (JSONException e) {}
+            // verify, that route still exists
+            TreeMap<Integer,String> routeMap = AccessDatabase.getInstance(context).getRouteMap();
+            if (routeMap.containsKey(restoredRouteId)) {
+                this.selectedRouteId = restoredRouteId;
+            } else if (! routeMap.isEmpty()) {
+                this.selectedRouteId = routeMap.firstKey();
+            } else {
+                this.selectedRouteId = -1;
+            }
+            // start point
+            this.start = PositionManager.getDummyLocation(context);
+            try {
+                this.start = new PointWrapper(
+                        context, jsonObject.getJSONObject("start"));
+            } catch (JSONException e) {}
+            // destination point
+            this.destination = PositionManager.getDummyLocation(context);
+            try {
+                this.destination = new PointWrapper(
+                        context, jsonObject.getJSONObject("destination"));
+            } catch (JSONException e) {}
+            // indirection factor
+            this.indirectionFactor = 2.0;
+            try {
+                double factor = jsonObject.getInt("indirectionFactor");
+                if (Doubles.contains(Constants.IndirectionFactorValueArray, factor)) {
+                    this.indirectionFactor = factor;
+                }
+            } catch (JSONException e) {}
+        }
+
+        public int getSelectedRouteId() {
+            return this.selectedRouteId;
+        }
+
+        public void setSelectedRouteId(int newRouteId) {
+            this.selectedRouteId = newRouteId;
+            storeRouteSettings();
+        }
+
+        public PointWrapper getStartPoint() {
+            return this.start;
+        }
+
+        public void setStartPoint(PointWrapper newLocation) {
+            if (newLocation != null) {
+                this.start = newLocation;
+                storeRouteSettings();
+            }
+        }
+
+        public PointWrapper getDestinationPoint() {
+            return this.destination;
+        }
+
+        public void setDestinationPoint(PointWrapper newLocation) {
+            if (newLocation != null) {
+                this.destination = newLocation;
+                storeRouteSettings();
+            }
+        }
+
+        public double getIndirectionFactor() {
+            return this.indirectionFactor;
+        }
+
+        public void setIndirectionFactor(double newIndirectionFactor) {
+            if (Doubles.contains(Constants.IndirectionFactorValueArray, newIndirectionFactor)) {
+                this.indirectionFactor = newIndirectionFactor;
+                storeRouteSettings();
+            }
+        }
+
+        public void storeRouteSettings() {
+            JSONObject jsonRouteSettings = new JSONObject();
+            try {
+                jsonRouteSettings.put("selectedRouteId", this.selectedRouteId);
+            } catch (JSONException e) {}
+            try {
+                jsonRouteSettings.put("start", this.start.toJson());
+            } catch (JSONException e) {}
+            try {
+                jsonRouteSettings.put("destination", this.destination.toJson());
+            } catch (JSONException e) {}
+            try {
+                jsonRouteSettings.put("indirectionFactor", this.indirectionFactor);
+            } catch (JSONException e) {}
+    		// save settings
+	    	Editor editor = settings.edit();
+		    editor.putString("routeSettings", jsonRouteSettings.toString());
+    		editor.commit();
+            // null RouteSettings object to force reload on next getRouteSettings()
+            routeSettings = null;
+        }
+    }
+
+
     public class ServerSettings {
 
         private String serverURL;
-        private Map selectedMap;
+        private OSMMap selectedMap;
         private PublicTransportProvider selectedPublicTransportProvider;
 
         public ServerSettings(JSONObject jsonObject) {
@@ -621,11 +744,11 @@ public class SettingsManager {
             storeServerSettings();
         }
 
-        public Map getSelectedMap() {
+        public OSMMap getSelectedMap() {
             return this.selectedMap;
         }
 
-        public void setSelectedMap(Map newMap) {
+        public void setSelectedMap(OSMMap newMap) {
             System.out.println("xxx newMap: " + newMap);
             this.selectedMap = newMap;
             storeServerSettings();

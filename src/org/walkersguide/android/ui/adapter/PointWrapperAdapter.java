@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.PointWrapper;
-import org.walkersguide.android.data.basic.point.PointWrapper.SortByDistanceFromCurrentPosition;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByDistanceFromCurrentPosition;
 
 import android.content.Context;
 import android.view.LayoutInflater;

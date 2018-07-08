@@ -1,14 +1,13 @@
 package org.walkersguide.android.ui.dialog;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.server.Map;
+import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.listener.ServerStatusListener;
 import org.walkersguide.android.server.ServerStatus;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -29,7 +28,7 @@ public class SelectMapDialog extends DialogFragment implements ServerStatusListe
     private SettingsManager settingsManagerInstance;
     private ServerStatus serverStatusRequest;
 
-    public static SelectMapDialog newInstance(Map map) {
+    public static SelectMapDialog newInstance(OSMMap map) {
         SelectMapDialog selectMapDialogInstance = new SelectMapDialog();
         Bundle args = new Bundle();
         if (map != null) {
@@ -52,7 +51,7 @@ public class SelectMapDialog extends DialogFragment implements ServerStatusListe
         String[] formattedMapNameArray = new String[accessDatabaseInstance.getMapList().size()];
         int indexOfSelectedMap = -1;
         int index = 0;
-        for (Map map : accessDatabaseInstance.getMapList()) {
+        for (OSMMap map : accessDatabaseInstance.getMapList()) {
             formattedMapNameArray[index] = map.getName();
             if (map.getName().equals(getArguments().getString("mapName"))) {
                 indexOfSelectedMap = index;
@@ -68,7 +67,7 @@ public class SelectMapDialog extends DialogFragment implements ServerStatusListe
                     indexOfSelectedMap,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            Map selectedMap = null;
+                            OSMMap selectedMap = null;
                             try {
                                 selectedMap = accessDatabaseInstance.getMapList().get(which);
                             } catch (IndexOutOfBoundsException e) {

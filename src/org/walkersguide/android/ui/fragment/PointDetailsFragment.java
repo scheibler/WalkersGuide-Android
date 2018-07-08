@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.json.JSONException;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.PedestrianCrossing;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
 import org.walkersguide.android.util.SettingsManager;

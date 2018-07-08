@@ -17,16 +17,10 @@ public class Footway extends Segment {
 
     public Footway(Context context, JSONObject inputData) throws JSONException {
         super(context, inputData);
+        this.bearing = inputData.getInt("bearing");
         this.surface = "";
         try {
             this.surface = inputData.getString("surface");
-        } catch (JSONException e) {}
-        this.bearing = -1;
-        try {
-            int bearingValue = inputData.getInt("bearing");
-            if (bearingValue >= 0 && bearingValue < 360) {
-                this.bearing = bearingValue;
-            }
         } catch (JSONException e) {}
         this.lanes = -1;
         try {
@@ -86,12 +80,12 @@ public class Footway extends Segment {
         } catch (JSONException e) {}
     }
 
-    public String getSurface() {
-        return this.surface;
-    }
-
     public int getBearing() {
         return this.bearing;
+    }
+
+    public String getSurface() {
+        return this.surface;
     }
 
     public int getLanes() {
@@ -235,14 +229,10 @@ public class Footway extends Segment {
 
     public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
+        jsonObject.put("bearing", this.bearing);
         if (! this.surface.equals("")) {
             try {
                 jsonObject.put("surface", this.surface);
-            } catch (JSONException e) {}
-        }
-        if (this.bearing > -1) {
-            try {
-                jsonObject.put("bearing", this.bearing);
             } catch (JSONException e) {}
         }
         if (this.lanes > -1) {

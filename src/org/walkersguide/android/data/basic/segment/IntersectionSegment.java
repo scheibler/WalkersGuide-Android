@@ -14,10 +14,7 @@ public class IntersectionSegment extends Footway {
 
     public IntersectionSegment(Context context, JSONObject inputData) throws JSONException {
         super(context, inputData);
-        this.intersectionName = "";
-        try {
-            this.intersectionName = inputData.getString("intersection_name");
-        } catch (JSONException e) {}
+        this.intersectionName = inputData.getString("intersection_name");
     }
 
     public String getIntersectionName() {
@@ -26,11 +23,7 @@ public class IntersectionSegment extends Footway {
 
     public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
-        if (! this.intersectionName.equals("")) {
-            try {
-                jsonObject.put("intersection_name", this.intersectionName);
-            } catch (JSONException e) {}
-        }
+        jsonObject.put("intersection_name", this.intersectionName);
         return jsonObject;
     }
 

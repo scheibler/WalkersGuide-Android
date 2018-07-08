@@ -1,12 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--
+         abstract activity and app wide menu
+    -->
+
     <!-- abstract activity menu -->
     <string name="menuItemDirection">Direction</string>
     <string name="menuItemLocation">Location</string>
+    <string name="menuItemPlanRoute">Plan route</string>
+    <string name="menuItemRequestAddress">Request address</string>
     <string name="menuItemSaveCurrentPosition">Save position</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
+
+    <!-- select direction source dialog -->
+    <string name="selectDirectionSourceDialogName">Directional source:</string>
+    <string name="formattedDirectionValue">%1$s: %2$d degree (%3$s)</string>
+    <string name="directionSourceCompass">Compass</string>
+    <string name="directionSourceGPS">GPS</string>
+    <string name="directionSourceSimulated">Simulation</string>
+    <string name="labelNoDirectionAvailable">No direction available</string>
+    <string name="editHintDirectionInDegree">Direction in degree between 0 and 359.</string>
+
+    <!-- select location source dialog -->
+    <string name="selectLocationSourceDialogName">Location source:</string>
+    <string name="locationSourceGPS">GPS</string>
+    <string name="buttonGPSDetails">Details</string>
+    <string name="buttonGPSAddress">Address</string>
+    <string name="buttonGPSSave">Save</string>
+    <string name="locationSourceSimulatedPoint">Simulation</string>
+    <string name="labelNoSimulatedPointSelected">No point selected</string>
+
+    <!-- gps details dialog -->
+    <string name="gpsDetailsDialogName">GPS details</string>
+    <string name="labelGPSLatitude">Latitude:</string>
+    <string name="labelGPSLongitude">Longitude:</string>
+    <string name="labelGPSProvider">Provider:</string>
+    <string name="labelGPSAccuracy">Accuracy:</string>
+    <string name="labelGPSAltitude">Altitude:</string>
+    <string name="labelGPSBearing">Bearing:</string>
+    <string name="labelGPSSpeed">Speed:</string>
+    <string name="labelGPSTime">Last fix:</string>
+
+    <!-- plan route dialog -->
+    <string name="planRouteDialogTitle">Plan route</string>
+    <string name="buttonStartPoint">Start:</string>
+    <string name="buttonDestinationPoint">Destination:</string>
+    <string name="buttonNewRoute">New</string>
+    <string name="buttonSwapRoute">Swap</string>
+    <string name="buttonGetRoute">Get route</string>
+
+    <!-- select point dialog -->
+    <string name="selectPointDialogNameStart">Select start point from:</string>
+    <string name="selectPointDialogNameDestination">Select destination point from:</string>
+    <string name="selectPointDialogNameSimulation">Select point to simulate from:</string>
+    <string name="pointSourceParentGeneral">General:</string>
+    <string name="pointSourceChildCurrentLocation">Current location</string>
+    <string name="pointSourceChildAddress">Address</string>
+    <string name="pointSourceParentFavorites">Favorites: (%1$d)</string>
+    <string name="pointSourceParentPOI">POI: (%1$d)</string>
+
+    <!-- enter address dialog -->
+    <string name="enterAddressDialogName">Enter Address:</string>
+    <string name="editHintAddress">city, street and house number</string>
+    <string name="messageAddressMissing">Please enter an address.</string>
+
+    <!-- select favorite/poi dialog -->
+    <string name="selectPOIDialogName">Profile: %1$s</string>
+
+    <!-- request address dialog -->
+    <string name="requestAddressDialogName">Request Address:</string>
+    <string name="messageNoAddressSelected">No address selected.</string>
+    <string name="messageAddressRequestSuccessful">You are at:\n%1$s</string>
+    <string name="messageAddressRequestFailed">Error:\n%1$s</string>
+
+    <!-- save current position dialog -->
+    <string name="saveCurrentPositionDialogName">Save current position</string>
+    <string name="labelLocationData">Location data:</string>
+    <string name="buttonRefreshLocation">Refresh location</string>
+    <string name="labelCheckFavoritesProfiles">Select profiles:</string>
+    <string name="buttonClearFavoritesProfiles">Clear profile selection</string>
+    <string name="labelNoUserCreatedFavoritesProfiles">Please create at least one favorites profile.
+        Otherwise this point is only saved into the default \"user created points\" profile.</string>
+    <string name="labelPointNameToSave">Point name:</string>
+    <string name="editHintSaveCurrentPointName">Name</string>
+
 
     <!--
          main activity and fragments
@@ -24,15 +103,35 @@
     <string name="fragmentPOIName">POI</string>
 
     <!-- router fragment -->
-    <string name="buttonRouteCommandList">Commands</string>
-    <string name="buttonRecalculateRoute">Recalculate</string>
-    <string name="buttonNewRoute">New route</string>
+    <string name="buttonRouteCommandList">Details</string>
+    <string name="buttonPlanRoute">New route</string>
+    <string name="labelNextRouteSegment">Next segment:\n%1$s</string>
+    <string name="labelNextRoutePoint">Next point:\n%1$s</string>
     <string name="buttonPreviousRouteObject">Previous</string>
+    <string name="labelRoutePosition">%1$d of %2$d</string>
     <string name="buttonNextRouteObject">Next</string>
+    <!-- more button menu -->
+    <string name="menuItemRecalculate">Recalculate</string>
+    <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
+    <string name="menuItemRouteHistory">Route history</string>
+
+    <!-- route commands dialog -->
+    <string name="routeCommandsDialogTitle">Route details</string>
+    <string name="labelEmptyRouteObjectListView">No route loaded.</string>
+    <!-- route object list menu -->
+    <string name="menuItemShowSegmentDetails">Segment details</string>
+    <string name="menuItemShowPointDetails">Point details</string>
+    <string name="menuItemJumpToRouteObject">Jump to object</string>
+
+    <!-- route history dialog -->
+    <string name="routeHistoryDialogTitle">Route history</string>
+    <string name="editHintRouteSearch">Search for routes</string>
+    <string name="labelEmptyRouteListView">No routes planned.</string>
 
     <!-- favorites and poi fragments -->
     <string name="buttonPreviousProfile">Previous profile</string>
     <string name="buttonNextProfile">Next profile</string>
+    <string name="buttonJumpToTop">Jump to top</string>
     <string name="emptyProfileList">No profile selected</string>
     <string name="buttonRefresh">Refresh</string>
     <string name="buttonCancel">Cancel</string>
@@ -97,7 +196,12 @@
     <string name="labelPointDistanceAndBearing">Distance: %1$d meters, %2$s</string>
     <string name="buttonPointFavorite">Favorite</string>
     <string name="buttonPointSimulateLocation">Simulate</string>
+    <string name="menuItemAsRouteStartPoint">Use as start</string>
+    <string name="menuItemAsRouteDestinationPoint">Use as destination</string>
     <string name="labelAttributesPointDetails">Attributes:</string>
+
+    <!-- select favorites profiles for point dialog -->
+    <string name="selectFavoritesProfilesForPointDialogName">Check profiles</string>
 
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Departures</string>
@@ -174,37 +278,8 @@
 
 
     <!--
-         dialogs and layouts
+         other dialogs and layouts
     -->
-
-    <!-- enter address dialog -->
-    <string name="enterAddressDialogName">Enter Address:</string>
-    <string name="editHintAddress">city, street and house number</string>
-    <string name="messageAddressMissing">Please enter an address.</string>
-
-    <!-- select direction source dialog -->
-    <string name="selectDirectionSourceDialogName">Directional source:</string>
-    <string name="formattedDirectionValue">%1$s: %2$d degree (%3$s)</string>
-    <string name="directionSourceCompass">Compass</string>
-    <string name="directionSourceGPS">GPS</string>
-    <string name="directionSourceSimulated">Simulation</string>
-    <string name="labelNoDirectionAvailable">No direction available</string>
-    <string name="editHintDirectionInDegree">Direction in degree between 0 and 359.</string>
-
-    <!-- select location source dialog -->
-    <string name="selectLocationSourceDialogName">Location source:</string>
-    <string name="locationSourceGPS">GPS</string>
-    <string name="labelGPSLatitude">Latitude:</string>
-    <string name="labelGPSLongitude">Longitude:</string>
-    <string name="labelGPSProvider">Provider:</string>
-    <string name="labelGPSAccuracy">Accuracy:</string>
-    <string name="labelGPSAltitude">Altitude:</string>
-    <string name="labelGPSBearing">Bearing:</string>
-    <string name="labelGPSSpeed">Speed:</string>
-    <string name="labelGPSTime">Last fix:</string>
-    <string name="labelNoGPSLocationAvailable">Got no location fix</string>
-    <string name="locationSourceSimulatedPoint">Simulation</string>
-    <string name="labelNoSimulatedPointSelected">No point selected</string>
 
     <!-- single edit text layout -->
     <string name="buttonDelete">Delete</string>
@@ -245,9 +320,10 @@
 
     <!-- FavoritesProfile -->
     <string name="fpNameAllPoints">All points</string>
-    <string name="fpNameAddresses">Addresses</string>
+    <string name="fpNameAddressPoints">Addresses</string>
+    <string name="fpNameRoutePoints">Route points</string>
     <string name="fpNameSimulatedPoints">Simulated points</string>
-    <string name="fpNameMyEntrances">My entrances</string>
+    <string name="fpNameUserCreatedPoints">User created points</string>
 
     <!-- POICategory -->
     <string name="labelPOICategoryBusTram">Bus and tram stations</string>
@@ -278,17 +354,38 @@
 
 
     <!--
+         route management
+    -->
+
+    <!-- route manager -->
+    <string name="messageAlreadyFirstObject">Already at the first route object.</string>
+    <string name="messageAlreadyLastObject">Already at the last route object.</string>
+
+    <!-- route object -->
+    <string name="firstRouteObjectToString">1.\nStart point:\n%1$s</string>
+    <string name="otherRouteObjectsToString">%1$d.\nWalk: %2$s\nThen: %3$s</string>
+
+    <!-- route point -->
+    <string name="routePointNoTurnToString">%1$s at %2$s</string>
+    <string name="routePointTurnToString">Turn %1$s at %2$s</string>
+
+
+    <!--
          helpers and utils
     -->
 
     <!-- standard messages, which are used in more than one component -->
+    <string name="dialogOK">OK</string>
     <string name="dialogYes">Yes</string>
     <string name="dialogNo">No</string>
-    <string name="dialogOK">OK</string>
+    <string name="dialogBack">Back</string>
     <string name="dialogCancel">Cancel</string>
-    <string name="dialogNext">Next</string>
     <string name="dialogClear">Clear</string>
     <string name="dialogClose">Close</string>
+    <string name="dialogDetails">Details</string>
+    <string name="dialogMore">More</string>
+    <string name="dialogNext">Next</string>
+    <string name="dialogUpdate">Update</string>
     <string name="messagePleaseWait">Please wait...</string>
 
     <!-- units -->
@@ -309,7 +406,19 @@
     <string name="messageError1010">Error: Can\'t connect to server.</string>
     <string name="messageError1011">Error: Invalid server response.</string>
     <string name="messageError1012">Error from server: %1$s</string>
-    <string name="messageError1013">Found no coordinates for the entered address.</string>
+    <string name="messageError1013">Error: No coordinates for this address found.</string>
+    <string name="messageError1014">Error: No address for this location found.</string>
+    <string name="messageError1015">You exceeded the daily request quota for the Google maps API.</string>
+    <string name="messageError1020">No start point selected.</string>
+    <string name="messageError1021">No destination point selected.</string>
+    <string name="messageError1022">No route selected.</string>
+    <string name="messageError1023">Route parsing error.</string>
+    <string name="messageErrorDataLoadingFailed">Data could not be loaded.</string>
+    <string name="messageErrorNoUserCreatedFavoritesProfiles">No user created favorites profile
+        found.\nBefore you can add this point to any favorites profile, you have to create at least
+        one profile.\nTo do so, go to the favorites tab of the main activity and click on \"MORE\"
+        and then on \"New profile\".</string>
+    <string name="messageNameMissing">Please enter a name.</string>
     <string name="messageUnknownError">Unknown error: %1$d</string>
 
     <!-- instruction directions -->

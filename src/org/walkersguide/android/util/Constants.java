@@ -11,6 +11,8 @@ public class Constants {
         public static final int DIRECTION = 0;
         public static final String LOCATION =
             "{\"name\":\"Dummy location\", \"lat\":0.0, \"lon\":0.0, \"type\":\"gps\", \"sub_type\":\"Dummy Location\"}";
+        public static final String FOOTWAY =
+            "{\"name\":\"Dummy Segment\", \"bearing\":0, \"distance\":0, \"type\":\"footway\", \"sub_type\":\"Dummy Segment\"}";
     }
 
     public interface ID {
@@ -38,8 +40,8 @@ public class Constants {
 
     public interface SEGMENT {
         public static final String FOOTWAY = "footway";
-        public static final String INTERSECTION = "intersection_segment";
-        public static final String ROUTE = "route_segment";
+        public static final String INTERSECTION = "footway_intersection";
+        public static final String ROUTE = "footway_route";
     }
 
     public interface SORT_CRITERIA {
@@ -178,6 +180,15 @@ public class Constants {
 
     public final static int[] LocationSourceValueArray = {
         LOCATION_SOURCE.GPS, LOCATION_SOURCE.SIMULATION
+    };
+
+
+    /**
+     * route
+     */
+
+    public final static double[] IndirectionFactorValueArray = {
+        1.0, 1.5, 2.0, 3.0, 4.0
     };
 
 

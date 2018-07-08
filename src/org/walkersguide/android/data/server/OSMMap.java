@@ -1,19 +1,19 @@
 package org.walkersguide.android.data.server;
 
-public class Map {
+public class OSMMap {
 
     private String name, url;
     private int version;
     private long created;
 
-    public Map(String name, String url) {
+    public OSMMap(String name, String url) {
         this.name = name;
         this.url = url;
         this.version = 0;
         this.created = 0l;
     }
 
-    public Map(String name, String url, int version, long created) {
+    public OSMMap(String name, String url, int version, long created) {
         this.name = name;
         this.url = url;
         this.version = version;
@@ -49,10 +49,10 @@ public class Map {
 			return true;
         } else if (obj == null) {
 			return false;
-        } else if (! (obj instanceof Map)) {
+        } else if (! (obj instanceof OSMMap)) {
 			return false;
         }
-		Map other = (Map) obj;
+		OSMMap other = (OSMMap) obj;
         return this.name.equals(other.getName());
     }
 

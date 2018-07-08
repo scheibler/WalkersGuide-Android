@@ -142,6 +142,20 @@ public class DownloadUtility {
             case 1012:      // error message from server
                 return String.format(
                         context.getResources().getString(R.string.messageError1012), additionalMessage);
+            case 1013:      // no coordinates for address
+                return context.getResources().getString(R.string.messageError1013);
+            case 1014:      // no address for coordinates
+                return context.getResources().getString(R.string.messageError1014);
+            case 1015:      // OVER_QUERY_LIMIT
+                return context.getResources().getString(R.string.messageError1015);
+            case 1020:      // no start point
+                return context.getResources().getString(R.string.messageError1020);
+            case 1021:      // no destination point
+                return context.getResources().getString(R.string.messageError1021);
+            case 1022:      // no route
+                return context.getResources().getString(R.string.messageError1022);
+            case 1023:      // route parsing error
+                return context.getResources().getString(R.string.messageError1023);
             default:
                 return String.format(
                         context.getResources().getString(R.string.messageUnknownError), returnCode);

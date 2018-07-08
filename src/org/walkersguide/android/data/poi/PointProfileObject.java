@@ -5,7 +5,7 @@ import java.util.Comparator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.sensor.DirectionManager;
 

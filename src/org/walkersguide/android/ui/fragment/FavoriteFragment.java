@@ -167,6 +167,17 @@ public class FavoriteFragment extends Fragment
 
         labelPOIFragmentHeader = (TextView) view.findViewById(R.id.labelPOIFragmentHeader);
 
+        ImageButton buttonJumpToTop = (ImageButton) view.findViewById(R.id.buttonJumpToTop);
+        buttonJumpToTop.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                if (listViewPOI.getAdapter() != null) {
+                    onFragmentDisabled();
+                    settingsManagerInstance.getFavoritesFragmentSettings().setSelectedPositionInPointList(0);
+                    onFragmentEnabled();
+                }
+            }
+        });
+
         listViewPOI = (ListView) view.findViewById(R.id.listViewPOI);
         listViewPOI.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {

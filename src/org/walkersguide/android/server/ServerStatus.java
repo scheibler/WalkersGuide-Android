@@ -14,7 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.server.Map;
+import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.DownloadUtility;
@@ -40,13 +40,13 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
     private ServerStatusListener serverStatusListener;
     private int updateAction;
     private String serverManagementURL;
-    private Map selectedMap;
+    private OSMMap selectedMap;
     private HttpsURLConnection connection;
     private Handler cancelConnectionHandler;
     private CancelConnection cancelConnection;
 
     public ServerStatus(Context context,
-            int updateAction, String serverManagementURL, Map selectedMap) {
+            int updateAction, String serverManagementURL, OSMMap selectedMap) {
         this.context = context;
         if (context instanceof ServerStatusListener) {
             this.serverStatusListener = (ServerStatusListener) context;
@@ -60,7 +60,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
     }
 
     public ServerStatus(Context context, ServerStatusListener serverStatusListener,
-            int updateAction, String serverManagementURL, Map selectedMap) {
+            int updateAction, String serverManagementURL, OSMMap selectedMap) {
         this.context = context;
         this.serverStatusListener = serverStatusListener;
         this.updateAction = updateAction;
@@ -118,14 +118,14 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
 
             if (returnCode == Constants.ID.OK) {
                 // set available maps
-                ArrayList<Map> oldMapList = accessDatabaseInstance.getMapList();
+                ArrayList<OSMMap> oldMapList = accessDatabaseInstance.getMapList();
                 // load new map list
                 Iterator<String> iter = jsonMapDict.keys();
                 while (iter.hasNext()) {
                     String mapName = iter.next();
-                    Map map = null;
+                    OSMMap map = null;
                     try {
-                        map = new Map(mapName, jsonMapDict.getString(mapName));
+                        map = new OSMMap(mapName, jsonMapDict.getString(mapName));
                     } catch (JSONException e) {
                         map = null;
                     } finally {
@@ -138,7 +138,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                     }
                 }
                 // remove not longer supported maps
-                for (Map map : oldMapList) {
+                for (OSMMap map : oldMapList) {
                     accessDatabaseInstance.removeMap(map.getName());
                 }
                 // new server url
@@ -153,7 +153,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
             if (this.selectedMap == null) {
                 return 1006;            // no map selected
             }
-            Map map = null;
+            OSMMap map = null;
             JSONArray jsonSupportedPOITags = null;
             JSONObject jsonPublicTransportProviderDict = null;
             try {
@@ -172,7 +172,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                 } else {
                     JSONObject jsonServerResponse = DownloadUtility.processServerResponse(connection);
                     // map
-                    map = new Map(
+                    map = new OSMMap(
                             jsonServerResponse.getString("map_name"),
                             this.selectedMap.getURL(),
                             jsonServerResponse.getInt("map_version"),

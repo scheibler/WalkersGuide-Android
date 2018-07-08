@@ -2,12 +2,15 @@ package org.walkersguide.android.ui.activity;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.ServerStatus;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.ui.dialog.RequestAddressDialog;
+import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
 import org.walkersguide.android.ui.dialog.SelectDirectionSourceDialog;
 import org.walkersguide.android.ui.dialog.SelectLocationSourceDialog;
 import org.walkersguide.android.ui.dialog.SelectMapDialog;
@@ -70,12 +73,12 @@ public abstract class AbstractActivity extends AppCompatActivity {
         int currentDirection = directionManagerInstance.getCurrentDirection();
         switch (directionManagerInstance.getDirectionSource()) {
             case Constants.DIRECTION_SOURCE.COMPASS:
-                if (currentDirection == -1) {
+                if (currentDirection == Constants.DUMMY.DIRECTION) {
                     menu.findItem(R.id.menuItemDirection).setTitle(
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.directionSourceCompass),
-                                getResources().getString(R.string.labelNoDirectionAvailable))
+                                getResources().getString(R.string.messageError1005))
                             );
                 } else {
                     menu.findItem(R.id.menuItemDirection).setTitle(
@@ -88,12 +91,12 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 }
                 break;
             case Constants.DIRECTION_SOURCE.GPS:
-                if (currentDirection == -1) {
+                if (currentDirection == Constants.DUMMY.DIRECTION) {
                     menu.findItem(R.id.menuItemDirection).setTitle(
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.directionSourceGPS),
-                                getResources().getString(R.string.labelNoDirectionAvailable))
+                                getResources().getString(R.string.messageError1005))
                             );
                 } else {
                     menu.findItem(R.id.menuItemDirection).setTitle(
@@ -106,12 +109,12 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 }
                 break;
             case Constants.DIRECTION_SOURCE.SIMULATION:
-                if (currentDirection == -1) {
+                if (currentDirection == Constants.DUMMY.DIRECTION) {
                     menu.findItem(R.id.menuItemDirection).setTitle(
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.directionSourceSimulated),
-                                getResources().getString(R.string.labelNoDirectionAvailable))
+                                getResources().getString(R.string.messageError1005))
                             );
                 } else {
                     menu.findItem(R.id.menuItemDirection).setTitle(
@@ -133,12 +136,12 @@ public abstract class AbstractActivity extends AppCompatActivity {
         PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
         switch (positionManagerInstance.getLocationSource()) {
             case Constants.LOCATION_SOURCE.GPS:
-                if (currentLocation == null) {
+                if (currentLocation.equals(PositionManager.getDummyLocation(this))) {
                     menu.findItem(R.id.menuItemLocation).setTitle(
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.locationSourceGPS),
-                                getResources().getString(R.string.labelNoGPSLocationAvailable))
+                                getResources().getString(R.string.messageError1004))
                             );
                 } else {
                     menu.findItem(R.id.menuItemLocation).setTitle(
@@ -152,12 +155,12 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 }
                 break;
             case Constants.LOCATION_SOURCE.SIMULATION:
-                if (currentLocation == null) {
+                if (currentLocation.equals(PositionManager.getDummyLocation(this))) {
                     menu.findItem(R.id.menuItemLocation).setTitle(
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.locationSourceSimulatedPoint),
-                                getResources().getString(R.string.labelNoSimulatedPointSelected))
+                                getResources().getString(R.string.messageError1004))
                             );
                 } else {
                     menu.findItem(R.id.menuItemLocation).setTitle(
@@ -187,7 +190,17 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 SelectLocationSourceDialog.newInstance().show(
                         getSupportFragmentManager(), "SelectLocationSourceDialog");
                 break;
+            case R.id.menuItemPlanRoute:
+                PlanRouteDialog.newInstance().show(
+                        getSupportFragmentManager(), "PlanRouteDialog");
+                break;
+            case R.id.menuItemRequestAddress:
+                RequestAddressDialog.newInstance().show(
+                        getSupportFragmentManager(), "RequestAddressDialog");
+                break;
             case R.id.menuItemSaveCurrentPosition:
+                SaveCurrentPositionDialog.newInstance().show(
+                        getSupportFragmentManager(), "SaveCurrentPositionDialog");
                 break;
             case R.id.menuItemSettings:
                 Intent intentStartSettingsActivity = new Intent(AbstractActivity.this, SettingsActivity.class);

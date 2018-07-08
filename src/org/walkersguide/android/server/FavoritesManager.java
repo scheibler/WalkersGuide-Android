@@ -1,6 +1,6 @@
 package org.walkersguide.android.server;
 
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.DownloadUtility;
@@ -110,7 +110,7 @@ public class FavoritesManager {
             // get current location
             PositionManager positionManagerInstance = PositionManager.getInstance(context);
             PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
-            if (currentLocation == null) {
+            if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
                 this.returnCode = 1004;
                 return null;
             }
@@ -118,7 +118,7 @@ public class FavoritesManager {
             // get current direction
             DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
             int currentDirection = directionManagerInstance.getCurrentDirection();
-            if (currentDirection == -1) {
+            if (currentDirection == Constants.DUMMY.DIRECTION) {
                 this.returnCode = 1005;
                 return null;
             }

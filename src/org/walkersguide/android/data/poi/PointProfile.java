@@ -6,7 +6,7 @@ import java.util.Collections;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.basic.point.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.PointProfileObject.SortByDistanceFromCenterASC;
 import org.walkersguide.android.data.poi.PointProfileObject.SortByDistanceFromCenterDESC;
 import org.walkersguide.android.data.poi.PointProfileObject.SortByNameASC;
@@ -39,10 +39,12 @@ public abstract class PointProfile {
         // point list
         this.pointProfileObjectList = new ArrayList<PointProfileObject>();
         for (int i=0; i<jsonPointList.length(); i++) {
-            this.pointProfileObjectList.add(
-                    new PointProfileObject(
-                        context, this, jsonPointList.getJSONObject(i))
-                    );
+            try {
+                this.pointProfileObjectList.add(
+                        new PointProfileObject(
+                            context, this, jsonPointList.getJSONObject(i))
+                        );
+            } catch (JSONException e) {}
         }
     }
 

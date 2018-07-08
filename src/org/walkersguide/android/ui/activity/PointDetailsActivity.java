@@ -1,31 +1,45 @@
 package org.walkersguide.android.ui.activity;
 
 import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.TreeSet;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.Intersection;
-import org.walkersguide.android.data.basic.point.PointWrapper;
-import org.walkersguide.android.data.basic.wrapper.Station;
+import org.walkersguide.android.data.basic.point.Station;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.listener.ChildDialogCloseListener;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.fragment.DeparturesFragment;
 import org.walkersguide.android.ui.fragment.EntrancesFragment;
 import org.walkersguide.android.ui.fragment.IntersectionWaysFragment;
 import org.walkersguide.android.ui.fragment.PedestrianCrossingsFragment;
 import org.walkersguide.android.ui.fragment.PointDetailsFragment;
+import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.SettingsManager.RouteSettings;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -33,13 +47,21 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.Switch;
 import android.widget.TextView;
 
-public class PointDetailsActivity extends AbstractActivity {
+public class PointDetailsActivity extends AbstractActivity implements OnMenuItemClickListener {
 
 	// instance variables
     private DirectionManager directionManagerInstance;
@@ -96,6 +118,7 @@ public class PointDetailsActivity extends AbstractActivity {
                 getResources().getString(R.string.pointDetailsActivityTitle));
 
         if (pointWrapper != null) {
+            System.out.println("xxx " + pointWrapper.getPoint().getName() + ": " + pointWrapper.getPoint().getLatitude() + ", " + pointWrapper.getPoint().getLongitude());
             // name, type and distance
     		TextView labelPointName = (TextView) findViewById(R.id.labelPointName);
             labelPointName.setText(
@@ -110,10 +133,13 @@ public class PointDetailsActivity extends AbstractActivity {
                         pointWrapper.getPoint().getSubType())
                     );
     		labelPointDistanceAndBearing = (TextView) findViewById(R.id.labelPointDistanceAndBearing);
+
             // add to favorites
     		Button buttonPointFavorite = (Button) findViewById(R.id.buttonPointFavorite);
 	    	buttonPointFavorite.setOnClickListener(new View.OnClickListener() {
 		    	public void onClick(View view) {
+                    SelectFavoritesProfilesForPointDialog.newInstance(pointWrapper)
+                        .show(getSupportFragmentManager(), "SelectFavoritesProfilesForPointDialog");
                 }
             });
 
@@ -137,9 +163,13 @@ public class PointDetailsActivity extends AbstractActivity {
             });
 
             // more options
-    		Button buttonMore = (Button) findViewById(R.id.buttonMore);
-	    	buttonMore.setOnClickListener(new View.OnClickListener() {
-		    	public void onClick(View view) {
+            Button buttonMore = (Button) findViewById(R.id.buttonMore);
+            buttonMore.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    PopupMenu popupMore = new PopupMenu(PointDetailsActivity.this, view);
+                    popupMore.setOnMenuItemClickListener(PointDetailsActivity.this);
+                    popupMore.inflate(R.menu.menu_point_details_button_more);
+                    popupMore.show();
                 }
             });
 
@@ -188,6 +218,24 @@ public class PointDetailsActivity extends AbstractActivity {
 	    	// initialize handler for enabling fragment and open recent one
     		onFragmentEnabledHandler = new Handler();
             mViewPager.setCurrentItem(recentFragment);
+        }
+    }
+
+    @Override public boolean onMenuItemClick(MenuItem item) {
+        RouteSettings routeSettings = SettingsManager.getInstance(this).getRouteSettings();
+        switch (item.getItemId()) {
+            case R.id.menuItemAsRouteStartPoint:
+                routeSettings.setStartPoint(pointWrapper);
+                PlanRouteDialog.newInstance().show(
+                        getSupportFragmentManager(), "PlanRouteDialog");
+                return true;
+            case R.id.menuItemAsRouteDestinationPoint:
+                routeSettings.setDestinationPoint(pointWrapper);
+                PlanRouteDialog.newInstance().show(
+                        getSupportFragmentManager(), "PlanRouteDialog");
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -244,7 +292,7 @@ public class PointDetailsActivity extends AbstractActivity {
                 // update distance and bearing label
                 labelPointDistanceAndBearing.setText(
                         String.format(
-                            getResources().getString(R.string.labelPointDistanceAndBearing),
+                            context.getResources().getString(R.string.labelPointDistanceAndBearing),
                             pointWrapper.distanceFromCurrentLocation(),
                             StringUtility.formatInstructionDirection(
                                 context, pointWrapper.bearingFromCurrentLocation()))
@@ -252,6 +300,153 @@ public class PointDetailsActivity extends AbstractActivity {
             }
         }
     };
+
+
+    /**
+     * select favorites profiles for point
+     */
+
+    public static class SelectFavoritesProfilesForPointDialog extends DialogFragment implements ChildDialogCloseListener {
+
+        private AccessDatabase accessDatabaseInstance;
+        private PointWrapper selectedPoint;
+        private CheckBoxGroupView checkBoxGroupFavoritesProfiles;
+
+        public static SelectFavoritesProfilesForPointDialog newInstance(PointWrapper selectedPoint) {
+            SelectFavoritesProfilesForPointDialog selectFavoritesProfilesForPointDialogInstance = new SelectFavoritesProfilesForPointDialog();
+            Bundle args = new Bundle();
+            try {
+                args.putString("jsonPointSerialized", selectedPoint.toJson().toString());
+            } catch (JSONException e) {
+                args.putString("jsonPointSerialized", "");
+            }
+            selectFavoritesProfilesForPointDialogInstance.setArguments(args);
+            return selectFavoritesProfilesForPointDialogInstance;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            accessDatabaseInstance = AccessDatabase.getInstance(context);
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            try {
+                selectedPoint = new PointWrapper(
+                        getActivity(), new JSONObject(getArguments().getString("jsonPointSerialized", "")));
+            } catch (JSONException e) {
+                selectedPoint = PositionManager.getDummyLocation(getActivity());
+            }
+
+            // custom view
+            final ViewGroup nullParent = null;
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.layout_single_check_box_group, nullParent);
+
+            checkBoxGroupFavoritesProfiles = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
+            if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                SimpleMessageDialog dialog = SimpleMessageDialog.newInstance(
+                        getResources().getString(R.string.messageErrorDataLoadingFailed));
+                dialog.setTargetFragment(SelectFavoritesProfilesForPointDialog.this, 1);
+                dialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+            } else {
+                TreeSet<Integer> checkedFavoritesProfileIds = accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint);
+                for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
+                    if (profile.getKey() >= FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE) {
+                        CheckBox checkBox = new CheckBox(getActivity());
+                        checkBox.setId(profile.getKey());
+                        checkBox.setLayoutParams(
+                                new LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT)
+                                );
+                        checkBox.setText(profile.getValue());
+                        checkBox.setChecked(
+                                checkedFavoritesProfileIds.contains(profile.getKey()));
+                        checkBoxGroupFavoritesProfiles.put(checkBox);
+                    }
+                }
+                if (checkBoxGroupFavoritesProfiles.getCheckBoxList().isEmpty()) {
+                    SimpleMessageDialog dialog = SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.messageErrorNoUserCreatedFavoritesProfiles));
+                    dialog.setTargetFragment(SelectFavoritesProfilesForPointDialog.this, 1);
+                    dialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                }
+            }
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.selectFavoritesProfilesForPointDialogName))
+                .setView(view)
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogOK),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
+                .setNeutralButton(
+                        getResources().getString(R.string.dialogClear),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogCancel),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
+                .create();
+        }
+
+        @Override public void onStart() {
+            super.onStart();
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                // positive button
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        TreeSet<Integer> checkedFavoritesProfileIds = accessDatabaseInstance
+                            .getCheckedFavoritesProfileIdsForPoint(selectedPoint);
+                        for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckBoxList()) {
+                            // only update, if value has changed
+                            if (checkBox.isChecked() != checkedFavoritesProfileIds.contains(checkBox.getId())) {
+                                if (checkBox.isChecked()) {
+                                    accessDatabaseInstance.addPointToFavoritesProfile(selectedPoint, checkBox.getId());
+                                    System.out.println("xxx add " + checkBox.getId());
+                                } else {
+                                    accessDatabaseInstance.removePointFromFavoritesProfile(selectedPoint, checkBox.getId());
+                                    System.out.println("xxx remove " + checkBox.getId());
+                                }
+                            }
+                        }
+                        dialog.dismiss();
+                    }
+                });
+                // neutral button
+                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        checkBoxGroupFavoritesProfiles.uncheckAll();
+                    }
+                });
+                // negative button
+                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                buttonNegative.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+            }
+        }
+
+        @Override public void childDialogClosed() {
+            dismiss();
+        }
+    }
 
 
     /**

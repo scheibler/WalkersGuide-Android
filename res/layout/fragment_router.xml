@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="10dp"
         android:orientation="horizontal" >
 
         <Button
@@ -20,11 +19,11 @@
             android:text="@string/buttonRouteCommandList" />
 
         <Button
-            android:id="@+id/buttonRecalculateRoute"
+            android:id="@+id/buttonMore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="@string/buttonRecalculateRoute" />
+            android:text="@string/buttonMore" />
     </LinearLayout>
 
     <LinearLayout
@@ -32,18 +31,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="10dp"
         android:orientation="vertical" >
 
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp"
             android:background="#444444" />
 
         <TextView
             android:id="@+id/labelDistanceAndBearing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textStyle="bold"
             android:gravity="center_horizontal"
             android:focusable="true" />
 
@@ -84,13 +87,13 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/buttonNewRoute"
+        android:id="@+id/buttonPlanRoute"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
         android:layout_below="@id/layoutTop"
         android:layout_above="@id/layoutBottom"
-        android:text="@string/buttonNewRoute" />
+        android:text="@string/buttonPlanRoute" />
 
     <ScrollView
         android:id="@+id/scrollviewDescription"
@@ -108,20 +111,16 @@
                 android:id="@+id/labelRouteSegmentDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
                 android:focusable="true" />
 
             <TextView
                 android:id="@+id/labelRoutePointDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/labelIntersectionDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
                 android:focusable="true" />
         </LinearLayout>
     </ScrollView>

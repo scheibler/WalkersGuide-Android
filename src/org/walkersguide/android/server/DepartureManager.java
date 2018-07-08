@@ -14,7 +14,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.basic.wrapper.Station;
+import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.station.Departure;
 import org.walkersguide.android.helper.DownloadUtility;
 import org.walkersguide.android.listener.DepartureResultListener;

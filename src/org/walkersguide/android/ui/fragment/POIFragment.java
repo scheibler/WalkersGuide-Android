@@ -172,6 +172,17 @@ public class POIFragment extends Fragment
 
         labelPOIFragmentHeader = (TextView) view.findViewById(R.id.labelPOIFragmentHeader);
 
+        ImageButton buttonJumpToTop = (ImageButton) view.findViewById(R.id.buttonJumpToTop);
+        buttonJumpToTop.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                if (listViewPOI.getAdapter() != null) {
+                    onFragmentDisabled();
+                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(0);
+                    onFragmentEnabled();
+                }
+            }
+        });
+
         listViewPOI = (ListView) view.findViewById(R.id.listViewPOI);
         listViewPOI.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
@@ -547,6 +558,7 @@ public class POIFragment extends Fragment
             }
 
             editProfileName = (EditText) view.findViewById(R.id.editInput);
+            editProfileName.setText(accessDatabaseInstance.getNameOfPOIProfile(poiProfileId));
             editProfileName.setInputType(InputType.TYPE_CLASS_TEXT);
             editProfileName.setImeOptions(EditorInfo.IME_ACTION_DONE);
             editProfileName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -664,7 +676,7 @@ public class POIFragment extends Fragment
             }
 
             ArrayList<POICategory> poiCategoryList = new ArrayList<POICategory>();
-            for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckboxList()) {
+            for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckBoxList()) {
                 POICategory category = accessDatabaseInstance.getPOICategory(checkBox.getId());
                 if (category != null) {
                     poiCategoryList.add(category);

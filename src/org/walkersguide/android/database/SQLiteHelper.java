@@ -37,6 +37,23 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String DROP_PUBLIC_TRANSPORT_PROVIDER_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_PUBLIC_TRANSPORT_PROVIDER + ";";
 
+    // address table
+    public static final String TABLE_ADDRESS = "address";
+    public static final String ADDRESS_LATITUDE = "latitude";
+    public static final String ADDRESS_LONGITUDE = "longitude";
+    public static final String ADDRESS_POINT = "point";
+    public static final String[] TABLE_ADDRESS_ALL_COLUMNS = {
+        ADDRESS_LATITUDE, ADDRESS_LONGITUDE, ADDRESS_POINT
+    };
+    public static final String CREATE_ADDRESS_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_ADDRESS + "("
+        + ADDRESS_LATITUDE + " integer, "
+        + ADDRESS_LONGITUDE + " integer, "
+        + ADDRESS_POINT + " text not null, "
+        + "UNIQUE (" + ADDRESS_LATITUDE + ", " + ADDRESS_LONGITUDE + ") ON CONFLICT IGNORE);";
+    public static final String DROP_ADDRESS_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_ADDRESS + ";";
+
     // favorites profile table
     public static final String TABLE_FAVORITES_PROFILE = "favorites_profile";
     public static final String FAVORITES_PROFILE_ID = "_id";
@@ -132,6 +149,34 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String DROP_POI_CATEGORY_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_POI_CATEGORY + ";";
 
+    // route table
+    public static final String TABLE_ROUTE = "route";
+    public static final String ROUTE_ID = "_id";
+    public static final String ROUTE_START = "start";
+    public static final String ROUTE_DESTINATION = "destination";
+    public static final String ROUTE_DESCRIPTION = "description";
+    public static final String ROUTE_CREATED = "created";
+    public static final String ROUTE_CURRENT_OBJECT_INDEX = "current_object_index";
+    public static final String ROUTE_CURRENT_OBJECT_DATA = "current_object_data";
+    public static final String ROUTE_OBJECT_LIST = "object_list";
+    public static final String[] TABLE_ROUTE_ALL_COLUMNS = {
+        ROUTE_ID, ROUTE_START, ROUTE_DESTINATION, ROUTE_DESCRIPTION, ROUTE_CREATED,
+        ROUTE_CURRENT_OBJECT_INDEX, ROUTE_CURRENT_OBJECT_DATA, ROUTE_OBJECT_LIST
+    };
+    public static final String CREATE_ROUTE_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_ROUTE + "("
+        + ROUTE_ID + " integer primary key autoincrement, "
+        + ROUTE_START + " text not null, "
+        + ROUTE_DESTINATION + " text not null, "
+        + ROUTE_DESCRIPTION + " text not null, "
+        + ROUTE_CREATED + " integer, "
+        + ROUTE_CURRENT_OBJECT_INDEX + " integer, "
+        + ROUTE_CURRENT_OBJECT_DATA + " text not null, "
+        + ROUTE_OBJECT_LIST + " text not null, "
+        + "UNIQUE (" + ROUTE_START + ", " + ROUTE_DESTINATION + ", " + ROUTE_DESCRIPTION + ") ON CONFLICT IGNORE);";
+    public static final String DROP_ROUTE_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_ROUTE + ";";
+
     public SQLiteHelper(Context context) {
         super(context, INTERNAL_DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -140,11 +185,13 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         // create tables
         database.execSQL(CREATE_MAP_TABLE);
         database.execSQL(CREATE_PUBLIC_TRANSPORT_PROVIDER_TABLE);
+        database.execSQL(CREATE_ADDRESS_TABLE);
         database.execSQL(CREATE_FAVORITES_PROFILE_TABLE);
         database.execSQL(CREATE_POINT_TABLE);
         database.execSQL(CREATE_FP_POINTS_TABLE);
         database.execSQL(CREATE_POI_PROFILE_TABLE);
         database.execSQL(CREATE_POI_CATEGORY_TABLE);
+        database.execSQL(CREATE_ROUTE_TABLE);
     }
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {

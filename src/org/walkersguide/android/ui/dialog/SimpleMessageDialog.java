@@ -1,18 +1,15 @@
 package org.walkersguide.android.ui.dialog;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.listener.SimpleMessageDialogCloseListener;
-import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.listener.ChildDialogCloseListener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +18,7 @@ import android.widget.TextView;
 
 public class SimpleMessageDialog extends DialogFragment {
 
-    private SimpleMessageDialogCloseListener simpleMessageDialogCloseListener;
+    private ChildDialogCloseListener childDialogCloseListener;
 
     public static SimpleMessageDialog newInstance(String message) {
         SimpleMessageDialog simpleMessageDialogInstance = new SimpleMessageDialog();
@@ -34,11 +31,11 @@ public class SimpleMessageDialog extends DialogFragment {
     @Override public void onAttach(Context context){
         super.onAttach(context);
         if (getTargetFragment() != null
-                && getTargetFragment() instanceof SimpleMessageDialogCloseListener) {
-            simpleMessageDialogCloseListener = (SimpleMessageDialogCloseListener) getTargetFragment();
+                && getTargetFragment() instanceof ChildDialogCloseListener) {
+            childDialogCloseListener = (ChildDialogCloseListener) getTargetFragment();
         } else if (context instanceof Activity
-                && (Activity) context instanceof SimpleMessageDialogCloseListener) {
-            simpleMessageDialogCloseListener = (SimpleMessageDialogCloseListener) context;
+                && (Activity) context instanceof ChildDialogCloseListener) {
+            childDialogCloseListener = (ChildDialogCloseListener) context;
         }
     }
 
@@ -72,12 +69,12 @@ public class SimpleMessageDialog extends DialogFragment {
 
     @Override public void onStop() {
         super.onStop();
-        simpleMessageDialogCloseListener = null;
+        childDialogCloseListener = null;
     }
 
     private void close() {
-        if (simpleMessageDialogCloseListener != null) {
-            simpleMessageDialogCloseListener.simpleMessageDialogClosed();
+        if (childDialogCloseListener != null) {
+            childDialogCloseListener.childDialogClosed();
         }
         dismiss();
     }

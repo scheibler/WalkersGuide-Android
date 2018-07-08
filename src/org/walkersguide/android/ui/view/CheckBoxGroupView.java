@@ -35,7 +35,11 @@ public class CheckBoxGroupView extends GridLayout {
         requestLayout();
     }
 
-    public ArrayList<CheckBox> getCheckedCheckboxList() {
+    public ArrayList<CheckBox> getCheckBoxList() {
+        return this.checkBoxList;
+    }
+
+    public ArrayList<CheckBox> getCheckedCheckBoxList() {
         ArrayList<CheckBox> checkedCheckBoxList = new ArrayList<CheckBox>();
         for (CheckBox c : checkBoxList){
             if(c.isChecked()) {

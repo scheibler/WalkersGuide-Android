@@ -1,11 +1,18 @@
-package org.walkersguide.android.data.basic.point;
+package org.walkersguide.android.data.basic.wrapper;
 
 import java.util.Comparator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.Station;
+import org.walkersguide.android.data.basic.point.Entrance;
+import org.walkersguide.android.data.basic.point.GPS;
+import org.walkersguide.android.data.basic.point.Intersection;
+import org.walkersguide.android.data.basic.point.POI;
+import org.walkersguide.android.data.basic.point.PedestrianCrossing;
+import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.data.basic.point.Station;
+import org.walkersguide.android.data.basic.point.StreetAddress;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;

@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 
 import android.content.Context;
 

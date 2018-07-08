@@ -7,6 +7,11 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 
 public class StringUtility {
 
@@ -109,6 +114,14 @@ public class StringUtility {
             default:
                 return "";
         }
+    }
+
+    public static SpannableString boldAndRed(String text) {
+        SpannableString spanString = new SpannableString(text);
+        spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+        spanString.setSpan(
+                new ForegroundColorSpan(Color.rgb(215, 0, 0)), 0, spanString.length(), 0);
+        return spanString;
     }
 
 }
