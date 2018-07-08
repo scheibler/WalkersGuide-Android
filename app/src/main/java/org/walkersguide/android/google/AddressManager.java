@@ -2,10 +2,6 @@ package org.walkersguide.android.google;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -127,7 +123,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                                 longitudeFromGoogle = jsonCoordinates.getDouble("lng");
                             }
                         }
-                    } catch (CertificateException | IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+                    } catch (IOException e) {
                         returnCode = 1010;          // server connection error
                     } catch (JSONException e) {
                         returnCode = 1011;          // server response error
@@ -211,7 +207,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                             jsonAddressList = jsonServerResponse.getJSONArray("results");
                         }
                     }
-                } catch (CertificateException | IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+                } catch (IOException e) {
                     returnCode = 1010;          // server connection error
                 } catch (JSONException e) {
                     returnCode = 1011;          // server response error

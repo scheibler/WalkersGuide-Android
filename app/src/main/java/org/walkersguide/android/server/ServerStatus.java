@@ -1,10 +1,6 @@
 package org.walkersguide.android.server;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -102,7 +98,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                         jsonMapDict = jsonServerResponse.getJSONObject("available_maps");
                     }
                 }
-            } catch (CertificateException | IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+            } catch (IOException e) {
                 returnCode = 1010;          // server connection error
             } catch (JSONException e) {
                 returnCode = 1011;          // server response error
@@ -181,7 +177,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                     jsonSupportedPOITags = jsonServerResponse.getJSONArray("supported_poi_tags");
                     jsonPublicTransportProviderDict = jsonServerResponse.getJSONObject("supported_public_transport_provider");
                 }
-            } catch (CertificateException | IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+            } catch (IOException e) {
                 returnCode = 1010;          // server connection error
             } catch (JSONException e) {
                 returnCode = 1011;          // server response error

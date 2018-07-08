@@ -6,12 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -41,9 +35,7 @@ public class DownloadUtility {
     }
 
     public static HttpsURLConnection getHttpsURLConnectionObject(
-            Context context, String serverURL, JSONObject parameters)
-        throws CertificateException, IOException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException {
-
+        Context context, String serverURL, JSONObject parameters) throws IOException {
         // prepare connection object
         URL url = new URL(serverURL);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
@@ -51,39 +43,6 @@ public class DownloadUtility {
         connection.setReadTimeout(READ_TIMEOUT);
         connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         connection.setRequestProperty("Accept", "application/json, application/gzip");
-
-        // load self signed certificates of the following two domains
-        if (serverURL.startsWith("https://wasserbett.ath.cx")
-                || serverURL.startsWith("https://walkersguide.org")) {
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            InputStream caInput;
-            // Create a KeyStore containing our trusted CAs
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(null, null);
-            // load certificate of wasserbett.ath.cx
-            caInput = context.getResources().openRawResource(R.raw.wasserbett);
-            try {
-                keyStore.setCertificateEntry("ca1", cf.generateCertificate(caInput));
-            } finally {
-                caInput.close();
-            }
-            // load certificate of walkersguide.org
-            caInput = context.getResources().openRawResource(R.raw.walkersguide);
-            try {
-                keyStore.setCertificateEntry("ca2", cf.generateCertificate(caInput));
-            } finally {
-                caInput.close();
-            }
-            // Create a TrustManager that trusts the CAs in our KeyStore
-            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
-            tmf.init(keyStore);
-            // Create an SSLContext that uses our TrustManager
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, tmf.getTrustManagers(), null);
-            connection.setSSLSocketFactory(sslContext.getSocketFactory());
-        }
-
         // load additional parameters via post method, if given
         if (parameters != null) {
             connection.setRequestMethod("POST");

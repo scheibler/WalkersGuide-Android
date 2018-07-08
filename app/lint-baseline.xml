@@ -1,0 +1,1016 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="4" by="lint 2.3.1">
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/sensor/PositionManager.java"
+            line="105"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/sensor/PositionManager.java"
+            line="106"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="      editor.commit();"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="204"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="      editor.commit();"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="346"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="      editor.commit();"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="432"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="            editor.commit();"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="538"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="            editor.commit();"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="596"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="      editor.commit();"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="704"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="      editor.commit();"
+        errorLine2="      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="784"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                            String.format("
+        errorLine2="                            ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/activity/AbstractActivity.java"
+            line="148"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                String.format(&quot;%1$s = %2$d&quot;, SQLiteHelper.FAVORITES_PROFILE_ID, id),"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="333"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                String.format(&quot;%1$s = %2$d&quot;, SQLiteHelper.FAVORITES_PROFILE_ID, id),"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="400"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                String.format(&quot;%1$s = %2$d&quot;, SQLiteHelper.FAVORITES_PROFILE_ID, id),"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="415"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                String.format("
+        errorLine2="                ^">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="493"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                String.format(&quot;%1$s = %2$d&quot;, SQLiteHelper.POI_PROFILE_ID, id),"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="626"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                String.format(&quot;%1$s = %2$d&quot;, SQLiteHelper.POI_PROFILE_ID, id),"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="641"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        return String.format("
+        errorLine2="               ^">
+        <location
+            file="src/main/java/org/walkersguide/android/data/station/Departure.java"
+            line="33"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                        String.format("
+        errorLine2="                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/activity/InfoActivity.java"
+            line="49"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                description += String.format("
+        errorLine2="                               ^">
+        <location
+            file="src/main/java/org/walkersguide/android/data/basic/point/POI.java"
+            line="168"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        return String.format("
+        errorLine2="               ^">
+        <location
+            file="src/main/java/org/walkersguide/android/data/basic/segment/RouteSegment.java"
+            line="29"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                        String.format("
+        errorLine2="                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SaveCurrentPositionDialog.java"
+            line="188"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                        String.format("
+        errorLine2="                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SaveCurrentPositionDialog.java"
+            line="205"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                    String.format("
+        errorLine2="                                    ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="201"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                    String.format("
+        errorLine2="                                    ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="218"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                    String.format("
+        errorLine2="                                    ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="356"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                    String.format("
+        errorLine2="                                    ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="362"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                        String.format("
+        errorLine2="                                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="369"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                        String.format("
+        errorLine2="                                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="386"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                        String.format("
+        errorLine2="                                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="395"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                        String.format("
+        errorLine2="                                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="404"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                        String.format("
+        errorLine2="                                        ^">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/dialog/SelectLocationSourceDialog.java"
+            line="413"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="SimpleDateFormat"
+        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates."
+        errorLine1="        SimpleDateFormat hoursMinutesFormat = new SimpleDateFormat(&quot;HH:mm&quot;);"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/helper/StringUtility.java"
+            line="96"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `elevation` is only used in API level 21 and higher (current min is 16)"
+        errorLine1="        android:elevation=&quot;6dp&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/layout_toolbar.xml"
+            line="13"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InflateParams"
+        message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
+        errorLine1="        View footerView = inflater.inflate(R.layout.layout_single_text_view, null, false);"
+        errorLine2="                                                                             ~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/ui/fragment/POIFragment.java"
+            line="210"
+            column="78"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;degree&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;formattedDirectionValue&quot;>%1$s: %2$d degree (%3$s)&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="19"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;favorites&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelFavoritesFragmentHeaderSuccessPlural&quot;>%1$d favorites found.\nOrder: %2$s&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="165"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;favorites&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelFavoritesFragmentHeaderSuccessPluralFiltered&quot;>%1$d favorites found.\nOrder: %2$s, filtered&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="166"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;meters&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelPOIFragmentHeaderSuccess&quot;>%1$d POI found.\nRadius: %2$d meters&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="179"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;meters&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelPOIFragmentHeaderSuccessFiltered&quot;>%1$d POI found.\nRadius: %2$d meters (filtered)&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="180"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;meters&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelPointDistanceAndBearing&quot;>Distance: %1$d meters, %2$s&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="196"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;entrances&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelNumberOfEntrancesPlural&quot;>POI has %1$d entrances:&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="216"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;streets&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelNumberOfIntersectionWaysAndBearing&quot;>Intersection with %1$d streets\nDirection: %2$s&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="220"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;crossings&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelNumberOfPedestrianCrossingsPlural&quot;>%1$d crossings nearby:&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="225"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;degree&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;labelSegmentAbsoluteBearing&quot;>Bearing: %1$d degree (%2$s)&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="235"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;streets&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;intersectionDescription&quot;>%1$s\nIntersection with %2$d streets&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="299"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;meters&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;pointListObjectDescription&quot;>%1$s\nIn %2$d meters, %3$s&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="353"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="AllowBackup"
+        message="On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute `android:fullBackupContent` to specify an `@xml` resource which configures which files to backup. More info: https://developer.android.com/training/backup/autosyncapi.html"
+        errorLine1="    &lt;application"
+        errorLine2="    ^">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="11"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Recycle"
+        message="This `Cursor` should be freed up after use with `#close()`"
+        errorLine1="        Cursor cursor = database.query("
+        errorLine2="                                 ~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="889"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="ObsoleteLayoutParam"
+        message="Invalid layout param in a `LinearLayout`: `layout_below`"
+        errorLine1="            android:layout_below=&quot;@id/layoutTop&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_poi.xml"
+            line="82"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteLayoutParam"
+        message="Invalid layout param in a `LinearLayout`: `layout_above`"
+        errorLine1="            android:layout_above=&quot;@id/layoutBottom&quot; >"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_poi.xml"
+            line="83"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `AccessDatabase` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static AccessDatabase accessDatabaseInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/database/AccessDatabase.java"
+            line="34"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `DepartureManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static DepartureManager departureManagerInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/server/DepartureManager.java"
+            line="29"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `DirectionManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static DirectionManager directionManagerInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/sensor/DirectionManager.java"
+            line="50"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `FavoritesManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static FavoritesManager favoritesManagerInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/server/FavoritesManager.java"
+            line="23"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `POIManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static POIManager poiManagerInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/server/POIManager.java"
+            line="41"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `PositionManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static PositionManager positionManagerInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/sensor/PositionManager.java"
+            line="61"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `RouteManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static RouteManager routeManagerInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/server/RouteManager.java"
+            line="34"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `SettingsManager` which has field `context` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    // class variables"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/org/walkersguide/android/util/SettingsManager.java"
+            line="23"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `TTSWrapper` which has field `mContext` pointing to `Context`); this is a memory leak (and also breaks Instant Run)"
+        errorLine1="    private static TTSWrapper ttsWrapperInstance;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/util/TTSWrapper.java"
+            line="23"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UseSparseArrays"
+        message="Use new `SparseIntArray(...)` instead for better performance"
+        errorLine1="        this.lastDirectionMap = new HashMap&lt;Integer,Integer>();"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/sensor/DirectionManager.java"
+            line="80"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="UseSparseArrays"
+        message="Use `new SparseArray&lt;PointWrapper>(...)` instead for better performance"
+        errorLine1="        this.lastLocationMap = new HashMap&lt;Integer,PointWrapper>();"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/sensor/PositionManager.java"
+            line="84"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="UseValueOf"
+        message="Use `Double.valueOf(this.location.getLatitude())` instead"
+        errorLine1="  hash = hash * 31 + new Double(this.location.getLatitude()).hashCode();"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/data/basic/point/Point.java"
+            line="191"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="UseValueOf"
+        message="Use `Double.valueOf(this.location.getLongitude())` instead"
+        errorLine1="  hash = hash * 31 + new Double(this.location.getLongitude()).hashCode();"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/org/walkersguide/android/data/basic/point/Point.java"
+            line="192"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="InefficientWeight"
+        message="Use a `layout_width` of `0dp` instead of `match_parent` for better performance"
+        errorLine1="                    android:layout_width=&quot;match_parent&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_save_current_position.xml"
+            line="24"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="InefficientWeight"
+        message="Use a `layout_width` of `0dp` instead of `match_parent` for better performance"
+        errorLine1="                    android:layout_width=&quot;match_parent&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_save_current_position.xml"
+            line="76"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="InefficientWeight"
+        message="Use a `layout_width` of `0dp` instead of `match_parent` for better performance"
+        errorLine1="            android:layout_width=&quot;match_parent&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_departures.xml"
+            line="15"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="InefficientWeight"
+        message="Use a `layout_width` of `0dp` instead of `match_parent` for better performance"
+        errorLine1="            android:layout_width=&quot;match_parent&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_poi.xml"
+            line="26"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="InefficientWeight"
+        message="Use a `layout_width` of `0dp` instead of `match_parent` for better performance"
+        errorLine1="                android:layout_width=&quot;match_parent&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_poi.xml"
+            line="87"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InefficientWeight"
+        message="Use a `layout_width` of `0dp` instead of `match_parent` for better performance"
+        errorLine1="        android:layout_width=&quot;match_parent&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/layout_single_edit_text.xml"
+            line="10"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.menu.menu_favorites_fragment_button_more` appears to be unused"
+        errorLine1="&lt;menu"
+        errorLine2="^">
+        <location
+            file="src/main/res/menu/menu_favorites_fragment_button_more.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.satellite` appears to be unused">
+        <location
+            file="src/main/res/drawable-hdpi/satellite.png"/>
+        <location
+            file="src/main/res/drawable-mdpi/satellite.png"/>
+        <location
+            file="src/main/res/drawable-xhdpi/satellite.png"/>
+        <location
+            file="src/main/res/drawable-xxhdpi/satellite.png"/>
+        <location
+            file="src/main/res/drawable-xxxhdpi/satellite.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.labelNoDirectionAvailable` appears to be unused"
+        errorLine1="    &lt;string name=&quot;labelNoDirectionAvailable&quot;>No direction available&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="23"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.labelGeneralPointDetails` appears to be unused"
+        errorLine1="    &lt;string name=&quot;labelGeneralPointDetails&quot;>General:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="193"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.labelGeneralSegmentDetails` appears to be unused"
+        errorLine1="    &lt;string name=&quot;labelGeneralSegmentDetails&quot;>General:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="232"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.labelAttributesSegmentDetails` appears to be unused"
+        errorLine1="    &lt;string name=&quot;labelAttributesSegmentDetails&quot;>Attributes:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="239"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wayPointName` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wayPointName&quot;>Way point&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="293"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.roStationExactStopPosition` appears to be unused"
+        errorLine1="    &lt;string name=&quot;roStationExactStopPosition&quot;>, precise station location available&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="307"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.roStationNoExactStopPosition` appears to be unused"
+        errorLine1="    &lt;string name=&quot;roStationNoExactStopPosition&quot;>, precise station location not available&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="308"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.lineNrAndDirection` appears to be unused"
+        errorLine1="    &lt;string name=&quot;lineNrAndDirection&quot;>%1$s to %2$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="314"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="TypographyEllipsis"
+        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
+        errorLine1="    &lt;string name=&quot;messagePleaseWait&quot;>Please wait...&lt;/string>"
+        errorLine2="                                     ^">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="389"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="IconDensities"
+        message="Missing the following drawables in `drawable-xxhdpi`: delete.png, ic_launcher.png">
+        <location
+            file="src/main/res/drawable-xxhdpi"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="            &lt;Button"
+        errorLine2="            ^">
+        <location
+            file="src/main/res/layout/dialog_plan_route.xml"
+            line="29"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="            &lt;Button"
+        errorLine2="            ^">
+        <location
+            file="src/main/res/layout/dialog_plan_route.xml"
+            line="38"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="            &lt;Button"
+        errorLine2="            ^">
+        <location
+            file="src/main/res/layout/dialog_select_location_source.xml"
+            line="51"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="            &lt;Button"
+        errorLine2="            ^">
+        <location
+            file="src/main/res/layout/dialog_select_location_source.xml"
+            line="60"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="            &lt;Button"
+        errorLine2="            ^">
+        <location
+            file="src/main/res/layout/dialog_select_location_source.xml"
+            line="69"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="        &lt;Button"
+        errorLine2="        ^">
+        <location
+            file="src/main/res/layout/fragment_router.xml"
+            line="14"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="        &lt;Button"
+        errorLine2="        ^">
+        <location
+            file="src/main/res/layout/fragment_router.xml"
+            line="21"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="GoogleAppIndexingWarning"
+        message="App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."
+        errorLine1="    &lt;application"
+        errorLine2="    ^">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="11"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="TextFields"
+        message="This text field does not specify an `inputType` or a `hint`"
+        errorLine1="    &lt;EditText"
+        errorLine2="    ^">
+        <location
+            file="src/main/res/layout/layout_single_edit_text.xml"
+            line="8"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="AlwaysShowAction"
+        message="Prefer &quot;`ifRoom`&quot; instead of &quot;`always`&quot;"
+        errorLine1="        app:showAsAction=&quot;always&quot; />"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/menu/menu_activity.xml"
+            line="9"
+            column="9"/>
+        <location
+            file="src/main/res/menu/menu_activity.xml"
+            line="14"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="RtlEnabled"
+        message="The project references RTL attributes, but does not explicitly enable or disable RTL support with `android:supportsRtl` in the manifest">
+        <location
+            file="src/main/AndroidManifest.xml"/>
+    </issue>
+
+</issues>

@@ -1,10 +1,6 @@
 package org.walkersguide.android.server;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -45,7 +41,7 @@ public class CancelRequest extends AsyncTask<Void, Void, Void> {
                         requestJson);
                 connection.connect();
                 int responseCode = connection.getResponseCode();
-            } catch (CertificateException | IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+            } catch (IOException e) {
             } catch (JSONException e) {
             } finally {
                 if (connection != null) {

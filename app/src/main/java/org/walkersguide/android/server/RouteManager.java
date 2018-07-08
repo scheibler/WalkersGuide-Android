@@ -1,10 +1,6 @@
 package org.walkersguide.android.server;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -183,7 +179,7 @@ public class RouteManager {
                             }
                         }
                     }
-                } catch (CertificateException | IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+                } catch (IOException e) {
                     returnCode = 1010;          // server connection error
                 } catch (JSONException e) {
                     returnCode = 1011;          // server response error
