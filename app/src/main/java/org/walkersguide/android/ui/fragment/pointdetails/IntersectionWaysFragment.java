@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.pointdetails;
 
 import java.util.ArrayList;
 
@@ -44,9 +44,9 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
 		IntersectionWaysFragment intersectionWaysFragmentInstance = new IntersectionWaysFragment();
         Bundle args = new Bundle();
         try {
-            args.putString("jsonPointSerialized", pointWrapper.toJson().toString());
+            args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointWrapper.toJson().toString());
         } catch (JSONException e) {
-            args.putString("jsonPointSerialized", "");
+            args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
         }
         intersectionWaysFragmentInstance.setArguments(args);
 		return intersectionWaysFragmentInstance;
@@ -70,7 +70,7 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
 		super.onViewCreated(view, savedInstanceState);
         try {
             intersectionSegmentList = new Intersection(
-                    getActivity(), new JSONObject(getArguments().getString("jsonPointSerialized", "")))
+                    getActivity(), new JSONObject(getArguments().getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "")))
                 .getSegmentList();
         } catch (JSONException e) {
             intersectionSegmentList = new ArrayList<IntersectionSegment>();
@@ -91,9 +91,9 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
                 IntersectionSegment intersectionSegment = (IntersectionSegment) parent.getItemAtPosition(position);
                 Intent detailsIntent = new Intent(getActivity(), SegmentDetailsActivity.class);
                 try {
-                    detailsIntent.putExtra("jsonSegmentSerialized", intersectionSegment.toJson().toString());
+                    detailsIntent.putExtra(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, intersectionSegment.toJson().toString());
                 } catch (JSONException e) {
-                    detailsIntent.putExtra("jsonSegmentSerialized", "");
+                    detailsIntent.putExtra(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
                 }
                 startActivity(detailsIntent);
             }

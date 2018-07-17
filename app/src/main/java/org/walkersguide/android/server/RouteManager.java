@@ -27,6 +27,8 @@ import org.walkersguide.android.util.TTSWrapper;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.data.basic.segment.Footway;
 
 public class RouteManager {
 
@@ -126,9 +128,24 @@ public class RouteManager {
                     JSONArray jsonSourcePoints = new JSONArray();
                     jsonSourcePoints.put(startPoint.toJson());
                     jsonSourcePoints.put(destinationPoint.toJson());
+                    // excluded ways
+                    JSONArray jsonExcludedWays = new JSONArray();
+                    for (SegmentWrapper segmentWrapper : accessDatabaseInstance.getExcludedWaysList()) {
+                        if (segmentWrapper.getSegment() instanceof Footway) {
+                            jsonExcludedWays.put(
+                                    ((Footway) segmentWrapper.getSegment()).getWayId());
+                        }
+                    }
+                    // allowed way classes
+                    JSONArray jsonAllowedWayClassList = new JSONArray();
+                    for (String wayClass : routeSettings.getWayClassList()) {
+                        jsonAllowedWayClassList.put(wayClass);
+                    }
                     // create parameter list
                     JSONObject requestJson = new JSONObject();
                     requestJson.put("source_points", jsonSourcePoints);
+                    requestJson.put("blocked_ways", jsonExcludedWays);
+                    requestJson.put("allowed_way_classes", jsonAllowedWayClassList);
                     requestJson.put("indirection_factor", routeSettings.getIndirectionFactor());
                     requestJson.put("language", Locale.getDefault().getLanguage());
                     requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());

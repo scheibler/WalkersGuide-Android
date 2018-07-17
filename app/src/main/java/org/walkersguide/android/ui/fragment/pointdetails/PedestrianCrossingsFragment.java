@@ -1,13 +1,19 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.pointdetails;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.data.basic.point.Intersection;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByDistanceFromCurrentPosition;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
+import org.walkersguide.android.ui.activity.PointDetailsActivity;
+import org.walkersguide.android.ui.adapter.PointWrapperAdapter;
 import org.walkersguide.android.util.Constants;
 
 import android.app.Activity;
@@ -25,25 +31,25 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class NextIntersectionsFragment extends Fragment implements FragmentCommunicator {
+public class PedestrianCrossingsFragment extends Fragment implements FragmentCommunicator {
 
 	// Store instance variables
-    private SegmentWrapper segmentWrapper;
+    private ArrayList<PointWrapper> pedestrianCrossingList;
 
 	// ui components
-    private ListView listViewNextIntersections;
+    private ListView listViewPedestrianCrossings;
 
 	// newInstance constructor for creating fragment with arguments
-	public static NextIntersectionsFragment newInstance(SegmentWrapper segmentWrapper) {
-		NextIntersectionsFragment nextIntersectionsFragmentInstance = new NextIntersectionsFragment();
+	public static PedestrianCrossingsFragment newInstance(PointWrapper pointWrapper) {
+		PedestrianCrossingsFragment pedestrianCrossingsFragmentInstance = new PedestrianCrossingsFragment();
         Bundle args = new Bundle();
         try {
-            args.putString("jsonSegmentSerialized", segmentWrapper.toJson().toString());
+            args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointWrapper.toJson().toString());
         } catch (JSONException e) {
-            args.putString("jsonSegmentSerialized", "");
+            args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
         }
-        nextIntersectionsFragmentInstance.setArguments(args);
-		return nextIntersectionsFragmentInstance;
+        pedestrianCrossingsFragmentInstance.setArguments(args);
+		return pedestrianCrossingsFragmentInstance;
 	}
 
 	@Override public void onAttach(Context context) {
@@ -52,36 +58,55 @@ public class NextIntersectionsFragment extends Fragment implements FragmentCommu
 		if (context instanceof Activity) {
 			activity = (Activity) context;
 			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((SegmentDetailsActivity) activity).nextIntersectionsFragmentCommunicator = this;
+			((PointDetailsActivity) activity).pedestrianCrossingsFragmentCommunicator = this;
 		}
 	}
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_next_intersections, container, false);
+		return inflater.inflate(R.layout.fragment_pedestrian_crossings, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
         try {
-            segmentWrapper = new SegmentWrapper(
-                    getActivity(), new JSONObject(getArguments().getString("jsonSegmentSerialized", "")));
+            pedestrianCrossingList = new Intersection(
+                    getActivity(), new JSONObject(getArguments().getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "")))
+                .getPedestrianCrossingList();
         } catch (JSONException e) {
-            segmentWrapper = null;
+            pedestrianCrossingList = new ArrayList<PointWrapper>();
         }
+        Collections.sort(pedestrianCrossingList, new SortByDistanceFromCurrentPosition());
 
         TextView labelFragmentHeader = (TextView) view.findViewById(R.id.labelFragmentHeader);
-        labelFragmentHeader.setText(
-                getResources().getString(R.string.fragmentNextIntersectionsName));
+        if (pedestrianCrossingList.size() == 1) {
+            labelFragmentHeader.setText(
+                    getResources().getString(R.string.labelNumberOfPedestrianCrossingsSingular));
+        } else {
+            labelFragmentHeader.setText(
+                    String.format(
+                        getResources().getString(R.string.labelNumberOfPedestrianCrossingsPlural),
+                        pedestrianCrossingList.size())
+                    );
+        }
 
-        listViewNextIntersections = (ListView) view.findViewById(R.id.listViewNextIntersections);
-        listViewNextIntersections.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listViewPedestrianCrossings = (ListView) view.findViewById(R.id.listViewPedestrianCrossings);
+        listViewPedestrianCrossings.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+                PointWrapper pointWrapper = (PointWrapper) parent.getItemAtPosition(position);
+                Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
+                try {
+                    detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointWrapper.toJson().toString());
+                } catch (JSONException e) {
+                    detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
+                }
+                startActivity(detailsIntent);
             }
         });
     }
 
     @Override public void onFragmentEnabled() {
-        listViewNextIntersections.setAdapter(null);
+        listViewPedestrianCrossings.setAdapter(
+                new PointWrapperAdapter(getActivity(), pedestrianCrossingList));
         // listen for direction and position changes
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_LOCATION);
@@ -98,19 +123,17 @@ public class NextIntersectionsFragment extends Fragment implements FragmentCommu
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            /*
             if (
                     (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
                         && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD1.ID)
                     || (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
                         && intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD2.ID)
                     ) {
-                PointWrapperAdapter pointWrapperAdapter = (PointWrapperAdapter) listViewNextIntersections.getAdapter();
+                PointWrapperAdapter pointWrapperAdapter = (PointWrapperAdapter) listViewPedestrianCrossings.getAdapter();
                 if (pointWrapperAdapter != null) {
                     pointWrapperAdapter.notifyDataSetChanged();
                 }
             }
-            */
         }
     };
 

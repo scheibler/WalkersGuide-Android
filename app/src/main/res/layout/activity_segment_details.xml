@@ -72,6 +72,9 @@
                     android:text="@string/buttonSegmentSimulateDirection" />
             </LinearLayout>
         </LinearLayout>
+
+        <include
+            layout="@layout/layout_default_divider" />
     </LinearLayout>
 
     <RelativeLayout

@@ -2,10 +2,10 @@ package org.walkersguide.android.ui.activity;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.ui.fragment.FavoriteFragment;
-import org.walkersguide.android.ui.fragment.POIFragment;
-import org.walkersguide.android.ui.fragment.RouterFragment;
-import org.walkersguide.android.ui.fragment.SearchFragment;
+import org.walkersguide.android.ui.fragment.main.FavoriteFragment;
+import org.walkersguide.android.ui.fragment.main.POIFragment;
+import org.walkersguide.android.ui.fragment.main.RouterFragment;
+import org.walkersguide.android.ui.fragment.main.SearchFragment;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
 import org.walkersguide.android.util.TTSWrapper;

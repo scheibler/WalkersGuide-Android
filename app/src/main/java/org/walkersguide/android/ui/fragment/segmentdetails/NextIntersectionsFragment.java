@@ -1,19 +1,13 @@
-package org.walkersguide.android.ui.fragment;
-
-import java.util.ArrayList;
-import java.util.Collections;
+package org.walkersguide.android.ui.fragment.segmentdetails;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.POI;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByDistanceFromCurrentPosition;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.activity.PointDetailsActivity;
-import org.walkersguide.android.ui.adapter.PointWrapperAdapter;
+import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
 import org.walkersguide.android.util.Constants;
 
 import android.app.Activity;
@@ -31,25 +25,25 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class EntrancesFragment extends Fragment implements FragmentCommunicator {
+public class NextIntersectionsFragment extends Fragment implements FragmentCommunicator {
 
 	// Store instance variables
-    private ArrayList<PointWrapper> entranceList;
+    private SegmentWrapper segmentWrapper;
 
 	// ui components
-    private ListView listViewEntrances;
+    private ListView listViewNextIntersections;
 
 	// newInstance constructor for creating fragment with arguments
-	public static EntrancesFragment newInstance(PointWrapper pointWrapper) {
-		EntrancesFragment entrancesFragmentInstance = new EntrancesFragment();
+	public static NextIntersectionsFragment newInstance(SegmentWrapper segmentWrapper) {
+		NextIntersectionsFragment nextIntersectionsFragmentInstance = new NextIntersectionsFragment();
         Bundle args = new Bundle();
         try {
-            args.putString("jsonPointSerialized", pointWrapper.toJson().toString());
+            args.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, segmentWrapper.toJson().toString());
         } catch (JSONException e) {
-            args.putString("jsonPointSerialized", "");
+            args.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
         }
-        entrancesFragmentInstance.setArguments(args);
-		return entrancesFragmentInstance;
+        nextIntersectionsFragmentInstance.setArguments(args);
+		return nextIntersectionsFragmentInstance;
 	}
 
 	@Override public void onAttach(Context context) {
@@ -58,56 +52,36 @@ public class EntrancesFragment extends Fragment implements FragmentCommunicator 
 		if (context instanceof Activity) {
 			activity = (Activity) context;
 			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((PointDetailsActivity) activity).entrancesFragmentCommunicator = this;
+			((SegmentDetailsActivity) activity).nextIntersectionsFragmentCommunicator = this;
 		}
 	}
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_entrances, container, false);
+		return inflater.inflate(R.layout.fragment_next_intersections, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
         try {
-            entranceList = new POI(
-                    getActivity(), new JSONObject(getArguments().getString("jsonPointSerialized", "")))
-                .getEntranceList();
+            segmentWrapper = new SegmentWrapper(
+                    getActivity(), new JSONObject(getArguments().getString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "")));
         } catch (JSONException e) {
-            entranceList = new ArrayList<PointWrapper>();
+            segmentWrapper = null;
         }
-        Collections.sort(entranceList, new SortByDistanceFromCurrentPosition());
 
         TextView labelFragmentHeader = (TextView) view.findViewById(R.id.labelFragmentHeader);
-        if (entranceList.size() == 1) {
-            labelFragmentHeader.setText(
-                    getResources().getString(R.string.labelNumberOfEntrancesSingular));
-        } else {
-            labelFragmentHeader.setText(
-                    String.format(
-                        getResources().getString(R.string.labelNumberOfEntrancesPlural),
-                        entranceList.size())
-                    );
-        }
+        labelFragmentHeader.setText(
+                getResources().getString(R.string.fragmentNextIntersectionsName));
 
-        listViewEntrances = (ListView) view.findViewById(R.id.listViewEntrances);
-        listViewEntrances.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listViewNextIntersections = (ListView) view.findViewById(R.id.listViewNextIntersections);
+        listViewNextIntersections.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-                PointWrapper pointWrapper = (PointWrapper) parent.getItemAtPosition(position);
-                System.out.println("xxx entrance clicked: " + pointWrapper.toString());
-                Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
-                try {
-                    detailsIntent.putExtra("jsonPoint", pointWrapper.toJson().toString());
-                } catch (JSONException e) {
-                    detailsIntent.putExtra("jsonPoint", "");
-                }
-                startActivity(detailsIntent);
             }
         });
     }
 
     @Override public void onFragmentEnabled() {
-        listViewEntrances.setAdapter(
-                new PointWrapperAdapter(getActivity(), entranceList));
+        listViewNextIntersections.setAdapter(null);
         // listen for direction and position changes
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_LOCATION);
@@ -124,17 +98,19 @@ public class EntrancesFragment extends Fragment implements FragmentCommunicator 
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
+            /*
             if (
                     (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
                         && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD1.ID)
                     || (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
                         && intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD2.ID)
                     ) {
-                PointWrapperAdapter pointWrapperAdapter = (PointWrapperAdapter) listViewEntrances.getAdapter();
+                PointWrapperAdapter pointWrapperAdapter = (PointWrapperAdapter) listViewNextIntersections.getAdapter();
                 if (pointWrapperAdapter != null) {
                     pointWrapperAdapter.notifyDataSetChanged();
                 }
             }
+            */
         }
     };
 

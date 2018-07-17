@@ -173,6 +173,10 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                             this.selectedMap.getURL(),
                             jsonServerResponse.getInt("map_version"),
                             jsonServerResponse.getLong("map_created"));
+                    if (map != null) {
+                        accessDatabaseInstance.updateVersionAndCreationOfMap(
+                                map.getName(), map.getVersion(), map.getCreated());
+                    }
                     // poi tags and public transport provider
                     jsonSupportedPOITags = jsonServerResponse.getJSONArray("supported_poi_tags");
                     jsonPublicTransportProviderDict = jsonServerResponse.getJSONObject("supported_public_transport_provider");

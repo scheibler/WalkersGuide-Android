@@ -13,13 +13,17 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String TABLE_MAP = "map";
     public static final String MAP_NAME = "name";
     public static final String MAP_URL = "url";
+    public static final String MAP_VERSION = "version";
+    public static final String MAP_CREATED = "created";
     public static final String[] TABLE_MAP_ALL_COLUMNS = {
-        MAP_NAME, MAP_URL
+        MAP_NAME, MAP_URL, MAP_VERSION, MAP_CREATED
     };
     public static final String CREATE_MAP_TABLE = 
         "CREATE TABLE IF NOT EXISTS " + TABLE_MAP + "("
         + MAP_NAME + " text not null primary key, "
-        + MAP_URL + " text not null);";
+        + MAP_URL + " text not null, "
+        + MAP_VERSION + " integer, "
+        + MAP_CREATED + " integer);";
     public static final String DROP_MAP_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_MAP + ";";
 
@@ -177,6 +181,22 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String DROP_ROUTE_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_ROUTE + ";";
 
+    // excluded way segment table
+    public static final String TABLE_EXCLUDED_WAYS = "excluded_ways";
+    public static final String EXCLUDED_WAYS_ID = "_id";
+    public static final String EXCLUDED_WAYS_TIMESTAMP = "timestamp";
+    public static final String EXCLUDED_WAYS_DATA = "data";
+    public static final String[] TABLE_EXCLUDED_WAYS_ALL_COLUMNS = {
+        EXCLUDED_WAYS_ID, EXCLUDED_WAYS_TIMESTAMP, EXCLUDED_WAYS_DATA
+    };
+    public static final String CREATE_EXCLUDED_WAYS_TABLE = 
+        "CREATE TABLE IF NOT EXISTS " + TABLE_EXCLUDED_WAYS + "("
+        + EXCLUDED_WAYS_ID + " integer primary key, "
+        + EXCLUDED_WAYS_TIMESTAMP + " integer, "
+        + EXCLUDED_WAYS_DATA + " text not null);";
+    public static final String DROP_EXCLUDED_WAYS_TABLE =
+        "DROP TABLE IF EXISTS " + TABLE_EXCLUDED_WAYS + ";";
+
     public SQLiteHelper(Context context) {
         super(context, INTERNAL_DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -192,6 +212,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         database.execSQL(CREATE_POI_PROFILE_TABLE);
         database.execSQL(CREATE_POI_CATEGORY_TABLE);
         database.execSQL(CREATE_ROUTE_TABLE);
+        database.execSQL(CREATE_EXCLUDED_WAYS_TABLE);
     }
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {

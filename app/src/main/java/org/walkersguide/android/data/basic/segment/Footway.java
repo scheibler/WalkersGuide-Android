@@ -10,7 +10,7 @@ import com.google.common.primitives.Ints;
 
 public class Footway extends Segment {
 
-    private String surface;
+    private String surface, userDescription;
     private int bearing, lanes, segregated, sidewalk, tactilePaving, tram, wheelchair;
     private long wayId;
     private double width;
@@ -66,7 +66,7 @@ public class Footway extends Segment {
         } catch (JSONException e) {}
         this.wayId = -1;
         try {
-            long wayIdValue = inputData.getInt("way_id");
+            long wayIdValue = inputData.getLong("way_id");
             if (wayIdValue > 0) {
                 this.wayId = wayIdValue;
             }
@@ -77,6 +77,11 @@ public class Footway extends Segment {
             if (widthValue > 0) {
                 this.width = widthValue;
             }
+        } catch (JSONException e) {}
+        // optional description added by the user
+        this.userDescription = "";
+        try {
+            this.userDescription = inputData.getString("user_description");
         } catch (JSONException e) {}
     }
 
@@ -211,6 +216,10 @@ public class Footway extends Segment {
         return this.wheelchair;
     }
 
+    public String getUserDescription() {
+        return this.userDescription;
+    }
+
 
     /**
      * helper functions
@@ -273,6 +282,11 @@ public class Footway extends Segment {
         if (this.width > 0) {
             try {
                 jsonObject.put("width", this.width);
+            } catch (JSONException e) {}
+        }
+        if (! this.userDescription.equals("")) {
+            try {
+                jsonObject.put("user_description", this.userDescription);
             } catch (JSONException e) {}
         }
         return jsonObject;

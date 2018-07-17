@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.main;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -7,18 +7,20 @@ import java.util.TreeMap;
 import org.json.JSONException;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.poi.POICategory;
+import org.walkersguide.android.data.poi.POIProfile;
 import org.walkersguide.android.data.poi.PointProfileObject;
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.FavoritesProfileListener;
 import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.server.FavoritesManager;
+import org.walkersguide.android.listener.POIProfileListener;
+import org.walkersguide.android.server.POIManager;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.FavoritesFragmentSettings;
+import org.walkersguide.android.util.SettingsManager.POIFragmentSettings;
 import org.walkersguide.android.util.TTSWrapper;
 
 import android.app.Activity;
@@ -41,24 +43,26 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
-import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class FavoriteFragment extends Fragment 
-    implements FragmentCommunicator, OnMenuItemClickListener, FavoritesProfileListener {
+public class POIFragment extends Fragment 
+    implements FragmentCommunicator, OnMenuItemClickListener, POIProfileListener {
 
 	// Store instance variables
     private AccessDatabase accessDatabaseInstance;
@@ -74,12 +78,12 @@ public class FavoriteFragment extends Fragment
     private Button buttonSelectProfile, buttonRefresh;
     private ListView listViewPOI;
     private Switch buttonFilter;
-    private TextView labelPOIFragmentHeader;
+    private TextView labelPOIFragmentHeader, labelMoreResultsFooter, labelListViewPOIEmpty;
 
 	// newInstance constructor for creating fragment with arguments
- 	public static FavoriteFragment newInstance() {
- 		FavoriteFragment favoriteFragmentInstance = new FavoriteFragment();
- 		return favoriteFragmentInstance;
+	public static POIFragment newInstance() {
+		POIFragment poiFragmentInstance = new POIFragment();
+		return poiFragmentInstance;
 	}
 
 	@Override public void onAttach(Context context) {
@@ -88,7 +92,7 @@ public class FavoriteFragment extends Fragment
 		if (context instanceof Activity) {
 			activity = (Activity) context;
 			// instanciate FragmentCommunicator interface to get data from MainActivity
- 			((MainActivity) activity).favoriteFragmentCommunicator = this;
+			((MainActivity) activity).poiFragmentCommunicator = this;
 		}
         // database access
         accessDatabaseInstance = AccessDatabase.getInstance(context);
@@ -114,20 +118,20 @@ public class FavoriteFragment extends Fragment
         ImageButton buttonPreviousProfile = (ImageButton) view.findViewById(R.id.buttonPreviousProfile);
         buttonPreviousProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                FavoritesFragmentSettings favoritesFragmentSettings= settingsManagerInstance.getFavoritesFragmentSettings();
+                POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
                 // get id of previous profile
                 int idOfPreviousProfile = -1;
-                for(Integer profileId : accessDatabaseInstance.getFavoritesProfileMap().keySet()) {
-                    if (profileId == favoritesFragmentSettings.getSelectedFavoritesProfileId()) {
+                for(Integer profileId : accessDatabaseInstance.getPOIProfileMap().keySet()) {
+                    if (profileId == poiFragmentSettings.getSelectedPOIProfileId()) {
                         break;
                     }
                     idOfPreviousProfile = profileId;
                 }
                 if (idOfPreviousProfile > -1) {
                     onFragmentDisabled();
-                    favoritesFragmentSettings.setSelectedFavoritesProfileId(idOfPreviousProfile);
+                    poiFragmentSettings.setSelectedPOIProfileId(idOfPreviousProfile);
                     ttsWrapperInstance.speak(
-                            accessDatabaseInstance.getNameOfFavoritesProfile(idOfPreviousProfile), true, true);
+                            accessDatabaseInstance.getNameOfPOIProfile(idOfPreviousProfile), true, true);
                     onFragmentEnabled();
                 }
             }
@@ -136,8 +140,8 @@ public class FavoriteFragment extends Fragment
         buttonSelectProfile = (Button) view.findViewById(R.id.buttonSelectProfile);
         buttonSelectProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectFavoritesProfileDialog.newInstance(
-                        settingsManagerInstance.getFavoritesFragmentSettings().getSelectedFavoritesProfileId())
+                SelectPOIProfileDialog.newInstance(
+                        settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId())
                     .show(getActivity().getSupportFragmentManager(), "SelectProfileDialog");
             }
         });
@@ -145,19 +149,20 @@ public class FavoriteFragment extends Fragment
         ImageButton buttonNextProfile = (ImageButton) view.findViewById(R.id.buttonNextProfile);
         buttonNextProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                FavoritesFragmentSettings favoritesFragmentSettings= settingsManagerInstance.getFavoritesFragmentSettings();
+                POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
+                // get id of next profile
                 int idOfNextProfile = -1;
-                for(Integer profileId :  accessDatabaseInstance.getFavoritesProfileMap().descendingKeySet()) {
-                    if (profileId == favoritesFragmentSettings.getSelectedFavoritesProfileId()) {
+                for(Integer profileId :  accessDatabaseInstance.getPOIProfileMap().descendingKeySet()) {
+                    if (profileId == poiFragmentSettings.getSelectedPOIProfileId()) {
                         break;
                     }
                     idOfNextProfile = profileId;
                 }
                 if (idOfNextProfile > -1) {
                     onFragmentDisabled();
-                    favoritesFragmentSettings.setSelectedFavoritesProfileId(idOfNextProfile);
+                    poiFragmentSettings.setSelectedPOIProfileId(idOfNextProfile);
                     ttsWrapperInstance.speak(
-                            accessDatabaseInstance.getNameOfFavoritesProfile(idOfNextProfile), true, true);
+                            accessDatabaseInstance.getNameOfPOIProfile(idOfNextProfile), true, true);
                     onFragmentEnabled();
                 }
             }
@@ -172,7 +177,7 @@ public class FavoriteFragment extends Fragment
             public void onClick(View view) {
                 if (listViewPOI.getAdapter() != null) {
                     onFragmentDisabled();
-                    settingsManagerInstance.getFavoritesFragmentSettings().setSelectedPositionInPointList(0);
+                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(0);
                     onFragmentEnabled();
                 }
             }
@@ -182,11 +187,15 @@ public class FavoriteFragment extends Fragment
         listViewPOI.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 PointProfileObject pointProfileObject = (PointProfileObject) parent.getItemAtPosition(position);
+                // add to all points profile
+                accessDatabaseInstance.addPointToFavoritesProfile(
+                        pointProfileObject, FavoritesProfile.ID_ALL_POINTS);
+                // open details activity
                 Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
                 try {
-                    detailsIntent.putExtra("jsonPointSerialized", pointProfileObject.toJson().toString());
+                    detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointProfileObject.toJson().toString());
                 } catch (JSONException e) {
-                    detailsIntent.putExtra("jsonPointSerialized", "");
+                    detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
                 }
                 startActivity(detailsIntent);
             }
@@ -196,17 +205,40 @@ public class FavoriteFragment extends Fragment
                 return true;
             }
         });
-        TextView labelListViewPOIEmpty    = (TextView) view.findViewById(R.id.labelListViewPOIEmpty);
-        labelListViewPOIEmpty.setVisibility(View.GONE);
+
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View footerView = inflater.inflate(R.layout.layout_single_text_view, null, false);
+        labelMoreResultsFooter = (TextView) footerView.findViewById(R.id.label);
+        labelMoreResultsFooter.setText(getResources().getString(R.string.labelMoreResults));
+        labelMoreResultsFooter.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(
+                        listViewPOI.getFirstVisiblePosition());
+                // start poi profile update request
+                preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
+            }
+        });
+
+        labelListViewPOIEmpty    = (TextView) view.findViewById(R.id.labelListViewPOIEmpty);
+        labelListViewPOIEmpty.setText(getResources().getString(R.string.labelMoreResults));
+        labelListViewPOIEmpty.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(
+                        listViewPOI.getFirstVisiblePosition());
+                // start poi profile update request
+                preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
+            }
+        });
+        listViewPOI.setEmptyView(labelListViewPOIEmpty);
 
         // bottom layout
 
         buttonRefresh = (Button) view.findViewById(R.id.buttonRefresh);
         buttonRefresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                FavoritesManager favoritesManagerInstance = FavoritesManager.getInstance(getActivity());
-                if (favoritesManagerInstance.requestInProgress()) {
-                    favoritesManagerInstance.cancelRequest();
+                POIManager poiManagerInstance = POIManager.getInstance(getActivity());
+                if (poiManagerInstance.requestInProgress()) {
+                    poiManagerInstance.cancelRequest();
                 } else {
                     onFragmentDisabled();
                     onFragmentEnabled();
@@ -218,7 +250,8 @@ public class FavoriteFragment extends Fragment
         buttonFilter.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 onFragmentDisabled();
-                settingsManagerInstance.getFavoritesFragmentSettings().setDirectionFilterStatus(isChecked);
+                POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
+                poiFragmentSettings.setDirectionFilterStatus(isChecked);
                 onFragmentEnabled();
             }
         });
@@ -227,37 +260,31 @@ public class FavoriteFragment extends Fragment
         buttonMore.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 PopupMenu popupMore = new PopupMenu(getActivity(), view);
-                popupMore.setOnMenuItemClickListener(FavoriteFragment.this);
+                popupMore.setOnMenuItemClickListener(POIFragment.this);
                 popupMore.inflate(R.menu.menu_poi_fragment_button_more);
-                // hide remove option on default profiles
-                if (settingsManagerInstance.getFavoritesFragmentSettings().getSelectedFavoritesProfileId() < FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE) {
-                    popupMore.getMenu().findItem(R.id.menuItemRemoveProfile).setVisible(false);
-                }
+                popupMore.getMenu().findItem(R.id.menuItemClearProfile).setVisible(false);
                 popupMore.show();
             }
         });
     }
 
     @Override public boolean onMenuItemClick(MenuItem item) {
-        FavoritesFragmentSettings favoritesFragmentSettings= settingsManagerInstance.getFavoritesFragmentSettings();
+        POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
         switch (item.getItemId()) {
             case R.id.menuItemNewProfile:
-                CreateOrEditFavoritesProfileDialog.newInstance(-1)
-                    .show(getActivity().getSupportFragmentManager(), "CreateOrEditFavoritesProfileDialog");
+                CreateOrEditPOIProfileDialog.newInstance(-1)
+                    .show(getActivity().getSupportFragmentManager(), "CreateOrEditPOIProfileDialog");
                 return true;
             case R.id.menuItemEditProfile:
-                CreateOrEditFavoritesProfileDialog.newInstance(
-                        favoritesFragmentSettings.getSelectedFavoritesProfileId())
-                    .show(getActivity().getSupportFragmentManager(), "CreateOrEditFavoritesProfileDialog");
+                CreateOrEditPOIProfileDialog.newInstance(
+                        poiFragmentSettings.getSelectedPOIProfileId())
+                    .show(getActivity().getSupportFragmentManager(), "CreateOrEditPOIProfileDialog");
                 return true;
             case R.id.menuItemClearProfile:
-                ClearOrRemovePOIProfileDialog.newInstance(
-                        favoritesFragmentSettings.getSelectedFavoritesProfileId(), false)
-                    .show(getActivity().getSupportFragmentManager(), "ClearOrRemovePOIProfileDialog");
                 return true;
             case R.id.menuItemRemoveProfile:
-                ClearOrRemovePOIProfileDialog.newInstance(
-                        favoritesFragmentSettings.getSelectedFavoritesProfileId(), true)
+                RemovePOIProfileDialog.newInstance(
+                        poiFragmentSettings.getSelectedPOIProfileId())
                     .show(getActivity().getSupportFragmentManager(), "ClearOrRemovePOIProfileDialog");
                 return true;
             default:
@@ -266,60 +293,70 @@ public class FavoriteFragment extends Fragment
     }
 
     @Override public void onFragmentEnabled() {
-        FavoritesFragmentSettings favoritesFragmentSettings= settingsManagerInstance.getFavoritesFragmentSettings();
-
+        POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
         // selected poi profile name
-        if (accessDatabaseInstance.getFavoritesProfileMap().containsKey(favoritesFragmentSettings.getSelectedFavoritesProfileId())) {
+        if (accessDatabaseInstance.getPOIProfileMap().containsKey(poiFragmentSettings.getSelectedPOIProfileId())) {
             buttonSelectProfile.setText(
-                    accessDatabaseInstance.getFavoritesProfileMap().get(favoritesFragmentSettings.getSelectedFavoritesProfileId()));
+                    accessDatabaseInstance.getPOIProfileMap().get(poiFragmentSettings.getSelectedPOIProfileId()));
         } else {
             buttonSelectProfile.setText(
                     getResources().getString(R.string.emptyProfileList));
         }
         // set direction filter status
         buttonFilter.setChecked(
-                favoritesFragmentSettings.filterPointListByDirection());
+                poiFragmentSettings.filterPointListByDirection());
         // listen for device shakes
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
                 shakeDetectedReceiver,
                 new IntentFilter(Constants.ACTION_SHAKE_DETECTED));
-
         // request poi
-        listViewPOI.setAdapter(null);
-        labelPOIFragmentHeader.setText(
-                getResources().getString(R.string.messagePleaseWait));
-        buttonRefresh.setText(
-                getResources().getString(R.string.buttonCancel));
-        progressHandler.postDelayed(progressUpdater, 2000);
-        FavoritesManager.getInstance(getActivity()).requestFavoritesProfile(
-                (FavoriteFragment) this,
-                favoritesFragmentSettings.getSelectedFavoritesProfileId());
+        preparePOIRequest(POIManager.ACTION_UPDATE);
     }
 
 	@Override public void onFragmentDisabled() {
-        FavoritesManager.getInstance(getActivity()).invalidateRequest();
+        POIManager.getInstance(getActivity()).invalidateRequest();
         progressHandler.removeCallbacks(progressUpdater);
         // unregister shake broadcast receiver
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(shakeDetectedReceiver);
         // save current list position
         if (listViewPOI.getAdapter() != null) {
-            settingsManagerInstance.getFavoritesFragmentSettings().setSelectedPositionInPointList(
+            settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(
                     listViewPOI.getFirstVisiblePosition());
         }
     }
 
-	@Override public void favoritesProfileRequestFinished(int returnCode, String returnMessage, FavoritesProfile favoritesProfile) {
-        FavoritesFragmentSettings favoritesFragmentSettings= settingsManagerInstance.getFavoritesFragmentSettings();
+    private void preparePOIRequest(int requestAction) {
+        // list view
+        listViewPOI.setAdapter(null);
+        if (listViewPOI.getFooterViewsCount() > 0) {
+            listViewPOI.removeFooterView(labelMoreResultsFooter);
+        }
+        labelListViewPOIEmpty.setVisibility(View.GONE);
+        // header and refresh button
+        labelPOIFragmentHeader.setText(
+                getResources().getString(R.string.messagePleaseWait));
+        buttonRefresh.setText(
+                getResources().getString(R.string.buttonCancel));
+        // start poi profile update request
+        progressHandler.postDelayed(progressUpdater, 2000);
+        POIManager.getInstance(getActivity()).requestPOIProfile(
+                (POIFragment) this,
+                settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId(),
+                requestAction);
+    }
+
+	@Override public void poiProfileRequestFinished(int returnCode, String returnMessage, POIProfile poiProfile) {
+        POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
         buttonRefresh.setText(
                 getResources().getString(R.string.buttonRefresh));
         progressHandler.removeCallbacks(progressUpdater);
 
-        if (favoritesProfile != null
-                && favoritesProfile.getPointProfileObjectList() != null) {
-            ArrayList<PointProfileObject> listOfAllPOI = favoritesProfile.getPointProfileObjectList();
+        if (poiProfile != null
+                && poiProfile.getPointProfileObjectList() != null) {
+            ArrayList<PointProfileObject> listOfAllPOI = poiProfile.getPointProfileObjectList();
 
             // fill listview
-            if (favoritesFragmentSettings.filterPointListByDirection()) {
+            if (poiFragmentSettings.filterPointListByDirection()) {
                 // only include, what's in front of the user
                 ArrayList<PointProfileObject> listOfFilteredPOI = new ArrayList<PointProfileObject>();
                 for (PointProfileObject pointProfileObject : listOfAllPOI) {
@@ -329,24 +366,12 @@ public class FavoriteFragment extends Fragment
                     }
                 }
                 // header label
-                if (listOfFilteredPOI.size() == 1) {
-                    labelPOIFragmentHeader.setText(
-                            String.format(
-                                getResources().getString(R.string.labelFavoritesFragmentHeaderSuccessSingularFiltered),
-                                StringUtility.formatProfileSortCriteria(
-                                        getActivity(),
-                                        favoritesProfile.getSortCriteria()))
-                            );
-                } else {
-                    labelPOIFragmentHeader.setText(
-                            String.format(
-                                getResources().getString(R.string.labelFavoritesFragmentHeaderSuccessPluralFiltered),
-                                listOfFilteredPOI.size(),
-                                StringUtility.formatProfileSortCriteria(
-                                    getActivity(),
-                                    favoritesProfile.getSortCriteria()))
-                            );
-                }
+                labelPOIFragmentHeader.setText(
+                        String.format(
+                            getResources().getString(R.string.labelPOIFragmentHeaderSuccessFiltered),
+                            listOfFilteredPOI.size(),
+                            poiProfile.getLookupRadius())
+                        );
                 // fill adapter
                 listViewPOI.setAdapter(
                         new ArrayAdapter<PointProfileObject>(
@@ -357,25 +382,12 @@ public class FavoriteFragment extends Fragment
 
             } else {
                 // take all poi
-                if (listOfAllPOI.size() == 1) {
-                    labelPOIFragmentHeader.setText(
-                            String.format(
-                                getResources().getString(R.string.labelFavoritesFragmentHeaderSuccessSingular),
-                                StringUtility.formatProfileSortCriteria(
-                                    getActivity(),
-                                    favoritesProfile.getSortCriteria()))
-                            );
-                } else {
-                    labelPOIFragmentHeader.setText(
-                            String.format(
-                                getResources().getString(R.string.labelFavoritesFragmentHeaderSuccessPlural),
-                                listOfAllPOI.size(),
-                                StringUtility.formatProfileSortCriteria(
-                                    getActivity(),
-                                    favoritesProfile.getSortCriteria()))
-                            );
-                }
-                // fill adapter
+                labelPOIFragmentHeader.setText(
+                        String.format(
+                            getResources().getString(R.string.labelPOIFragmentHeaderSuccess),
+                            listOfAllPOI.size(),
+                            poiProfile.getLookupRadius())
+                        );
                 listViewPOI.setAdapter(
                         new ArrayAdapter<PointProfileObject>(
                             getActivity(),
@@ -384,10 +396,23 @@ public class FavoriteFragment extends Fragment
                         );
             }
 
-            // restore list position
-            if (favoritesFragmentSettings.getSelectedPositionInPointList() > 0) {
+            // list position
+            if (poiFragmentSettings.getSelectedPositionInPointList() > 0) {
                 listViewPOI.setSelection(
-                        favoritesFragmentSettings.getSelectedPositionInPointList());
+                        poiFragmentSettings.getSelectedPositionInPointList());
+            }
+
+            // more results
+            if (listViewPOI.getAdapter().getCount() == 0) {
+                if (poiProfile.getRadius() < POIProfile.MAXIMAL_RADIUS
+                        && poiProfile.getNumberOfResults() < POIProfile.MAXIMAL_NUMBER_OF_RESULTS) {
+                    labelListViewPOIEmpty.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (poiProfile.getRadius() < POIProfile.MAXIMAL_RADIUS
+                        && poiProfile.getNumberOfResults() < POIProfile.MAXIMAL_NUMBER_OF_RESULTS) {
+                    listViewPOI.addFooterView(labelMoreResultsFooter, null, true);
+                }
             }
 
         } else {
@@ -419,18 +444,18 @@ public class FavoriteFragment extends Fragment
     }
 
 
-    public static class SelectFavoritesProfileDialog extends DialogFragment {
+    public static class SelectPOIProfileDialog extends DialogFragment {
 
         // Store instance variables
         private AccessDatabase accessDatabaseInstance;
         private SettingsManager settingsManagerInstance;
 
-        public static SelectFavoritesProfileDialog newInstance(int favoritesProfileId) {
-            SelectFavoritesProfileDialog selectFavoritesProfileDialogInstance = new SelectFavoritesProfileDialog();
+        public static SelectPOIProfileDialog newInstance(int poiProfileId) {
+            SelectPOIProfileDialog selectPOIProfileDialogInstance = new SelectPOIProfileDialog();
             Bundle args = new Bundle();
-            args.putInt("favoritesProfileId", favoritesProfileId);
-            selectFavoritesProfileDialogInstance.setArguments(args);
-            return selectFavoritesProfileDialogInstance;
+            args.putInt("poiProfileId", poiProfileId);
+            selectPOIProfileDialogInstance.setArguments(args);
+            return selectPOIProfileDialogInstance;
         }
 
         @Override public void onAttach(Context context){
@@ -440,14 +465,14 @@ public class FavoriteFragment extends Fragment
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            TreeMap<Integer,String> favoritesProfileMap = accessDatabaseInstance.getFavoritesProfileMap();
-            String[] formattedFavoritesProfileNameArray = new String[favoritesProfileMap.size()];
-            int indexOfSelectedFavoritesProfile = -1;
+            TreeMap<Integer,String> poiProfileMap = accessDatabaseInstance.getPOIProfileMap();
+            String[] formattedPOIProfileNameArray = new String[poiProfileMap.size()];
+            int indexOfSelectedPOIProfile = -1;
             int index = 0;
-            for (Map.Entry<Integer,String> profile : favoritesProfileMap.entrySet()) {
-                formattedFavoritesProfileNameArray[index] = profile.getValue();
-                if (profile.getKey() == getArguments().getInt("favoritesProfileId", -1)) {
-                    indexOfSelectedFavoritesProfile = index;
+            for (Map.Entry<Integer,String> profile : poiProfileMap.entrySet()) {
+                formattedPOIProfileNameArray[index] = profile.getValue();
+                if (profile.getKey() == getArguments().getInt("poiProfileId", -1)) {
+                    indexOfSelectedPOIProfile = index;
                 }
                 index += 1;
             }
@@ -456,13 +481,13 @@ public class FavoriteFragment extends Fragment
             return new AlertDialog.Builder(getActivity())
                 .setTitle(getResources().getString(R.string.selectProfileDialogTitle))
                 .setSingleChoiceItems(
-                        formattedFavoritesProfileNameArray,
-                        indexOfSelectedFavoritesProfile,
+                        formattedPOIProfileNameArray,
+                        indexOfSelectedPOIProfile,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 int selectedProfileId = -1;
                                 int index = 0;
-                                for(Integer profileId : accessDatabaseInstance.getFavoritesProfileMap().keySet()) {
+                                for(Integer profileId : accessDatabaseInstance.getPOIProfileMap().keySet()) {
                                     if (index == which) {
                                         selectedProfileId = profileId;
                                         break;
@@ -470,7 +495,7 @@ public class FavoriteFragment extends Fragment
                                     index += 1;
                                 }
                                 if (selectedProfileId > -1) {
-                                    settingsManagerInstance.getFavoritesFragmentSettings().setSelectedFavoritesProfileId(selectedProfileId);
+                                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPOIProfileId(selectedProfileId);
                                     Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
                                     LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                                 }
@@ -491,24 +516,24 @@ public class FavoriteFragment extends Fragment
     }
 
 
-    public static class CreateOrEditFavoritesProfileDialog extends DialogFragment {
+    public static class CreateOrEditPOIProfileDialog extends DialogFragment {
 
         // Store instance variables
         private AccessDatabase accessDatabaseInstance;
         private InputMethodManager imm;
         private SettingsManager settingsManagerInstance;
-        private int favoritesProfileId;
+        private int poiProfileId;
 
         // ui components
         private EditText editProfileName;
-        private RadioGroup radioGroupFavoritesProfileSortCriteria;
+        private CheckBoxGroupView checkBoxGroupPOICategories;
 
-        public static CreateOrEditFavoritesProfileDialog newInstance(int favoritesProfileId) {
-            CreateOrEditFavoritesProfileDialog createOrEditFavoritesProfileDialogInstance = new CreateOrEditFavoritesProfileDialog();
+        public static CreateOrEditPOIProfileDialog newInstance(int poiProfileId) {
+            CreateOrEditPOIProfileDialog createOrEditPOIProfileDialogInstance = new CreateOrEditPOIProfileDialog();
             Bundle args = new Bundle();
-            args.putInt("favoritesProfileId", favoritesProfileId);
-            createOrEditFavoritesProfileDialogInstance.setArguments(args);
-            return createOrEditFavoritesProfileDialogInstance;
+            args.putInt("poiProfileId", poiProfileId);
+            createOrEditPOIProfileDialogInstance.setArguments(args);
+            return createOrEditPOIProfileDialogInstance;
         }
 
         @Override public void onAttach(Context context){
@@ -519,27 +544,27 @@ public class FavoriteFragment extends Fragment
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            favoritesProfileId = getArguments().getInt("favoritesProfileId", -1);
+            poiProfileId = getArguments().getInt("poiProfileId", -1);
             // custom view
             final ViewGroup nullParent = null;
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.dialog_create_or_edit_favorites_profile, nullParent);
+            View view = inflater.inflate(R.layout.dialog_create_or_edit_poi_profile, nullParent);
             // dialog title
             String dialogTitle;
-            if (accessDatabaseInstance.getFavoritesProfileMap().containsKey(favoritesProfileId)) {
+            if (accessDatabaseInstance.getPOIProfileMap().containsKey(poiProfileId)) {
                 dialogTitle = getResources().getString(R.string.editProfileDialogTitle);
             } else {
                 dialogTitle = getResources().getString(R.string.newProfileDialogTitle);
             }
 
             editProfileName = (EditText) view.findViewById(R.id.editInput);
-            editProfileName.setText(accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId));
+            editProfileName.setText(accessDatabaseInstance.getNameOfPOIProfile(poiProfileId));
             editProfileName.setInputType(InputType.TYPE_CLASS_TEXT);
             editProfileName.setImeOptions(EditorInfo.IME_ACTION_DONE);
             editProfileName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     if (actionId == EditorInfo.IME_ACTION_DONE) {
-                        createOrEditFavoritesProfile();
+                        createOrEditPOIProfile();
                         return true;
                     }
                     return false;
@@ -556,29 +581,20 @@ public class FavoriteFragment extends Fragment
                 }
             });
 
-            radioGroupFavoritesProfileSortCriteria = (RadioGroup) view.findViewById(R.id.radioGroupFavoritesProfileSortCriteria);
-            switch (accessDatabaseInstance.getSortCriteriaOfFavoritesProfile(favoritesProfileId)) {
-                case Constants.SORT_CRITERIA.NAME_ASC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortNameAsc);
-                    break;
-                case Constants.SORT_CRITERIA.NAME_DESC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortNameDesc);
-                    break;
-                case Constants.SORT_CRITERIA.DISTANCE_ASC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortDistanceAsc);
-                    break;
-                case Constants.SORT_CRITERIA.DISTANCE_DESC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortDistanceDesc);
-                    break;
-                case Constants.SORT_CRITERIA.ORDER_ASC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortOrderAsc);
-                    break;
-                case Constants.SORT_CRITERIA.ORDER_DESC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortOrderDesc);
-                    break;
-                default:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortNameAsc);
-                    break;
+            checkBoxGroupPOICategories = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroupPOICategories);
+            ArrayList<POICategory> categoryListOfPOIProfile = accessDatabaseInstance.getCategoryListOfPOIProfile(poiProfileId);
+            for (POICategory category : accessDatabaseInstance.getPOICategoryList()) {
+                CheckBox checkBox = new CheckBox(getActivity());
+                checkBox.setId(category.getId());
+                checkBox.setLayoutParams(
+                        new LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT)
+                        );
+                checkBox.setText(category.getName());
+                checkBox.setChecked(
+                        categoryListOfPOIProfile.contains(category));
+                checkBoxGroupPOICategories.put(checkBox);
             }
 
             // create dialog
@@ -590,13 +606,22 @@ public class FavoriteFragment extends Fragment
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                             }
-                        })
+                        }
+                        )
+                .setNeutralButton(
+                        getResources().getString(R.string.dialogClear),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
                 .setNegativeButton(
                         getResources().getString(R.string.dialogCancel),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                             }
-                        })
+                        }
+                        )
                 .create();
         }
 
@@ -608,7 +633,14 @@ public class FavoriteFragment extends Fragment
                 Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 buttonPositive.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        createOrEditFavoritesProfile();
+                        createOrEditPOIProfile();
+                    }
+                });
+                // neutral button
+                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        checkBoxGroupPOICategories.uncheckAll();
                     }
                 });
                 // negative button
@@ -621,7 +653,7 @@ public class FavoriteFragment extends Fragment
             }
         }
 
-        private void createOrEditFavoritesProfile() {
+        private void createOrEditPOIProfile() {
             // profile name
             String profileName = editProfileName.getText().toString();
             if (profileName.equals("")) {
@@ -631,8 +663,8 @@ public class FavoriteFragment extends Fragment
                         Toast.LENGTH_LONG).show();
                 return;
             } else {
-                for(Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
-                    if (favoritesProfileId != profile.getKey()
+                for(Map.Entry<Integer,String> profile : accessDatabaseInstance.getPOIProfileMap().entrySet()) {
+                    if (poiProfileId != profile.getKey()
                             && profileName.equals(profile.getValue())) {
                         Toast.makeText(
                                 getActivity(),
@@ -643,40 +675,26 @@ public class FavoriteFragment extends Fragment
                 }
             }
 
-            // profile sort criteria
-            int sortCriteria;
-            switch (radioGroupFavoritesProfileSortCriteria.getCheckedRadioButtonId()) {
-                case R.id.radioButtonSortNameAsc:
-                    sortCriteria = Constants.SORT_CRITERIA.NAME_ASC;
-                    break;
-                case R.id.radioButtonSortNameDesc:
-                    sortCriteria = Constants.SORT_CRITERIA.NAME_DESC;
-                    break;
-                case R.id.radioButtonSortDistanceAsc:
-                    sortCriteria = Constants.SORT_CRITERIA.DISTANCE_ASC;
-                    break;
-                case R.id.radioButtonSortDistanceDesc:
-                    sortCriteria = Constants.SORT_CRITERIA.DISTANCE_DESC;
-                    break;
-                case R.id.radioButtonSortOrderAsc:
-                    sortCriteria = Constants.SORT_CRITERIA.ORDER_ASC;
-                    break;
-                case R.id.radioButtonSortOrderDesc:
-                    sortCriteria = Constants.SORT_CRITERIA.ORDER_DESC;
-                    break;
-                default:
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageNoSortCriteria),
-                            Toast.LENGTH_LONG).show();
-                    return;
+            ArrayList<POICategory> poiCategoryList = new ArrayList<POICategory>();
+            for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckBoxList()) {
+                POICategory category = accessDatabaseInstance.getPOICategory(checkBox.getId());
+                if (category != null) {
+                    poiCategoryList.add(category);
+                }
+            }
+            if (poiCategoryList.isEmpty()) {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getString(R.string.messageError1002),
+                        Toast.LENGTH_LONG).show();
+                return;
             }
 
-            if (! accessDatabaseInstance.getFavoritesProfileMap().containsKey(favoritesProfileId)) {
+            if (! accessDatabaseInstance.getPOIProfileMap().containsKey(poiProfileId)) {
                 // create new profile
-                int newProfileId = accessDatabaseInstance.addFavoritesProfile(profileName, sortCriteria);
+                int newProfileId = accessDatabaseInstance.addPOIProfile(profileName, poiCategoryList);
                 if (newProfileId > -1) {
-                    settingsManagerInstance.getFavoritesFragmentSettings().setSelectedFavoritesProfileId(newProfileId);
+                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPOIProfileId(newProfileId);
                 } else {
                     Toast.makeText(
                             getActivity(),
@@ -686,8 +704,8 @@ public class FavoriteFragment extends Fragment
                 }
             } else {
                 // edit existing profile
-                boolean updateSuccessful = accessDatabaseInstance.updateNameAndSortCriteriaOfFavoritesProfile(
-                        favoritesProfileId, profileName, sortCriteria);
+                boolean updateSuccessful = accessDatabaseInstance.updateNameAndCategoryListOfPOIProfile(
+                        poiProfileId, profileName, poiCategoryList);
                 if (! updateSuccessful) {
                     Toast.makeText(
                             getActivity(),
@@ -703,21 +721,19 @@ public class FavoriteFragment extends Fragment
     }
 
 
-    public static class ClearOrRemovePOIProfileDialog extends DialogFragment {
+    public static class RemovePOIProfileDialog extends DialogFragment {
 
         // Store instance variables
         private AccessDatabase accessDatabaseInstance;
         private SettingsManager settingsManagerInstance;
-        private int favoritesProfileId;
-        private boolean remove;
+        private int poiProfileId;
 
-        public static ClearOrRemovePOIProfileDialog newInstance(int favoritesProfileId, boolean remove) {
-            ClearOrRemovePOIProfileDialog clearOrRemovePOIProfileDialogInstance = new ClearOrRemovePOIProfileDialog();
+        public static RemovePOIProfileDialog newInstance(int poiProfileId) {
+            RemovePOIProfileDialog removePOIProfileDialogInstance = new RemovePOIProfileDialog();
             Bundle args = new Bundle();
-            args.putInt("favoritesProfileId", favoritesProfileId);
-            args.putBoolean("remove", remove);
-            clearOrRemovePOIProfileDialogInstance.setArguments(args);
-            return clearOrRemovePOIProfileDialogInstance;
+            args.putInt("poiProfileId", poiProfileId);
+            removePOIProfileDialogInstance.setArguments(args);
+            return removePOIProfileDialogInstance;
         }
 
         @Override public void onAttach(Context context){
@@ -727,32 +743,18 @@ public class FavoriteFragment extends Fragment
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            favoritesProfileId = getArguments().getInt("favoritesProfileId", -1);
-            remove = getArguments().getBoolean("remove", false);
-
-            String dialogMessage;
-            if (remove) {
-                dialogMessage = String.format(
-                        getResources().getString(R.string.removeProfileDialogTitle),
-                        accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId));
-            } else {
-                dialogMessage = String.format(
-                        getResources().getString(R.string.clearProfileDialogTitle),
-                        accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId));
-            }
-
+            poiProfileId = getArguments().getInt("poiProfileId", -1);
             return new AlertDialog.Builder(getActivity())
-                .setMessage(dialogMessage)
+                .setMessage(
+                        String.format(
+                            getResources().getString(R.string.removeProfileDialogTitle),
+                            accessDatabaseInstance.getNameOfPOIProfile(poiProfileId)))
                 .setPositiveButton(
                         getResources().getString(R.string.dialogYes),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                if (remove) {
-                                    accessDatabaseInstance.removeFavoritesProfile(favoritesProfileId);
-                                    settingsManagerInstance.getFavoritesFragmentSettings().setSelectedFavoritesProfileId(-1);
-                                } else {
-                                    accessDatabaseInstance.clearFavoritesProfile(favoritesProfileId);
-                                }
+                                accessDatabaseInstance.removePOIProfile(poiProfileId);
+                                settingsManagerInstance.getPOIFragmentSettings().setSelectedPOIProfileId(-1);
                                 Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
                                 LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                                 dismiss();

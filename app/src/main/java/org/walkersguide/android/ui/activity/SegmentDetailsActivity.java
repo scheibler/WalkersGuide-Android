@@ -11,8 +11,8 @@ import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.sensor.DirectionManager;
-import org.walkersguide.android.ui.fragment.NextIntersectionsFragment;
-import org.walkersguide.android.ui.fragment.SegmentDetailsFragment;
+import org.walkersguide.android.ui.fragment.segmentdetails.NextIntersectionsFragment;
+import org.walkersguide.android.ui.fragment.segmentdetails.SegmentDetailsFragment;
 import org.walkersguide.android.util.Constants;
 
 import android.content.BroadcastReceiver;
@@ -34,6 +34,20 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.ImageButton;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
+import org.walkersguide.android.database.AccessDatabase;
+import android.support.v4.app.DialogFragment;
+import android.app.Dialog;
+import android.view.inputmethod.EditorInfo;
+import android.view.KeyEvent;
+import android.content.DialogInterface;
+import android.app.AlertDialog;
+import android.widget.Button;
+
 
 public class SegmentDetailsActivity extends AbstractActivity {
 
@@ -45,7 +59,6 @@ public class SegmentDetailsActivity extends AbstractActivity {
 	private ViewPager mViewPager;
     private TabLayout tabLayout;
     private int recentFragment;
-    private LinearLayout layoutFootwaySpecific;
     private TextView labelSegmentAbsoluteBearing, labelSegmentRelativeBearing;
 
     // footway and transport segments
@@ -68,10 +81,10 @@ public class SegmentDetailsActivity extends AbstractActivity {
         try {
     		if (savedInstanceState != null) {
                 segmentWrapper = new SegmentWrapper(
-                        this, new JSONObject(savedInstanceState.getString("jsonSegmentSerialized")));
+                        this, new JSONObject(savedInstanceState.getString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED)));
             } else {
                 segmentWrapper = new SegmentWrapper(
-		                this, new JSONObject(getIntent().getExtras().getString("jsonSegmentSerialized", "")));
+		                this, new JSONObject(getIntent().getExtras().getString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "")));
             }
         } catch (JSONException e) {
             segmentWrapper = null;
@@ -84,8 +97,13 @@ public class SegmentDetailsActivity extends AbstractActivity {
         getSupportActionBar().setTitle(
                 getResources().getString(R.string.segmentDetailsActivityTitle));
 
+    	LinearLayout layoutFootwaySpecific = (LinearLayout) findViewById(R.id.layoutFootwaySpecific);
+        layoutFootwaySpecific.setVisibility(View.GONE);
+
         if (segmentWrapper != null) {
-            // name, type and bearing
+            getSupportActionBar().setTitle(
+                    segmentWrapper.getSegment().getType());
+            // name and subtype
     		TextView labelSegmentName = (TextView) findViewById(R.id.labelSegmentName);
             labelSegmentName.setText(
                     String.format(
@@ -98,30 +116,38 @@ public class SegmentDetailsActivity extends AbstractActivity {
                         getResources().getString(R.string.labelSegmentType),
                         segmentWrapper.getSegment().getSubType())
                     );
-    		layoutFootwaySpecific = (LinearLayout) findViewById(R.id.layoutFootwaySpecific);
 
             // ViewPager and TabLayout
             mViewPager = (ViewPager) findViewById(R.id.pager);
             mViewPager.addOnPageChangeListener(new TabLayoutOnPageChangeListenerBugFree(tabLayout));
             tabLayout = (TabLayout) findViewById(R.id.tab_layout);
 
+            // load or hide bearing labels and switches
             if (segmentWrapper.getSegment() instanceof Footway) {
                 layoutFootwaySpecific.setVisibility(View.VISIBLE);
-                // bearing label
+                // bearing labels
         		labelSegmentAbsoluteBearing = (TextView) findViewById(R.id.labelSegmentAbsoluteBearing);
         		labelSegmentRelativeBearing = (TextView) findViewById(R.id.labelSegmentRelativeBearing);
 
                 // exclude from routing
         		Switch buttonSegmentExcludeFromRouting = (Switch) findViewById(R.id.buttonSegmentExcludeFromRouting);
+                buttonSegmentExcludeFromRouting.setChecked(
+                        accessDatabaseInstance.getExcludedWaysList().contains(segmentWrapper));
                 buttonSegmentExcludeFromRouting.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                        if (isChecked) {
+                            SetNameForExcludedWayDialog.newInstance(segmentWrapper).show(
+                                    getSupportFragmentManager(), "SetNameForExcludedWayDialog");
+                        } else {
+                            accessDatabaseInstance.removeExcludedWaySegment(segmentWrapper);
+                        }
                     }
                 });
 
                 // simulate direction
         		Switch buttonSegmentSimulateDirection = (Switch) findViewById(R.id.buttonSegmentSimulateDirection);
                 if (directionManagerInstance.getDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION
-                        &&directionManagerInstance.getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing()) {
+                        && directionManagerInstance.getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing()) {
                     buttonSegmentSimulateDirection.setChecked(true);
                 }
                 buttonSegmentSimulateDirection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -137,49 +163,33 @@ public class SegmentDetailsActivity extends AbstractActivity {
                         }
                     }
                 });
+            }
 
-                if (segmentWrapper.getSegment() instanceof IntersectionSegment) {
-                    // set fragments for intersection segment
-                    intersectionSegmentPagerAdapter = new IntersectionSegmentPagerAdapter(this);
-                    mViewPager.setAdapter(intersectionSegmentPagerAdapter);
-                    tabLayout.setupWithViewPager(mViewPager);
-                    tabLayout.setVisibility(View.VISIBLE);
-                    // set open fragment
-                	if (savedInstanceState != null) {
-            	    	recentFragment = savedInstanceState.getInt("recentFragment", 0);
-                    } else {
-                        recentFragment = Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS;
-                    }
-
-                } else {
-                    // set fragments for other footway types
-                    segmentPagerAdapter = new SegmentPagerAdapter(this);
-                    mViewPager.setAdapter(segmentPagerAdapter);
-                    tabLayout.setVisibility(View.GONE);
-                    // set open fragment
-                	if (savedInstanceState != null) {
-        	        	recentFragment = savedInstanceState.getInt("recentFragment", 0);
-                    } else {
-                        recentFragment = Constants.SEGMENT_FRAGMENT.DETAILS;
-                    }
-                }
-
+            int defaultRecentFragment;
+            if (segmentWrapper.getSegment() instanceof IntersectionSegment) {
+                // set fragments for intersection segment
+                intersectionSegmentPagerAdapter = new IntersectionSegmentPagerAdapter(this);
+                mViewPager.setAdapter(intersectionSegmentPagerAdapter);
+                tabLayout.setupWithViewPager(mViewPager);
+                tabLayout.setVisibility(View.VISIBLE);
+                // default intersection segment fragment
+                defaultRecentFragment = Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS;
             } else {
                 // set fragments for other segment types
-                layoutFootwaySpecific.setVisibility(View.GONE);
                 segmentPagerAdapter = new SegmentPagerAdapter(this);
                 mViewPager.setAdapter(segmentPagerAdapter);
                 tabLayout.setVisibility(View.GONE);
-                // set open fragment
-                if (savedInstanceState != null) {
-                    recentFragment = savedInstanceState.getInt("recentFragment", 0);
-                } else {
-                    recentFragment = Constants.SEGMENT_FRAGMENT.DETAILS;
-                }
+                // default fragment for other segments
+                defaultRecentFragment = Constants.SEGMENT_FRAGMENT.DETAILS;
             }
 
 	    	// initialize handler for enabling fragment and open recent one
     		onFragmentEnabledHandler = new Handler();
+            if (savedInstanceState != null) {
+            	recentFragment = savedInstanceState.getInt("recentFragment", defaultRecentFragment);
+            } else {
+                recentFragment = defaultRecentFragment;
+            }
             mViewPager.setCurrentItem(recentFragment);
         }
     }
@@ -188,12 +198,12 @@ public class SegmentDetailsActivity extends AbstractActivity {
 		super.onSaveInstanceState(savedInstanceState);
         if (segmentWrapper != null) {
             try {
-                savedInstanceState.putString("jsonSegmentSerialized", segmentWrapper.toJson().toString());
+                savedInstanceState.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, segmentWrapper.toJson().toString());
             } catch (JSONException e) {
-    	    	savedInstanceState.putString("jsonSegmentSerialized", "");
+    	    	savedInstanceState.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
             }
         } else {
-    	    savedInstanceState.putString("jsonSegmentSerialized", "");
+    	    savedInstanceState.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
         }
     	savedInstanceState.putInt("recentFragment", recentFragment);
 	}
@@ -231,8 +241,8 @@ public class SegmentDetailsActivity extends AbstractActivity {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
                     && (
-                           labelSegmentAbsoluteBearing.getText().equals("")
-                        || labelSegmentRelativeBearing.getText().equals("")
+                           labelSegmentAbsoluteBearing.getText().toString().trim().equals("")
+                        || labelSegmentRelativeBearing.getText().toString().trim().equals("")
                         || intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD1.ID)
                     ) {
                 // update bearing labels
@@ -310,7 +320,7 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 switch (currentFragment) {
                     case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
                         if (segmentDetailsFragmentCommunicator != null) {
-                            segmentDetailsFragmentCommunicator.onFragmentDisabled();
+                            segmentDetailsFragmentCommunicator.onFragmentEnabled();
                             return;
                         }
                         break;
@@ -400,7 +410,7 @@ public class SegmentDetailsActivity extends AbstractActivity {
 		@Override public CharSequence getPageTitle(int position) {
             switch (position) {
                 case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
-    				return getResources().getString(R.string.fragmentIntersectionWaysName);
+    				return getResources().getString(R.string.fragmentSegmentDetailsName);
                 case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
     				return getResources().getString(R.string.fragmentNextIntersectionsName);
                 default:
@@ -449,6 +459,144 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 recentFragment = position;
                 enterActiveFragment();
             }
+        }
+    }
+
+    public static class SetNameForExcludedWayDialog extends DialogFragment {
+
+        // Store instance variables
+        private AccessDatabase accessDatabaseInstance;
+        private InputMethodManager imm;
+        private SegmentWrapper segmentWrapper;
+        private EditText editSegmentDescription;
+
+        public static SetNameForExcludedWayDialog newInstance(SegmentWrapper segmentWrapper) {
+            SetNameForExcludedWayDialog setNameForExcludedWayDialog = new SetNameForExcludedWayDialog();
+            Bundle args = new Bundle();
+            try {
+                args.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, segmentWrapper.toJson().toString());
+            } catch (JSONException e) {
+                args.putString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
+            }
+            setNameForExcludedWayDialog.setArguments(args);
+            return setNameForExcludedWayDialog;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            accessDatabaseInstance = AccessDatabase.getInstance(context);
+            imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            try {
+                segmentWrapper = new SegmentWrapper(
+                        getActivity(), new JSONObject(getArguments().getString(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "")));
+            } catch (JSONException e) {
+                segmentWrapper = null;
+            }
+
+            // custom view
+            final ViewGroup nullParent = null;
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.layout_single_edit_text, nullParent);
+
+            editSegmentDescription = (EditText) view.findViewById(R.id.editInput);
+            if (segmentWrapper != null) {
+                editSegmentDescription.setText(segmentWrapper.getSegment().getName());
+            }
+            editSegmentDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            editSegmentDescription.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        tryToExcludeWay();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+            ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
+            buttonDelete.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    // clear edit text
+                    editSegmentDescription.setText("");
+                    // show keyboard
+                    imm.showSoftInput(editSegmentDescription, InputMethodManager.SHOW_IMPLICIT);
+                }
+            });
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.setNameForExcludedWayDialogTitle))
+                .setView(view)
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogExclude),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogCancel),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                .create();
+        }
+
+        @Override public void onStart() {
+            super.onStart();
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                // dismiss immediately if segmentWrapper is null
+                if (segmentWrapper == null) {
+                    dialog.dismiss();
+                }
+                // positive button
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        tryToExcludeWay();
+                    }
+                });
+                // negative button
+                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                buttonNegative.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+            }
+            // show keyboard
+            new Handler().postDelayed(
+                    new Runnable() {
+                        @Override public void run() {
+                            imm.showSoftInput(editSegmentDescription, InputMethodManager.SHOW_IMPLICIT);
+                        }
+                    }, 50);
+        }
+
+        private void tryToExcludeWay() {
+            String segmentDescription = editSegmentDescription.getText().toString().trim();
+            if (! segmentDescription.equals("")
+                    && ! segmentDescription.equals(segmentWrapper.getSegment().getName())) {
+                try {
+                    // add user description
+                    JSONObject jsonSegmentWrapper = segmentWrapper.toJson();
+                    jsonSegmentWrapper.put("user_description", segmentDescription);
+                    // add to database
+                    accessDatabaseInstance.addExcludedWaySegment(
+                            new SegmentWrapper(getActivity(), jsonSegmentWrapper));
+                } catch (JSONException e) {}
+            } else {
+                // add to database without modification
+                accessDatabaseInstance.addExcludedWaySegment(segmentWrapper);
+            }
+            // reload ui and dismiss
+            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+            dismiss();
         }
     }
 

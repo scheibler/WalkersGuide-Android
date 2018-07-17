@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.main;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -55,6 +55,7 @@ import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import org.walkersguide.android.ui.dialog.ExcludedWaysDialog;
 
 public class RouterFragment extends Fragment
     implements FragmentCommunicator, OnMenuItemClickListener, RouteListener {
@@ -131,9 +132,9 @@ public class RouterFragment extends Fragment
                 if (segment != null) {
                     Intent detailsIntent = new Intent(getActivity(), SegmentDetailsActivity.class);
                     try {
-                        detailsIntent.putExtra("jsonSegmentSerialized", segment.toJson().toString());
+                        detailsIntent.putExtra(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, segment.toJson().toString());
                     } catch (JSONException e) {
-                        detailsIntent.putExtra("jsonSegmentSerialized", "");
+                        detailsIntent.putExtra(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
                     }
                     startActivity(detailsIntent);
                 }
@@ -146,9 +147,9 @@ public class RouterFragment extends Fragment
                 if (point != null) {
                     Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
                     try {
-                        detailsIntent.putExtra("jsonPointSerialized", point.toJson().toString());
+                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, point.toJson().toString());
                     } catch (JSONException e) {
-                        detailsIntent.putExtra("jsonPointSerialized", "");
+                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
                     }
                     startActivity(detailsIntent);
                 }
@@ -209,6 +210,10 @@ public class RouterFragment extends Fragment
             case R.id.menuItemRouteHistory:
                 RouteHistoryDialog.newInstance().show(
                         getActivity().getSupportFragmentManager(), "RouteHistoryDialog");
+                return true;
+            case R.id.menuItemExcludedWays:
+                ExcludedWaysDialog.newInstance().show(
+                        getActivity().getSupportFragmentManager(), "ExcludedWaysDialog");
                 return true;
             default:
                 return false;
@@ -357,18 +362,18 @@ public class RouterFragment extends Fragment
                                 case R.id.menuItemShowSegmentDetails:
                                     Intent segmentDetailsIntent = new Intent(getActivity(), SegmentDetailsActivity.class);
                                     try {
-                                        segmentDetailsIntent.putExtra("jsonSegmentSerialized", routeObject.getRouteSegment().toJson().toString());
+                                        segmentDetailsIntent.putExtra(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, routeObject.getRouteSegment().toJson().toString());
                                     } catch (JSONException e) {
-                                        segmentDetailsIntent.putExtra("jsonSegmentSerialized", "");
+                                        segmentDetailsIntent.putExtra(Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
                                     }
                                     getActivity().startActivity(segmentDetailsIntent);
                                     return true;
                                 case R.id.menuItemShowPointDetails:
                                     Intent pointDetailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
                                     try {
-                                        pointDetailsIntent.putExtra("jsonPointSerialized", routeObject.getRoutePoint().toJson().toString());
+                                        pointDetailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, routeObject.getRoutePoint().toJson().toString());
                                     } catch (JSONException e) {
-                                        pointDetailsIntent.putExtra("jsonPointSerialized", "");
+                                        pointDetailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
                                     }
                                     getActivity().startActivity(pointDetailsIntent);
                                     return true;

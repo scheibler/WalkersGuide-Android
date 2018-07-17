@@ -11,4 +11,7 @@
     <item
         android:id="@+id/menuItemRouteHistory"
         android:title="@string/menuItemRouteHistory" />
+    <item
+        android:id="@+id/menuItemExcludedWays"
+        android:title="@string/buttonExcludedWays" />
 </menu>

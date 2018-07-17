@@ -14,6 +14,11 @@
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
 
+    <!-- ExcludedWaysDialog -->
+    <string name="excludedWaysDialogTitle">These ways are excluded from routing:</string>
+
+    <!-- SelectIndirectionFactorDialog -->
+    <string name="selectIndirectionFactorDialogTitle">Select indirection Factor</string>
     <!-- select direction source dialog -->
     <string name="selectDirectionSourceDialogName">Directional source:</string>
     <string name="formattedDirectionValue">%1$s: %2$d degree (%3$s)</string>
@@ -32,6 +37,16 @@
     <string name="locationSourceSimulatedPoint">Simulation</string>
     <string name="labelNoSimulatedPointSelected">No point selected</string>
 
+    <!-- SelectRoutingWayClassesDialog -->
+    <string name="selectRoutingWayClassesDialogTitle">Select way classes allowed for routing:</string>
+    <string name="routingWayClassBigStreets">Big streets</string>
+    <string name="routingWayClassSmallStreets">Small streets</string>
+    <string name="routingWayClassPavedWays">Paved ways</string>
+    <string name="routingWayClassUnpavedWays">Unpaved ways</string>
+    <string name="routingWayClassSteps">Steps</string>
+    <string name="routingWayClassUnclassifiedWays">Ways of unknown type</string>
+    <string name="messageNoAllowedWayClassSelected">No way classes selected.</string>
+
     <!-- gps details dialog -->
     <string name="gpsDetailsDialogName">GPS details</string>
     <string name="labelGPSLatitude">Latitude:</string>
@@ -49,6 +64,9 @@
     <string name="buttonDestinationPoint">Destination:</string>
     <string name="buttonNewRoute">New</string>
     <string name="buttonSwapRoute">Swap</string>
+    <string name="buttonExcludedWays">Excluded ways</string>
+    <string name="buttonIndirectionFactor">Indirection factor</string>
+    <string name="buttonRoutingWayClasses">Way classes</string>
     <string name="buttonGetRoute">Get route</string>
 
     <!-- select point dialog -->
@@ -198,7 +216,6 @@
     <string name="buttonPointSimulateLocation">Simulate</string>
     <string name="menuItemAsRouteStartPoint">Use as start</string>
     <string name="menuItemAsRouteDestinationPoint">Use as destination</string>
-    <string name="labelAttributesPointDetails">Attributes:</string>
 
     <!-- select favorites profiles for point dialog -->
     <string name="selectFavoritesProfilesForPointDialogName">Check profiles</string>
@@ -226,6 +243,40 @@
 
     <!-- PointDetailsFragment -->
     <string name="fragmentPointDetailsName">Details</string>
+    <!-- entrance -->
+    <string name="labelPointEntranceAttributesHeading">Entrance</string>
+    <string name="labelPointEntranceLabel">Label:</string>
+    <!-- gps -->
+    <string name="labelPointGPSDetailsHeading">GPS Details</string>
+    <!-- intersection -->
+    <string name="labelPointIntersectionAttributesHeading">Intersection</string>
+    <string name="labelPointIntersectionNumberOfStreets">Number of streets:</string>
+    <string name="labelPointIntersectionNumberOfBigStreets">Number of big streets:</string>
+    <string name="labelPointIntersectionNumberOfPedestrianCrossingsNearBy">Pedestrian crossings nearby:</string>
+    <!-- pedestrian crossing -->
+    <string name="labelPointTrafficSignalsAttributesHeading">Traffic light</string>
+    <string name="labelPointTrafficSignalsSound">Sound:</string>
+    <string name="labelPointTrafficSignalsVibration">Vibration:</string>
+    <!-- poi -->
+    <string name="labelPointPOIBuildingHeading">Building</string>
+    <string name="labelPointPOIBuildingIsInside">Is inside:</string>
+    <string name="labelPointPOIBuildingNumberOfEntrances">Number of entrances:</string>
+    <string name="labelPointPOIContactHeading">Contact data</string>
+    <string name="labelPointPOIContactPostAddress">Post address:</string>
+    <string name="labelPointPOIContactEMailAddress">Email address:</string>
+    <string name="labelPointPOIContactPhoneNumber">Phone number:</string>
+    <string name="labelPointPOIContactWebsite">Website:</string>
+    <string name="labelPointPOIContactOpeningHours">Opening hours:</string>
+    <!-- station -->
+    <string name="labelPointStationAttributesHeading">Station</string>
+    <string name="labelPointStationVehicleTypes">Vehicle type:</string>
+    <string name="labelPointStationLinesHeading">Lines</string>
+    <!-- point: accessibility -->
+    <string name="labelPointAccessibilityHeading">Accessibility</string>
+    <string name="labelPointTactilePaving">Tactile paving:</string>
+    <string name="labelPointWheelchair">Wheelchair accessibility:</string>
+    <!-- point: coordinates and gps -->
+    <string name="labelPointCoordinatesHeading">Coordinates</string>
 
     <!-- segment details activity -->
     <string name="segmentDetailsActivityTitle">Details</string>
@@ -238,8 +289,28 @@
     <string name="buttonSegmentSimulateDirection">Simulate</string>
     <string name="labelAttributesSegmentDetails">Attributes:</string>
 
+    <!-- SetNameForExcludedWayDialog -->
+    <string name="setNameForExcludedWayDialogTitle">Exclude way segment from routing:</string>
+
     <!-- SegmentDetailsFragment -->
     <string name="fragmentSegmentDetailsName">Details</string>
+    <!-- intersection segment -->
+    <string name="labelSegmentIntersectionAttributesHeading">Intersection</string>
+    <string name="labelSegmentIntersectionName">Name:</string>
+    <!-- route segment -->
+    <string name="labelSegmentRouteAttributesHeading">Route</string>
+    <string name="labelSegmentRouteDistance">Distance:</string>
+    <!-- footway segment -->
+    <string name="labelSegmentFootwayAttributesHeading">Attributes</string>
+    <string name="labelSegmentFootwaySurface">Surface:</string>
+    <string name="labelSegmentFootwayNumberOfLanes">Number of Lanes:</string>
+    <string name="labelSegmentFootwaySegregated">Cycleway segregated:</string>
+    <string name="labelSegmentFootwaySidewalk">Sidewalk:</string>
+    <string name="labelSegmentFootwayTram">Tram rails:</string>
+    <string name="labelSegmentFootwayWidth">Width:</string>
+    <!-- user attributes -->
+    <string name="labelSegmentUserAttributesHeading">User attributes</string>
+    <string name="labelSegmentUserDescription">Description:</string>
 
     <!-- NextIntersectionsFragment -->
     <string name="fragmentNextIntersectionsName">Intersections</string>
@@ -377,16 +448,25 @@
     <!-- standard messages, which are used in more than one component -->
     <string name="dialogOK">OK</string>
     <string name="dialogYes">Yes</string>
+    <string name="dialogLimited">Limited</string>
     <string name="dialogNo">No</string>
+    <string name="dialogAll">All</string>
     <string name="dialogBack">Back</string>
     <string name="dialogCancel">Cancel</string>
     <string name="dialogClear">Clear</string>
     <string name="dialogClose">Close</string>
     <string name="dialogDetails">Details</string>
+    <string name="dialogExclude">Exclude</string>
     <string name="dialogMore">More</string>
     <string name="dialogNext">Next</string>
     <string name="dialogUpdate">Update</string>
     <string name="messagePleaseWait">Please wait...</string>
+
+    <!-- sidewalk attributes-->
+    <string name="sidewalkNo">No</string>
+    <string name="sidewalkLeft">On the left</string>
+    <string name="sidewalkRight">On the right</string>
+    <string name="sidewalkBoth">On both sides</string>
 
     <!-- units -->
     <string name="unitDegree">degree</string>

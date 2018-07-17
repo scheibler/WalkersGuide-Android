@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.Intersection;
+import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.FavoritesProfile;
@@ -19,11 +20,11 @@ import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-import org.walkersguide.android.ui.fragment.DeparturesFragment;
-import org.walkersguide.android.ui.fragment.EntrancesFragment;
-import org.walkersguide.android.ui.fragment.IntersectionWaysFragment;
-import org.walkersguide.android.ui.fragment.PedestrianCrossingsFragment;
-import org.walkersguide.android.ui.fragment.PointDetailsFragment;
+import org.walkersguide.android.ui.fragment.pointdetails.DeparturesFragment;
+import org.walkersguide.android.ui.fragment.pointdetails.EntrancesFragment;
+import org.walkersguide.android.ui.fragment.pointdetails.IntersectionWaysFragment;
+import org.walkersguide.android.ui.fragment.pointdetails.PedestrianCrossingsFragment;
+import org.walkersguide.android.ui.fragment.pointdetails.PointDetailsFragment;
 import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
@@ -83,10 +84,13 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 	public FragmentCommunicator intersectionWaysFragmentCommunicator;
 	public FragmentCommunicator pedestrianCrossingsFragmentCommunicator;
 
+    // poi
+	private POIPagerAdapter poiPagerAdapter;
+	public FragmentCommunicator entrancesFragmentCommunicator;
+
     // station
 	private StationPagerAdapter stationPagerAdapter;
 	public FragmentCommunicator departuresFragmentCommunicator;
-	public FragmentCommunicator entrancesFragmentCommunicator;
 
 	// fragment handler
 	private Handler onFragmentEnabledHandler;
@@ -101,10 +105,10 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
         try {
     		if (savedInstanceState != null) {
                 pointWrapper = new PointWrapper(
-                        this, new JSONObject(savedInstanceState.getString("jsonPointSerialized")));
+                        this, new JSONObject(savedInstanceState.getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED)));
             } else {
                 pointWrapper = new PointWrapper(
-		                this, new JSONObject(getIntent().getExtras().getString("jsonPointSerialized", "")));
+		                this, new JSONObject(getIntent().getExtras().getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "")));
             }
         } catch (JSONException e) {
             pointWrapper = null;
@@ -118,8 +122,9 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 getResources().getString(R.string.pointDetailsActivityTitle));
 
         if (pointWrapper != null) {
-            System.out.println("xxx " + pointWrapper.getPoint().getName() + ": " + pointWrapper.getPoint().getLatitude() + ", " + pointWrapper.getPoint().getLongitude());
-            // name, type and distance
+            getSupportActionBar().setTitle(
+                    pointWrapper.getPoint().getType());
+            // name, subtype and distance
     		TextView labelPointName = (TextView) findViewById(R.id.labelPointName);
             labelPointName.setText(
                     String.format(
@@ -178,45 +183,47 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             mViewPager.addOnPageChangeListener(new TabLayoutOnPageChangeListenerBugFree(tabLayout));
             tabLayout = (TabLayout) findViewById(R.id.tab_layout);
 
+            int defaultRecentFragment;
             if (pointWrapper.getPoint() instanceof Station) {
                 // set fragments for station
                 stationPagerAdapter = new StationPagerAdapter(this);
                 mViewPager.setAdapter(stationPagerAdapter);
                 tabLayout.setupWithViewPager(mViewPager);
                 tabLayout.setVisibility(View.VISIBLE);
-                // set open fragment
-            	if (savedInstanceState != null) {
-        	    	recentFragment = savedInstanceState.getInt("recentFragment", 0);
-                } else {
-                    recentFragment = Constants.STATION_FRAGMENT.DETAILS;
-                }
+                // default station fragment
+                defaultRecentFragment = Constants.STATION_FRAGMENT.DETAILS;
+            } else if (pointWrapper.getPoint() instanceof POI) {
+                // set fragments for poi
+                poiPagerAdapter = new POIPagerAdapter(this);
+                mViewPager.setAdapter(poiPagerAdapter);
+                tabLayout.setupWithViewPager(mViewPager);
+                tabLayout.setVisibility(View.VISIBLE);
+                // default poi fragment
+                defaultRecentFragment = Constants.POI_FRAGMENT.DETAILS;
             } else if (pointWrapper.getPoint() instanceof Intersection) {
                 // set fragments for intersection
                 intersectionPagerAdapter = new IntersectionPagerAdapter(this);
                 mViewPager.setAdapter(intersectionPagerAdapter);
                 tabLayout.setupWithViewPager(mViewPager);
                 tabLayout.setVisibility(View.VISIBLE);
-                // set open fragment
-            	if (savedInstanceState != null) {
-        	    	recentFragment = savedInstanceState.getInt("recentFragment", 0);
-                } else {
-                    recentFragment = Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS;
-                }
+                // default intersection fragment
+                defaultRecentFragment = Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS;
             } else {
                 // set fragments for other point types
                 pointPagerAdapter = new PointPagerAdapter(this);
                 mViewPager.setAdapter(pointPagerAdapter);
                 tabLayout.setVisibility(View.GONE);
-                // set open fragment
-            	if (savedInstanceState != null) {
-        	    	recentFragment = savedInstanceState.getInt("recentFragment", 0);
-                } else {
-                    recentFragment = Constants.POINT_FRAGMENT.DETAILS;
-                }
+                // default point fragment
+                defaultRecentFragment = Constants.POINT_FRAGMENT.DETAILS;
             }
 
 	    	// initialize handler for enabling fragment and open recent one
     		onFragmentEnabledHandler = new Handler();
+            if (savedInstanceState != null) {
+            	recentFragment = savedInstanceState.getInt("recentFragment", defaultRecentFragment);
+            } else {
+                recentFragment = defaultRecentFragment;
+            }
             mViewPager.setCurrentItem(recentFragment);
         }
     }
@@ -243,12 +250,12 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 		super.onSaveInstanceState(savedInstanceState);
         if (pointWrapper != null) {
             try {
-                savedInstanceState.putString("jsonPointSerialized", pointWrapper.toJson().toString());
+                savedInstanceState.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointWrapper.toJson().toString());
             } catch (JSONException e) {
-    	    	savedInstanceState.putString("jsonPointSerialized", "");
+    	    	savedInstanceState.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
             }
         } else {
-    	    savedInstanceState.putString("jsonPointSerialized", "");
+    	    savedInstanceState.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
         }
     	savedInstanceState.putInt("recentFragment", recentFragment);
 	}
@@ -285,6 +292,8 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
         @Override public void onReceive(Context context, Intent intent) {
             if (
                     (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
+                            && labelPointDistanceAndBearing.getText().toString().trim().equals(""))
+                    || (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
                         && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD1.ID)
                     || (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
                         && intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD1.ID)
@@ -316,9 +325,9 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             SelectFavoritesProfilesForPointDialog selectFavoritesProfilesForPointDialogInstance = new SelectFavoritesProfilesForPointDialog();
             Bundle args = new Bundle();
             try {
-                args.putString("jsonPointSerialized", selectedPoint.toJson().toString());
+                args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, selectedPoint.toJson().toString());
             } catch (JSONException e) {
-                args.putString("jsonPointSerialized", "");
+                args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
             }
             selectFavoritesProfilesForPointDialogInstance.setArguments(args);
             return selectFavoritesProfilesForPointDialogInstance;
@@ -332,7 +341,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
             try {
                 selectedPoint = new PointWrapper(
-                        getActivity(), new JSONObject(getArguments().getString("jsonPointSerialized", "")));
+                        getActivity(), new JSONObject(getArguments().getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "")));
             } catch (JSONException e) {
                 selectedPoint = PositionManager.getDummyLocation(getActivity());
             }
@@ -461,6 +470,11 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                         intersectionWaysFragmentCommunicator.onFragmentDisabled();
                     }
                     break;
+                case Constants.INTERSECTION_FRAGMENT.DETAILS:
+                    if (pointDetailsFragmentCommunicator != null) {
+                        pointDetailsFragmentCommunicator.onFragmentDisabled();
+                    }
+                    break;
                 case Constants.INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS:
                     if (pedestrianCrossingsFragmentCommunicator != null) {
                         pedestrianCrossingsFragmentCommunicator.onFragmentDisabled();
@@ -474,6 +488,21 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 case Constants.POINT_FRAGMENT.DETAILS:
                     if (pointDetailsFragmentCommunicator != null) {
                         pointDetailsFragmentCommunicator.onFragmentDisabled();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else if (poiPagerAdapter != null) {
+            switch (recentFragment) {
+                case Constants.POI_FRAGMENT.DETAILS:
+                    if (pointDetailsFragmentCommunicator != null) {
+                        pointDetailsFragmentCommunicator.onFragmentDisabled();
+                    }
+                    break;
+                case Constants.POI_FRAGMENT.ENTRANCES:
+                    if (entrancesFragmentCommunicator != null) {
+                        entrancesFragmentCommunicator.onFragmentDisabled();
                     }
                     break;
                 default:
@@ -525,6 +554,12 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                             return;
                         }
                         break;
+                    case Constants.INTERSECTION_FRAGMENT.DETAILS:
+                        if (pointDetailsFragmentCommunicator != null) {
+                            pointDetailsFragmentCommunicator.onFragmentEnabled();
+                            return;
+                        }
+                        break;
                     case Constants.INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS:
                         if (pedestrianCrossingsFragmentCommunicator != null) {
                             pedestrianCrossingsFragmentCommunicator.onFragmentEnabled();
@@ -544,6 +579,23 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                         break;
                     default:
                         return;
+                }
+            } else if (poiPagerAdapter != null) {
+                switch (recentFragment) {
+                    case Constants.POI_FRAGMENT.DETAILS:
+                        if (pointDetailsFragmentCommunicator != null) {
+                            pointDetailsFragmentCommunicator.onFragmentEnabled();
+                            return;
+                        }
+                        break;
+                    case Constants.POI_FRAGMENT.ENTRANCES:
+                        if (entrancesFragmentCommunicator != null) {
+                            entrancesFragmentCommunicator.onFragmentEnabled();
+                            return;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             } else if (stationPagerAdapter != null) {
                 switch (recentFragment) {
@@ -624,6 +676,8 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             switch (position) {
                 case Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS:
                     return IntersectionWaysFragment.newInstance(pointWrapper);
+                case Constants.INTERSECTION_FRAGMENT.DETAILS:
+                    return PointDetailsFragment.newInstance(pointWrapper);
                 case Constants.INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS:
                     return PedestrianCrossingsFragment.newInstance(pointWrapper);
                 default:
@@ -635,6 +689,8 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             switch (position) {
                 case Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS:
     				return getResources().getString(R.string.fragmentIntersectionWaysName);
+                case Constants.INTERSECTION_FRAGMENT.DETAILS:
+    				return getResources().getString(R.string.fragmentPointDetailsName);
                 case Constants.INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS:
     				return getResources().getString(R.string.fragmentPedestrianCrossingsName);
                 default:
@@ -647,6 +703,39 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 		}
 	}
 
+
+	public class POIPagerAdapter extends FragmentStatePagerAdapter {
+
+		public POIPagerAdapter(FragmentActivity activity) {
+			super(activity.getSupportFragmentManager());
+		}
+
+        @Override public Fragment getItem(int position) {
+            switch (position) {
+                case Constants.POI_FRAGMENT.DETAILS:
+                    return PointDetailsFragment.newInstance(pointWrapper);
+                case Constants.POI_FRAGMENT.ENTRANCES:
+                    return EntrancesFragment.newInstance(pointWrapper);
+                default:
+                    return null;
+            }
+        }
+
+		@Override public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case Constants.POI_FRAGMENT.DETAILS:
+    				return getResources().getString(R.string.fragmentPointDetailsName);
+                case Constants.POI_FRAGMENT.ENTRANCES:
+    				return getResources().getString(R.string.fragmentEntrancesName);
+                default:
+                    return "";
+            }
+		}
+
+		@Override public int getCount() {
+			return Constants.POIFragmentValueArray.length;
+		}
+	}
 
 	public class StationPagerAdapter extends FragmentStatePagerAdapter {
 

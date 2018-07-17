@@ -33,12 +33,8 @@
         android:layout_alignParentBottom="true"
         android:orientation="vertical" >
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:paddingTop="1dp"
-            android:paddingBottom="1dp"
-            android:background="#444444" />
+        <include
+            layout="@layout/layout_default_divider" />
 
         <TextView
             android:id="@+id/labelDistanceAndBearing"

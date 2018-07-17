@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.pointdetails;
 
 import java.util.ArrayList;
 
@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import org.walkersguide.android.util.Constants;
 
 public class DeparturesFragment extends Fragment
     implements FragmentCommunicator, DepartureResultListener {
@@ -40,9 +41,9 @@ public class DeparturesFragment extends Fragment
 		DeparturesFragment departuresFragmentInstance = new DeparturesFragment();
         Bundle args = new Bundle();
         try {
-            args.putString("jsonPointSerialized", pointWrapper.toJson().toString());
+            args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointWrapper.toJson().toString());
         } catch (JSONException e) {
-            args.putString("jsonPointSerialized", "");
+            args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
         }
         departuresFragmentInstance.setArguments(args);
 		return departuresFragmentInstance;
@@ -54,7 +55,7 @@ public class DeparturesFragment extends Fragment
 		if (context instanceof Activity) {
 			activity = (Activity) context;
 			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((PointDetailsActivity) activity).pointDetailsFragmentCommunicator = this;
+			((PointDetailsActivity) activity).departuresFragmentCommunicator = this;
 		}
 	}
 
@@ -66,7 +67,7 @@ public class DeparturesFragment extends Fragment
 		super.onViewCreated(view, savedInstanceState);
         try {
             station = new Station(
-                    getActivity(), new JSONObject(getArguments().getString("jsonPointSerialized", "")));
+                    getActivity(), new JSONObject(getArguments().getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "")));
         } catch (JSONException e) {
             station = null;
         }

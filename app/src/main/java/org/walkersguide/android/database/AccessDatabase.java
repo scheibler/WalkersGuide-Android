@@ -27,6 +27,8 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.data.basic.segment.Footway;
 
 public class AccessDatabase {
 
@@ -50,6 +52,15 @@ public class AccessDatabase {
         //database.execSQL(SQLiteHelper.CREATE_ROUTE_TABLE);
         //database.execSQL(SQLiteHelper.DROP_ADDRESS_TABLE);
         //database.execSQL(SQLiteHelper.CREATE_ADDRESS_TABLE);
+
+        // create tables if not already there
+        // excluded ways
+        database.execSQL(SQLiteHelper.CREATE_EXCLUDED_WAYS_TABLE);
+        // routing way classes
+        if (SQLiteHelper.TABLE_MAP_ALL_COLUMNS.length == 2) {
+            database.execSQL(SQLiteHelper.DROP_MAP_TABLE);
+            database.execSQL(SQLiteHelper.CREATE_MAP_TABLE);
+        }
 
         // insert some default favorites profiles if table is empty
         //database.delete(SQLiteHelper.TABLE_POINT, null, null);
@@ -161,11 +172,26 @@ public class AccessDatabase {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.MAP_NAME, name);
         values.put(SQLiteHelper.MAP_URL, url);
+        values.put(SQLiteHelper.MAP_VERSION, 0);
+        values.put(SQLiteHelper.MAP_CREATED, 0l);
         return (int) database.insertWithOnConflict(
                 SQLiteHelper.TABLE_MAP,
                 null,
                 values,
                 SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public boolean updateVersionAndCreationOfMap(String name, int version, long created) {
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.MAP_NAME, name);
+        values.put(SQLiteHelper.MAP_VERSION, version);
+        values.put(SQLiteHelper.MAP_CREATED, created);
+        int numberOfRowsAffected = database.updateWithOnConflict(
+                SQLiteHelper.TABLE_MAP,
+                values,
+                SQLiteHelper.MAP_NAME + " = ?", new String[]{name},
+                SQLiteDatabase.CONFLICT_IGNORE);
+        return numberOfRowsAffected == 1 ? true : false;
     }
 
     public void removeMap(String name) {
@@ -180,7 +206,11 @@ public class AccessDatabase {
                 cursor.getString(
                     cursor.getColumnIndex(SQLiteHelper.MAP_NAME)),
                 cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.MAP_URL)));
+                    cursor.getColumnIndex(SQLiteHelper.MAP_URL)),
+                cursor.getInt(
+                    cursor.getColumnIndex(SQLiteHelper.MAP_VERSION)),
+                cursor.getLong(
+                    cursor.getColumnIndex(SQLiteHelper.MAP_CREATED)));
     }
 
 
@@ -360,13 +390,12 @@ public class AccessDatabase {
                     SQLiteHelper.TABLE_POINT, SQLiteHelper.POINT_ID,
                     SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_PROFILE_ID),
                 new String[]{String.valueOf(id)});
-        System.out.println("xxx point size: " + cursor.getCount());
         while (cursor.moveToNext()) {
             JSONObject jsonPoint = null;
             try {
                 jsonPoint = new JSONObject(
                         cursor.getString(cursor.getColumnIndex(SQLiteHelper.POINT_DATA)));
-                jsonPoint.put("order", cursor.getInt(cursor.getColumnIndex(SQLiteHelper.FP_POINTS_ORDER)));
+                jsonPoint.put("order", cursor.getLong(cursor.getColumnIndex(SQLiteHelper.FP_POINTS_ORDER)));
             } catch (JSONException e) {
                 jsonPoint = null;
             } finally {
@@ -377,7 +406,6 @@ public class AccessDatabase {
         }
         cursor.close();
 
-        System.out.println("xxx curr: " + favoritesProfileJSONCenterSerialized);
         // create favorites profile object
         try {
             return new FavoritesProfile(
@@ -389,7 +417,6 @@ public class AccessDatabase {
                     favoritesProfileDirection,
                     jsonPointList);
         } catch (JSONException e) {
-            System.out.println("xxx error: " + e.getMessage().replace("\n", "--"));
             return null;
         }
     }
@@ -821,7 +848,7 @@ public class AccessDatabase {
     public TreeMap<Integer,String> getRouteMap() {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.ROUTE_CREATED + " DESC");
+                null, null, null, null, SQLiteHelper.ROUTE_CREATED + " ASC");
         TreeMap<Integer,String> routeMap = new TreeMap<Integer,String>();
         while (cursor.moveToNext()) {
             try {
@@ -1029,6 +1056,71 @@ public class AccessDatabase {
             cursor.close();
         }
         return id;
+    }
+
+
+    /**
+     * excluded ways
+     */
+
+	public ArrayList<SegmentWrapper> getExcludedWaysList() {
+		Cursor cursor = database.query(
+                SQLiteHelper.TABLE_EXCLUDED_WAYS, SQLiteHelper.TABLE_EXCLUDED_WAYS_ALL_COLUMNS,
+                null, null, null, null, SQLiteHelper.EXCLUDED_WAYS_TIMESTAMP + " DESC");
+		ArrayList<SegmentWrapper> excludedWaysList = new ArrayList<SegmentWrapper>(cursor.getCount());
+        while (cursor.moveToNext()) {
+            SegmentWrapper segmentWrapper = null;
+            try {
+                segmentWrapper = new SegmentWrapper(
+                        this.context,
+                        new JSONObject(
+                            cursor.getString(
+                                cursor.getColumnIndex(SQLiteHelper.EXCLUDED_WAYS_DATA))));
+            } catch (JSONException e) {
+                segmentWrapper = null;
+            } finally {
+                if (segmentWrapper != null) {
+        			excludedWaysList.add(segmentWrapper);
+                }
+            }
+		}
+		cursor.close();
+		return excludedWaysList;
+	}
+
+    public void addExcludedWaySegment(SegmentWrapper segmentToAdd) {
+        if (segmentToAdd == null
+                || ! (segmentToAdd.getSegment() instanceof Footway)
+                || ((Footway) segmentToAdd.getSegment()).getWayId() == -1) {
+            return;
+        }
+        // add segment to excluded ways table
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.EXCLUDED_WAYS_ID, segmentToAdd.hashCode());
+        values.put(SQLiteHelper.EXCLUDED_WAYS_TIMESTAMP, System.currentTimeMillis());
+        try {
+            values.put(SQLiteHelper.EXCLUDED_WAYS_DATA, segmentToAdd.toJson().toString());
+        } catch (JSONException e) {
+            return;
+        }
+        database.insertWithOnConflict(
+                SQLiteHelper.TABLE_EXCLUDED_WAYS,
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_IGNORE);
+    }
+
+    public void removeExcludedWaySegment(SegmentWrapper segmentToRemove) {
+        if (segmentToRemove == null) {
+            return;
+        }
+        // delete segment from excluded ways table
+        database.delete(
+                SQLiteHelper.TABLE_EXCLUDED_WAYS,
+                String.format(
+                    "%1$s = ?", SQLiteHelper.EXCLUDED_WAYS_ID),
+                new String[] {
+                    String.valueOf(segmentToRemove.hashCode())});
     }
 
 }

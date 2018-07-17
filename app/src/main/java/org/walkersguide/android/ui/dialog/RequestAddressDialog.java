@@ -101,9 +101,9 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
                     } else {
                         Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
                         try {
-                            detailsIntent.putExtra("jsonPointSerialized", addressPoint.toJson().toString());
+                            detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, addressPoint.toJson().toString());
                         } catch (JSONException e) {
-                            detailsIntent.putExtra("jsonPointSerialized", "");
+                            detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
                         }
                         startActivity(detailsIntent);
                         dismiss();

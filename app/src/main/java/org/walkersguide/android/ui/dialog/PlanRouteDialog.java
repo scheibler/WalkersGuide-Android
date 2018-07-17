@@ -51,7 +51,7 @@ public class PlanRouteDialog extends DialogFragment
     private Vibrator vibrator;
 
     // ui components
-    private Button buttonStartPoint, buttonDestinationPoint;
+    private Button buttonStartPoint, buttonDestinationPoint, buttonIndirectionFactor;
 
     public static PlanRouteDialog newInstance() {
         PlanRouteDialog planRouteDialogInstance = new PlanRouteDialog();
@@ -66,6 +66,7 @@ public class PlanRouteDialog extends DialogFragment
         settingsManagerInstance = SettingsManager.getInstance(context);
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_LOCATION);
+        filter.addAction(Constants.ACTION_UPDATE_UI);
         LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
         addressManagerRequest = null;
         // progress updater
@@ -116,6 +117,30 @@ public class PlanRouteDialog extends DialogFragment
                 routeSettings.setStartPoint(routeSettings.getDestinationPoint());
                 routeSettings.setDestinationPoint(tempPoint);
                 positionManagerInstance.requestCurrentLocation();
+            }
+        });
+
+        Button buttonExcludedWays = (Button) view.findViewById(R.id.buttonExcludedWays);
+        buttonExcludedWays.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                ExcludedWaysDialog.newInstance().show(
+                        getActivity().getSupportFragmentManager(), "ExcludedWaysDialog");
+            }
+        });
+
+        buttonIndirectionFactor = (Button) view.findViewById(R.id.buttonIndirectionFactor);
+        buttonIndirectionFactor.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                SelectIndirectionFactorDialog.newInstance().show(
+                        getActivity().getSupportFragmentManager(), "SelectIndirectionFactorDialog");
+            }
+        });
+
+        Button buttonRoutingWayClasses = (Button) view.findViewById(R.id.buttonRoutingWayClasses);
+        buttonRoutingWayClasses.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                SelectRoutingWayClassesDialog.newInstance().show(
+                        getActivity().getSupportFragmentManager(), "SelectRoutingWayClassesDialog");
             }
         });
 
@@ -171,6 +196,13 @@ public class PlanRouteDialog extends DialogFragment
                     dialog.dismiss();
                 }
             });
+            // set indirection factor
+            buttonIndirectionFactor.setText(
+                    String.format(
+                        "%1$s: %2$.1f",
+                        getResources().getString(R.string.buttonIndirectionFactor),
+                        settingsManagerInstance.getRouteSettings().getIndirectionFactor())
+                    );
         }
     }
 
@@ -207,6 +239,7 @@ public class PlanRouteDialog extends DialogFragment
             // show router fragment of main activity
     		settingsManagerInstance.getGeneralSettings().setRecentOpenTab(Constants.MAIN_FRAGMENT.ROUTER);
             Intent mainActivityIntent = new Intent(getActivity(), MainActivity.class);
+            mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(mainActivityIntent);
             vibrator.vibrate(250);
             dismiss();
@@ -298,6 +331,9 @@ public class PlanRouteDialog extends DialogFragment
                         addressManagerRequest.execute();
                     }
                 }
+
+            } else if(intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
+                onStart();
             }
         }
     };

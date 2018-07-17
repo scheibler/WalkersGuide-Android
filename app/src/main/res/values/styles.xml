@@ -2,8 +2,11 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- default font size -->
-        <item name="android:textSize">20sp</item>
+        <!-- default font size and color -->
+        <item name="android:textSize">@dimen/globalTextSize</item>
+        <item name="android:textColor">@color/text</item>
+        <!-- link color -->
+        <item name="android:textColorLink">@color/link</item>
     </style>
 
 </resources>

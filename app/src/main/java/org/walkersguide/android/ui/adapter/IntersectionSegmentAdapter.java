@@ -23,6 +23,7 @@ public class IntersectionSegmentAdapter extends ArrayAdapter<IntersectionSegment
         super(context, R.layout.layout_single_text_view);
         m_inflater = LayoutInflater.from(context);
         this.intersectionSegmentList = intersectionSegmentList;
+        notifyDataSetChanged();
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -52,7 +53,7 @@ public class IntersectionSegmentAdapter extends ArrayAdapter<IntersectionSegment
     }
 
     @Override public void notifyDataSetChanged() {
-        Collections.sort(intersectionSegmentList, new SortByBearingFromCurrentDirection(0));
+        Collections.sort(intersectionSegmentList, new SortByBearingFromCurrentDirection(68));
         super.notifyDataSetChanged();
     }
 

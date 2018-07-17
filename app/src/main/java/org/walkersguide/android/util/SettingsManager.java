@@ -17,6 +17,9 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
+import java.util.ArrayList;
+import org.json.JSONArray;
+import java.util.Arrays;
 
 public class SettingsManager {
 
@@ -605,6 +608,7 @@ public class SettingsManager {
         private int selectedRouteId;
         private PointWrapper start, destination;
         private double indirectionFactor;
+        private ArrayList<String> wayClassList;
 
         public RouteSettings(JSONObject jsonObject) {
             int restoredRouteId = -1;
@@ -635,11 +639,36 @@ public class SettingsManager {
             // indirection factor
             this.indirectionFactor = 2.0;
             try {
-                double factor = jsonObject.getInt("indirectionFactor");
+                double factor = jsonObject.getDouble("indirectionFactor");
                 if (Doubles.contains(Constants.IndirectionFactorValueArray, factor)) {
                     this.indirectionFactor = factor;
                 }
             } catch (JSONException e) {}
+            // allowed way classes
+            this.wayClassList = new ArrayList<String>();
+            JSONArray jsonWayClassList = null;
+            try {
+                jsonWayClassList = jsonObject.getJSONArray("wayClassList");
+            } catch (JSONException e) {
+                jsonWayClassList = null;
+            } finally {
+                if (jsonWayClassList != null) {
+                    for (int i=0; i<jsonWayClassList.length(); i++) {
+                        try {
+                            String wayClassFromJson = jsonWayClassList.getString(i);
+                            if (Arrays.asList(Constants.RoutingWayClassValueArray).contains(wayClassFromJson)) {
+                                wayClassList.add(wayClassFromJson);
+                            }
+                        } catch (JSONException e) {}
+                    }
+                }
+                // default: select all
+                if (wayClassList.isEmpty()) {
+                    for (String defaultWayClass : Constants.RoutingWayClassValueArray) {
+                        wayClassList.add(defaultWayClass);
+                    }
+                }
+            }
         }
 
         public int getSelectedRouteId() {
@@ -684,6 +713,17 @@ public class SettingsManager {
             }
         }
 
+        public ArrayList<String> getWayClassList() {
+            return this.wayClassList;
+        }
+
+        public void setWayClassList(ArrayList<String> newWayClassList) {
+            if (newWayClassList != null) {
+                this.wayClassList = newWayClassList;
+                storeRouteSettings();
+            }
+        }
+
         public void storeRouteSettings() {
             JSONObject jsonRouteSettings = new JSONObject();
             try {
@@ -697,6 +737,13 @@ public class SettingsManager {
             } catch (JSONException e) {}
             try {
                 jsonRouteSettings.put("indirectionFactor", this.indirectionFactor);
+            } catch (JSONException e) {}
+            JSONArray jsonWayClassList = new JSONArray();
+            for (String wayClass : this.wayClassList) {
+                jsonWayClassList.put(wayClass);
+            }
+            try {
+                jsonRouteSettings.put("wayClassList", jsonWayClassList);
             } catch (JSONException e) {}
     		// save settings
 	    	Editor editor = settings.edit();
@@ -749,7 +796,6 @@ public class SettingsManager {
         }
 
         public void setSelectedMap(OSMMap newMap) {
-            System.out.println("xxx newMap: " + newMap);
             this.selectedMap = newMap;
             storeServerSettings();
         }

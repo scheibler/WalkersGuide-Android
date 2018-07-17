@@ -43,13 +43,17 @@ public abstract class AbstractActivity extends AppCompatActivity {
     private static final int ASK_FOR_LOCATION_PERMISSION_ID = 61;
 
     public GlobalInstance globalInstance;
+	public AccessDatabase accessDatabaseInstance;
     public DirectionManager directionManagerInstance;
     public PositionManager positionManagerInstance;
 	public SettingsManager settingsManagerInstance;
 
+    private SimpleMessageDialog simpleMessageDialog;
+
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         globalInstance = (GlobalInstance) getApplicationContext();
+		accessDatabaseInstance = AccessDatabase.getInstance(this);
         directionManagerInstance = DirectionManager.getInstance(this);
         positionManagerInstance = PositionManager.getInstance(this);
 		settingsManagerInstance = SettingsManager.getInstance(this);
@@ -285,6 +289,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             /*
+            // print intent and extras
             System.out.println("xxx abstract action: " + intent.getAction());
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
@@ -294,6 +299,14 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 }
             }
             */
+            // kill previous instance of simple message dialog
+            System.out.println("xxx abstract action: " + intent.getAction());
+            if (simpleMessageDialog != null) {
+                System.out.println("xxx dismiss");
+                simpleMessageDialog.dismiss();
+                simpleMessageDialog = null;
+            }
+            // process intent action
             if (
                        (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
                         && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD1.ID)
@@ -304,6 +317,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
             } else if(intent.getAction().equals(Constants.ACTION_SERVER_STATUS_UPDATED)) {
                 if (! AccessDatabase.getInstance(context).getMapList().isEmpty()
                         && SettingsManager.getInstance(context).getServerSettings().getSelectedMap() == null) {
+                    System.out.println("xxx select map");
                     SelectMapDialog.newInstance(null)
                         .show(getSupportFragmentManager(), "SelectMapDialog");
                 } else if (! AccessDatabase.getInstance(context).getPublicTransportProviderList().isEmpty()
@@ -311,9 +325,10 @@ public abstract class AbstractActivity extends AppCompatActivity {
                     SelectPublicTransportProviderDialog.newInstance(null)
                         .show(getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
                 } else if (! intent.getStringExtra(Constants.ACTION_SERVER_STATUS_UPDATED_ATTR.STRING_RETURN_MESSAGE).equals("")) {
-                    SimpleMessageDialog.newInstance(
-                            intent.getStringExtra(Constants.ACTION_SERVER_STATUS_UPDATED_ATTR.STRING_RETURN_MESSAGE))
-                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                    System.out.println("xxx simple");
+                    simpleMessageDialog = SimpleMessageDialog.newInstance(
+                            intent.getStringExtra(Constants.ACTION_SERVER_STATUS_UPDATED_ATTR.STRING_RETURN_MESSAGE));
+                    simpleMessageDialog.show(getSupportFragmentManager(), "SimpleMessageDialog");
                 }
             } else if(intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
                 onPause();

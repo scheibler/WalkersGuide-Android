@@ -3,7 +3,7 @@ package org.walkersguide.android.util;
 public class Constants {
 
     public interface DEFAULT {
-        public static final String SERVER_URL = "https://wasserbett.ath.cx:19000";
+        public static final String SERVER_URL = "https://scheibler-dresden.homelinux.org:19000";
         public static final int SUPPORTED_MAP_VERSION = 6;
     }
 
@@ -80,6 +80,10 @@ public class Constants {
      * Fragments: PointDetailsActivity
      */
 
+    public interface POINT_DETAILS_ACTIVITY_EXTRA {
+        public static final String JSON_POINT_SERIALIZED = "jsonPointSerialized";
+    }
+
     public interface POINT_FRAGMENT {
         public static final int DETAILS = 0;
     }
@@ -90,11 +94,21 @@ public class Constants {
 
     public interface INTERSECTION_FRAGMENT {
         public static final int INTERSECTION_WAYS = 0;
-        public static final int PEDESTRIAN_CROSSINGS = 1;
+        public static final int DETAILS = 1;
+        public static final int PEDESTRIAN_CROSSINGS = 2;
     }
 
     public final static int[] IntersectionFragmentValueArray = {
-        INTERSECTION_FRAGMENT.INTERSECTION_WAYS, INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS
+        INTERSECTION_FRAGMENT.INTERSECTION_WAYS, INTERSECTION_FRAGMENT.DETAILS, INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS
+    };
+
+    public interface POI_FRAGMENT {
+        public static final int DETAILS = 0;
+        public static final int ENTRANCES = 1;
+    }
+
+    public final static int[] POIFragmentValueArray = {
+        POI_FRAGMENT.DETAILS, POI_FRAGMENT.ENTRANCES
     };
 
     public interface STATION_FRAGMENT {
@@ -110,6 +124,10 @@ public class Constants {
     /**
      * Fragments: SegmentDetailsActivity
      */
+
+    public interface SEGMENT_DETAILS_ACTIVITY_EXTRA {
+        public static final String JSON_SEGMENT_SERIALIZED = "jsonSegmentSerialized";
+    }
 
     public interface SEGMENT_FRAGMENT {
         public static final int DETAILS = 0;
@@ -189,6 +207,20 @@ public class Constants {
 
     public final static double[] IndirectionFactorValueArray = {
         1.0, 1.5, 2.0, 3.0, 4.0
+    };
+
+    public interface ROUTING_WAY_CLASS {
+        public static final String BIG_STREETS = "big_streets";
+        public static final String SMALL_STREETS = "small_streets";
+        public static final String PAVED_WAYS = "paved_ways";
+        public static final String UNPAVED_WAYS = "unpaved_ways";
+        public static final String STEPS = "steps";
+        public static final String UNCLASSIFIED_WAYS = "unclassified_ways";
+    }
+
+    public final static String[] RoutingWayClassValueArray = {
+        ROUTING_WAY_CLASS.BIG_STREETS, ROUTING_WAY_CLASS.SMALL_STREETS, ROUTING_WAY_CLASS.PAVED_WAYS,
+        ROUTING_WAY_CLASS.UNPAVED_WAYS, ROUTING_WAY_CLASS.STEPS, ROUTING_WAY_CLASS.UNCLASSIFIED_WAYS
     };
 
 

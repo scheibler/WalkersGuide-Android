@@ -32,7 +32,9 @@
     <ListView
         android:id="@+id/listViewDepartures"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:divider="@color/divider"
+        android:dividerHeight="@dimen/listDividerHeight" />
 
     <TextView
         android:id="@+id/labelEmptyDepartureListView"

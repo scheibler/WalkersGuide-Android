@@ -49,6 +49,34 @@ public class CheckBoxGroupView extends GridLayout {
         return checkedCheckBoxList;
     }
 
+    public boolean allChecked() {
+        for (CheckBox c : checkBoxList){
+            if(! c.isChecked()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void checkAll() {
+        for (CheckBox c : checkBoxList){
+            if(! c.isChecked()) {
+                c.setChecked(true);
+            }
+        }
+        invalidate();
+        requestLayout();
+    }
+
+    public boolean nothingChecked() {
+        for (CheckBox c : checkBoxList){
+            if(c.isChecked()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void uncheckAll() {
         for (CheckBox c : checkBoxList){
             if(c.isChecked()) {

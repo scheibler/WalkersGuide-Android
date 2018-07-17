@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.main;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.listener.FragmentCommunicator;

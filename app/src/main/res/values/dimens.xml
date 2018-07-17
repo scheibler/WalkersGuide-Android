@@ -3,4 +3,19 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activityMargin">2dp</dimen>
 
+    <!-- min width / height -->
+    <dimen name="minWidth">48dp</dimen>
+    <dimen name="minHeight">48dp</dimen>
+
+    <!-- divider -->
+    <!-- default divider -->
+    <dimen name="defaultDividerHeight">2dp</dimen>
+    <dimen name="defaultDividerPadding">2dp</dimen>
+    <!-- special divider -->
+    <dimen name="listDividerHeight">2dp</dimen>
+    <dimen name="toolbarDividerHeight">3dp</dimen>
+
+    <!-- screen sizes smaller than 380 -->
+    <dimen name="globalTextSize">20sp</dimen>
+
 </resources>
