@@ -127,6 +127,11 @@ public class RouteManager {
                     // start and destination
                     JSONArray jsonSourcePoints = new JSONArray();
                     jsonSourcePoints.put(startPoint.toJson());
+                    for (PointWrapper viaPoint : routeSettings.getViaPointList()) {
+                        if (! viaPoint.equals(PositionManager.getDummyLocation(context))) {
+                            jsonSourcePoints.put(viaPoint.toJson());
+                        }
+                    }
                     jsonSourcePoints.put(destinationPoint.toJson());
                     // excluded ways
                     JSONArray jsonExcludedWays = new JSONArray();
@@ -215,7 +220,9 @@ public class RouteManager {
                 AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
                 try {
                     return accessDatabaseInstance.addRoute(
-                            startPoint, destinationPoint, description, routeObjectList);
+                            startPoint, destinationPoint,
+                            SettingsManager.getInstance(context).getRouteSettings().getViaPointList(),
+                            description, routeObjectList);
                 } catch (JSONException e) {}
             }
             return -1;

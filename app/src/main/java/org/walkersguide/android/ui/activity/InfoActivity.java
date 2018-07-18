@@ -70,6 +70,8 @@ public class InfoActivity extends AbstractActivity {
         super.onPrepareOptionsMenu(menu);
         menu.findItem(R.id.menuItemDirection).setVisible(false);
         menu.findItem(R.id.menuItemLocation).setVisible(false);
+        menu.findItem(R.id.menuItemPlanRoute).setVisible(false);
+        menu.findItem(R.id.menuItemRequestAddress).setVisible(false);
         menu.findItem(R.id.menuItemSaveCurrentPosition).setVisible(false);
         menu.findItem(R.id.menuItemSettings).setVisible(false);
         menu.findItem(R.id.menuItemInfo).setVisible(false);

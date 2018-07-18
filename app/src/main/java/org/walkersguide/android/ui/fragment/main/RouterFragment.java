@@ -183,11 +183,13 @@ public class RouterFragment extends Fragment
         RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
         PointWrapper startPoint = accessDatabaseInstance.getStartPointOfRoute(routeSettings.getSelectedRouteId());
         PointWrapper destinationPoint = accessDatabaseInstance.getDestinationPointOfRoute(routeSettings.getSelectedRouteId());
+        ArrayList<PointWrapper> viaPointList = accessDatabaseInstance.getViaPointListOfRoute(routeSettings.getSelectedRouteId());
         switch (item.getItemId()) {
             case R.id.menuItemRecalculate:
                 if (startPoint != null && destinationPoint != null) {
                     routeSettings.setStartPoint(startPoint);
                     routeSettings.setDestinationPoint(destinationPoint);
+                    routeSettings.setViaPointList(viaPointList);
                     PlanRouteDialog.newInstance().show(
                             getActivity().getSupportFragmentManager(), "PlanRouteDialog");
                 } else {
@@ -200,6 +202,7 @@ public class RouterFragment extends Fragment
                     routeSettings.setStartPoint(
                             PositionManager.getInstance(getActivity()).getCurrentLocation());
                     routeSettings.setDestinationPoint(destinationPoint);
+                    routeSettings.setViaPointList(viaPointList);
                     PlanRouteDialog.newInstance().show(
                             getActivity().getSupportFragmentManager(), "PlanRouteDialog");
                 } else {
@@ -521,7 +524,16 @@ public class RouterFragment extends Fragment
                         index += 1;
                     }
                     if (selectedRouteId > -1) {
-                        settingsManagerInstance.getRouteSettings().setSelectedRouteId(selectedRouteId);
+                        // update route settings
+                        RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
+                        routeSettings.setSelectedRouteId(selectedRouteId);
+                        routeSettings.setStartPoint(
+                                accessDatabaseInstance.getStartPointOfRoute(selectedRouteId));
+                        routeSettings.setDestinationPoint(
+                                accessDatabaseInstance.getDestinationPointOfRoute(selectedRouteId));
+                        routeSettings.setViaPointList(
+                                accessDatabaseInstance.getViaPointListOfRoute(selectedRouteId));
+                        // reload ui
                         Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
                         LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                     }

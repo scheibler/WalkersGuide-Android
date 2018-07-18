@@ -12,13 +12,20 @@
             android:id="@+id/buttonStartPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/smallPadding"
             android:text="@string/buttonStartPoint" />
+
+        <LinearLayout
+            android:id="@+id/layoutViaPointList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
 
         <Button
             android:id="@+id/buttonDestinationPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
+            android:paddingTop="@dimen/smallPadding"
             android:text="@string/buttonDestinationPoint" />
 
         <LinearLayout
@@ -31,25 +38,45 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:text="@string/buttonNewRoute" />
+                android:paddingTop="@dimen/smallPadding"
+                android:paddingBottom="@dimen/smallPadding"
+                android:text="@string/buttonNewRoute"
+                android:contentDescription="@string/buttonNewRouteCD" />
+
+            <Button
+                android:id="@+id/buttonAddViaPoint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:paddingTop="@dimen/smallPadding"
+                android:paddingBottom="@dimen/smallPadding"
+                android:text="@string/buttonAddViaPoint"
+                android:contentDescription="@string/buttonAddViaPointCD" />
 
             <Button
                 android:id="@+id/buttonSwapRoute"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:text="@string/buttonSwapRoute" />
+                android:paddingTop="@dimen/smallPadding"
+                android:paddingBottom="@dimen/smallPadding"
+                android:text="@string/buttonSwapRoute"
+                android:contentDescription="@string/buttonSwapRouteCD" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:focusable="true"
+            android:textStyle="bold"
+            android:textColor="@color/heading"
+            android:text="@string/labelRouteOptions" />
 
         <Button
             android:id="@+id/buttonExcludedWays"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
             android:text="@string/buttonExcludedWays" />
 
         <Button

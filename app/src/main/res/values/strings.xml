@@ -61,9 +61,16 @@
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
     <string name="buttonStartPoint">Start:</string>
+    <string name="buttonViaPoint">Via</string>
     <string name="buttonDestinationPoint">Destination:</string>
-    <string name="buttonNewRoute">New</string>
+    <string name="buttonSimulationPoint">Simulation:</string>
+    <string name="buttonNewRoute">Clear</string>
+    <string name="buttonNewRouteCD">Clear route</string>
+    <string name="buttonAddViaPoint">Via</string>
+    <string name="buttonAddViaPointCD">Add via point</string>
     <string name="buttonSwapRoute">Swap</string>
+    <string name="buttonSwapRouteCD">Swap start and destination</string>
+    <string name="labelRouteOptions">Router options:</string>
     <string name="buttonExcludedWays">Excluded ways</string>
     <string name="buttonIndirectionFactor">Indirection factor</string>
     <string name="buttonRoutingWayClasses">Way classes</string>
@@ -72,6 +79,7 @@
     <!-- select point dialog -->
     <string name="selectPointDialogNameStart">Select start point from:</string>
     <string name="selectPointDialogNameDestination">Select destination point from:</string>
+    <string name="selectPointDialogNameVia">Select via point %1$d from:</string>
     <string name="selectPointDialogNameSimulation">Select point to simulate from:</string>
     <string name="pointSourceParentGeneral">General:</string>
     <string name="pointSourceChildCurrentLocation">Current location</string>
@@ -215,6 +223,7 @@
     <string name="buttonPointFavorite">Favorite</string>
     <string name="buttonPointSimulateLocation">Simulate</string>
     <string name="menuItemAsRouteStartPoint">Use as start</string>
+    <string name="menuItemAsRouteViaPoint">Use as via %1$d</string>
     <string name="menuItemAsRouteDestinationPoint">Use as destination</string>
 
     <!-- select favorites profiles for point dialog -->
@@ -459,6 +468,7 @@
     <string name="dialogExclude">Exclude</string>
     <string name="dialogMore">More</string>
     <string name="dialogNext">Next</string>
+    <string name="dialogRemove">Remove</string>
     <string name="dialogUpdate">Update</string>
     <string name="messagePleaseWait">Please wait...</string>
 

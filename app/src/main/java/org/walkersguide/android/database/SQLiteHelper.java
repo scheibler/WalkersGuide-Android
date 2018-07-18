@@ -3,11 +3,13 @@ package org.walkersguide.android.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import org.walkersguide.android.BuildConfig;
+
 
 public class SQLiteHelper extends SQLiteOpenHelper {
 
-    public static final String INTERNAL_DATABASE_NAME = "walkersguide.db";
-    public static final int DATABASE_VERSION = 2;
+    public static final String INTERNAL_DATABASE_NAME = BuildConfig.DATABASE_NAME;;
+    public static final int DATABASE_VERSION = BuildConfig.DATABASE_VERSION;
 
     // map table
     public static final String TABLE_MAP = "map";
@@ -158,13 +160,14 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String ROUTE_ID = "_id";
     public static final String ROUTE_START = "start";
     public static final String ROUTE_DESTINATION = "destination";
+    public static final String ROUTE_VIA_POINT_LIST = "via_point_list";
     public static final String ROUTE_DESCRIPTION = "description";
     public static final String ROUTE_CREATED = "created";
     public static final String ROUTE_CURRENT_OBJECT_INDEX = "current_object_index";
     public static final String ROUTE_CURRENT_OBJECT_DATA = "current_object_data";
     public static final String ROUTE_OBJECT_LIST = "object_list";
     public static final String[] TABLE_ROUTE_ALL_COLUMNS = {
-        ROUTE_ID, ROUTE_START, ROUTE_DESTINATION, ROUTE_DESCRIPTION, ROUTE_CREATED,
+        ROUTE_ID, ROUTE_START, ROUTE_DESTINATION, ROUTE_VIA_POINT_LIST, ROUTE_DESCRIPTION, ROUTE_CREATED,
         ROUTE_CURRENT_OBJECT_INDEX, ROUTE_CURRENT_OBJECT_DATA, ROUTE_OBJECT_LIST
     };
     public static final String CREATE_ROUTE_TABLE = 
@@ -172,6 +175,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         + ROUTE_ID + " integer primary key autoincrement, "
         + ROUTE_START + " text not null, "
         + ROUTE_DESTINATION + " text not null, "
+        + ROUTE_VIA_POINT_LIST + " text not null, "
         + ROUTE_DESCRIPTION + " text not null, "
         + ROUTE_CREATED + " integer, "
         + ROUTE_CURRENT_OBJECT_INDEX + " integer, "
@@ -217,6 +221,19 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
         System.out.println("xxx onUpdate: " + oldVersion + " / " + newVersion);
+        if (oldVersion == 2) {
+            // create excluded ways table
+            database.execSQL(CREATE_EXCLUDED_WAYS_TABLE);
+            // recreate map table
+            database.execSQL(DROP_MAP_TABLE);
+            database.execSQL(CREATE_MAP_TABLE);
+            // add via point column to route table
+            database.execSQL(
+                    String.format(
+                        "ALTER TABLE %1$s ADD COLUMN %2$s TEXT NOT NULL DEFAULT '[]';",
+                        TABLE_ROUTE, ROUTE_VIA_POINT_LIST)
+                    );
+        }
     }
 
 }

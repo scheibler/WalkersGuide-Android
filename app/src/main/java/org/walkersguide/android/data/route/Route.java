@@ -15,15 +15,23 @@ public class Route {
     private Context context;
     private int id, currentIndex;
     private PointWrapper startPoint, destinationPoint;
+    private ArrayList<PointWrapper> viaPointList;
     private String description;
     private ArrayList<RouteObject> routeObjectList;
 
-    public Route(Context context, int id, JSONObject jsonStartPoint, JSONObject jsonDestinationPoint,
+    public Route(Context context, int id,
+            JSONObject jsonStartPoint, JSONObject jsonDestinationPoint, JSONArray jsonViaPointList,
             String description, int currentIndex, JSONArray jsonRouteObjectList) throws JSONException {
         this.context = context;
         this.id = id;
         this.startPoint = new PointWrapper(context, jsonStartPoint);
         this.destinationPoint = new PointWrapper(context, jsonDestinationPoint);
+        this.viaPointList = new ArrayList<PointWrapper>();
+        for (int i=0; i<jsonViaPointList.length(); i++) {
+            this.viaPointList.add(
+                    new PointWrapper(
+                        context, jsonViaPointList.getJSONObject(i)));
+        }
         this.description = description;
         this.currentIndex = currentIndex;
         this.routeObjectList = new ArrayList<RouteObject>();
@@ -44,6 +52,10 @@ public class Route {
 
     public PointWrapper getDestinationPoint() {
         return this.destinationPoint;
+    }
+
+    public ArrayList<PointWrapper> getViaPointList() {
+        return this.viaPointList;
     }
 
     public String getDescription() {
@@ -76,6 +88,9 @@ public class Route {
         int hash = 17;
 		hash = hash * 31 + this.startPoint.hashCode();
 		hash = hash * 31 + this.destinationPoint.hashCode();
+        for (PointWrapper viaPoint : this.viaPointList) {
+    		hash = hash * 31 + viaPoint.hashCode();
+        }
 		hash = hash * 31 + this.description.hashCode();
         return hash;
     }
@@ -91,6 +106,9 @@ public class Route {
 		Route other = (Route) obj;
         return (this.startPoint.equals(other.getStartPoint())
                 && this.destinationPoint.equals(other.getDestinationPoint())
+                && this.viaPointList.size() == other.getViaPointList().size()
+                && other.getViaPointList().containsAll(this.viaPointList)
+                && this.viaPointList.containsAll(other.getViaPointList())
                 && this.description.equals(other.getDescription()));
     }
 

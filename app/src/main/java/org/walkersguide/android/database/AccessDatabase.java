@@ -47,20 +47,6 @@ public class AccessDatabase {
         this.context = context;
         SQLiteHelper dbHelper = new SQLiteHelper(context);
         this.database = dbHelper.getWritableDatabase();
-        // route table
-        //database.execSQL(SQLiteHelper.DROP_ROUTE_TABLE);
-        //database.execSQL(SQLiteHelper.CREATE_ROUTE_TABLE);
-        //database.execSQL(SQLiteHelper.DROP_ADDRESS_TABLE);
-        //database.execSQL(SQLiteHelper.CREATE_ADDRESS_TABLE);
-
-        // create tables if not already there
-        // excluded ways
-        database.execSQL(SQLiteHelper.CREATE_EXCLUDED_WAYS_TABLE);
-        // routing way classes
-        if (SQLiteHelper.TABLE_MAP_ALL_COLUMNS.length == 2) {
-            database.execSQL(SQLiteHelper.DROP_MAP_TABLE);
-            database.execSQL(SQLiteHelper.CREATE_MAP_TABLE);
-        }
 
         // insert some default favorites profiles if table is empty
         //database.delete(SQLiteHelper.TABLE_POINT, null, null);
@@ -886,6 +872,9 @@ public class AccessDatabase {
                     new JSONObject(
                         cursor.getString(
                             cursor.getColumnIndex(SQLiteHelper.ROUTE_DESTINATION))),
+                    new JSONArray(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_VIA_POINT_LIST))),
                     cursor.getString(
                         cursor.getColumnIndex(SQLiteHelper.ROUTE_DESCRIPTION)),
                     cursor.getInt(
@@ -991,6 +980,36 @@ public class AccessDatabase {
         return destinationPoint;
     }
 
+    public ArrayList<PointWrapper> getViaPointListOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        ArrayList<PointWrapper> viaPointList = new ArrayList<PointWrapper>();
+        if (cursor.moveToFirst()) {
+            JSONArray jsonViaPointList = null;
+            try {
+                jsonViaPointList = new JSONArray(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_VIA_POINT_LIST)));
+            } catch (JSONException e) {
+                jsonViaPointList = null;
+            } finally {
+                if (jsonViaPointList != null) {
+                    for (int i=0; i<jsonViaPointList.length(); i++) {
+                        try {
+                            viaPointList.add(
+                                    new PointWrapper(
+                                        this.context, jsonViaPointList.getJSONObject(i)));
+                        } catch (JSONException e) {}
+                    }
+                }
+            }
+        }
+        cursor.close();
+        return viaPointList;
+    }
+
     public RouteObject getCurrentObjectDataOfRoute(int id) {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
@@ -1013,11 +1032,17 @@ public class AccessDatabase {
     }
 
     public int addRoute(PointWrapper startPoint, PointWrapper destinationPoint,
-            String description, ArrayList<RouteObject> routeObjectList) throws JSONException {
+            ArrayList<PointWrapper> viaPointList, String description,
+            ArrayList<RouteObject> routeObjectList) throws JSONException {
         // prepare table row to insert
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.ROUTE_START, startPoint.toJson().toString());
         values.put(SQLiteHelper.ROUTE_DESTINATION, destinationPoint.toJson().toString());
+        JSONArray jsonViaPointList = new JSONArray();
+        for (PointWrapper viaPoint : viaPointList) {
+            jsonViaPointList.put(viaPoint.toJson());
+        }
+        values.put(SQLiteHelper.ROUTE_VIA_POINT_LIST, jsonViaPointList.toString());
         values.put(SQLiteHelper.ROUTE_DESCRIPTION, description);
         values.put(SQLiteHelper.ROUTE_CREATED, System.currentTimeMillis());
         values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX, 0);

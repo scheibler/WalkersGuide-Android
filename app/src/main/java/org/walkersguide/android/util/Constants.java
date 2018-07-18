@@ -25,6 +25,7 @@ public class Constants {
         public static final int START = 0;
         public static final int DESTINATION = 1;
         public static final int SIMULATION = 2;
+        public static final int VIA = 10;
     }
 
     public interface POINT {

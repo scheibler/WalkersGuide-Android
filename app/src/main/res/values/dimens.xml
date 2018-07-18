@@ -15,6 +15,9 @@
     <dimen name="listDividerHeight">2dp</dimen>
     <dimen name="toolbarDividerHeight">3dp</dimen>
 
+    <!-- paddings -->
+    <dimen name="smallPadding">5dp</dimen>
+
     <!-- screen sizes smaller than 380 -->
     <dimen name="globalTextSize">20sp</dimen>
 

@@ -607,6 +607,7 @@ public class SettingsManager {
 
         private int selectedRouteId;
         private PointWrapper start, destination;
+        private ArrayList<PointWrapper> viaPointList;
         private double indirectionFactor;
         private ArrayList<String> wayClassList;
 
@@ -636,6 +637,24 @@ public class SettingsManager {
                 this.destination = new PointWrapper(
                         context, jsonObject.getJSONObject("destination"));
             } catch (JSONException e) {}
+            // via points
+            viaPointList = new ArrayList<PointWrapper>();
+            JSONArray jsonViaPointList = null;
+            try {
+                jsonViaPointList = jsonObject.getJSONArray("viaPointList");
+            } catch (JSONException e) {
+                jsonViaPointList = null;
+            } finally {
+                if (jsonViaPointList != null) {
+                    for (int i=0; i<jsonViaPointList.length(); i++) {
+                        try {
+                            this.viaPointList.add(
+                                    new PointWrapper(
+                                        context, jsonViaPointList.getJSONObject(i)));
+                        } catch (JSONException e) {}
+                    }
+                }
+            }
             // indirection factor
             this.indirectionFactor = 2.0;
             try {
@@ -702,6 +721,45 @@ public class SettingsManager {
             }
         }
 
+        public ArrayList<PointWrapper> getViaPointList() {
+            return this.viaPointList;
+        }
+
+        public void setViaPointList(ArrayList<PointWrapper> newViaPointList) {
+            if (newViaPointList != null) {
+                this.viaPointList = newViaPointList;
+                storeRouteSettings();
+            }
+        }
+
+        public void appendEmptyViaPoint() {
+            this.viaPointList.add(PositionManager.getDummyLocation(context));
+            storeRouteSettings();
+        }
+
+        public void replaceViaPointAtIndex(int index, PointWrapper viaPointToReplace) {
+            try {
+                this.viaPointList.set(index, viaPointToReplace);
+            } catch (IndexOutOfBoundsException e) {
+            } finally {
+                storeRouteSettings();
+            }
+        }
+
+        public void removeViaPointAtIndex(int index) {
+            try {
+                this.viaPointList.remove(index);
+            } catch (IndexOutOfBoundsException e) {
+            } finally {
+                storeRouteSettings();
+            }
+        }
+
+        public void clearViaPointList() {
+            this.viaPointList = new ArrayList<PointWrapper>();
+            storeRouteSettings();
+        }
+
         public double getIndirectionFactor() {
             return this.indirectionFactor;
         }
@@ -729,15 +787,28 @@ public class SettingsManager {
             try {
                 jsonRouteSettings.put("selectedRouteId", this.selectedRouteId);
             } catch (JSONException e) {}
+            // start and destination
             try {
                 jsonRouteSettings.put("start", this.start.toJson());
             } catch (JSONException e) {}
             try {
                 jsonRouteSettings.put("destination", this.destination.toJson());
             } catch (JSONException e) {}
+            // via points
+            JSONArray jsonViaPointList = new JSONArray();
+            for (PointWrapper viaPoint : this.viaPointList) {
+                try {
+                    jsonViaPointList.put(viaPoint.toJson());
+                } catch (JSONException e) {}
+            }
+            try {
+                jsonRouteSettings.put("viaPointList", jsonViaPointList);
+            } catch (JSONException e) {}
+            // indirection factor
             try {
                 jsonRouteSettings.put("indirectionFactor", this.indirectionFactor);
             } catch (JSONException e) {}
+            // allowed way classes
             JSONArray jsonWayClassList = new JSONArray();
             for (String wayClass : this.wayClassList) {
                 jsonWayClassList.put(wayClass);

@@ -48,6 +48,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import org.json.JSONException;
+import android.content.Intent;
+import org.walkersguide.android.ui.activity.PointDetailsActivity;
 
 public class SelectPointDialog extends DialogFragment implements ChildDialogCloseListener {
 
@@ -68,6 +71,7 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
     private PositionManager positionManagerInstance;
     private SettingsManager settingsManagerInstance;
     private int pointPutInto;
+    private PointWrapper selectedPoint;
 	private ExpandableListView listViewPointSource;
 
     public static SelectPointDialog newInstance(int pointPutInto) {
@@ -83,13 +87,33 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
         if (getTargetFragment() != null
                 && getTargetFragment() instanceof ChildDialogCloseListener) {
             childDialogCloseListener = (ChildDialogCloseListener) getTargetFragment();
-            }
+        }
         positionManagerInstance = PositionManager.getInstance(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         pointPutInto = getArguments().getInt("pointPutInto");
+        selectedPoint = PositionManager.getDummyLocation(getActivity());
+        switch (pointPutInto) {
+            case Constants.POINT_PUT_INTO.START:
+                selectedPoint = settingsManagerInstance.getRouteSettings().getStartPoint();
+                break;
+            case Constants.POINT_PUT_INTO.DESTINATION:
+                selectedPoint = settingsManagerInstance.getRouteSettings().getDestinationPoint();
+                break;
+            case Constants.POINT_PUT_INTO.SIMULATION:
+                selectedPoint = positionManagerInstance.getSimulatedLocation();
+                break;
+            default:
+                // via point
+                ArrayList<PointWrapper> viaPointList = settingsManagerInstance.getRouteSettings().getViaPointList();
+                int viaPointIndex = pointPutInto - Constants.POINT_PUT_INTO.VIA;
+                if (viaPointIndex >= 0 && viaPointIndex < viaPointList.size()) {
+                    selectedPoint = viaPointList.get(viaPointIndex);
+                }
+                break;
+        }
 
         // custom view
         final ViewGroup nullParent = null;
@@ -110,10 +134,7 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
                     } else {
                         PointUtility.putNewPoint(
                                 getActivity(), currentLocation, pointPutInto);
-                        if (childDialogCloseListener != null) {
-                            childDialogCloseListener.childDialogClosed();
-                        }
-                        dismiss();
+                        close();
                     }
                 } else if (groupPosition == PARENT_GENERAL.ID
                         && childPosition == PARENT_GENERAL.CHILD_ADDRESS) {
@@ -151,16 +172,48 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
         String dialogTitle;
         switch (pointPutInto) {
             case Constants.POINT_PUT_INTO.START:
-                dialogTitle = getResources().getString(R.string.selectPointDialogNameStart);
+                if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                    dialogTitle = getResources().getString(R.string.selectPointDialogNameStart);
+                } else {
+                    dialogTitle = String.format(
+                            "%1$s: %2$s",
+                            getResources().getString(R.string.buttonStartPoint),
+                            selectedPoint.getPoint().getName());
+                }
                 break;
             case Constants.POINT_PUT_INTO.DESTINATION:
-                dialogTitle = getResources().getString(R.string.selectPointDialogNameDestination);
+                if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                    dialogTitle = getResources().getString(R.string.selectPointDialogNameDestination);
+                } else {
+                    dialogTitle = String.format(
+                            "%1$s: %2$s",
+                            getResources().getString(R.string.buttonDestinationPoint),
+                            selectedPoint.getPoint().getName());
+                }
                 break;
             case Constants.POINT_PUT_INTO.SIMULATION:
-                dialogTitle = getResources().getString(R.string.selectPointDialogNameSimulation);
+                if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                    dialogTitle = getResources().getString(R.string.selectPointDialogNameSimulation);
+                } else {
+                    dialogTitle = String.format(
+                            "%1$s: %2$s",
+                            getResources().getString(R.string.buttonSimulationPoint),
+                            selectedPoint.getPoint().getName());
+                }
                 break;
             default:
-                dialogTitle = "";
+                // via points
+                if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                    dialogTitle = String.format(
+                            getResources().getString(R.string.selectPointDialogNameVia),
+                            (pointPutInto - Constants.POINT_PUT_INTO.VIA) + 1);
+                } else {
+                    dialogTitle = String.format(
+                            "%1$s %2$d: %3$s",
+                            getResources().getString(R.string.buttonViaPoint),
+                            (pointPutInto - Constants.POINT_PUT_INTO.VIA) + 1,
+                            selectedPoint.getPoint().getName());
+                }
                 break;
         }
 
@@ -168,10 +221,32 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
         return new AlertDialog.Builder(getActivity())
             .setTitle(dialogTitle)
             .setView(view)
+            .setPositiveButton(
+                    getResources().getString(R.string.dialogDetails),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+            .setNeutralButton(
+                    getResources().getString(R.string.dialogRemove),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
             .setNegativeButton(
                     getResources().getString(R.string.dialogCancel),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+            .setOnKeyListener(
+                    new Dialog.OnKeyListener() {
+                        @Override public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                close();
+                                return true;
+                            }
+                            return false;
                         }
                     })
             .create();
@@ -181,11 +256,45 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
         if(dialog != null) {
+            // positive button
+            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            if (! selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                buttonPositive.setVisibility(View.VISIBLE);
+            } else {
+                buttonPositive.setVisibility(View.GONE);
+            }
+            buttonPositive.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
+                    try {
+                        detailsIntent.putExtra(
+                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, selectedPoint.toJson().toString());
+                    } catch (JSONException e) {
+                        detailsIntent.putExtra(
+                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
+                    }
+                    startActivity(detailsIntent);
+                }
+            });
+            // neutral button
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (pointPutInto >= Constants.POINT_PUT_INTO.VIA) {
+                buttonNeutral.setVisibility(View.VISIBLE);
+            } else {
+                buttonNeutral.setVisibility(View.GONE);
+            }
+            buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    settingsManagerInstance.getRouteSettings().removeViaPointAtIndex(
+                            pointPutInto-Constants.POINT_PUT_INTO.VIA);
+                    close();
+                }
+            });
             // negative button
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    dialog.dismiss();
+                    close();
                 }
             });
         }
@@ -197,6 +306,10 @@ public class SelectPointDialog extends DialogFragment implements ChildDialogClos
     }
 
     @Override public void childDialogClosed() {
+        close();
+    }
+
+    private void close() {
         if (childDialogCloseListener != null) {
             childDialogCloseListener.childDialogClosed();
         }

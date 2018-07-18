@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.dialog;
 
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
@@ -35,6 +37,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import java.util.ArrayList;
 
 public class PlanRouteDialog extends DialogFragment
     implements AddressListener, ChildDialogCloseListener, RouteListener {
@@ -52,6 +55,7 @@ public class PlanRouteDialog extends DialogFragment
 
     // ui components
     private Button buttonStartPoint, buttonDestinationPoint, buttonIndirectionFactor;
+    private LinearLayout layoutViaPointList;
 
     public static PlanRouteDialog newInstance() {
         PlanRouteDialog planRouteDialogInstance = new PlanRouteDialog();
@@ -90,6 +94,8 @@ public class PlanRouteDialog extends DialogFragment
             }
         });
 
+		layoutViaPointList = (LinearLayout) view.findViewById(R.id.layoutViaPointList);
+
         buttonDestinationPoint = (Button) view.findViewById(R.id.buttonDestinationPoint);
         buttonDestinationPoint.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -104,8 +110,21 @@ public class PlanRouteDialog extends DialogFragment
             public void onClick(View view) {
                 RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
                 routeSettings.setStartPoint(PositionManager.getDummyLocation(getActivity()));
+                routeSettings.clearViaPointList();
                 routeSettings.setDestinationPoint(PositionManager.getDummyLocation(getActivity()));
                 positionManagerInstance.requestCurrentLocation();
+            }
+        });
+
+        Button buttonAddViaPoint = (Button) view.findViewById(R.id.buttonAddViaPoint);
+        buttonAddViaPoint.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
+                routeSettings.appendEmptyViaPoint();
+                SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(
+                        Constants.POINT_PUT_INTO.VIA + routeSettings.getViaPointList().size() - 1);
+                selectPointDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
             }
         });
 
@@ -273,6 +292,7 @@ public class PlanRouteDialog extends DialogFragment
         @Override public void onReceive(Context context, Intent intent) {
             RouteSettings routeSettings = SettingsManager.getInstance(context).getRouteSettings();
             if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
+                // start point button
                 PointWrapper startPoint = routeSettings.getStartPoint();
                 if (startPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
                     buttonStartPoint.setText(
@@ -302,6 +322,43 @@ public class PlanRouteDialog extends DialogFragment
                         addressManagerRequest.execute();
                     }
                 }
+
+                // via points
+                ArrayList<PointWrapper> viaPointList = routeSettings.getViaPointList();
+                if (layoutViaPointList.getChildCount() > viaPointList.size()) {
+                    layoutViaPointList.removeViews(
+                            viaPointList.size(), layoutViaPointList.getChildCount()-viaPointList.size());
+                }
+                int viaPointId = Constants.POINT_PUT_INTO.VIA;
+                for (PointWrapper viaPoint : viaPointList) {
+                    Button buttonViaPoint = (Button) layoutViaPointList.findViewById(viaPointId);
+                    if (buttonViaPoint == null) {
+                        buttonViaPoint = createViaPointButton(viaPointId);
+                    }
+                    if (viaPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                        buttonViaPoint.setText(
+                                String.format(
+                                    "%1$s %2$d:\n%3$s",
+                                    context.getResources().getString(R.string.buttonViaPoint),
+                                    (viaPointId - Constants.POINT_PUT_INTO.VIA) + 1,
+                                    context.getResources().getString(R.string.labelNoSimulatedPointSelected))
+                                );
+                    } else {
+                        buttonViaPoint.setText(
+                                String.format(
+                                    "%1$s %2$d:\n%3$s",
+                                    context.getResources().getString(R.string.buttonViaPoint),
+                                    (viaPointId - Constants.POINT_PUT_INTO.VIA) + 1,
+                                    viaPoint.toString())
+                                );
+                    }
+                    if (layoutViaPointList.indexOfChild(buttonViaPoint) == -1) {
+                        layoutViaPointList.addView(buttonViaPoint);
+                    }
+                    viaPointId += 1;
+                }
+
+                // destination point button
                 PointWrapper destinationPoint = routeSettings.getDestinationPoint();
                 if (destinationPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
                     buttonDestinationPoint.setText(
@@ -337,6 +394,28 @@ public class PlanRouteDialog extends DialogFragment
             }
         }
     };
+
+    private Button createViaPointButton(int id) {
+        Button button = new Button(getActivity());
+        button.setId(id);
+        // layout params
+        LayoutParams lp = new LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        button.setLayoutParams(lp);
+        // top and bottom padding
+        int padding = getResources().getDimensionPixelOffset(R.dimen.smallPadding);
+        button.setPadding(0, padding, 0, padding);
+        // click listener
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(view.getId());
+                selectPointDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+            }
+        });
+        return button;
+    }
+
 
     private class ProgressUpdater implements Runnable {
         public void run() {

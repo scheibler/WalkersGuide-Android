@@ -61,6 +61,9 @@ import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.Switch;
 import android.widget.TextView;
+import org.walkersguide.android.helper.PointUtility;
+import android.view.Menu;
+import java.util.ArrayList;
 
 public class PointDetailsActivity extends AbstractActivity implements OnMenuItemClickListener {
 
@@ -173,7 +176,29 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 public void onClick(View view) {
                     PopupMenu popupMore = new PopupMenu(PointDetailsActivity.this, view);
                     popupMore.setOnMenuItemClickListener(PointDetailsActivity.this);
-                    popupMore.inflate(R.menu.menu_point_details_button_more);
+                    // start point
+                    popupMore.getMenu().add(
+                            Menu.NONE,
+                            Constants.POINT_PUT_INTO.START,
+                            1,
+                            getResources().getString(R.string.menuItemAsRouteStartPoint));
+                    // via points
+                    ArrayList<PointWrapper> viaPointList = SettingsManager.getInstance(PointDetailsActivity.this).getRouteSettings().getViaPointList();
+                    for (int viaPointIndex=0; viaPointIndex<viaPointList.size(); viaPointIndex++) {;
+                        popupMore.getMenu().add(
+                                Menu.NONE,
+                                viaPointIndex+Constants.POINT_PUT_INTO.VIA,
+                                viaPointIndex+2,
+                                String.format(
+                                    getResources().getString(R.string.menuItemAsRouteViaPoint),
+                                    viaPointIndex+1));
+                    }
+                    // destination point
+                    popupMore.getMenu().add(
+                            Menu.NONE,
+                            Constants.POINT_PUT_INTO.DESTINATION,
+                            viaPointList.size()+2,
+                            getResources().getString(R.string.menuItemAsRouteDestinationPoint));
                     popupMore.show();
                 }
             });
@@ -229,21 +254,11 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
     }
 
     @Override public boolean onMenuItemClick(MenuItem item) {
-        RouteSettings routeSettings = SettingsManager.getInstance(this).getRouteSettings();
-        switch (item.getItemId()) {
-            case R.id.menuItemAsRouteStartPoint:
-                routeSettings.setStartPoint(pointWrapper);
-                PlanRouteDialog.newInstance().show(
-                        getSupportFragmentManager(), "PlanRouteDialog");
-                return true;
-            case R.id.menuItemAsRouteDestinationPoint:
-                routeSettings.setDestinationPoint(pointWrapper);
-                PlanRouteDialog.newInstance().show(
-                        getSupportFragmentManager(), "PlanRouteDialog");
-                return true;
-            default:
-                return false;
-        }
+        PointUtility.putNewPoint(
+                PointDetailsActivity.this, pointWrapper, item.getItemId());
+        PlanRouteDialog.newInstance().show(
+                getSupportFragmentManager(), "PlanRouteDialog");
+        return true;
     }
 
 	@Override public void onSaveInstanceState(Bundle savedInstanceState) {
