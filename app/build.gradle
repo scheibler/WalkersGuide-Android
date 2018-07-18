@@ -27,7 +27,7 @@ android {
         applicationId "org.walkersguide.android"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 3
+        versionCode 4
         versionName '0.2.0'
         // internal
         buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'

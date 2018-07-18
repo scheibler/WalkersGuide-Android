@@ -1,0 +1,14 @@
+Change Log
+==========
+
+
+v0.2.0: 2018-07-18
+------------------
+
+- Router: Support for allowed way classes, excluded way segments, indirection factor and via points
+- Point details: Attributes added and bugs fixed
+- Segment details: Reimplementation
+- Maps: Store version and creation date parameters in database
+- Migrated to Android Studio/Gradle project structure
+- Fixed: Sort favorites per creation date
+
