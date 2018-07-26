@@ -21,6 +21,22 @@ public class Constants {
         public static final int NO_MAP_SELECTED = 1006;
     }
 
+    public interface POINT_SELECT_FROM {
+        public static final int CURRENT_LOCATION = 0;
+        public static final int ENTER_ADDRESS = 1;
+        public static final int FROM_FAVORITES = 2;
+        public static final int FROM_POI = 3;
+    }
+
+    public final static int[] PointSelectFromValueArray = {
+        POINT_SELECT_FROM.CURRENT_LOCATION, POINT_SELECT_FROM.ENTER_ADDRESS,
+        POINT_SELECT_FROM.FROM_FAVORITES, POINT_SELECT_FROM.FROM_POI
+    };
+
+    public final static int[] PointSelectFromValueArrayWithoutCurrentLocation = {
+        POINT_SELECT_FROM.ENTER_ADDRESS, POINT_SELECT_FROM.FROM_FAVORITES, POINT_SELECT_FROM.FROM_POI
+    };
+
     public interface POINT_PUT_INTO {
         public static final int START = 0;
         public static final int DESTINATION = 1;
@@ -59,6 +75,10 @@ public class Constants {
         SORT_CRITERIA.DISTANCE_DESC, SORT_CRITERIA.ORDER_ASC, SORT_CRITERIA.ORDER_DESC
     };
 
+    public final static int[] SearchFavoritesProfileSortCriteriaValueArray = {
+        SORT_CRITERIA.NAME_ASC, SORT_CRITERIA.NAME_DESC, SORT_CRITERIA.DISTANCE_ASC, SORT_CRITERIA.DISTANCE_DESC
+    };
+
 
     /**
      * fragments, used in activities
@@ -67,15 +87,15 @@ public class Constants {
      */
 
     public interface MAIN_FRAGMENT {
-        public static final int SEARCH = 0;
-        public static final int FAVORITE = 1;
-        public static final int ROUTER = 2;
-        public static final int POI = 3;
+        public static final int FAVORITE = 0;
+        public static final int ROUTER = 1;
+        public static final int POI = 2;
     }
 
     public final static int[] MainActivityFragmentValueArray = {
-        MAIN_FRAGMENT.SEARCH, MAIN_FRAGMENT.FAVORITE, MAIN_FRAGMENT.ROUTER, MAIN_FRAGMENT.POI
+        MAIN_FRAGMENT.FAVORITE, MAIN_FRAGMENT.ROUTER, MAIN_FRAGMENT.POI
     };
+
 
     /**
      * Fragments: PointDetailsActivity

@@ -11,8 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.poi.POIProfile;
-import org.walkersguide.android.data.poi.PointProfileObject;
+import org.walkersguide.android.data.profile.POIProfile;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.DownloadUtility;
 import org.walkersguide.android.listener.POIProfileListener;
@@ -30,6 +30,8 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
+import org.walkersguide.android.data.profile.SearchFavoritesProfile;
+
 
 public class POIManager {
 
@@ -62,9 +64,11 @@ public class POIManager {
     public void requestPOIProfile(
             POIProfileListener profileListener, int profileId, int requestAction) {
         if (requestInProgress()) {
-            if (this.requestPOI.getPOIProfileId() == profileId
+            if (profileListener == null) {
+                return;
+            } else if (this.requestPOI.getPOIProfileId() == profileId
                     && this.requestPOI.getRequestAction() == requestAction) {
-                this.requestPOI.updateListener(profileListener);
+                this.requestPOI.addListener(profileListener);
                 return;
             } else {
                 cancelRequest();
@@ -72,6 +76,12 @@ public class POIManager {
         }
         this.requestPOI = new RequestPOI(profileListener, profileId, requestAction);
         this.requestPOI.execute();
+    }
+
+    public void invalidateRequest(POIProfileListener profileListener) {
+        if (requestInProgress()) {
+            this.requestPOI.removeListener(profileListener);
+        }
     }
 
     public boolean requestInProgress() {
@@ -88,29 +98,12 @@ public class POIManager {
         }
     }
 
-    public void invalidateRequest() {
-        if (requestInProgress()) {
-            this.requestPOI.updateListener(null);
-        }
-    }
-
-    private BroadcastReceiver newLocationReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD2.ID
-                    && ! intent.getBooleanExtra(Constants.ACTION_NEW_LOCATION_ATTR.BOOL_AT_HIGH_SPEED, false)
-                    && ! requestInProgress()) {
-                requestPOIProfile(
-                        null, settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId(), ACTION_UPDATE);
-            }
-        }
-    };
-
 
     private class RequestPOI extends AsyncTask<Void, Void, POIProfile> {
 
-        private POIProfileListener poiProfileListener;
+        private ArrayList<POIProfileListener> poiProfileListenerList;
         private int poiProfileIdToRequest, requestAction, returnCode;
+        private boolean resetListPosition;
         private String additionalMessage;
         private HttpsURLConnection connection;
         private Handler cancelConnectionHandler;
@@ -118,9 +111,13 @@ public class POIManager {
         private long t1;
 
         public RequestPOI(POIProfileListener poiProfileListener, int poiProfileId, int requestAction) {
-            this.poiProfileListener = poiProfileListener;
+            this.poiProfileListenerList = new ArrayList<POIProfileListener>();
+            if (poiProfileListener != null) {
+                this.poiProfileListenerList.add(poiProfileListener);
+            }
             this.poiProfileIdToRequest = poiProfileId;
             this.requestAction = requestAction;
+            this.resetListPosition = false;
             this.returnCode = Constants.ID.OK;
             this.additionalMessage = "";
             this.connection = null;
@@ -140,10 +137,10 @@ public class POIManager {
             AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
             POIProfile poiProfile = accessDatabaseInstance.getPOIProfile(this.poiProfileIdToRequest);
             if (poiProfile == null) {
-                this.returnCode = 1001;
+                this.returnCode = 1032;
                 return null;
             } else if (poiProfile.getPOICategoryList().isEmpty()) {
-                this.returnCode = 1002;
+                this.returnCode = 1033;
                 return null;
             }
 
@@ -164,37 +161,48 @@ public class POIManager {
             }
 
             ArrayList<PointProfileObject> pointList = poiProfile.getPointProfileObjectList();
+            boolean distanceToLastPOIProfileCenterPointTooLarge = 
+                currentLocation.distanceTo(poiProfile.getCenter()) > (poiProfile.getLookupRadius() / 2);
+
             if (pointList == null
                     || poiProfile.getCenter() == null
-                    || this.requestAction == ACTION_MORE_RESULTS
-                    || poiProfile.getCenter().distanceTo(currentLocation) > poiProfile.getLookupRadius()/2) {
+                    || distanceToLastPOIProfileCenterPointTooLarge
+                    || this.requestAction == ACTION_MORE_RESULTS) {
 
                 // get radius and number of results
-                int radius = POIProfile.INITIAL_RADIUS;
-                int numberOfResults = POIProfile.INITIAL_NUMBER_OF_RESULTS;
+                int radius;
+                int numberOfResults;
                 switch (this.requestAction) {
+                    case ACTION_UPDATE:
+                        radius = poiProfile.getInitialRadius();
+                        numberOfResults = poiProfile.getInitialNumberOfResults();
+                        break;
                     case ACTION_MORE_RESULTS:
-                        radius = poiProfile.getRadius();
-                        numberOfResults = poiProfile.getNumberOfResults();
-                        if (pointList != null) {
-                            // radius
-                            if (pointList.isEmpty()) {
-                                radius += POIProfile.INITIAL_RADIUS;
-                            } else {
-                                int distanceToFarestPoint = pointList.get(pointList.size()-1).distanceFromCenter();
-                                if (poiProfile.getRadius()-distanceToFarestPoint < POIProfile.INITIAL_RADIUS) {
-                                    radius += POIProfile.INITIAL_RADIUS;
+                        if (distanceToLastPOIProfileCenterPointTooLarge) {
+                            // new location therefore start at initial values
+                            radius = poiProfile.getInitialRadius();
+                            numberOfResults = poiProfile.getInitialNumberOfResults();
+                        } else {
+                            // more or less the same position again therefore increase radius,
+                            // number or results or both
+                            radius = poiProfile.getRadius();
+                            numberOfResults = poiProfile.getNumberOfResults();
+                            if (radius == poiProfile.getLookupRadius()) {
+                                radius += poiProfile.getInitialRadius();
+                                if ((numberOfResults - poiProfile.getLookupNumberOfResults()) < 20) {
+                                    numberOfResults += poiProfile.getInitialNumberOfResults();
                                 }
-                            }
-                            // number of results
-                            int numberOfParsedPoints = pointList.size();
-                            if (poiProfile.getNumberOfResults()-numberOfParsedPoints < POIProfile.INITIAL_NUMBER_OF_RESULTS) {
-                                numberOfResults += POIProfile.INITIAL_NUMBER_OF_RESULTS;
+                            } else {
+                                numberOfResults += poiProfile.getInitialNumberOfResults();
+                                if ((radius - poiProfile.getLookupRadius()) < 200) {
+                                    radius += poiProfile.getInitialRadius();
+                                }
                             }
                         }
                         break;
                     default:
-                        break;
+                        this.returnCode = 1034;
+                        return null;
                 }
 
                 // poi category tags
@@ -216,6 +224,7 @@ public class POIManager {
                         requestJson.put("radius", radius);
                         requestJson.put("number_of_results", numberOfResults);
                         requestJson.put("tags", jsonPOICategoryTagList);
+                        requestJson.put("search", poiProfile.getSearchTerm());
                         requestJson.put("language", Locale.getDefault().getLanguage());
                         requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
                         System.out.println("xxx poi request: " + requestJson.toString());
@@ -275,29 +284,35 @@ public class POIManager {
                 }
             }
 
+            if (this.requestAction == ACTION_UPDATE
+                    && currentLocation.distanceTo(poiProfile.getCenter()) > PositionManager.THRESHOLD3.DISTANCE) {
+                this.resetListPosition = true;
+            }
+
             // update location and direction
             poiProfile.setCenterAndDirection(currentLocation, currentDirection);
-
             return poiProfile;
         }
 
         @Override protected void onPostExecute(POIProfile poiProfile) {
-            System.out.println("xxx poiManager: " + this.returnCode);
-            if (this.poiProfileListener != null) {
-                this.poiProfileListener.poiProfileRequestFinished(
-                        returnCode,
+            System.out.println("xxx poiManager: " + this.returnCode + "     resetListPosition: " + resetListPosition + "    id: "  + this.poiProfileIdToRequest + "     listener: " + this.poiProfileListenerList);
+            for (POIProfileListener poiProfileListener : this.poiProfileListenerList) {
+                poiProfileListener.poiProfileRequestFinished(
+                        this.returnCode,
                         DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, ""),
-                        poiProfile);
+                        poiProfile,
+                        this.resetListPosition);
             }
         }
 
         @Override protected void onCancelled(POIProfile poiProfile) {
-            System.out.println("xxx poiManager: cancelled");
-            if (this.poiProfileListener != null) {
-                this.poiProfileListener.poiProfileRequestFinished(
+            System.out.println("xxx cancel - poiManager: " + this.returnCode + "     resetListPosition: " + resetListPosition + "    id: "  + this.poiProfileIdToRequest);
+            for (POIProfileListener poiProfileListener : this.poiProfileListenerList) {
+                poiProfileListener.poiProfileRequestFinished(
                         Constants.ID.CANCELLED,
                         DownloadUtility.getErrorMessageForReturnCode(context, Constants.ID.CANCELLED, ""),
-                        poiProfile);
+                        poiProfile,
+                        false);
             }
         }
 
@@ -309,9 +324,17 @@ public class POIManager {
             return this.requestAction;
         }
 
-        public void updateListener(POIProfileListener newProfileListener) {
-            if (newProfileListener != null) {
-                this.poiProfileListener = newProfileListener;
+        public void addListener(POIProfileListener newPOIProfileListener) {
+            if (newPOIProfileListener != null
+                    && ! this.poiProfileListenerList.contains(newPOIProfileListener)) {
+                this.poiProfileListenerList.add(newPOIProfileListener);
+            }
+        }
+
+        public void removeListener(POIProfileListener newPOIProfileListener) {
+            if (newPOIProfileListener != null
+                    && this.poiProfileListenerList.contains(newPOIProfileListener)) {
+                this.poiProfileListenerList.remove(newPOIProfileListener);
             }
         }
 
@@ -322,7 +345,6 @@ public class POIManager {
         private class CancelConnection implements Runnable {
             public void run() {
                 if (isCancelled()) {
-                    System.out.println("xxx cancel connection in runnable");
                     if (connection != null) {
                         try {
                             connection.disconnect();
@@ -334,5 +356,19 @@ public class POIManager {
             }
         }
     }
+
+
+    private BroadcastReceiver newLocationReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
+                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID
+                    && ! intent.getBooleanExtra(Constants.ACTION_NEW_LOCATION_ATTR.BOOL_AT_HIGH_SPEED, false)
+                    && ! requestInProgress()) {
+                System.out.println("xxx request poi profile with threshold3: " + settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId());
+                requestPOIProfile(
+                        null, settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId(), ACTION_UPDATE);
+            }
+        }
+    };
 
 }

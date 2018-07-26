@@ -1,4 +1,4 @@
-package org.walkersguide.android.data.poi;
+package org.walkersguide.android.data.profile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,12 +7,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.poi.PointProfileObject.SortByDistanceFromCenterASC;
-import org.walkersguide.android.data.poi.PointProfileObject.SortByDistanceFromCenterDESC;
-import org.walkersguide.android.data.poi.PointProfileObject.SortByNameASC;
-import org.walkersguide.android.data.poi.PointProfileObject.SortByNameDESC;
-import org.walkersguide.android.data.poi.PointProfileObject.SortByOrderASC;
-import org.walkersguide.android.data.poi.PointProfileObject.SortByOrderDESC;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByDistanceFromCenterASC;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByDistanceFromCenterDESC;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByNameASC;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByNameDESC;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByOrderASC;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByOrderDESC;
 import org.walkersguide.android.util.Constants;
 
 import android.content.Context;

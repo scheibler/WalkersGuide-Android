@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
@@ -179,6 +179,13 @@ public class PositionManager implements android.location.LocationListener {
                 intent.putExtra(
                         Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID,
                         THRESHOLD2.ID);
+            }
+            if (lastLocationMap.get(THRESHOLD3.ID) == null
+                    || lastLocationMap.get(THRESHOLD3.ID).distanceTo(currentLocation) > THRESHOLD3.DISTANCE) {
+                lastLocationMap.put(THRESHOLD3.ID, currentLocation);
+                intent.putExtra(
+                        Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID,
+                        THRESHOLD3.ID);
             }
 
             // speed threshold

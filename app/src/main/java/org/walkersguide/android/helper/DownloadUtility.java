@@ -76,14 +76,11 @@ public class DownloadUtility {
 
     public static String getErrorMessageForReturnCode(Context context, int returnCode, String additionalMessage) {
         switch (returnCode) {
+            // general
             case 200:
                 return "";
             case 1000:      // canceled
                 return context.getResources().getString(R.string.messageError1000);
-            case 1001:      // poi profile not found
-                return context.getResources().getString(R.string.messageError1001);
-            case 1002:      // no poi categories selected
-                return context.getResources().getString(R.string.messageError1002);
             case 1003:      // no internet connection
                 return context.getResources().getString(R.string.messageError1003);
             case 1004:      // no location found
@@ -94,6 +91,7 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.messageError1006);
             case 1007:      // app outdated
                 return context.getResources().getString(R.string.messageError1007);
+            // server
             case 1010:      // no connection to server
                 return context.getResources().getString(R.string.messageError1010);
             case 1011:      // input output error
@@ -107,6 +105,7 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.messageError1014);
             case 1015:      // OVER_QUERY_LIMIT
                 return context.getResources().getString(R.string.messageError1015);
+            // route
             case 1020:      // no start point
                 return context.getResources().getString(R.string.messageError1020);
             case 1021:      // no destination point
@@ -115,6 +114,17 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.messageError1022);
             case 1023:      // route parsing error
                 return context.getResources().getString(R.string.messageError1023);
+            // favorites and poi
+            case 1030:      // no favorites or poi search term
+                return context.getResources().getString(R.string.messageError1030);
+            case 1031:      // no favorites profile selected
+                return context.getResources().getString(R.string.messageError1031);
+            case 1032:      // no poi profile selected
+                return context.getResources().getString(R.string.messageError1032);
+            case 1033:      // no poi category selected
+                return context.getResources().getString(R.string.messageError1033);
+            case 1034:      // unsupported poi request action
+                return context.getResources().getString(R.string.messageError1034);
             default:
                 return String.format(
                         context.getResources().getString(R.string.messageUnknownError), returnCode);

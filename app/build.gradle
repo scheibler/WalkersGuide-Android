@@ -31,7 +31,7 @@ android {
         versionName '0.2.0'
         // internal
         buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-        buildConfigField 'Integer', 'DATABASE_VERSION', '3'
+        buildConfigField 'Integer', 'DATABASE_VERSION', '4'
     }
 
     signingConfigs {

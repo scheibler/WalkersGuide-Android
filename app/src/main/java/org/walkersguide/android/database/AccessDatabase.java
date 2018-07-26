@@ -11,10 +11,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.poi.POIProfile;
-import org.walkersguide.android.data.poi.PointProfileObject;
+import org.walkersguide.android.data.profile.POIProfile;
+import org.walkersguide.android.data.profile.SearchFavoritesProfile;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.RouteObject;
 import org.walkersguide.android.data.server.OSMMap;
@@ -47,11 +48,10 @@ public class AccessDatabase {
         this.context = context;
         SQLiteHelper dbHelper = new SQLiteHelper(context);
         this.database = dbHelper.getWritableDatabase();
+    }
 
+    public void setSomeDefaults() {
         // insert some default favorites profiles if table is empty
-        //database.delete(SQLiteHelper.TABLE_POINT, null, null);
-        //database.delete(SQLiteHelper.TABLE_FP_POINTS, null, null);
-        //database.delete(SQLiteHelper.TABLE_FAVORITES_PROFILE, null, null);
         if (getFavoritesProfileMap().isEmpty()) {
             String sqlInsertFavoritesProfileQuery = String.format(
                     "INSERT INTO %1$s (%2$s, %3$s, %4$s, %5$s, %6$s) VALUES (?, ?, ?, ?, ?)",
@@ -119,6 +119,33 @@ public class AccessDatabase {
                         SQLiteHelper.FAVORITES_PROFILE_ID),
                     new String[] {
                         String.valueOf(FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE)});
+        }
+
+        // add search poi profile
+        POIProfile searchPOIProfile = getPOIProfile(SearchFavoritesProfile.ID_SEARCH);
+        if (searchPOIProfile == null) {
+            String sqlInsertPOIProfileQuery = String.format(
+                    "INSERT INTO %1$s (%2$s, %3$s, %4$s, %5$s, %6$s, %7$s, %8$s, %9$s, %10$s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.POI_PROFILE_ID,
+                    SQLiteHelper.POI_PROFILE_NAME, SQLiteHelper.POI_PROFILE_RADIUS,
+                    SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST,
+                    SQLiteHelper.POI_PROFILE_SEARCH_TERM, SQLiteHelper.POI_PROFILE_CENTER,
+                    SQLiteHelper.POI_PROFILE_DIRECTION, SQLiteHelper.POI_PROFILE_POINT_LIST);
+            JSONArray jsonEmptyArray = new JSONArray();
+            String emptySearchString = "";
+            // add search poi profile
+            database.execSQL(
+                    sqlInsertPOIProfileQuery,
+                    new String[] {
+                        String.valueOf(SearchFavoritesProfile.ID_SEARCH),
+                        context.getResources().getString(R.string.ppNameSearch),
+                        String.valueOf(POIProfile.INITIAL_SEARCH_RADIUS),
+                        String.valueOf(POIProfile.INITIAL_NUMBER_OF_RESULTS),
+                        jsonEmptyArray.toString(),
+                        emptySearchString,
+                        Constants.DUMMY.LOCATION,
+                        String.valueOf(Constants.DUMMY.DIRECTION),
+                        jsonEmptyArray.toString() });
         }
     }
 
@@ -584,7 +611,8 @@ public class AccessDatabase {
     public TreeMap<Integer,String> getPOIProfileMap() {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.POI_PROFILE_ID + " ASC");
+                String.format("%1$s != %2$d", SQLiteHelper.POI_PROFILE_ID, SearchFavoritesProfile.ID_SEARCH),
+                null, null, null, SQLiteHelper.POI_PROFILE_ID + " ASC");
         TreeMap<Integer,String> poiProfileMap = new TreeMap<Integer,String>();
         while (cursor.moveToNext()) {
             poiProfileMap.put(
@@ -617,6 +645,8 @@ public class AccessDatabase {
                         new JSONArray(
                             cursor.getString(
                                 cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST))),
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_SEARCH_TERM)),
                         new JSONObject(
                             cursor.getString(
                                 cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CENTER))),
@@ -680,6 +710,21 @@ public class AccessDatabase {
         return poiCategoryList;
     }
 
+    public String getSearchTermOfPOIProfile(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
+                String.format("%1$s = %2$d", SQLiteHelper.POI_PROFILE_ID, id),
+                null, null, null, null);
+        String searchTerm = "";
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            searchTerm = cursor.getString(
+                    cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_SEARCH_TERM));
+        }
+        cursor.close();
+        return searchTerm;
+    }
+
     public int addPOIProfile(String name, ArrayList<POICategory> poiCategoryList) {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.POI_PROFILE_NAME, name);
@@ -690,6 +735,7 @@ public class AccessDatabase {
             jsonPOICategoryIdList.put(category.getId());
         }
         values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, jsonPOICategoryIdList.toString());
+        values.put(SQLiteHelper.POI_PROFILE_SEARCH_TERM, "");
         values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
         values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
         values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
@@ -704,13 +750,15 @@ public class AccessDatabase {
             int id, String name, ArrayList<POICategory> poiCategoryList) {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.POI_PROFILE_NAME, name);
+        values.put(SQLiteHelper.POI_PROFILE_RADIUS, id == SearchFavoritesProfile.ID_SEARCH ? POIProfile.INITIAL_SEARCH_RADIUS : POIProfile.INITIAL_RADIUS);
+        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
         JSONArray jsonPOICategoryIdList = new JSONArray();
         for (POICategory category : poiCategoryList) {
             jsonPOICategoryIdList.put(category.getId());
         }
         values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, jsonPOICategoryIdList.toString());
-        values.put(SQLiteHelper.POI_PROFILE_RADIUS, POIProfile.INITIAL_RADIUS);
-        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
+        values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
+        values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
         values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
         int numberOfRowsAffected = database.updateWithOnConflict(
                 SQLiteHelper.TABLE_POI_PROFILE,
@@ -725,6 +773,22 @@ public class AccessDatabase {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.POI_PROFILE_RADIUS, newRadius);
         values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, newNumberOfResults);
+        int numberOfRowsAffected = database.updateWithOnConflict(
+                SQLiteHelper.TABLE_POI_PROFILE,
+                values,
+                SQLiteHelper.POI_PROFILE_ID + " = ?", new String[]{String.valueOf(id)},
+                SQLiteDatabase.CONFLICT_IGNORE);
+        return numberOfRowsAffected == 1 ? true : false;
+    }
+
+    public boolean updateSearchTermOfPOIProfile(int id, String newSearchTerm) {
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.POI_PROFILE_RADIUS, id == SearchFavoritesProfile.ID_SEARCH ? POIProfile.INITIAL_SEARCH_RADIUS : POIProfile.INITIAL_RADIUS);
+        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
+        values.put(SQLiteHelper.POI_PROFILE_SEARCH_TERM, newSearchTerm);
+        values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
+        values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
+        values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
         int numberOfRowsAffected = database.updateWithOnConflict(
                 SQLiteHelper.TABLE_POI_PROFILE,
                 values,

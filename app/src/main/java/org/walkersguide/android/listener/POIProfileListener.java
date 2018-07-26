@@ -1,7 +1,7 @@
 package org.walkersguide.android.listener;
 
-import org.walkersguide.android.data.poi.POIProfile;
+import org.walkersguide.android.data.profile.POIProfile;
 
 public interface POIProfileListener {
-	public void poiProfileRequestFinished(int returnCode, String returnMessage, POIProfile poiProfile);
+	public void poiProfileRequestFinished(int returnCode, String returnMessage, POIProfile poiProfile, boolean resetListPosition);
 }

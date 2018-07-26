@@ -3,6 +3,7 @@ package org.walkersguide.android.ui.activity;
 import org.walkersguide.android.R;
 import org.walkersguide.android.listener.ServerStatusListener;
 import org.walkersguide.android.server.ServerStatus;
+import org.walkersguide.android.ui.dialog.SelectShakeIntensityDialog;
 import org.walkersguide.android.ui.dialog.SelectMapDialog;
 import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
@@ -38,6 +39,7 @@ import android.widget.Toast;
 public class SettingsActivity extends AbstractActivity {
 
     private Button buttonServerURL, buttonServerMap, buttonServerPublicTransportProvider;
+    private Button buttonShakeIntensity;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -75,6 +77,14 @@ public class SettingsActivity extends AbstractActivity {
                 SelectPublicTransportProviderDialog.newInstance(
                         settingsManagerInstance.getServerSettings().getSelectedPublicTransportProvider())
                     .show(getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
+            }
+        });
+
+        buttonShakeIntensity = (Button) findViewById(R.id.buttonShakeIntensity);
+        buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                SelectShakeIntensityDialog.newInstance()
+                    .show(getSupportFragmentManager(), "SelectShakeIntensityDialog");
             }
         });
     }
@@ -123,6 +133,38 @@ public class SettingsActivity extends AbstractActivity {
             buttonServerPublicTransportProvider.setText(
                     getResources().getString(R.string.buttonServerPublicTransportProviderNoSelection));
         }
+
+        // shake intensity button
+        String shakeIntensityName;
+        switch (settingsManagerInstance.getGeneralSettings().getShakeIntensity()) {
+            case Constants.SHAKE_INTENSITY.DISABLED:
+                shakeIntensityName = getResources().getString(R.string.shakeIntensityDisabled);
+                break;
+            case Constants.SHAKE_INTENSITY.VERY_WEAK:
+                shakeIntensityName = getResources().getString(R.string.shakeIntensityVeryWeak);
+                break;
+            case Constants.SHAKE_INTENSITY.WEAK:
+                shakeIntensityName = getResources().getString(R.string.shakeIntensityWeak);
+                break;
+            case Constants.SHAKE_INTENSITY.MEDIUM:
+                shakeIntensityName = getResources().getString(R.string.shakeIntensityMedium);
+                break;
+            case Constants.SHAKE_INTENSITY.STRONG:
+                shakeIntensityName = getResources().getString(R.string.shakeIntensityStrong);
+                break;
+            case Constants.SHAKE_INTENSITY.VERY_STRONG:
+                shakeIntensityName = getResources().getString(R.string.shakeIntensityVeryStrong);
+                break;
+            default:
+                shakeIntensityName = String.valueOf(settingsManagerInstance.getGeneralSettings().getShakeIntensity());
+                break;
+        }
+        buttonShakeIntensity.setText(
+                String.format(
+                    "%1$s: %2$s",
+                    getResources().getString(R.string.buttonShakeIntensity),
+                    shakeIntensityName)
+                );
     }
 
 

@@ -3,7 +3,7 @@ package org.walkersguide.android.ui.dialog;
 import org.json.JSONException;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.google.AddressManager;
 import org.walkersguide.android.listener.AddressListener;

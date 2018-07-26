@@ -1,4 +1,4 @@
-package org.walkersguide.android.data.poi;
+package org.walkersguide.android.data.profile;
 
 import org.json.JSONArray;
 import org.json.JSONException;

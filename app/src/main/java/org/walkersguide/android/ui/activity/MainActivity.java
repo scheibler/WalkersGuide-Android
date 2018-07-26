@@ -5,7 +5,6 @@ import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.ui.fragment.main.FavoriteFragment;
 import org.walkersguide.android.ui.fragment.main.POIFragment;
 import org.walkersguide.android.ui.fragment.main.RouterFragment;
-import org.walkersguide.android.ui.fragment.main.SearchFragment;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
 import org.walkersguide.android.util.TTSWrapper;
@@ -26,7 +25,6 @@ import android.view.MenuItem;
 public class MainActivity extends AbstractActivity {
 
 	// communicate with attached fragments
-	public FragmentCommunicator searchFragmentCommunicator;
 	public FragmentCommunicator favoriteFragmentCommunicator;
 	public FragmentCommunicator routerFragmentCommunicator;
 	public FragmentCommunicator poiFragmentCommunicator;
@@ -118,10 +116,7 @@ public class MainActivity extends AbstractActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override public boolean onNavigationItemSelected(MenuItem menuItem) {
                 drawerLayout.closeDrawers();
-                if (menuItem.getItemId() == R.id.menuItemSearchFragment) {
-                    switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.SEARCH);
-                } else if (menuItem.getItemId() == R.id.menuItemFavoriteFragment) {
+                if (menuItem.getItemId() == R.id.menuItemFavoriteFragment) {
                     switchFragmentGestureDetected = false;
                     mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.FAVORITE);
                 } else if (menuItem.getItemId() == R.id.menuItemRouterFragment) {
@@ -177,12 +172,6 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case Constants.MAIN_FRAGMENT.SEARCH:
-                    if (searchFragmentCommunicator != null) {
-                        searchFragmentCommunicator.onFragmentDisabled();
-                        return;
-                    }
-                    break;
                 case Constants.MAIN_FRAGMENT.FAVORITE:
                     if (favoriteFragmentCommunicator != null) {
                         favoriteFragmentCommunicator.onFragmentDisabled();
@@ -228,12 +217,6 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case Constants.MAIN_FRAGMENT.SEARCH:
-                    if (searchFragmentCommunicator != null) {
-                        searchFragmentCommunicator.onFragmentEnabled();
-                        return;
-                    }
-                    break;
                 case Constants.MAIN_FRAGMENT.FAVORITE:
                     if (favoriteFragmentCommunicator != null) {
                         favoriteFragmentCommunicator.onFragmentEnabled();
@@ -276,8 +259,6 @@ public class MainActivity extends AbstractActivity {
 
         @Override public Fragment getItem(int position) {
             switch (position) {
-                case Constants.MAIN_FRAGMENT.SEARCH:
-                    return SearchFragment.newInstance();
                 case Constants.MAIN_FRAGMENT.FAVORITE:
                     return FavoriteFragment.newInstance();
                 case Constants.MAIN_FRAGMENT.ROUTER:
@@ -291,8 +272,6 @@ public class MainActivity extends AbstractActivity {
 
 		@Override public CharSequence getPageTitle(int position) {
             switch (position) {
-                case Constants.MAIN_FRAGMENT.SEARCH:
-    				return getResources().getString(R.string.fragmentSearchName);
                 case Constants.MAIN_FRAGMENT.FAVORITE:
     				return getResources().getString(R.string.fragmentFavoriteName);
                 case Constants.MAIN_FRAGMENT.ROUTER:

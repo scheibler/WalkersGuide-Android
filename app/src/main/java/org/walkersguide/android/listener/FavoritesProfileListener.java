@@ -1,7 +1,7 @@
 package org.walkersguide.android.listener;
 
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
 
 public interface FavoritesProfileListener {
-	public void favoritesProfileRequestFinished(int returnCode, String returnMessage, FavoritesProfile favoritesProfile);
+	public void favoritesProfileRequestFinished(int returnCode, String returnMessage, FavoritesProfile favoritesProfile, boolean resetListPosition);
 }

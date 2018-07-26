@@ -6,16 +6,18 @@ import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.walkersguide.android.R;
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.poi.POIProfile;
-import org.walkersguide.android.data.poi.PointProfileObject;
+import org.walkersguide.android.data.profile.POIProfile;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.listener.POIProfileListener;
+import org.walkersguide.android.listener.SelectPOIProfileListener;
 import org.walkersguide.android.server.POIManager;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
+import org.walkersguide.android.ui.dialog.SelectPOIProfileDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
@@ -46,6 +48,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -60,19 +63,21 @@ import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import org.walkersguide.android.ui.dialog.SearchInPOIDialog;
+
 
 public class POIFragment extends Fragment 
-    implements FragmentCommunicator, OnMenuItemClickListener, POIProfileListener {
+    implements FragmentCommunicator, OnMenuItemClickListener, POIProfileListener, SelectPOIProfileListener {
 
 	// Store instance variables
     private AccessDatabase accessDatabaseInstance;
 	private SettingsManager settingsManagerInstance;
     private TTSWrapper ttsWrapperInstance;
-    private Vibrator vibrator;
 
     // query in progress
     private Handler progressHandler;
     private ProgressUpdater progressUpdater;
+    private Vibrator vibrator;
 
     // ui components
     private Button buttonSelectProfile, buttonRefresh;
@@ -130,6 +135,7 @@ public class POIFragment extends Fragment
                 if (idOfPreviousProfile > -1) {
                     onFragmentDisabled();
                     poiFragmentSettings.setSelectedPOIProfileId(idOfPreviousProfile);
+                    poiFragmentSettings.setSelectedPositionInPointList(0);
                     ttsWrapperInstance.speak(
                             accessDatabaseInstance.getNameOfPOIProfile(idOfPreviousProfile), true, true);
                     onFragmentEnabled();
@@ -140,9 +146,10 @@ public class POIFragment extends Fragment
         buttonSelectProfile = (Button) view.findViewById(R.id.buttonSelectProfile);
         buttonSelectProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectPOIProfileDialog.newInstance(
-                        settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId())
-                    .show(getActivity().getSupportFragmentManager(), "SelectProfileDialog");
+                SelectPOIProfileDialog selectPOIProfileDialog = SelectPOIProfileDialog.newInstance(
+                        settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId());
+                selectPOIProfileDialog.setTargetFragment(POIFragment.this, 1);
+                selectPOIProfileDialog.show(getActivity().getSupportFragmentManager(), "SelectPOIProfileDialog");
             }
         });
 
@@ -161,6 +168,7 @@ public class POIFragment extends Fragment
                 if (idOfNextProfile > -1) {
                     onFragmentDisabled();
                     poiFragmentSettings.setSelectedPOIProfileId(idOfNextProfile);
+                    poiFragmentSettings.setSelectedPositionInPointList(0);
                     ttsWrapperInstance.speak(
                             accessDatabaseInstance.getNameOfPOIProfile(idOfNextProfile), true, true);
                     onFragmentEnabled();
@@ -176,9 +184,7 @@ public class POIFragment extends Fragment
         buttonJumpToTop.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (listViewPOI.getAdapter() != null) {
-                    onFragmentDisabled();
-                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(0);
-                    onFragmentEnabled();
+                    listViewPOI.setSelection(0);
                 }
             }
         });
@@ -206,30 +212,26 @@ public class POIFragment extends Fragment
             }
         });
 
+        labelListViewPOIEmpty    = (TextView) view.findViewById(R.id.labelListViewPOIEmpty);
+        labelListViewPOIEmpty.setText(getResources().getString(R.string.labelMoreResults));
+        labelListViewPOIEmpty.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                // start poi profile update request
+                preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
+            }
+        });
+        listViewPOI.setEmptyView(labelListViewPOIEmpty);
+
         LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View footerView = inflater.inflate(R.layout.layout_single_text_view, null, false);
         labelMoreResultsFooter = (TextView) footerView.findViewById(R.id.label);
         labelMoreResultsFooter.setText(getResources().getString(R.string.labelMoreResults));
         labelMoreResultsFooter.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(
-                        listViewPOI.getFirstVisiblePosition());
                 // start poi profile update request
                 preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
             }
         });
-
-        labelListViewPOIEmpty    = (TextView) view.findViewById(R.id.labelListViewPOIEmpty);
-        labelListViewPOIEmpty.setText(getResources().getString(R.string.labelMoreResults));
-        labelListViewPOIEmpty.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(
-                        listViewPOI.getFirstVisiblePosition());
-                // start poi profile update request
-                preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
-            }
-        });
-        listViewPOI.setEmptyView(labelListViewPOIEmpty);
 
         // bottom layout
 
@@ -252,6 +254,7 @@ public class POIFragment extends Fragment
                 onFragmentDisabled();
                 POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
                 poiFragmentSettings.setDirectionFilterStatus(isChecked);
+                poiFragmentSettings.setSelectedPositionInPointList(0);
                 onFragmentEnabled();
             }
         });
@@ -271,6 +274,10 @@ public class POIFragment extends Fragment
     @Override public boolean onMenuItemClick(MenuItem item) {
         POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
         switch (item.getItemId()) {
+            case R.id.menuItemSearchInProfile:
+                SearchInPOIDialog.newInstance()
+                    .show(getActivity().getSupportFragmentManager(), "SearchInPOIDialog");
+                return true;
             case R.id.menuItemNewProfile:
                 CreateOrEditPOIProfileDialog.newInstance(-1)
                     .show(getActivity().getSupportFragmentManager(), "CreateOrEditPOIProfileDialog");
@@ -314,20 +321,19 @@ public class POIFragment extends Fragment
     }
 
 	@Override public void onFragmentDisabled() {
-        POIManager.getInstance(getActivity()).invalidateRequest();
+        POIManager.getInstance(getActivity()).invalidateRequest((POIFragment) this);
         progressHandler.removeCallbacks(progressUpdater);
         // unregister shake broadcast receiver
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(shakeDetectedReceiver);
-        // save current list position
-        if (listViewPOI.getAdapter() != null) {
-            settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(
-                    listViewPOI.getFirstVisiblePosition());
-        }
+        // list view
+        listViewPOI.setAdapter(null);
+        listViewPOI.setOnScrollListener(null);
     }
 
     private void preparePOIRequest(int requestAction) {
         // list view
         listViewPOI.setAdapter(null);
+        listViewPOI.setOnScrollListener(null);
         if (listViewPOI.getFooterViewsCount() > 0) {
             listViewPOI.removeFooterView(labelMoreResultsFooter);
         }
@@ -345,7 +351,15 @@ public class POIFragment extends Fragment
                 requestAction);
     }
 
-	@Override public void poiProfileRequestFinished(int returnCode, String returnMessage, POIProfile poiProfile) {
+    @Override public void poiProfileSelected(int poiProfileId) {
+        onFragmentDisabled();
+        POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
+        poiFragmentSettings.setSelectedPOIProfileId(poiProfileId);
+        poiFragmentSettings.setSelectedPositionInPointList(0);
+        onFragmentEnabled();
+    }
+
+	@Override public void poiProfileRequestFinished(int returnCode, String returnMessage, POIProfile poiProfile, boolean resetListPosition) {
         POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
         buttonRefresh.setText(
                 getResources().getString(R.string.buttonRefresh));
@@ -396,24 +410,33 @@ public class POIFragment extends Fragment
                         );
             }
 
-            // list position
-            if (poiFragmentSettings.getSelectedPositionInPointList() > 0) {
-                listViewPOI.setSelection(
-                        poiFragmentSettings.getSelectedPositionInPointList());
-            }
-
             // more results
             if (listViewPOI.getAdapter().getCount() == 0) {
-                if (poiProfile.getRadius() < POIProfile.MAXIMAL_RADIUS
-                        && poiProfile.getNumberOfResults() < POIProfile.MAXIMAL_NUMBER_OF_RESULTS) {
+                if (poiProfile.getRadius() < poiProfile.getMaximalRadius()
+                        && poiProfile.getNumberOfResults() < poiProfile.getMaximalNumberOfResults()) {
                     labelListViewPOIEmpty.setVisibility(View.VISIBLE);
                 }
             } else {
-                if (poiProfile.getRadius() < POIProfile.MAXIMAL_RADIUS
-                        && poiProfile.getNumberOfResults() < POIProfile.MAXIMAL_NUMBER_OF_RESULTS) {
+                if (poiProfile.getRadius() < poiProfile.getMaximalRadius()
+                        && poiProfile.getNumberOfResults() < poiProfile.getMaximalNumberOfResults()) {
                     listViewPOI.addFooterView(labelMoreResultsFooter, null, true);
                 }
             }
+
+            // list position
+            if (resetListPosition) {
+                listViewPOI.setSelection(0);
+            } else {
+                listViewPOI.setSelection(poiFragmentSettings.getSelectedPositionInPointList());
+            }
+            listViewPOI.setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override public void onScrollStateChanged(AbsListView view, int scrollState) {}
+                @Override public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    if (settingsManagerInstance.getPOIFragmentSettings().getSelectedPositionInPointList() != firstVisibleItem) {
+                        settingsManagerInstance.getPOIFragmentSettings().setSelectedPositionInPointList(firstVisibleItem);
+                    }
+                }
+            });
 
         } else {
             labelPOIFragmentHeader.setText(returnMessage);
@@ -429,8 +452,8 @@ public class POIFragment extends Fragment
 
     private BroadcastReceiver shakeDetectedReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            System.out.println("xxx poiFragment shake detected");
             onFragmentDisabled();
+            vibrator.vibrate(250);
             onFragmentEnabled();
         }
     };
@@ -440,78 +463,6 @@ public class POIFragment extends Fragment
         public void run() {
             vibrator.vibrate(50);
             progressHandler.postDelayed(this, 2000);
-        }
-    }
-
-
-    public static class SelectPOIProfileDialog extends DialogFragment {
-
-        // Store instance variables
-        private AccessDatabase accessDatabaseInstance;
-        private SettingsManager settingsManagerInstance;
-
-        public static SelectPOIProfileDialog newInstance(int poiProfileId) {
-            SelectPOIProfileDialog selectPOIProfileDialogInstance = new SelectPOIProfileDialog();
-            Bundle args = new Bundle();
-            args.putInt("poiProfileId", poiProfileId);
-            selectPOIProfileDialogInstance.setArguments(args);
-            return selectPOIProfileDialogInstance;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            accessDatabaseInstance = AccessDatabase.getInstance(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            TreeMap<Integer,String> poiProfileMap = accessDatabaseInstance.getPOIProfileMap();
-            String[] formattedPOIProfileNameArray = new String[poiProfileMap.size()];
-            int indexOfSelectedPOIProfile = -1;
-            int index = 0;
-            for (Map.Entry<Integer,String> profile : poiProfileMap.entrySet()) {
-                formattedPOIProfileNameArray[index] = profile.getValue();
-                if (profile.getKey() == getArguments().getInt("poiProfileId", -1)) {
-                    indexOfSelectedPOIProfile = index;
-                }
-                index += 1;
-            }
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.selectProfileDialogTitle))
-                .setSingleChoiceItems(
-                        formattedPOIProfileNameArray,
-                        indexOfSelectedPOIProfile,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                int selectedProfileId = -1;
-                                int index = 0;
-                                for(Integer profileId : accessDatabaseInstance.getPOIProfileMap().keySet()) {
-                                    if (index == which) {
-                                        selectedProfileId = profileId;
-                                        break;
-                                    }
-                                    index += 1;
-                                }
-                                if (selectedProfileId > -1) {
-                                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPOIProfileId(selectedProfileId);
-                                    Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                                    LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-                                }
-                                dismiss();
-                            }
-                        }
-                        )
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dismiss();
-                            }
-                        }
-                        )
-                .create();
         }
     }
 
@@ -685,7 +636,7 @@ public class POIFragment extends Fragment
             if (poiCategoryList.isEmpty()) {
                 Toast.makeText(
                         getActivity(),
-                        getResources().getString(R.string.messageError1002),
+                        getResources().getString(R.string.messageError1033),
                         Toast.LENGTH_LONG).show();
                 return;
             }

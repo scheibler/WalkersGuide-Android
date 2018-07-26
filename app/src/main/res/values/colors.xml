@@ -13,4 +13,7 @@
     <!-- links: blue-->
     <color name="link">#0066d6</color>
 
+    <!-- images -->
+    <color name="image">#034a70</color>
+
 </resources>

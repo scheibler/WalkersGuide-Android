@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import java.util.Arrays;
 
 public class SettingsManager {
+    public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 50;
 
     // class variables
     private static SettingsManager settingsManagerInstance;
@@ -36,6 +37,8 @@ public class SettingsManager {
     private POIFragmentSettings poiFragmentSettings;
     private RouteSettings routeSettings;
     private ServerSettings serverSettings;
+    private SearchTermHistory searchTermHistory;
+    private FavoritesSearchSettings favoritesSearchSettings;
 
 	public static SettingsManager getInstance(Context context) {
 		if (settingsManagerInstance == null) {
@@ -141,6 +144,38 @@ public class SettingsManager {
 		return serverSettings;
 	}
 
+	public SearchTermHistory getSearchTermHistory() {
+        if (searchTermHistory == null) {
+            JSONArray jsonSearchTermList;
+            try {
+    		    jsonSearchTermList = new JSONArray(settings.getString("searchTermList", "[]"));
+    		} catch (JSONException e) {
+                jsonSearchTermList = new JSONArray();
+                System.out.println("xxx searchTermHistory json error " + e);
+            }
+            searchTermHistory = new SearchTermHistory(jsonSearchTermList);
+        }
+		return searchTermHistory;
+	}
+
+
+	public FavoritesSearchSettings getFavoritesSearchSettings() {
+        if (favoritesSearchSettings == null) {
+            JSONObject jsonFavoritesSearchSettings;
+            try {
+    		    jsonFavoritesSearchSettings = new JSONObject(settings.getString("favoritesSearchSettings", "{}"));
+    		} catch (JSONException e) {
+                jsonFavoritesSearchSettings = new JSONObject();
+            }
+            favoritesSearchSettings = new FavoritesSearchSettings(jsonFavoritesSearchSettings);
+        }
+		return favoritesSearchSettings;
+	}
+
+
+    /**
+     * General, direction and location settings
+     */
 
     public class GeneralSettings {
 
@@ -439,6 +474,10 @@ public class SettingsManager {
     }
 
 
+    /**
+     * fragment settings
+     */
+
     public abstract class PointFragmentSettings {
 
         private int selectedPositionInPointList;
@@ -602,6 +641,10 @@ public class SettingsManager {
         }
     }
 
+
+    /**
+     * route settings
+     */
 
     public class RouteSettings {
 
@@ -826,6 +869,10 @@ public class SettingsManager {
     }
 
 
+    /**
+     * server settings
+     */
+
     public class ServerSettings {
 
         private String serverURL;
@@ -903,5 +950,155 @@ public class SettingsManager {
             serverSettings = null;
         }
     }
+
+
+    /**
+     * search term history and settings
+     */
+
+    public class SearchTermHistory {
+
+        private ArrayList<String> searchTermList;
+
+        public SearchTermHistory(JSONArray jsonSearchTermList) {
+            searchTermList = new ArrayList<String>();
+            for(int i=0; i<jsonSearchTermList.length(); i++){
+                try {
+                    searchTermList.add(jsonSearchTermList.getString(i));
+                } catch (JSONException e) {}
+            }
+        }
+
+        public ArrayList<String> getSearchTermList() {
+            return this.searchTermList;
+        }
+
+        public void addSearchTerm(String searchTerm) {
+            if (! this.searchTermList.contains(searchTerm)) {
+                this.searchTermList.add(0, searchTerm);
+                if (this.searchTermList.size() > MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES) {
+                    searchTermList.remove(searchTermList.size() - 1);
+                }
+                storeSearchTermHistory();
+            }
+        }
+
+        public void storeSearchTermHistory() {
+            JSONArray jsonSearchTermList = new JSONArray();
+            for (String searchTerm : this.searchTermList) {
+                jsonSearchTermList.put(searchTerm);
+            }
+    		// save settings
+	    	Editor editor = settings.edit();
+		    editor.putString("searchTermList", jsonSearchTermList.toString());
+    		editor.commit();
+            // null searchTermHistory object to force reload on next getSearchTermHistory()
+            searchTermHistory = null;
+        }
+    }
+
+
+    public class FavoritesSearchSettings {
+
+        private String searchTerm;
+        private ArrayList<Integer> favoritesProfileIdList;
+        private int sortCriteria;
+
+        public FavoritesSearchSettings(JSONObject jsonObject) {
+            // search term
+            this.searchTerm = "";
+            try {
+                this.searchTerm = jsonObject.getString("searchTerm");
+            } catch (JSONException e) {}
+            // selected favorites profiles
+            favoritesProfileIdList = new ArrayList<Integer>();
+            JSONArray jsonFavoritesProfileIdList = null;
+            try {
+                jsonFavoritesProfileIdList = jsonObject.getJSONArray("favoritesProfileIdList");
+            } catch (JSONException e) {
+                jsonFavoritesProfileIdList = null;
+            } finally {
+                if (jsonFavoritesProfileIdList != null) {
+                    for (int i=0; i<jsonFavoritesProfileIdList.length(); i++) {
+                        try {
+                            this.favoritesProfileIdList.add(jsonFavoritesProfileIdList.getInt(i));
+                        } catch (JSONException e) {}
+                    }
+                } else {
+                    for (Integer favoritesProfileId : AccessDatabase.getInstance(context).getFavoritesProfileMap().keySet()) {
+                        favoritesProfileIdList.add(favoritesProfileId);
+                    }
+                }
+            }
+            // search sort criteria
+            this.sortCriteria = Constants.SORT_CRITERIA.DISTANCE_ASC;
+            try {
+                int sortCriteriaFromJson = jsonObject.getInt("sortCriteria");
+                if (Ints.contains(Constants.SearchFavoritesProfileSortCriteriaValueArray, sortCriteriaFromJson)) {
+                    this.sortCriteria = sortCriteriaFromJson;
+                }
+            } catch (JSONException e) {}
+        }
+
+        public String getSearchTerm() {
+            return this.searchTerm;
+        }
+
+        public void setSearchTerm(String newSearchTerm) {
+            if (newSearchTerm != null) {
+                this.searchTerm = newSearchTerm;
+                getSearchTermHistory().addSearchTerm(newSearchTerm);
+                storeFavoritesSearchSettings();
+            }
+        }
+
+        public ArrayList<Integer> getFavoritesProfileIdList() {
+            return this.favoritesProfileIdList;
+        }
+
+        public void setFavoritesProfileIdList(ArrayList<Integer> newFavoritesProfileIdList) {
+            if (newFavoritesProfileIdList != null) {
+                this.favoritesProfileIdList = newFavoritesProfileIdList;
+                storeFavoritesSearchSettings();
+            }
+        }
+
+        public int getSortCriteria() {
+            return this.sortCriteria;
+        }
+
+
+        public void setSortCriteria(int newSortCriteria) {
+            if (Ints.contains(Constants.SearchFavoritesProfileSortCriteriaValueArray, newSortCriteria)) {
+                this.sortCriteria = newSortCriteria;
+                storeFavoritesSearchSettings();
+            }
+        }
+
+        public void storeFavoritesSearchSettings() {
+            JSONObject jsonFavoritesSearchSettings = new JSONObject();
+            try {
+                jsonFavoritesSearchSettings.put("searchTerm", this.searchTerm);
+            } catch (JSONException e) {}
+            JSONArray jsonFavoritesProfileIdList = new JSONArray();
+            for (Integer favoritesProfileId : this.favoritesProfileIdList) {
+                jsonFavoritesProfileIdList.put(favoritesProfileId);
+            }
+            try {
+                jsonFavoritesSearchSettings.put("favoritesProfileIdList", jsonFavoritesProfileIdList);
+            } catch (JSONException e) {}
+            // search sort criteria
+            try {
+                jsonFavoritesSearchSettings.put("sortCriteria", this.sortCriteria);
+            } catch (JSONException e) {}
+            // save settings
+            Editor editor = settings.edit();
+            editor.putString("favoritesSearchSettings", jsonFavoritesSearchSettings.toString());
+            editor.commit();
+            // null FavoritesSearchSettings object to force reload on next getFavoritesSearchSettings()
+            favoritesSearchSettings = null;
+        }
+    }
+
 
 }

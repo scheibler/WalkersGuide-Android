@@ -5,7 +5,7 @@ import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.google.AddressManager;
@@ -309,6 +309,7 @@ public class PlanRouteDialog extends DialogFragment
                                 startPoint.toString())
                             );
                     if (startPoint.getPoint() instanceof GPS
+                            && startPoint.getPoint().getName().equals(context.getResources().getString(R.string.currentLocationName))
                             && (
                                    addressManagerRequest == null
                                 || addressManagerRequest.getStatus() == AsyncTask.Status.FINISHED)
@@ -375,6 +376,7 @@ public class PlanRouteDialog extends DialogFragment
                                 destinationPoint.toString())
                             );
                     if (destinationPoint.getPoint() instanceof GPS
+                            && destinationPoint.getPoint().getName().equals(context.getResources().getString(R.string.currentLocationName))
                             && (
                                    addressManagerRequest == null
                                 || addressManagerRequest.getStatus() == AsyncTask.Status.FINISHED)

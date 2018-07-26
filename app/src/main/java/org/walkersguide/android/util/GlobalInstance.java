@@ -8,6 +8,7 @@ import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 
 import android.app.Application;
+import org.walkersguide.android.database.AccessDatabase;
 
 public class GlobalInstance extends Application {
 
@@ -25,6 +26,9 @@ public class GlobalInstance extends Application {
         super.onCreate();
         this.sessionId = UUID.randomUUID().toString();
         this.wasInBackground = true;
+        // open database and check for some defaults
+        AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(this);
+        accessDatabaseInstance.setSomeDefaults();
     }
 
     public String getSessionId() {

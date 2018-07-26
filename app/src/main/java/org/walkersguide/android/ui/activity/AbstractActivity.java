@@ -300,7 +300,6 @@ public abstract class AbstractActivity extends AppCompatActivity {
             }
             */
             // kill previous instance of simple message dialog
-            System.out.println("xxx abstract action: " + intent.getAction());
             if (simpleMessageDialog != null) {
                 System.out.println("xxx dismiss");
                 simpleMessageDialog.dismiss();

@@ -120,13 +120,14 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String POI_PROFILE_RADIUS = "radius";
     public static final String POI_PROFILE_NUMBER_OF_RESULTS = "number_of_results";
     public static final String POI_PROFILE_CATEGORY_ID_LIST = "category_id_list";
+    public static final String POI_PROFILE_SEARCH_TERM = "search_term";
     public static final String POI_PROFILE_CENTER = "center";
     public static final String POI_PROFILE_DIRECTION = "direction";
     public static final String POI_PROFILE_POINT_LIST = "point_list";
     public static final String[] TABLE_POI_PROFILE_ALL_COLUMNS = {
         POI_PROFILE_ID, POI_PROFILE_NAME, POI_PROFILE_RADIUS,
-        POI_PROFILE_NUMBER_OF_RESULTS, POI_PROFILE_CATEGORY_ID_LIST, POI_PROFILE_CENTER,
-        POI_PROFILE_DIRECTION, POI_PROFILE_POINT_LIST
+        POI_PROFILE_NUMBER_OF_RESULTS, POI_PROFILE_CATEGORY_ID_LIST, POI_PROFILE_SEARCH_TERM,
+        POI_PROFILE_CENTER, POI_PROFILE_DIRECTION, POI_PROFILE_POINT_LIST
     };
     public static final String CREATE_POI_PROFILE_TABLE = 
         "CREATE TABLE IF NOT EXISTS " + TABLE_POI_PROFILE + "("
@@ -135,6 +136,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         + POI_PROFILE_RADIUS + " integer, "
         + POI_PROFILE_NUMBER_OF_RESULTS + " integer, "
         + POI_PROFILE_CATEGORY_ID_LIST + " text not null, "
+        + POI_PROFILE_SEARCH_TERM + " text, "
         + POI_PROFILE_CENTER + " text, "
         + POI_PROFILE_DIRECTION + " integer, "
         + POI_PROFILE_POINT_LIST + " text);";
@@ -221,7 +223,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
         System.out.println("xxx onUpdate: " + oldVersion + " / " + newVersion);
-        if (oldVersion == 2) {
+
+        if (oldVersion <= 2) {
             // create excluded ways table
             database.execSQL(CREATE_EXCLUDED_WAYS_TABLE);
             // recreate map table
@@ -232,6 +235,14 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                     String.format(
                         "ALTER TABLE %1$s ADD COLUMN %2$s TEXT NOT NULL DEFAULT '[]';",
                         TABLE_ROUTE, ROUTE_VIA_POINT_LIST)
+                    );
+        }
+
+        if (oldVersion <= 3) {
+            database.execSQL(
+                    String.format(
+                        "ALTER TABLE %1$s ADD COLUMN %2$s TEXT DEFAULT '';",
+                        TABLE_POI_PROFILE, POI_PROFILE_SEARCH_TERM)
                     );
         }
     }

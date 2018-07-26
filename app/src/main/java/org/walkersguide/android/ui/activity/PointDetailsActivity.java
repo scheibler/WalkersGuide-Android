@@ -11,7 +11,7 @@ import org.walkersguide.android.data.basic.point.Intersection;
 import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.poi.FavoritesProfile;
+import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.ChildDialogCloseListener;
@@ -375,25 +375,17 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             } else {
                 TreeSet<Integer> checkedFavoritesProfileIds = accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint);
                 for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
-                    if (profile.getKey() >= FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE) {
-                        CheckBox checkBox = new CheckBox(getActivity());
-                        checkBox.setId(profile.getKey());
-                        checkBox.setLayoutParams(
-                                new LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.WRAP_CONTENT)
-                                );
-                        checkBox.setText(profile.getValue());
-                        checkBox.setChecked(
-                                checkedFavoritesProfileIds.contains(profile.getKey()));
-                        checkBoxGroupFavoritesProfiles.put(checkBox);
-                    }
-                }
-                if (checkBoxGroupFavoritesProfiles.getCheckBoxList().isEmpty()) {
-                    SimpleMessageDialog dialog = SimpleMessageDialog.newInstance(
-                            getResources().getString(R.string.messageErrorNoUserCreatedFavoritesProfiles));
-                    dialog.setTargetFragment(SelectFavoritesProfilesForPointDialog.this, 1);
-                    dialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                    CheckBox checkBox = new CheckBox(getActivity());
+                    checkBox.setId(profile.getKey());
+                    checkBox.setLayoutParams(
+                            new LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT)
+                            );
+                    checkBox.setText(profile.getValue());
+                    checkBox.setChecked(
+                            checkedFavoritesProfileIds.contains(profile.getKey()));
+                    checkBoxGroupFavoritesProfiles.put(checkBox);
                 }
             }
 
@@ -452,9 +444,21 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 });
                 // neutral button
                 Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
+                    buttonNeutral.setText(
+                            getResources().getString(R.string.dialogAll));
+                } else {
+                    buttonNeutral.setText(
+                            getResources().getString(R.string.dialogClear));
+                }
                 buttonNeutral.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        checkBoxGroupFavoritesProfiles.uncheckAll();
+                        if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
+                            checkBoxGroupFavoritesProfiles.checkAll();
+                        } else {
+                            checkBoxGroupFavoritesProfiles.uncheckAll();
+                        }
+                        onStart();
                     }
                 });
                 // negative button

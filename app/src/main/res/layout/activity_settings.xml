@@ -14,6 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
+        <!-- server settings -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,7 +46,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/buttonServerPublicTransportProviderNoSelection" />
+
+
+        <!-- interface settings -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelInterfaceSettingsHeader" />
+
+            <Button
+                android:id="@+id/buttonShakeIntensity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonShakeIntensity" />
         </LinearLayout>
+
     </ScrollView>
 
 </LinearLayout>

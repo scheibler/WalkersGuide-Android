@@ -1,4 +1,4 @@
-package org.walkersguide.android.data.poi;
+package org.walkersguide.android.data.basic.wrapper;
 
 import java.util.Comparator;
 
@@ -10,6 +10,7 @@ import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.sensor.DirectionManager;
 
 import android.content.Context;
+import org.walkersguide.android.data.profile.PointProfile;
 
 public class PointProfileObject extends PointWrapper {
 

@@ -77,23 +77,19 @@
     <string name="buttonGetRoute">Get route</string>
 
     <!-- select point dialog -->
-    <string name="selectPointDialogNameStart">Select start point from:</string>
-    <string name="selectPointDialogNameDestination">Select destination point from:</string>
-    <string name="selectPointDialogNameVia">Select via point %1$d from:</string>
-    <string name="selectPointDialogNameSimulation">Select point to simulate from:</string>
-    <string name="pointSourceParentGeneral">General:</string>
-    <string name="pointSourceChildCurrentLocation">Current location</string>
-    <string name="pointSourceChildAddress">Address</string>
-    <string name="pointSourceParentFavorites">Favorites: (%1$d)</string>
-    <string name="pointSourceParentPOI">POI: (%1$d)</string>
+    <string name="selectPointDialogNameStart">Select start point:</string>
+    <string name="selectPointDialogNameDestination">Select destination point:</string>
+    <string name="selectPointDialogNameVia">Select via point %1$d:</string>
+    <string name="selectPointDialogNameSimulation">Select point to simulate:</string>
+    <string name="pointSelectFromCurrentLocation">Use current location</string>
+    <string name="pointSelectFromEnterAddress">Enter an address</string>
+    <string name="pointSelectFromFavorites">choose from your favorites</string>
+    <string name="pointSelectFromPOI">Select a nearby POI</string>
 
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Enter Address:</string>
     <string name="editHintAddress">city, street and house number</string>
     <string name="messageAddressMissing">Please enter an address.</string>
-
-    <!-- select favorite/poi dialog -->
-    <string name="selectPOIDialogName">Profile: %1$s</string>
 
     <!-- request address dialog -->
     <string name="requestAddressDialogName">Request Address:</string>
@@ -123,7 +119,6 @@
     <string name="closeNavigationDrawer">Close tab menu</string>
 
     <!-- fragment names -->
-    <string name="fragmentSearchName">Search</string>
     <string name="fragmentFavoriteName">Favorites</string>
     <string name="fragmentRouterName">Router</string>
     <string name="fragmentPOIName">POI</string>
@@ -157,20 +152,12 @@
     <!-- favorites and poi fragments -->
     <string name="buttonPreviousProfile">Previous profile</string>
     <string name="buttonNextProfile">Next profile</string>
-    <string name="buttonJumpToTop">Jump to top</string>
-    <string name="emptyProfileList">No profile selected</string>
-    <string name="buttonRefresh">Refresh</string>
-    <string name="buttonCancel">Cancel</string>
-    <string name="buttonFilter">Filter</string>
-    <string name="buttonMore">More</string>
     <!-- more button menu -->
+    <string name="menuItemSearchInProfile">Search</string>
     <string name="menuItemNewProfile">New profile</string>
     <string name="menuItemEditProfile">Edit profile</string>
     <string name="menuItemClearProfile">Clear profile</string>
     <string name="menuItemRemoveProfile">Remove profile</string>
-
-    <!-- select profile dialog -->
-    <string name="selectProfileDialogTitle">Select profile</string>
 
     <!-- new / edit profile dialog -->
     <string name="newProfileDialogTitle">Create profile</string>
@@ -186,10 +173,11 @@
     <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
 
     <!-- favorites fragment -->
-    <string name="labelFavoritesFragmentHeaderSuccessSingular">1 favorite found.\nOrder: %1$s</string>
-    <string name="labelFavoritesFragmentHeaderSuccessSingularFiltered">1 favorite found.\nOrder: %1$s, filtered</string>
-    <string name="labelFavoritesFragmentHeaderSuccessPlural">%1$d favorites found.\nOrder: %2$s</string>
-    <string name="labelFavoritesFragmentHeaderSuccessPluralFiltered">%1$d favorites found.\nOrder: %2$s, filtered</string>
+    <string name="labelFavoritesFragmentHeaderSuccess">%1$s\nOrder: %2$s</string>
+    <string name="labelFavoritesFragmentHeaderSuccessFiltered">Filtered: %1$s\nOrder: %2$s</string>
+
+    <!-- select favorites profile dialog -->
+    <string name="selectFavoritesProfileDialogTitle">Select favorites profile</string>
 
     <!-- new / edit favorites profile dialog -->
     <string name="labelFavoritesProfileSortCriteria">Sort criteria:</string>
@@ -201,14 +189,48 @@
     <string name="radioButtonSortOrderDesc">Date, descending</string>
     <string name="messageNoSortCriteria">Please select a sort criteria from the list.</string>
 
+    <!-- SearchInFavoritesDialog and SearchInPOIDialog -->
+    <string name="buttonSelectCategoriesCD">%1$s selected</string>
+    <string name="labelStartSearch">Start a search</string>
+    <!-- SearchInFavoritesDialog -->
+    <string name="searchInFavoritesDialogTitle">Search in Favorites</string>
+    <string name="labelSearchFavoritesDialogHeaderSuccess">%1$s\nFor: %2$s\nOrder: %3$s</string>
+    <!-- SearchInPOIDialog -->
+    <string name="searchInPOIDialogTitle">Search for POI</string>
+    <string name="labelSearchPOIDialogHeaderSuccess">%1$s\nFor: %2$s\nRadius: %3$d meters</string>
+
+    <!-- SelectFavoritesProfilesForSearch -->
+    <string name="selectFavoritesProfilesForSearchDialogTitle">Search in:</string>
+
+    <!-- SelectSortCriteriaForSearchDialog -->
+    <string name="selectSortCriteriaForSearchDialogTitle">Sort search results:</string>
+
     <!-- poi fragment -->
-    <string name="labelPOIFragmentHeaderSuccess">%1$d POI found.\nRadius: %2$d meters</string>
-    <string name="labelPOIFragmentHeaderSuccessFiltered">%1$d POI found.\nRadius: %2$d meters (filtered)</string>
+    <string name="labelPOIFragmentHeaderSuccess">%1$d POI\nRadius: %2$d meters</string>
+    <string name="labelPOIFragmentHeaderSuccessFiltered">Filtered: %1$d POI\nRadius: %2$d meters</string>
     <string name="labelMoreResults">Get more POI</string>
+
+    <!-- select poi profile dialog -->
+    <string name="selectPOIProfileDialogTitle">Select POI profile</string>
 
     <!-- new / edit poi profile dialog -->
     <string name="labelPOIProfileCategories">POI categories:</string>
 
+    <!-- layout_poi_heading_and_list -->
+    <string name="buttonJumpToTop">Jump to top</string>
+    <string name="emptyProfileList">No profile selected</string>
+
+    <!-- layout_poi_list_controls -->
+    <string name="buttonRefresh">Refresh</string>
+    <string name="buttonCancel">Cancel</string>
+    <string name="buttonFilter">Filter</string>
+    <string name="buttonMore">More</string>
+
+
+    <!-- SelectPOICategoriesForSearchDialog -->
+    <string name="selectPOICategoriesForSearchDialogTitle">Search in:</string>
+    <string name="buttonQuickSelectPOICategories">Quick select POI categories</string>
+    <string name="labelNoPOIProfileMatches">No match</string>
 
     <!--
          other activities
@@ -326,13 +348,15 @@
 
     <!-- settings activity -->
     <string name="settingsActivityTitle">Settings</string>
-    <string name="labelServerSettingsHeader">Server settings:</string>
+    <string name="labelServerSettingsHeader">Server:</string>
     <string name="buttonServerURL">URL: %1$s</string>
     <string name="buttonServerURLNoSelection">URL: None selected</string>
     <string name="buttonServerMap">Map: %1$s</string>
     <string name="buttonServerMapNoSelection">Map: None selected</string>
     <string name="buttonServerPublicTransportProvider">Provider: %1$s</string>
     <string name="buttonServerPublicTransportProviderNoSelection">Provider: None selected</string>
+    <string name="labelInterfaceSettingsHeader">Interface:</string>
+    <string name="buttonShakeIntensity">Shake intensity</string>
 
     <!-- new server dialog -->
     <string name="newServerDialogTitle">New server</string>
@@ -344,6 +368,9 @@
 
     <!-- select public transport provider  dialog -->
     <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
+
+    <!-- Select shake intentsity Dialog -->
+    <string name="selectShakeIntensityDialogTitle">Select strain:</string>
 
     <!-- info activity -->
     <string name="infoActivityTitle">Info</string>
@@ -403,7 +430,11 @@
     <string name="fpNameAddressPoints">Addresses</string>
     <string name="fpNameRoutePoints">Route points</string>
     <string name="fpNameSimulatedPoints">Simulated points</string>
+    <string name="fpNameSearch">Search</string>
     <string name="fpNameUserCreatedPoints">User created points</string>
+
+    <!-- POIProfile -->
+    <string name="ppNameSearch">Search</string>
 
     <!-- POICategory -->
     <string name="labelPOICategoryBusTram">Bus and tram stations</string>
@@ -468,7 +499,10 @@
     <string name="dialogExclude">Exclude</string>
     <string name="dialogMore">More</string>
     <string name="dialogNext">Next</string>
+    <string name="dialogRefresh">Refresh</string>
     <string name="dialogRemove">Remove</string>
+    <string name="dialogSearch">Search</string>
+    <string name="dialogSort">Sort</string>
     <string name="dialogUpdate">Update</string>
     <string name="messagePleaseWait">Please wait...</string>
 
@@ -486,28 +520,31 @@
 
     <!-- return code errors -->
     <string name="messageError1000">Cancelled</string>
-    <string name="messageError1001">Error: No POI profile selected.</string>
-    <string name="messageError1002">Error: No POI category selected.</string>
     <string name="messageError1003">Error: No internet connection available.</string>
     <string name="messageError1004">Error: No location found.</string>
     <string name="messageError1005">Error: No direction found.</string>
     <string name="messageError1006">Error: No map selected.</string>
     <string name="messageError1007">Error: This app is outdated..</string>
+    <!-- server -->
     <string name="messageError1010">Error: Can\'t connect to server.</string>
     <string name="messageError1011">Error: Invalid server response.</string>
     <string name="messageError1012">Error from server: %1$s</string>
     <string name="messageError1013">Error: No coordinates for this address found.</string>
     <string name="messageError1014">Error: No address for this location found.</string>
     <string name="messageError1015">You exceeded the daily request quota for the Google maps API.</string>
+    <!-- route -->
     <string name="messageError1020">No start point selected.</string>
     <string name="messageError1021">No destination point selected.</string>
     <string name="messageError1022">No route selected.</string>
     <string name="messageError1023">Route parsing error.</string>
+    <!-- favorites and poi -->
+    <string name="messageError1030">Missing search term</string>
+    <string name="messageError1031">No favorites profiles selected</string>
+    <string name="messageError1032">Error: No POI profile selected.</string>
+    <string name="messageError1033">Error: No POI category selected.</string>
+    <string name="messageError1034">Unsupported POI request action</string>
+    <!-- others -->
     <string name="messageErrorDataLoadingFailed">Data could not be loaded.</string>
-    <string name="messageErrorNoUserCreatedFavoritesProfiles">No user created favorites profile
-        found.\nBefore you can add this point to any favorites profile, you have to create at least
-        one profile.\nTo do so, go to the favorites tab of the main activity and click on \"MORE\"
-        and then on \"New profile\".</string>
     <string name="messageNameMissing">Please enter a name.</string>
     <string name="messageUnknownError">Unknown error: %1$d</string>
 
@@ -530,5 +567,54 @@
     <string name="directionSouthWest">Southwest</string>
     <string name="directionWest">West</string>
     <string name="directionNorthWest">Northwest</string>
+
+    <!-- Class: ShakeIntensity -->
+    <string name="shakeIntensityDisabled">Disabled</string>
+    <string name="shakeIntensityVeryWeak">Very weak</string>
+    <string name="shakeIntensityWeak">Weak</string>
+    <string name="shakeIntensityMedium">Medium</string>
+    <string name="shakeIntensityStrong">Strong</string>
+    <string name="shakeIntensityVeryStrong">Very Strong</string>
+
+
+    <!--
+         plurals
+    -->
+
+    <plurals
+        name="category">
+        <item quantity="one">1 category</item>
+        <item quantity="other">%d categories</item>
+    </plurals>
+
+    <plurals
+        name="favorite">
+        <item quantity="one">1 favorite</item>
+        <item quantity="other">%d favorites</item>
+    </plurals>
+
+    <plurals
+        name="meter">
+        <item quantity="one">1 meter</item>
+        <item quantity="other">%d meters</item>
+    </plurals>
+
+    <plurals
+        name="poi">
+        <item quantity="one">1 POI</item>
+        <item quantity="other">%d POI</item>
+    </plurals>
+
+    <plurals
+        name="profile">
+        <item quantity="one">1 profile</item>
+        <item quantity="other">%d profiles</item>
+    </plurals>
+
+    <plurals
+        name="result">
+        <item quantity="one">1 result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
 
 </resources>

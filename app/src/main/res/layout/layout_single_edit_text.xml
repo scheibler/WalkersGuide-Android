@@ -16,6 +16,8 @@
         android:id="@+id/buttonDelete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="@dimen/minWidth"
+        android:minHeight="@dimen/minHeight"
         android:background="@null"
         android:src="@drawable/delete"
         android:contentDescription="@string/buttonDelete" />
