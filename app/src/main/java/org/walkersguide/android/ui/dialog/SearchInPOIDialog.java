@@ -60,7 +60,7 @@ import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.profile.POIProfile;
 import org.walkersguide.android.data.profile.SearchFavoritesProfile;
 import org.walkersguide.android.data.route.Route;
-import org.walkersguide.android.google.AddressManager;
+import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.POIProfileListener;

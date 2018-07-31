@@ -3,10 +3,12 @@ package org.walkersguide.android.ui.activity;
 import org.walkersguide.android.R;
 import org.walkersguide.android.listener.ServerStatusListener;
 import org.walkersguide.android.server.ServerStatus;
+import org.walkersguide.android.ui.dialog.SelectAddressProviderDialog;
 import org.walkersguide.android.ui.dialog.SelectShakeIntensityDialog;
 import org.walkersguide.android.ui.dialog.SelectMapDialog;
 import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.util.SettingsImport;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
@@ -35,11 +37,20 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import org.walkersguide.android.listener.ChildDialogCloseListener;
+import org.walkersguide.android.listener.SettingsImportListener;
+import java.io.File;
+import org.walkersguide.android.util.SettingsManager;
+import android.widget.Switch;
+import android.widget.CompoundButton;
+
 
 public class SettingsActivity extends AbstractActivity {
 
     private Button buttonServerURL, buttonServerMap, buttonServerPublicTransportProvider;
+    private Button buttonAddressProvider;
     private Button buttonShakeIntensity;
+    private Switch buttonEnableTextInputHistory;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -80,11 +91,42 @@ public class SettingsActivity extends AbstractActivity {
             }
         });
 
+		buttonAddressProvider = (Button) findViewById(R.id.buttonAddressProvider);
+		buttonAddressProvider.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
+                SelectAddressProviderDialog.newInstance(
+                        settingsManagerInstance.getServerSettings().getAddressProviderId())
+                    .show(getSupportFragmentManager(), "SelectAddressProviderDialog");
+            }
+        });
+
         buttonShakeIntensity = (Button) findViewById(R.id.buttonShakeIntensity);
         buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 SelectShakeIntensityDialog.newInstance()
                     .show(getSupportFragmentManager(), "SelectShakeIntensityDialog");
+            }
+        });
+
+        // privacy settings
+        buttonEnableTextInputHistory = (Switch) findViewById(R.id.buttonEnableTextInputHistory);
+        buttonEnableTextInputHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked != settingsManagerInstance.getGeneralSettings().getEnableTextInputHistory()) {
+                    settingsManagerInstance.getGeneralSettings().setEnableTextInputHistory(isChecked);
+                    if (! isChecked) {
+                        settingsManagerInstance.getSearchTermHistory().clearSearchTermList();
+                    }
+                }
+            }
+        });
+
+        // import and export settings
+		Button buttonImportSettings = (Button) findViewById(R.id.buttonImportSettings);
+		buttonImportSettings.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
+                ImportSettingsDialog.newInstance()
+                    .show(getSupportFragmentManager(), "ImportSettingsDialog");
             }
         });
     }
@@ -96,6 +138,8 @@ public class SettingsActivity extends AbstractActivity {
         menu.findItem(R.id.menuItemPlanRoute).setVisible(false);
         menu.findItem(R.id.menuItemRequestAddress).setVisible(false);
         menu.findItem(R.id.menuItemSaveCurrentPosition).setVisible(false);
+        menu.findItem(R.id.menuItemSearchInFavorites).setVisible(false);
+        menu.findItem(R.id.menuItemSearchInPOI).setVisible(false);
         menu.findItem(R.id.menuItemSettings).setVisible(false);
         menu.findItem(R.id.menuItemInfo).setVisible(false);
         return true;
@@ -134,6 +178,28 @@ public class SettingsActivity extends AbstractActivity {
                     getResources().getString(R.string.buttonServerPublicTransportProviderNoSelection));
         }
 
+        // address provider
+        switch (serverSettings.getAddressProviderId()) {
+            case Constants.ADDRESS_PROVIDER.GOOGLE:
+                buttonAddressProvider.setText(
+                        String.format(
+                            getResources().getString(R.string.buttonAddressProvider),
+                            getResources().getString(R.string.addressProviderGoogle))
+                        );
+                break;
+            case Constants.ADDRESS_PROVIDER.OSM:
+                buttonAddressProvider.setText(
+                        String.format(
+                            getResources().getString(R.string.buttonAddressProvider),
+                            getResources().getString(R.string.addressProviderOSM))
+                        );
+                break;
+            default:
+                buttonAddressProvider.setText(
+                        getResources().getString(R.string.buttonAddressProviderNoSelection));
+                break;
+        }
+
         // shake intensity button
         String shakeIntensityName;
         switch (settingsManagerInstance.getGeneralSettings().getShakeIntensity()) {
@@ -165,6 +231,9 @@ public class SettingsActivity extends AbstractActivity {
                     getResources().getString(R.string.buttonShakeIntensity),
                     shakeIntensityName)
                 );
+
+        // enable text input history
+        buttonEnableTextInputHistory.setChecked(settingsManagerInstance.getGeneralSettings().getEnableTextInputHistory());
     }
 
 
@@ -297,5 +366,141 @@ public class SettingsActivity extends AbstractActivity {
             }
         }
     }
+
+
+    public static class ImportSettingsDialog extends DialogFragment implements SettingsImportListener, ChildDialogCloseListener {
+        private static final String DATABASE_FILE_TO_IMPORT = "walkersguide.db";
+
+        // Store instance variables
+        private SettingsManager settingsManagerInstance;
+        private SettingsImport settingsImportRequest;
+        private TextView labelDatabaseImport;
+
+        public static ImportSettingsDialog newInstance() {
+            ImportSettingsDialog importSettingsDialogInstance = new ImportSettingsDialog();
+            return importSettingsDialogInstance;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            settingsManagerInstance = SettingsManager.getInstance(context);
+            settingsImportRequest = null;
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            final ViewGroup nullParent = null;
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
+            labelDatabaseImport = (TextView) view.findViewById(R.id.label);
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.importSettingsDialogTitle))
+                .setView(view)
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogImport),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogClose),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                .create();
+        }
+
+        @Override public void onStart() {
+            super.onStart();
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                // positive button
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        tryToImportSettings();
+                    }
+                });
+                // negative button
+                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                buttonNegative.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+                // database file label
+                File databaseFileToImport = new File(
+                        getActivity().getExternalFilesDir(null), DATABASE_FILE_TO_IMPORT);
+                if (databaseFileToImport.exists()) {
+                    labelDatabaseImport.setText(
+                            String.format(
+                                "%1$s: %2$s",
+                                getResources().getString(R.string.labelImportDatabase),
+                                databaseFileToImport.getAbsolutePath())
+                            );
+                    buttonPositive.setVisibility(View.VISIBLE);
+                } else {
+                    labelDatabaseImport.setText(
+                            getResources().getString(R.string.labelImportDatabaseNotFound));
+                    buttonPositive.setVisibility(View.GONE);
+                }
+            }
+        }
+
+        private void tryToImportSettings() {
+            // cancel previous request
+            if (settingsImportRequest != null
+                    && settingsImportRequest.getStatus() != AsyncTask.Status.FINISHED) {
+                settingsImportRequest.cancel();
+            }
+            // change positive button label
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setText(getResources().getString(R.string.dialogCancel));
+            }
+            settingsImportRequest = new SettingsImport(
+                    getActivity(), ImportSettingsDialog.this, new File(getActivity().getExternalFilesDir(null), DATABASE_FILE_TO_IMPORT));
+            settingsImportRequest.execute();
+        }
+
+    	@Override public void settingsImportFinished(int returnCode, String returnMessage) {
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setText(getResources().getString(R.string.dialogImport));
+            }
+            SimpleMessageDialog simpleMessageDialog = SimpleMessageDialog.newInstance(returnMessage);
+            if (returnCode == Constants.ID.OK) {
+                simpleMessageDialog.setTargetFragment(ImportSettingsDialog.this, 1);
+            }
+            simpleMessageDialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+            // re-query server information (maps, public transport providers, ...)
+            if (returnCode == Constants.ID.OK) {
+                ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
+                ServerStatus serverStatus = new ServerStatus(
+                        getActivity(), ServerStatus.ACTION_UPDATE_BOTH, serverSettings.getServerURL(), serverSettings.getSelectedMap());
+                serverStatus.execute();
+            }
+        }
+
+        @Override public void childDialogClosed() {
+            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+            dismiss();
+        }
+
+        @Override public void onDismiss(final DialogInterface dialog) {
+            super.onDismiss(dialog);
+            if (settingsImportRequest != null
+                    && settingsImportRequest.getStatus() != AsyncTask.Status.FINISHED) {
+                settingsImportRequest.cancel();
+            }
+        }
+    }
+
+
 
 }

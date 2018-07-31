@@ -225,6 +225,11 @@ public class FavoritesManager {
         this.requestFavoritesSearch = null;
     }
 
+    public void destroySearchInstance() {
+        this.cancelSearchRequest();
+        this.lastSearchFavoritesProfile = null;
+    }
+
 
     private class RequestFavoritesSearch extends AsyncTask<Void, Void, SearchFavoritesProfile> {
 
@@ -283,6 +288,9 @@ public class FavoritesManager {
                 this.returnCode = 1030;
                 return null;
             }
+            //String regexp = String.format(
+            //        "(?i).*%1$s.*", searchTerm.replaceAll(" ", ".*"));
+            //System.out.println("xxx regexp: " + regexp);
 
             // no favorites profiles to search in
             if (this.favoritesProfileIdList == null
@@ -310,9 +318,17 @@ public class FavoritesManager {
                 for (Integer favoritesProfileId : this.favoritesProfileIdList) {
                     FavoritesProfile favoritesProfile = AccessDatabase.getInstance(context).getFavoritesProfile(favoritesProfileId);
                     for (PointProfileObject favorite : favoritesProfile.getPointProfileObjectList()) {
-                        if (! foundFavoritesList.contains(favorite)
-                                && favorite.toString().toLowerCase().contains(this.searchTerm.toLowerCase())) {
-                            foundFavoritesList.add(favorite);
+                        if (! foundFavoritesList.contains(favorite)) {      //&& favorite.toString().matches(regexp)) {
+                            boolean matches = true;
+                            for (String word : searchTerm.split("\\s")) {
+                                if (! favorite.toString().toLowerCase().contains(word.toLowerCase())) {
+                                    matches = false;
+                                    break;
+                                }
+                            }
+                            if (matches) {
+                                foundFavoritesList.add(favorite);
+                            }
                         }
                     }
                 }

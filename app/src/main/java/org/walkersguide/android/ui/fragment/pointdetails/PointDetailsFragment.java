@@ -33,6 +33,7 @@ import org.walkersguide.android.data.basic.point.Intersection;
 import org.walkersguide.android.data.basic.point.PedestrianCrossing;
 import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.data.basic.point.PointWithAddressData;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.point.StreetAddress;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
@@ -105,20 +106,281 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
                 && pointWrapper.getPoint() instanceof Point) {
             Point point = (Point) pointWrapper.getPoint();
 
-            if (pointWrapper.getPoint() instanceof Entrance) {
-                Entrance entrance = (Entrance) pointWrapper.getPoint();
-                if (! entrance.getLabel().equals("")) {
-                   	addTextView(
+            if (pointWrapper.getPoint() instanceof PointWithAddressData) {
+                PointWithAddressData pointWithAddressData = null;
+
+                if (pointWrapper.getPoint() instanceof Entrance) {
+                    pointWithAddressData = (Entrance) pointWrapper.getPoint();
+                    Entrance entrance = (Entrance) pointWrapper.getPoint();
+                    if (! entrance.getLabel().equals("")) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                getResources().getString(R.string.labelPointEntranceAttributesHeading),
+                                true, TEXTVIEW_NO_AUTO_LINK);
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointEntranceLabel),
+                                    entrance.getLabel()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+
+                } else if (pointWrapper.getPoint() instanceof StreetAddress) {
+                    pointWithAddressData = (StreetAddress) pointWrapper.getPoint();
+
+                } else if (pointWrapper.getPoint() instanceof POI) {
+                    POI poi = (POI) pointWrapper.getPoint();
+
+                    if (pointWrapper.getPoint() instanceof Station) {
+                        Station station = (Station) pointWrapper.getPoint();
+                        // vehicle list
+                        if (! station.getVehicleList().isEmpty()) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    getResources().getString(R.string.labelPointStationAttributesHeading),
+                                    true, TEXTVIEW_NO_AUTO_LINK);
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointStationVehicleTypes),
+                                        TextUtils.join(", ", station.getVehicleList())),
+                                    false, TEXTVIEW_NO_AUTO_LINK);
+                        }
+                        // lines
+                        if (! station.getLineList().isEmpty()) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    getResources().getString(R.string.labelPointStationLinesHeading),
+                                    true, TEXTVIEW_NO_AUTO_LINK);
+                            for (Line line : station.getLineList()) {
+                                addTextView(
+                                        TEXTVIEW_NO_ID,
+                                        line.getDescription(),
+                                        false, TEXTVIEW_NO_AUTO_LINK);
+                            }
+                        }
+                    }
+
+                    // poi building attributes
+                    if (poi.getOuterBuilding() != null
+                            || ! poi.getEntranceList().isEmpty()) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                getResources().getString(R.string.labelPointPOIBuildingHeading),
+                                true, TEXTVIEW_NO_AUTO_LINK);
+                        // outer building
+                        if (poi.getOuterBuilding() != null) {
+                            addTextView(
+                                    TEXTVIEW_OUTER_BUILDING_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointPOIBuildingIsInside),
+                                        poi.getOuterBuilding().toString()),
+                                    false, TEXTVIEW_NO_AUTO_LINK);
+                            // add click listener
+                            TextView labelOuterBuilding = (TextView) layoutAttributes.findViewById(TEXTVIEW_OUTER_BUILDING_ID);
+                            if (labelOuterBuilding != null) {
+                                labelOuterBuilding.setOnClickListener(new View.OnClickListener() {
+                                    @Override public void onClick(View v) {
+                                        Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
+                                        try {
+                                            detailsIntent.putExtra(
+                                                    Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
+                                                    ((POI) pointWrapper.getPoint()).getOuterBuilding().toJson().toString());
+                                        } catch (JSONException e) {
+                                            detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
+                                        }
+                                        startActivity(detailsIntent);
+                                    }
+                                });
+                            }
+                        }
+                        // number of entrances
+                        if (! poi.getEntranceList().isEmpty()) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$d",
+                                        getResources().getString(R.string.labelPointPOIBuildingNumberOfEntrances),
+                                        poi.getEntranceList().size()),
+                                    false, TEXTVIEW_NO_AUTO_LINK);
+                        }
+                            }
+
+                    // contact attributes
+                    if (! TextUtils.isEmpty(poi.createPrintableAddress())
+                            || ! TextUtils.isEmpty(poi.getEmail())
+                            || ! TextUtils.isEmpty(poi.getPhone())
+                            || ! TextUtils.isEmpty(poi.getWebsite())
+                            || ! TextUtils.isEmpty(poi.getOpeningHours())) {
+                        // heading
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                getResources().getString(R.string.labelPointPOIContactHeading),
+                                true, TEXTVIEW_NO_AUTO_LINK);
+                        // post address
+                        if (! TextUtils.isEmpty(poi.createPrintableAddress())) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointPOIContactPostAddress),
+                                        poi.createPrintableAddress()),
+                                    false, Linkify.MAP_ADDRESSES);
+                        }
+                        // email
+                        if (! TextUtils.isEmpty(poi.getEmail())) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointPOIContactEMailAddress),
+                                        poi.getEmail()),
+                                    false, Linkify.EMAIL_ADDRESSES);
+                        }
+                        // phone
+                        if (! TextUtils.isEmpty(poi.getPhone())) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointPOIContactPhoneNumber),
+                                        poi.getPhone()),
+                                    false, Linkify.PHONE_NUMBERS);
+                        }
+                        // website
+                        if (! TextUtils.isEmpty(poi.getWebsite())) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointPOIContactWebsite),
+                                        poi.getWebsite()),
+                                    false, Linkify.WEB_URLS);
+                        }
+                        // opening hours
+                        if (! TextUtils.isEmpty(poi.getOpeningHours())) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointPOIContactOpeningHours),
+                                        poi.getOpeningHours()),
+                                    false, TEXTVIEW_NO_AUTO_LINK);
+                        }
+                            }
+                }
+
+                // address components
+                if (pointWithAddressData != null
+                        && (
+                               ! TextUtils.isEmpty(pointWithAddressData.getHouseNumber())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getRoad())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getResidential())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getSuburb())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getCityDistrict())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getPostcode())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getCity())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getState())
+                            || ! TextUtils.isEmpty(pointWithAddressData.getCountry()))
+                        ) {
+                    // heading
+                    addTextView(
                             TEXTVIEW_NO_ID,
-                			getResources().getString(R.string.labelPointEntranceAttributesHeading),
+                            getResources().getString(R.string.labelPointWithAddressDataHeading),
                             true, TEXTVIEW_NO_AUTO_LINK);
-                   	addTextView(
-                            TEXTVIEW_NO_ID,
-                            String.format(
-                                "%1$s: %2$s",
-            			        getResources().getString(R.string.labelPointEntranceLabel),
-                                entrance.getLabel()),
-                    false, TEXTVIEW_NO_AUTO_LINK);
+                    // house number
+                    if (! TextUtils.isEmpty(pointWithAddressData.getHouseNumber())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataHouseNumber),
+                                    pointWithAddressData.getHouseNumber()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // road
+                    if (! TextUtils.isEmpty(pointWithAddressData.getRoad())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataRoad),
+                                    pointWithAddressData.getRoad()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // residential
+                    if (! TextUtils.isEmpty(pointWithAddressData.getResidential())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataResidential),
+                                    pointWithAddressData.getResidential()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // suburb
+                    if (! TextUtils.isEmpty(pointWithAddressData.getSuburb())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataSuburb),
+                                    pointWithAddressData.getSuburb()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // city district
+                    if (! TextUtils.isEmpty(pointWithAddressData.getCityDistrict())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataCityDistrict),
+                                    pointWithAddressData.getCityDistrict()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // postcode
+                    if (! TextUtils.isEmpty(pointWithAddressData.getPostcode())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataPostcode),
+                                    pointWithAddressData.getPostcode()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // city
+                    if (! TextUtils.isEmpty(pointWithAddressData.getCity())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataCity),
+                                    pointWithAddressData.getCity()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // state
+                    if (! TextUtils.isEmpty(pointWithAddressData.getState())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataState),
+                                    pointWithAddressData.getState()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                    // country
+                    if (! TextUtils.isEmpty(pointWithAddressData.getCountry())) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointWithAddressDataCountry),
+                                    pointWithAddressData.getCountry()),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
                 }
 
             } else if (pointWrapper.getPoint() instanceof GPS) {
@@ -261,149 +523,6 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
                                     "%1$s: %2$s",
                                     getResources().getString(R.string.labelPointTrafficSignalsVibration),
                                     trafficSignalsVibrationValue),
-                                false, TEXTVIEW_NO_AUTO_LINK);
-                    }
-                }
-
-            } else if (pointWrapper.getPoint() instanceof POI) {
-                POI poi = (POI) pointWrapper.getPoint();
-
-                if (pointWrapper.getPoint() instanceof Station) {
-                    Station station = (Station) pointWrapper.getPoint();
-                    // vehicle list
-                    if (! station.getVehicleList().isEmpty()) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                getResources().getString(R.string.labelPointStationAttributesHeading),
-                                true, TEXTVIEW_NO_AUTO_LINK);
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointStationVehicleTypes),
-                                    TextUtils.join(", ", station.getVehicleList())),
-                                false, TEXTVIEW_NO_AUTO_LINK);
-                    }
-                    // lines
-                    if (! station.getLineList().isEmpty()) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                getResources().getString(R.string.labelPointStationLinesHeading),
-                                true, TEXTVIEW_NO_AUTO_LINK);
-                        for (Line line : station.getLineList()) {
-                            addTextView(
-                                    TEXTVIEW_NO_ID,
-                                    line.getDescription(),
-                                    false, TEXTVIEW_NO_AUTO_LINK);
-                        }
-                    }
-                }
-
-                // poi building attributes
-                if (poi.getOuterBuilding() != null
-                        || ! poi.getEntranceList().isEmpty()) {
-                    addTextView(
-                            TEXTVIEW_NO_ID,
-                            getResources().getString(R.string.labelPointPOIBuildingHeading),
-                            true, TEXTVIEW_NO_AUTO_LINK);
-                    // outer building
-                    if (poi.getOuterBuilding() != null) {
-                        addTextView(
-                                TEXTVIEW_OUTER_BUILDING_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointPOIBuildingIsInside),
-                                    poi.getOuterBuilding().toString()),
-                                false, TEXTVIEW_NO_AUTO_LINK);
-                        // add click listener
-                        TextView labelOuterBuilding = (TextView) layoutAttributes.findViewById(TEXTVIEW_OUTER_BUILDING_ID);
-                        if (labelOuterBuilding != null) {
-                            labelOuterBuilding.setOnClickListener(new View.OnClickListener() {
-                                @Override public void onClick(View v) {
-                                    Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
-                                    try {
-                                        detailsIntent.putExtra(
-                                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
-                                                ((POI) pointWrapper.getPoint()).getOuterBuilding().toJson().toString());
-                                    } catch (JSONException e) {
-                                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
-                                    }
-                                    startActivity(detailsIntent);
-                                }
-                            });
-                        }
-                    }
-                    // number of entrances
-                    if (! poi.getEntranceList().isEmpty()) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$d",
-                                    getResources().getString(R.string.labelPointPOIBuildingNumberOfEntrances),
-                                    poi.getEntranceList().size()),
-                                false, TEXTVIEW_NO_AUTO_LINK);
-                    }
-                }
-
-                // contact attributes
-                if (! TextUtils.isEmpty(poi.getAddress())
-                        || ! TextUtils.isEmpty(poi.getEmail())
-                        || ! TextUtils.isEmpty(poi.getPhone())
-                        || ! TextUtils.isEmpty(poi.getWebsite())
-                        || ! TextUtils.isEmpty(poi.getOpeningHours())) {
-                    // heading
-                   	addTextView(
-                            TEXTVIEW_NO_ID,
-                			getResources().getString(R.string.labelPointPOIContactHeading),
-                            true, TEXTVIEW_NO_AUTO_LINK);
-                    // post address
-                    if (! TextUtils.isEmpty(poi.getAddress())) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointPOIContactPostAddress),
-                                    poi.getAddress()),
-                                false, Linkify.MAP_ADDRESSES);
-                    }
-                    // email
-                    if (! TextUtils.isEmpty(poi.getEmail())) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointPOIContactEMailAddress),
-                                    poi.getEmail()),
-                                false, Linkify.EMAIL_ADDRESSES);
-                    }
-                    // phone
-                    if (! TextUtils.isEmpty(poi.getPhone())) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointPOIContactPhoneNumber),
-                                    poi.getPhone()),
-                                false, Linkify.PHONE_NUMBERS);
-                    }
-                    // website
-                    if (! TextUtils.isEmpty(poi.getWebsite())) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointPOIContactWebsite),
-                                    poi.getWebsite()),
-                                false, Linkify.WEB_URLS);
-                    }
-                    // opening hours
-                    if (! TextUtils.isEmpty(poi.getOpeningHours())) {
-                        addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointPOIContactOpeningHours),
-                                    poi.getOpeningHours()),
                                 false, TEXTVIEW_NO_AUTO_LINK);
                     }
                 }

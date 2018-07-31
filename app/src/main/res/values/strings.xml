@@ -11,6 +11,8 @@
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemRequestAddress">Request address</string>
     <string name="menuItemSaveCurrentPosition">Save position</string>
+    <string name="menuItemSearchInFavorites">Search in favorites</string>
+    <string name="menuItemSearchInPOI">Search in POI</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
 
@@ -94,19 +96,20 @@
     <!-- request address dialog -->
     <string name="requestAddressDialogName">Request Address:</string>
     <string name="messageNoAddressSelected">No address selected.</string>
-    <string name="messageAddressRequestSuccessful">You are at:\n%1$s</string>
-    <string name="messageAddressRequestFailed">Error:\n%1$s</string>
+    <string name="messageAddressRequestSuccessful">You are at:\n\n%1$s\n\n%2$s</string>
+    <string name="messageAddressRequestFailed">Error:\n\n%1$s</string>
 
     <!-- save current position dialog -->
     <string name="saveCurrentPositionDialogName">Save current position</string>
+    <string name="labelPointNameToSave">Point name:</string>
+    <string name="editHintSaveCurrentPointName">Name</string>
     <string name="labelLocationData">Location data:</string>
     <string name="buttonRefreshLocation">Refresh location</string>
     <string name="labelCheckFavoritesProfiles">Select profiles:</string>
-    <string name="buttonClearFavoritesProfiles">Clear profile selection</string>
+    <string name="buttonAddFavoritesProfile">Add</string>
+    <string name="buttonAddFavoritesProfileCD">Add favorites Profile</string>
     <string name="labelNoUserCreatedFavoritesProfiles">Please create at least one favorites profile.
         Otherwise this point is only saved into the default \"user created points\" profile.</string>
-    <string name="labelPointNameToSave">Point name:</string>
-    <string name="editHintSaveCurrentPointName">Name</string>
 
 
     <!--
@@ -153,7 +156,7 @@
     <string name="buttonPreviousProfile">Previous profile</string>
     <string name="buttonNextProfile">Next profile</string>
     <!-- more button menu -->
-    <string name="menuItemSearchInProfile">Search</string>
+    <string name="menuItemAddFavoriteFromCurrentPosition">Add Favorite</string>
     <string name="menuItemNewProfile">New profile</string>
     <string name="menuItemEditProfile">Edit profile</string>
     <string name="menuItemClearProfile">Clear profile</string>
@@ -277,17 +280,6 @@
     <!-- entrance -->
     <string name="labelPointEntranceAttributesHeading">Entrance</string>
     <string name="labelPointEntranceLabel">Label:</string>
-    <!-- gps -->
-    <string name="labelPointGPSDetailsHeading">GPS Details</string>
-    <!-- intersection -->
-    <string name="labelPointIntersectionAttributesHeading">Intersection</string>
-    <string name="labelPointIntersectionNumberOfStreets">Number of streets:</string>
-    <string name="labelPointIntersectionNumberOfBigStreets">Number of big streets:</string>
-    <string name="labelPointIntersectionNumberOfPedestrianCrossingsNearBy">Pedestrian crossings nearby:</string>
-    <!-- pedestrian crossing -->
-    <string name="labelPointTrafficSignalsAttributesHeading">Traffic light</string>
-    <string name="labelPointTrafficSignalsSound">Sound:</string>
-    <string name="labelPointTrafficSignalsVibration">Vibration:</string>
     <!-- poi -->
     <string name="labelPointPOIBuildingHeading">Building</string>
     <string name="labelPointPOIBuildingIsInside">Is inside:</string>
@@ -302,6 +294,28 @@
     <string name="labelPointStationAttributesHeading">Station</string>
     <string name="labelPointStationVehicleTypes">Vehicle type:</string>
     <string name="labelPointStationLinesHeading">Lines</string>
+    <!-- point with address -->
+    <string name="labelPointWithAddressDataHeading">Address components</string>
+    <string name="labelPointWithAddressDataHouseNumber">House number</string>
+    <string name="labelPointWithAddressDataRoad">Road</string>
+    <string name="labelPointWithAddressDataResidential">Residential</string>
+    <string name="labelPointWithAddressDataSuburb">Suburb</string>
+    <string name="labelPointWithAddressDataCityDistrict">City district</string>
+    <string name="labelPointWithAddressDataPostcode">Postcode</string>
+    <string name="labelPointWithAddressDataCity">City</string>
+    <string name="labelPointWithAddressDataState">State</string>
+    <string name="labelPointWithAddressDataCountry">Country</string>
+    <!-- gps -->
+    <string name="labelPointGPSDetailsHeading">GPS Details</string>
+    <!-- intersection -->
+    <string name="labelPointIntersectionAttributesHeading">Intersection</string>
+    <string name="labelPointIntersectionNumberOfStreets">Number of streets:</string>
+    <string name="labelPointIntersectionNumberOfBigStreets">Number of big streets:</string>
+    <string name="labelPointIntersectionNumberOfPedestrianCrossingsNearBy">Pedestrian crossings nearby:</string>
+    <!-- pedestrian crossing -->
+    <string name="labelPointTrafficSignalsAttributesHeading">Traffic light</string>
+    <string name="labelPointTrafficSignalsSound">Sound:</string>
+    <string name="labelPointTrafficSignalsVibration">Vibration:</string>
     <!-- point: accessibility -->
     <string name="labelPointAccessibilityHeading">Accessibility</string>
     <string name="labelPointTactilePaving">Tactile paving:</string>
@@ -349,14 +363,20 @@
     <!-- settings activity -->
     <string name="settingsActivityTitle">Settings</string>
     <string name="labelServerSettingsHeader">Server:</string>
-    <string name="buttonServerURL">URL: %1$s</string>
-    <string name="buttonServerURLNoSelection">URL: None selected</string>
+    <string name="buttonServerURL">Server: %1$s</string>
+    <string name="buttonServerURLNoSelection">Server: None selected</string>
     <string name="buttonServerMap">Map: %1$s</string>
     <string name="buttonServerMapNoSelection">Map: None selected</string>
-    <string name="buttonServerPublicTransportProvider">Provider: %1$s</string>
-    <string name="buttonServerPublicTransportProviderNoSelection">Provider: None selected</string>
+    <string name="buttonServerPublicTransportProvider">Public transport: %1$s</string>
+    <string name="buttonServerPublicTransportProviderNoSelection">Public transport: None selected</string>
+    <string name="buttonAddressProvider">Address resolver: %1$s</string>
+    <string name="buttonAddressProviderNoSelection">Address resolver: None selected</string>
     <string name="labelInterfaceSettingsHeader">Interface:</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
+    <string name="labelPrivacySettingsHeader">Privacy</string>
+    <string name="buttonEnableTextInputHistory">Enable local text input history</string>
+    <string name="labelImportAndExportSettingsHeader">Import and Export</string>
+    <string name="buttonImportSettings">Import application settings</string>
 
     <!-- new server dialog -->
     <string name="newServerDialogTitle">New server</string>
@@ -369,15 +389,26 @@
     <!-- select public transport provider  dialog -->
     <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
 
+    <!-- select address provider dialog -->
+    <string name="selectAddressProviderDialogTitle">Select address resolver:</string>
+    <string name="addressProviderGoogle">Google</string>
+    <string name="addressProviderOSM">OpenStreetMap</string>
+
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
+
+    <!-- import settings dialog -->
+    <string name="importSettingsDialogTitle">Import settings</string>
+    <string name="labelImportDatabase">Database:</string>
+    <string name="labelImportDatabaseNotFound">Database: Not found</string>
+    <string name="labelImportDatabaseSuccessful">Database import successful.</string>
 
     <!-- info activity -->
     <string name="infoActivityTitle">Info</string>
     <string name="labelAppInformationHeader">WalkersGuide:</string>
     <string name="labelInfoProgramVersion">Version</string>
-    <string name="labelInfoEMail">Contact: support@walkersguide.org</string>
-    <string name="labelInfoURL">Website: http://walkersguide.org</string>
+    <string name="labelInfoEMail">Contact</string>
+    <string name="labelInfoURL">Website</string>
     <string name="labelSelectedMapHeader">Selected Map:</string>
     <string name="labelSelectedMapName">Name:</string>
     <string name="labelSelectedMapVersion">Version:</string>
@@ -497,6 +528,7 @@
     <string name="dialogClose">Close</string>
     <string name="dialogDetails">Details</string>
     <string name="dialogExclude">Exclude</string>
+    <string name="dialogImport">Import</string>
     <string name="dialogMore">More</string>
     <string name="dialogNext">Next</string>
     <string name="dialogRefresh">Refresh</string>
@@ -530,8 +562,11 @@
     <string name="messageError1011">Error: Invalid server response.</string>
     <string name="messageError1012">Error from server: %1$s</string>
     <string name="messageError1013">Error: No coordinates for this address found.</string>
-    <string name="messageError1014">Error: No address for this location found.</string>
+    <string name="messageError1014">Error: No address for this coordinates found.</string>
     <string name="messageError1015">You exceeded the daily request quota for the Google maps API.</string>
+    <string name="messageError1016">Address provider not supported</string>
+    <string name="messageError1017">Got neither coordinates nor an address to look up</string>
+    <string name="messageError1018">User Input error</string>
     <!-- route -->
     <string name="messageError1020">No start point selected.</string>
     <string name="messageError1021">No destination point selected.</string>
@@ -543,6 +578,8 @@
     <string name="messageError1032">Error: No POI profile selected.</string>
     <string name="messageError1033">Error: No POI category selected.</string>
     <string name="messageError1034">Unsupported POI request action</string>
+    <!-- settings import -->
+    <string name="messageError1040">Database import failed</string>
     <!-- others -->
     <string name="messageErrorDataLoadingFailed">Data could not be loaded.</string>
     <string name="messageNameMissing">Please enter a name.</string>

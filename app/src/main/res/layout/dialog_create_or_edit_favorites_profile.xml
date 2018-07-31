@@ -1,76 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
 
-    <LinearLayout
+    <TextView
+        android:labelFor="@+id/editInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:focusable="true"
+        android:textStyle="bold"
+        android:textColor="@color/heading"
+        android:text="@string/labelProfileName" />
 
-        <TextView
-            android:labelFor="@+id/editInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textColor="@color/heading"
-            android:text="@string/labelProfileName" />
+    <include
+        layout="@layout/layout_single_edit_text" />
 
-        <include
-            layout="@layout/layout_single_edit_text" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:focusable="true"
+        android:textStyle="bold"
+        android:textColor="@color/heading"
+        android:text="@string/labelFavoritesProfileSortCriteria" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textColor="@color/heading"
-            android:text="@string/labelFavoritesProfileSortCriteria" />
+    <include
+        layout="@layout/layout_single_radio_group" />
 
-        <RadioGroup
-            android:id="@+id/radioGroupFavoritesProfileSortCriteria"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
-
-            <RadioButton
-                android:id="@+id/radioButtonSortDistanceAsc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/radioButtonSortDistanceAsc" />
-
-            <RadioButton
-                android:id="@+id/radioButtonSortDistanceDesc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/radioButtonSortDistanceDesc" />
-
-            <RadioButton
-                android:id="@+id/radioButtonSortNameAsc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/radioButtonSortNameAsc" />
-
-            <RadioButton
-                android:id="@+id/radioButtonSortNameDesc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/radioButtonSortNameDesc" />
-
-            <RadioButton
-                android:id="@+id/radioButtonSortOrderAsc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/radioButtonSortOrderAsc" />
-
-            <RadioButton
-                android:id="@+id/radioButtonSortOrderDesc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/radioButtonSortOrderDesc" />
-        </RadioGroup>
-
-    </LinearLayout>
-</ScrollView>
+</LinearLayout>

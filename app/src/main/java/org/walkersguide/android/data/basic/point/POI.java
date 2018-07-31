@@ -10,11 +10,11 @@ import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 
 import android.content.Context;
 
-public class POI extends Point {
+public class POI extends PointWithAddressData {
 
     private ArrayList<PointWrapper> entranceList;
     private PointWrapper isInside;
-    private String address, email, phone, website, openingHours;
+    private String email, phone, website, openingHours;
 
     public POI(Context context, JSONObject inputData) throws JSONException {
         // point super constructor
@@ -50,11 +50,6 @@ public class POI extends Point {
 
         // other optional attributes
         try {
-            this.address = inputData.getString("address");
-        } catch (JSONException e) {
-            this.address = "";
-        }
-        try {
             this.email = inputData.getString("email");
         } catch (JSONException e) {
             this.email = "";
@@ -82,10 +77,6 @@ public class POI extends Point {
 
     public PointWrapper getOuterBuilding() {
         return this.isInside;
-    }
-
-    public String getAddress() {
-        return this.address;
     }
 
     public String getEmail() {
@@ -128,11 +119,6 @@ public class POI extends Point {
         }
 
         // optional parameters
-        if (! this.address.equals("")) {
-            try {
-                jsonObject.put("address", this.address);
-            } catch (JSONException e) {}
-        }
         if (! this.email.equals("")) {
             try {
                 jsonObject.put("email", this.email);

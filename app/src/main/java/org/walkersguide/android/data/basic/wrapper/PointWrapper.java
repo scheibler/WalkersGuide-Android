@@ -31,16 +31,16 @@ public class PointWrapper {
             this.point = new Station(context, inputData);
         } else if (inputData.getString("type").equals(Constants.POINT.ENTRANCE)) {
             this.point = new Entrance(context, inputData);
+        } else if (inputData.getString("type").equals(Constants.POINT.POI)) {
+            this.point = new POI(context, inputData);
+        } else if (inputData.getString("type").equals(Constants.POINT.STREET_ADDRESS)) {
+            this.point = new StreetAddress(context, inputData);
         } else if (inputData.getString("type").equals(Constants.POINT.GPS)) {
             this.point = new GPS(context, inputData);
         } else if (inputData.getString("type").equals(Constants.POINT.INTERSECTION)) {
             this.point = new Intersection(context, inputData);
         } else if (inputData.getString("type").equals(Constants.POINT.PEDESTRIAN_CROSSING)) {
             this.point = new PedestrianCrossing(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.POI)) {
-            this.point = new POI(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.STREET_ADDRESS)) {
-            this.point = new StreetAddress(context, inputData);
         } else {
             this.point = new Point(context, inputData);
         }
@@ -59,16 +59,16 @@ public class PointWrapper {
             return ((Station) point).toString();
         } else if (point instanceof Entrance) {
             return ((Entrance) point).toString();
+        } else if (point instanceof POI) {
+            return ((POI) point).toString();
+        } else if (point instanceof StreetAddress) {
+            return ((StreetAddress) point).toString();
         } else if (point instanceof GPS) {
             return ((GPS) point).toString();
         } else if (point instanceof Intersection) {
             return ((Intersection) point).toString();
         } else if (point instanceof PedestrianCrossing) {
             return ((PedestrianCrossing) point).toString();
-        } else if (point instanceof POI) {
-            return ((POI) point).toString();
-        } else if (point instanceof StreetAddress) {
-            return ((StreetAddress) point).toString();
         } else {
             return ((Point) point).toString();
         }
@@ -116,16 +116,16 @@ public class PointWrapper {
             return ((Station) point).toJson();
         } else if (point instanceof Entrance) {
             return ((Entrance) point).toJson();
+        } else if (point instanceof POI) {
+            return ((POI) point).toJson();
+        } else if (point instanceof StreetAddress) {
+            return ((StreetAddress) point).toJson();
         } else if (point instanceof GPS) {
             return ((GPS) point).toJson();
         } else if (point instanceof Intersection) {
             return ((Intersection) point).toJson();
         } else if (point instanceof PedestrianCrossing) {
             return ((PedestrianCrossing) point).toJson();
-        } else if (point instanceof POI) {
-            return ((POI) point).toJson();
-        } else if (point instanceof StreetAddress) {
-            return ((StreetAddress) point).toJson();
         } else {
             return ((Point) point).toJson();
         }

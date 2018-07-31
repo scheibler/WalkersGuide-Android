@@ -64,6 +64,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.walkersguide.android.ui.dialog.SearchInPOIDialog;
+import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.ui.dialog.CreateOrEditPOIProfileDialog;
 
 
 public class POIFragment extends Fragment 
@@ -265,7 +267,6 @@ public class POIFragment extends Fragment
                 PopupMenu popupMore = new PopupMenu(getActivity(), view);
                 popupMore.setOnMenuItemClickListener(POIFragment.this);
                 popupMore.inflate(R.menu.menu_poi_fragment_button_more);
-                popupMore.getMenu().findItem(R.id.menuItemClearProfile).setVisible(false);
                 popupMore.show();
             }
         });
@@ -274,10 +275,6 @@ public class POIFragment extends Fragment
     @Override public boolean onMenuItemClick(MenuItem item) {
         POIFragmentSettings poiFragmentSettings = settingsManagerInstance.getPOIFragmentSettings();
         switch (item.getItemId()) {
-            case R.id.menuItemSearchInProfile:
-                SearchInPOIDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "SearchInPOIDialog");
-                return true;
             case R.id.menuItemNewProfile:
                 CreateOrEditPOIProfileDialog.newInstance(-1)
                     .show(getActivity().getSupportFragmentManager(), "CreateOrEditPOIProfileDialog");
@@ -286,8 +283,6 @@ public class POIFragment extends Fragment
                 CreateOrEditPOIProfileDialog.newInstance(
                         poiFragmentSettings.getSelectedPOIProfileId())
                     .show(getActivity().getSupportFragmentManager(), "CreateOrEditPOIProfileDialog");
-                return true;
-            case R.id.menuItemClearProfile:
                 return true;
             case R.id.menuItemRemoveProfile:
                 RemovePOIProfileDialog.newInstance(
@@ -313,9 +308,10 @@ public class POIFragment extends Fragment
         buttonFilter.setChecked(
                 poiFragmentSettings.filterPointListByDirection());
         // listen for device shakes
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
-                shakeDetectedReceiver,
-                new IntentFilter(Constants.ACTION_SHAKE_DETECTED));
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.ACTION_NEW_LOCATION);
+        filter.addAction(Constants.ACTION_SHAKE_DETECTED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request poi
         preparePOIRequest(POIManager.ACTION_UPDATE);
     }
@@ -324,7 +320,7 @@ public class POIFragment extends Fragment
         POIManager.getInstance(getActivity()).invalidateRequest((POIFragment) this);
         progressHandler.removeCallbacks(progressUpdater);
         // unregister shake broadcast receiver
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(shakeDetectedReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
         // list view
         listViewPOI.setAdapter(null);
         listViewPOI.setOnScrollListener(null);
@@ -450,11 +446,16 @@ public class POIFragment extends Fragment
     }
 
 
-    private BroadcastReceiver shakeDetectedReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            onFragmentDisabled();
-            vibrator.vibrate(250);
-            onFragmentEnabled();
+            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
+                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID) {
+            } else if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
+                // reload
+                onFragmentDisabled();
+                vibrator.vibrate(250);
+                onFragmentEnabled();
+            }
         }
     };
 
@@ -463,211 +464,6 @@ public class POIFragment extends Fragment
         public void run() {
             vibrator.vibrate(50);
             progressHandler.postDelayed(this, 2000);
-        }
-    }
-
-
-    public static class CreateOrEditPOIProfileDialog extends DialogFragment {
-
-        // Store instance variables
-        private AccessDatabase accessDatabaseInstance;
-        private InputMethodManager imm;
-        private SettingsManager settingsManagerInstance;
-        private int poiProfileId;
-
-        // ui components
-        private EditText editProfileName;
-        private CheckBoxGroupView checkBoxGroupPOICategories;
-
-        public static CreateOrEditPOIProfileDialog newInstance(int poiProfileId) {
-            CreateOrEditPOIProfileDialog createOrEditPOIProfileDialogInstance = new CreateOrEditPOIProfileDialog();
-            Bundle args = new Bundle();
-            args.putInt("poiProfileId", poiProfileId);
-            createOrEditPOIProfileDialogInstance.setArguments(args);
-            return createOrEditPOIProfileDialogInstance;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            accessDatabaseInstance = AccessDatabase.getInstance(context);
-            imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            settingsManagerInstance = SettingsManager.getInstance(context);
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            poiProfileId = getArguments().getInt("poiProfileId", -1);
-            // custom view
-            final ViewGroup nullParent = null;
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.dialog_create_or_edit_poi_profile, nullParent);
-            // dialog title
-            String dialogTitle;
-            if (accessDatabaseInstance.getPOIProfileMap().containsKey(poiProfileId)) {
-                dialogTitle = getResources().getString(R.string.editProfileDialogTitle);
-            } else {
-                dialogTitle = getResources().getString(R.string.newProfileDialogTitle);
-            }
-
-            editProfileName = (EditText) view.findViewById(R.id.editInput);
-            editProfileName.setText(accessDatabaseInstance.getNameOfPOIProfile(poiProfileId));
-            editProfileName.setInputType(InputType.TYPE_CLASS_TEXT);
-            editProfileName.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            editProfileName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_ACTION_DONE) {
-                        createOrEditPOIProfile();
-                        return true;
-                    }
-                    return false;
-                }
-            });
-
-            ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
-            buttonDelete.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    // clear edit text
-                    editProfileName.setText("");
-                    // show keyboard
-                    imm.showSoftInput(editProfileName, InputMethodManager.SHOW_IMPLICIT);
-                }
-            });
-
-            checkBoxGroupPOICategories = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroupPOICategories);
-            ArrayList<POICategory> categoryListOfPOIProfile = accessDatabaseInstance.getCategoryListOfPOIProfile(poiProfileId);
-            for (POICategory category : accessDatabaseInstance.getPOICategoryList()) {
-                CheckBox checkBox = new CheckBox(getActivity());
-                checkBox.setId(category.getId());
-                checkBox.setLayoutParams(
-                        new LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT)
-                        );
-                checkBox.setText(category.getName());
-                checkBox.setChecked(
-                        categoryListOfPOIProfile.contains(category));
-                checkBoxGroupPOICategories.put(checkBox);
-            }
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(dialogTitle)
-                .setView(view)
-                .setPositiveButton(
-                        getResources().getString(R.string.dialogOK),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .setNeutralButton(
-                        getResources().getString(R.string.dialogClear),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .create();
-        }
-
-        @Override public void onStart() {
-            super.onStart();
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                // positive button
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        createOrEditPOIProfile();
-                    }
-                });
-                // neutral button
-                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                buttonNeutral.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        checkBoxGroupPOICategories.uncheckAll();
-                    }
-                });
-                // negative button
-                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                buttonNegative.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        dialog.dismiss();
-                    }
-                });
-            }
-        }
-
-        private void createOrEditPOIProfile() {
-            // profile name
-            String profileName = editProfileName.getText().toString();
-            if (profileName.equals("")) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageProfileNameMissing),
-                        Toast.LENGTH_LONG).show();
-                return;
-            } else {
-                for(Map.Entry<Integer,String> profile : accessDatabaseInstance.getPOIProfileMap().entrySet()) {
-                    if (poiProfileId != profile.getKey()
-                            && profileName.equals(profile.getValue())) {
-                        Toast.makeText(
-                                getActivity(),
-                                String.format(getResources().getString(R.string.messageProfileExists), profileName),
-                                Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                }
-            }
-
-            ArrayList<POICategory> poiCategoryList = new ArrayList<POICategory>();
-            for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckBoxList()) {
-                POICategory category = accessDatabaseInstance.getPOICategory(checkBox.getId());
-                if (category != null) {
-                    poiCategoryList.add(category);
-                }
-            }
-            if (poiCategoryList.isEmpty()) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageError1033),
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if (! accessDatabaseInstance.getPOIProfileMap().containsKey(poiProfileId)) {
-                // create new profile
-                int newProfileId = accessDatabaseInstance.addPOIProfile(profileName, poiCategoryList);
-                if (newProfileId > -1) {
-                    settingsManagerInstance.getPOIFragmentSettings().setSelectedPOIProfileId(newProfileId);
-                } else {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageCouldNotCreateProfile),
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-            } else {
-                // edit existing profile
-                boolean updateSuccessful = accessDatabaseInstance.updateNameAndCategoryListOfPOIProfile(
-                        poiProfileId, profileName, poiCategoryList);
-                if (! updateSuccessful) {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageCouldNotEditProfile),
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-            dismiss();
         }
     }
 

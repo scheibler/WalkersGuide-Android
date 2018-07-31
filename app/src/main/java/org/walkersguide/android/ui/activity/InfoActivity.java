@@ -11,6 +11,8 @@ import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.widget.TextView;
+import org.walkersguide.android.BuildConfig;
+
 
 public class InfoActivity extends AbstractActivity {
 
@@ -32,7 +34,22 @@ public class InfoActivity extends AbstractActivity {
                 String.format(
                     "%1$s: %2$s",
                     getResources().getString(R.string.labelInfoProgramVersion),
-	    			generalSettings.getClientVersion())
+                    BuildConfig.VERSION_NAME)
+                );
+        TextView labelInfoEMail = (TextView) findViewById(R.id.labelInfoEMail);
+        labelInfoEMail.setText(
+                String.format(
+                    "%1$s: %2$s",
+                    getResources().getString(R.string.labelInfoEMail),
+                    BuildConfig.CONTACT_EMAIL)
+                );
+
+        TextView labelInfoURL = (TextView) findViewById(R.id.labelInfoURL);
+        labelInfoURL.setText(
+                String.format(
+                    "%1$s: %2$s",
+                    getResources().getString(R.string.labelInfoURL),
+                    BuildConfig.CONTACT_WEBSITE)
                 );
 
         if (serverSettings.getSelectedMap() != null) {
@@ -73,6 +90,8 @@ public class InfoActivity extends AbstractActivity {
         menu.findItem(R.id.menuItemPlanRoute).setVisible(false);
         menu.findItem(R.id.menuItemRequestAddress).setVisible(false);
         menu.findItem(R.id.menuItemSaveCurrentPosition).setVisible(false);
+        menu.findItem(R.id.menuItemSearchInFavorites).setVisible(false);
+        menu.findItem(R.id.menuItemSearchInPOI).setVisible(false);
         menu.findItem(R.id.menuItemSettings).setVisible(false);
         menu.findItem(R.id.menuItemInfo).setVisible(false);
         return true;

@@ -60,6 +60,9 @@ import android.widget.Toast;
 import android.widget.AbsListView;
 import org.walkersguide.android.listener.SelectFavoritesProfileListener;
 import org.walkersguide.android.ui.dialog.SelectFavoritesProfileDialog;
+import org.walkersguide.android.ui.dialog.CreateOrEditFavoritesProfileDialog;
+import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
+import java.util.TreeSet;
 
 
 public class FavoriteFragment extends Fragment 
@@ -236,9 +239,10 @@ public class FavoriteFragment extends Fragment
             public void onClick(View view) {
                 PopupMenu popupMore = new PopupMenu(getActivity(), view);
                 popupMore.setOnMenuItemClickListener(FavoriteFragment.this);
-                popupMore.inflate(R.menu.menu_poi_fragment_button_more);
+                popupMore.inflate(R.menu.menu_favorite_fragment_button_more);
                 // hide remove option on default profiles
                 if (settingsManagerInstance.getFavoritesFragmentSettings().getSelectedFavoritesProfileId() < FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE) {
+                    popupMore.getMenu().findItem(R.id.menuItemAddFavoriteFromCurrentPosition).setVisible(false);
                     popupMore.getMenu().findItem(R.id.menuItemRemoveProfile).setVisible(false);
                 }
                 popupMore.show();
@@ -249,9 +253,11 @@ public class FavoriteFragment extends Fragment
     @Override public boolean onMenuItemClick(MenuItem item) {
         FavoritesFragmentSettings favoritesFragmentSettings= settingsManagerInstance.getFavoritesFragmentSettings();
         switch (item.getItemId()) {
-            case R.id.menuItemSearchInProfile:
-                SearchInFavoritesDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "SearchInFavoritesDialog");
+            case R.id.menuItemAddFavoriteFromCurrentPosition:
+                TreeSet<Integer> checkedFavoritesProfileIds = new TreeSet<Integer>();
+                checkedFavoritesProfileIds.add(favoritesFragmentSettings.getSelectedFavoritesProfileId());
+                SaveCurrentPositionDialog.newInstance(checkedFavoritesProfileIds)
+                    .show(getActivity().getSupportFragmentManager(), "SaveCurrentPositionDialog");
                 return true;
             case R.id.menuItemNewProfile:
                 CreateOrEditFavoritesProfileDialog.newInstance(-1)
@@ -423,218 +429,6 @@ public class FavoriteFragment extends Fragment
         public void run() {
             vibrator.vibrate(50);
             progressHandler.postDelayed(this, 2000);
-        }
-    }
-
-
-    public static class CreateOrEditFavoritesProfileDialog extends DialogFragment {
-
-        // Store instance variables
-        private AccessDatabase accessDatabaseInstance;
-        private InputMethodManager imm;
-        private SettingsManager settingsManagerInstance;
-        private int favoritesProfileId;
-
-        // ui components
-        private EditText editProfileName;
-        private RadioGroup radioGroupFavoritesProfileSortCriteria;
-
-        public static CreateOrEditFavoritesProfileDialog newInstance(int favoritesProfileId) {
-            CreateOrEditFavoritesProfileDialog createOrEditFavoritesProfileDialogInstance = new CreateOrEditFavoritesProfileDialog();
-            Bundle args = new Bundle();
-            args.putInt("favoritesProfileId", favoritesProfileId);
-            createOrEditFavoritesProfileDialogInstance.setArguments(args);
-            return createOrEditFavoritesProfileDialogInstance;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            accessDatabaseInstance = AccessDatabase.getInstance(context);
-            imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            settingsManagerInstance = SettingsManager.getInstance(context);
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            favoritesProfileId = getArguments().getInt("favoritesProfileId", -1);
-            // custom view
-            final ViewGroup nullParent = null;
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.dialog_create_or_edit_favorites_profile, nullParent);
-            // dialog title
-            String dialogTitle;
-            if (accessDatabaseInstance.getFavoritesProfileMap().containsKey(favoritesProfileId)) {
-                dialogTitle = getResources().getString(R.string.editProfileDialogTitle);
-            } else {
-                dialogTitle = getResources().getString(R.string.newProfileDialogTitle);
-            }
-
-            editProfileName = (EditText) view.findViewById(R.id.editInput);
-            editProfileName.setText(accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId));
-            editProfileName.setInputType(InputType.TYPE_CLASS_TEXT);
-            editProfileName.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            editProfileName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_ACTION_DONE) {
-                        createOrEditFavoritesProfile();
-                        return true;
-                    }
-                    return false;
-                }
-            });
-
-            ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
-            buttonDelete.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    // clear edit text
-                    editProfileName.setText("");
-                    // show keyboard
-                    imm.showSoftInput(editProfileName, InputMethodManager.SHOW_IMPLICIT);
-                }
-            });
-
-            radioGroupFavoritesProfileSortCriteria = (RadioGroup) view.findViewById(R.id.radioGroupFavoritesProfileSortCriteria);
-            switch (accessDatabaseInstance.getSortCriteriaOfFavoritesProfile(favoritesProfileId)) {
-                case Constants.SORT_CRITERIA.NAME_ASC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortNameAsc);
-                    break;
-                case Constants.SORT_CRITERIA.NAME_DESC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortNameDesc);
-                    break;
-                case Constants.SORT_CRITERIA.DISTANCE_ASC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortDistanceAsc);
-                    break;
-                case Constants.SORT_CRITERIA.DISTANCE_DESC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortDistanceDesc);
-                    break;
-                case Constants.SORT_CRITERIA.ORDER_ASC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortOrderAsc);
-                    break;
-                case Constants.SORT_CRITERIA.ORDER_DESC:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortOrderDesc);
-                    break;
-                default:
-                    radioGroupFavoritesProfileSortCriteria.check(R.id.radioButtonSortNameAsc);
-                    break;
-            }
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(dialogTitle)
-                .setView(view)
-                .setPositiveButton(
-                        getResources().getString(R.string.dialogOK),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .create();
-        }
-
-        @Override public void onStart() {
-            super.onStart();
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                // positive button
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        createOrEditFavoritesProfile();
-                    }
-                });
-                // negative button
-                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                buttonNegative.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        dialog.dismiss();
-                    }
-                });
-            }
-        }
-
-        private void createOrEditFavoritesProfile() {
-            // profile name
-            String profileName = editProfileName.getText().toString();
-            if (profileName.equals("")) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageProfileNameMissing),
-                        Toast.LENGTH_LONG).show();
-                return;
-            } else {
-                for(Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
-                    if (favoritesProfileId != profile.getKey()
-                            && profileName.equals(profile.getValue())) {
-                        Toast.makeText(
-                                getActivity(),
-                                String.format(getResources().getString(R.string.messageProfileExists), profileName),
-                                Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                }
-            }
-
-            // profile sort criteria
-            int sortCriteria;
-            switch (radioGroupFavoritesProfileSortCriteria.getCheckedRadioButtonId()) {
-                case R.id.radioButtonSortNameAsc:
-                    sortCriteria = Constants.SORT_CRITERIA.NAME_ASC;
-                    break;
-                case R.id.radioButtonSortNameDesc:
-                    sortCriteria = Constants.SORT_CRITERIA.NAME_DESC;
-                    break;
-                case R.id.radioButtonSortDistanceAsc:
-                    sortCriteria = Constants.SORT_CRITERIA.DISTANCE_ASC;
-                    break;
-                case R.id.radioButtonSortDistanceDesc:
-                    sortCriteria = Constants.SORT_CRITERIA.DISTANCE_DESC;
-                    break;
-                case R.id.radioButtonSortOrderAsc:
-                    sortCriteria = Constants.SORT_CRITERIA.ORDER_ASC;
-                    break;
-                case R.id.radioButtonSortOrderDesc:
-                    sortCriteria = Constants.SORT_CRITERIA.ORDER_DESC;
-                    break;
-                default:
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageNoSortCriteria),
-                            Toast.LENGTH_LONG).show();
-                    return;
-            }
-
-            if (! accessDatabaseInstance.getFavoritesProfileMap().containsKey(favoritesProfileId)) {
-                // create new profile
-                int newProfileId = accessDatabaseInstance.addFavoritesProfile(profileName, sortCriteria);
-                if (newProfileId > -1) {
-                    settingsManagerInstance.getFavoritesFragmentSettings().setSelectedFavoritesProfileId(newProfileId);
-                } else {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageCouldNotCreateProfile),
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-            } else {
-                // edit existing profile
-                boolean updateSuccessful = accessDatabaseInstance.updateNameAndSortCriteriaOfFavoritesProfile(
-                        favoritesProfileId, profileName, sortCriteria);
-                if (! updateSuccessful) {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageCouldNotEditProfile),
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-            dismiss();
         }
     }
 

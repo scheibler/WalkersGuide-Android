@@ -3,11 +3,17 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/menuItemAddFavoriteFromCurrentPosition"
+        android:title="@string/menuItemAddFavoriteFromCurrentPosition" />
+    <item
         android:id="@+id/menuItemNewProfile"
         android:title="@string/menuItemNewProfile" />
     <item
         android:id="@+id/menuItemEditProfile"
         android:title="@string/menuItemEditProfile" />
+    <item
+        android:id="@+id/menuItemClearProfile"
+        android:title="@string/menuItemClearProfile" />
     <item
         android:id="@+id/menuItemRemoveProfile"
         android:title="@string/menuItemRemoveProfile" />

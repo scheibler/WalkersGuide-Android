@@ -25,6 +25,14 @@
         android:title="@string/menuItemSaveCurrentPosition"
         app:showAsAction="never" />
     <item
+        android:id="@+id/menuItemSearchInFavorites"
+        android:title="@string/menuItemSearchInFavorites"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menuItemSearchInPOI"
+        android:title="@string/menuItemSearchInPOI"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menuItemSettings"
         android:title="@string/menuItemSettings"
         app:showAsAction="never" />

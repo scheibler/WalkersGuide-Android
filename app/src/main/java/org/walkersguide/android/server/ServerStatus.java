@@ -93,7 +93,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                 } else if (responseCode != Constants.ID.OK) {
                     returnCode = 1010;          // server connection error
                 } else {
-                    JSONObject jsonServerResponse = DownloadUtility.processServerResponse(connection);
+                    JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
                     if (jsonServerResponse.has("available_maps")) {
                         jsonMapDict = jsonServerResponse.getJSONObject("available_maps");
                     }
@@ -166,7 +166,7 @@ public class ServerStatus extends AsyncTask<Void, Void, Integer> {
                 } else if (responseCode != Constants.ID.OK) {
                     returnCode = 1010;          // server connection error
                 } else {
-                    JSONObject jsonServerResponse = DownloadUtility.processServerResponse(connection);
+                    JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
                     // map
                     map = new OSMMap(
                             jsonServerResponse.getString("map_name"),

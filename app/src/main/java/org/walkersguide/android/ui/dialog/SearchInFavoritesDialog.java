@@ -8,7 +8,7 @@ import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.profile.SearchFavoritesProfile;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.google.AddressManager;
+import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.RouteManager;
@@ -547,8 +547,8 @@ public class SearchInFavoritesDialog extends DialogFragment implements SearchFav
 
                 // neutral button
                 Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-            if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
-                        buttonNeutral.setText(
+                if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
+                    buttonNeutral.setText(
                             getResources().getString(R.string.dialogAll));
                 } else {
                     buttonNeutral.setText(
@@ -647,6 +647,12 @@ public class SearchInFavoritesDialog extends DialogFragment implements SearchFav
                         break;
                     case Constants.SORT_CRITERIA.NAME_DESC:
                         radioButton.setText(getResources().getString(R.string.radioButtonSortNameDesc));
+                        break;
+                    case Constants.SORT_CRITERIA.ORDER_ASC:
+                        radioButton.setText(getResources().getString(R.string.radioButtonSortOrderAsc));
+                        break;
+                    case Constants.SORT_CRITERIA.ORDER_DESC:
+                        radioButton.setText(getResources().getString(R.string.radioButtonSortOrderDesc));
                         break;
                     default:
                         radioButton = null;

@@ -5,7 +5,7 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.google.AddressManager;
+import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.listener.AddressListener;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
@@ -26,6 +26,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import org.walkersguide.android.helper.StringUtility;
+import android.os.Build;
+import android.annotation.TargetApi;
+import android.support.v4.view.ViewCompat;
 
 public class RequestAddressDialog extends DialogFragment implements AddressListener {
 
@@ -35,6 +39,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
     private SettingsManager settingsManagerInstance;
     private TTSWrapper ttsWrapperInstance;
     private AddressManager addressManagerRequest;
+    private boolean manualRequest;
 
     // ui components
     private TextView labelAddress;
@@ -54,11 +59,15 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        manualRequest = false;
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
+
         labelAddress = (TextView) view.findViewById(R.id.label);
+        ViewCompat.setAccessibilityLiveRegion(
+                labelAddress, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -106,7 +115,6 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
                             detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
                         }
                         startActivity(detailsIntent);
-                        dismiss();
                     }
                 }
             });
@@ -115,6 +123,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     requestAddressForCurrentLocation();
+                    manualRequest = true;
                 }
             });
             // negative button
@@ -136,9 +145,9 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
                     getResources().getString(R.string.messageAddressRequestFailed),
                     getResources().getString(R.string.messageError1004));
             labelAddress.setText(error);
-            ttsWrapperInstance.speak(error, true, true);
+            //ttsWrapperInstance.speak(error, true, true);
         } else {
-            labelAddress.setText(getResources().getString(R.string.messagePleaseWait));
+            labelAddress.setText("");
             addressManagerRequest = new AddressManager(
                     getActivity(),
                     RequestAddressDialog.this,
@@ -150,8 +159,6 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
 
     @Override public void addressRequestFinished(int returnCode, String returnMessage, PointWrapper addressPoint) {
         if (returnCode == Constants.ID.OK) {
-            // add to addresses profile
-            accessDatabaseInstance.addPointToFavoritesProfile(addressPoint, FavoritesProfile.ID_ADDRESS_POINTS);
             // stick to positive button
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {
@@ -161,9 +168,20 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
             // show results
             String success = String.format(
                     getResources().getString(R.string.messageAddressRequestSuccessful),
-                    addressPoint.getPoint().getName());
+                    addressPoint.getPoint().getName(),
+                    String.format(
+                        getResources().getString(R.string.labelPointDistanceAndBearing),
+                        addressPoint.distanceFromCurrentLocation(),
+                        StringUtility.formatInstructionDirection(
+                            getActivity(), addressPoint.bearingFromCurrentLocation()))
+                    );
             labelAddress.setText(success);
-            ttsWrapperInstance.speak(success, true, true);
+            // speak aloud if it was a manual request
+            if (manualRequest) {
+                //ttsWrapperInstance.speak(success, true, true);
+                manualRequest = false;
+            }
+
         } else {
             // clear positive button tag
             final AlertDialog dialog = (AlertDialog)getDialog();
@@ -176,7 +194,11 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
                     getResources().getString(R.string.messageAddressRequestFailed),
                     returnMessage);
             labelAddress.setText(error);
-            ttsWrapperInstance.speak(error, true, true);
+            // speak aloud if it was a manual request
+            if (manualRequest) {
+                //ttsWrapperInstance.speak(error, true, true);
+                manualRequest = false;
+            }
         }
     }
 

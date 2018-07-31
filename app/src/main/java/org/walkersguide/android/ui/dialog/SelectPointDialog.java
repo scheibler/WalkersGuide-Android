@@ -9,7 +9,7 @@ import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.data.profile.POIProfile;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.google.AddressManager;
+import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.AddressListener;
@@ -59,6 +59,7 @@ import android.content.BroadcastReceiver;
 import android.widget.AbsListView;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.AutoCompleteTextView;
 
 
 public class SelectPointDialog extends DialogFragment
@@ -363,7 +364,7 @@ public class SelectPointDialog extends DialogFragment
         private InputMethodManager imm;
         private AddressManager addressManagerRequest;
         private int pointPutInto;
-        private EditText editAddress;
+        private AutoCompleteTextView editAddress;
 
         public static EnterAddressDialog newInstance(int pointPutInto) {
             EnterAddressDialog enterAddressDialogInstance = new EnterAddressDialog();
@@ -392,9 +393,9 @@ public class SelectPointDialog extends DialogFragment
             // custom view
             final ViewGroup nullParent = null;
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_edit_text, nullParent);
+            View view = inflater.inflate(R.layout.layout_single_autocomplete_text_view, nullParent);
 
-            editAddress = (EditText) view.findViewById(R.id.editInput);
+            editAddress = (AutoCompleteTextView) view.findViewById(R.id.editInput);
             editAddress.setHint(getResources().getString(R.string.editHintAddress));
             editAddress.setImeOptions(EditorInfo.IME_ACTION_DONE);
             editAddress.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -406,6 +407,12 @@ public class SelectPointDialog extends DialogFragment
                     return false;
                 }
             });
+            // add auto complete suggestions
+            ArrayAdapter<String> searchTermHistoryAdapter = new ArrayAdapter<String>(
+                    getActivity(),
+                    android.R.layout.simple_dropdown_item_1line,
+                    settingsManagerInstance.getSearchTermHistory().getSearchTermList());
+            editAddress.setAdapter(searchTermHistoryAdapter);
 
             ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
             buttonDelete.setOnClickListener(new View.OnClickListener() {
@@ -465,7 +472,7 @@ public class SelectPointDialog extends DialogFragment
         }
 
         private void tryToGetCoordinatesForAddress() {
-            String address = editAddress.getText().toString();
+            String address = editAddress.getText().toString().trim();
             if (address.equals("")) {
                 Toast.makeText(
                         getActivity(),
@@ -480,8 +487,9 @@ public class SelectPointDialog extends DialogFragment
 
         @Override public void addressRequestFinished(int returnCode, String returnMessage, PointWrapper addressPoint) {
             if (returnCode == Constants.ID.OK) {
-                // add to addresses profile
-                accessDatabaseInstance.addPointToFavoritesProfile(addressPoint, FavoritesProfile.ID_ADDRESS_POINTS);
+                // add to search history
+                settingsManagerInstance.getSearchTermHistory().addSearchTerm(
+                        editAddress.getText().toString().trim());
                 // put into
                 PointUtility.putNewPoint(getActivity(), addressPoint, pointPutInto);
                 // reload ui

@@ -15,10 +15,14 @@ import javax.net.ssl.TrustManagerFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
+import org.walkersguide.android.BuildConfig;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import org.json.JSONArray;
+import android.os.Build;
+
 
 public class DownloadUtility {
 
@@ -43,6 +47,7 @@ public class DownloadUtility {
         connection.setReadTimeout(READ_TIMEOUT);
         connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         connection.setRequestProperty("Accept", "application/json, application/gzip");
+        connection.setRequestProperty("User-agent", UserAgent(context));
         // load additional parameters via post method, if given
         if (parameters != null) {
             connection.setRequestMethod("POST");
@@ -54,7 +59,17 @@ public class DownloadUtility {
         return connection;
     }
 
-    public static JSONObject processServerResponse(
+    public static JSONArray processServerResponseAsJSONArray(
+            HttpsURLConnection connection) throws IOException, JSONException {
+        return new JSONArray(processServerResponseAsString(connection));
+    }
+
+    public static JSONObject processServerResponseAsJSONObject(
+            HttpsURLConnection connection) throws IOException, JSONException {
+        return new JSONObject(processServerResponseAsString(connection));
+    }
+
+    private static String processServerResponseAsString(
             HttpsURLConnection connection) throws IOException, JSONException {
         BufferedReader reader;
         StringBuilder sb = new StringBuilder();
@@ -71,7 +86,7 @@ public class DownloadUtility {
         }
         in.close();
         // convert to json
-        return new JSONObject(sb.toString());
+        return sb.toString();
     }
 
     public static String getErrorMessageForReturnCode(Context context, int returnCode, String additionalMessage) {
@@ -105,6 +120,12 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.messageError1014);
             case 1015:      // OVER_QUERY_LIMIT
                 return context.getResources().getString(R.string.messageError1015);
+            case 1016:      // unsupported address provider
+                return context.getResources().getString(R.string.messageError1016);
+            case 1017:      // neither address nor coordinates to resolve
+                return context.getResources().getString(R.string.messageError1017);
+            case 1018:      // server input error
+                return context.getResources().getString(R.string.messageError1018);
             // route
             case 1020:      // no start point
                 return context.getResources().getString(R.string.messageError1020);
@@ -125,10 +146,21 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.messageError1033);
             case 1034:      // unsupported poi request action
                 return context.getResources().getString(R.string.messageError1034);
+            case 1040:      // database import failed
+                return context.getResources().getString(R.string.messageError1040);
             default:
                 return String.format(
                         context.getResources().getString(R.string.messageUnknownError), returnCode);
         }
+    }
+
+    public static String UserAgent(Context context) {
+        return String.format(
+                "%1$s/%2$s (Android:%3$s; Contact:%4$s)",
+                context.getResources().getString(R.string.app_name),
+                BuildConfig.VERSION_NAME,
+                android.os.Build.VERSION.RELEASE,
+                BuildConfig.CONTACT_EMAIL);
     }
 
 }

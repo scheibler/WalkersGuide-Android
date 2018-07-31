@@ -11,6 +11,7 @@ import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.listener.ChildDialogCloseListener;
+import org.walkersguide.android.ui.dialog.CreateOrEditFavoritesProfileDialog;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.view.CheckBoxGroupView;
 
@@ -36,21 +37,43 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.TreeSet;
+import android.content.IntentFilter;
+import org.walkersguide.android.util.Constants;
+import android.support.v4.content.LocalBroadcastManager;
+import android.os.Vibrator;
+import org.walkersguide.android.util.SettingsManager;
+import android.widget.AutoCompleteTextView;
+import android.content.BroadcastReceiver;
+import android.widget.ArrayAdapter;
+import org.json.JSONArray;
+import android.content.Intent;
 
 public class SaveCurrentPositionDialog extends DialogFragment implements ChildDialogCloseListener {
 
     private AccessDatabase accessDatabaseInstance;
     private InputMethodManager imm;
     private PositionManager positionManagerInstance;
+    private SettingsManager settingsManagerInstance;
+    private Vibrator vibrator;
     private PointWrapper currentLocation;
+    private TreeSet<Integer> checkedFavoritesProfileIds;
 
     // ui components
+    private AutoCompleteTextView editName;
     private TextView labelGPSProvider, labelGPSAccuracy, labelGPSTime;
     private CheckBoxGroupView checkBoxGroupFavoritesProfiles;
-    private EditText editName;
+    private TextView labelNoUserCreatedFavoritesProfiles;
 
-    public static SaveCurrentPositionDialog newInstance() {
+    public static SaveCurrentPositionDialog newInstance(TreeSet<Integer> checkedFavoritesProfileIds) {
         SaveCurrentPositionDialog saveCurrentPositionDialogInstance = new SaveCurrentPositionDialog();
+        Bundle args = new Bundle();
+        JSONArray jsonCheckedFavoritesProfileIdList = new JSONArray();
+        for (Integer id : checkedFavoritesProfileIds) {
+            jsonCheckedFavoritesProfileIdList.put(id);
+        }
+        args.putString("jsonCheckedFavoritesProfileIdList", jsonCheckedFavoritesProfileIdList.toString());
+        saveCurrentPositionDialogInstance.setArguments(args);
         return saveCurrentPositionDialogInstance;
     }
 
@@ -59,13 +82,73 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
         accessDatabaseInstance = AccessDatabase.getInstance(context);
         imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 		positionManagerInstance = PositionManager.getInstance(context);
+        settingsManagerInstance = SettingsManager.getInstance(context);
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        // listen for intents
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.ACTION_NEW_LOCATION);
+        filter.addAction(Constants.ACTION_SHAKE_DETECTED);
+        filter.addAction(Constants.ACTION_UPDATE_UI);
+        LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        JSONArray jsonCheckedFavoritesProfileIdList = null;
+        try {
+            if (savedInstanceState != null) {
+                jsonCheckedFavoritesProfileIdList = new JSONArray(
+                        savedInstanceState.getString("jsonCheckedFavoritesProfileIdList"));
+            } else {
+                jsonCheckedFavoritesProfileIdList = new JSONArray(
+                        getArguments().getString("jsonCheckedFavoritesProfileIdList"));
+            }
+        } catch (JSONException e) {
+            jsonCheckedFavoritesProfileIdList = null;
+        } finally {
+            checkedFavoritesProfileIds = new TreeSet<Integer>();
+            if (jsonCheckedFavoritesProfileIdList != null) {
+                for (int i=0; i<jsonCheckedFavoritesProfileIdList.length(); i++) {
+                    try {
+                        checkedFavoritesProfileIds.add(jsonCheckedFavoritesProfileIdList.getInt(i));
+                    } catch (JSONException e) {}
+                }
+            }
+        }
+
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_save_current_position, nullParent);
+
+        // name sublayout
+        editName = (AutoCompleteTextView) view.findViewById(R.id.editInput);
+        editName.setHint(getResources().getString(R.string.editHintSaveCurrentPointName));
+        editName.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    tryToSaveCurrentPosition();
+                    return true;
+                }
+                return false;
+            }
+        });
+        // add auto complete suggestions
+        ArrayAdapter<String> searchTermHistoryAdapter = new ArrayAdapter<String>(
+                getActivity(),
+                android.R.layout.simple_dropdown_item_1line,
+                settingsManagerInstance.getSearchTermHistory().getSearchTermList());
+        editName.setAdapter(searchTermHistoryAdapter);
+
+        ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
+        buttonDelete.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                // clear edit text
+                editName.setText("");
+                // show keyboard
+                imm.showSoftInput(editName, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
 
         // current location sublayout
         labelGPSProvider = (TextView) view.findViewById(R.id.labelGPSProvider);
@@ -81,51 +164,32 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
         // favorites profiles sublayout
         checkBoxGroupFavoritesProfiles = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
         for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
-            if (profile.getKey() >= FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE) {
-                CheckBox checkBox = new CheckBox(getActivity());
-                checkBox.setId(profile.getKey());
-                checkBox.setLayoutParams(
-                        new LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT)
-                        );
-                checkBox.setText(profile.getValue());
-                checkBox.setChecked(false);
-                checkBoxGroupFavoritesProfiles.put(checkBox);
+            if (profile.getKey() < FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE) {
+                continue;
             }
-        }
-        ImageButton buttonClearFavoritesProfiles = (ImageButton) view.findViewById(R.id.buttonClearFavoritesProfiles);
-        buttonClearFavoritesProfiles.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                checkBoxGroupFavoritesProfiles.uncheckAll();
-            }
-        });
-        if (! checkBoxGroupFavoritesProfiles.getCheckBoxList().isEmpty()) {
-            TextView labelNoUserCreatedFavoritesProfiles = (TextView) view.findViewById(R.id.labelNoUserCreatedFavoritesProfiles);
-            labelNoUserCreatedFavoritesProfiles.setVisibility(View.GONE);
-        }
-
-        // name sublayout
-        editName = (EditText) view.findViewById(R.id.editInput);
-        editName.setInputType(InputType.TYPE_CLASS_TEXT);
-        editName.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        editName.setHint(getResources().getString(R.string.editHintSaveCurrentPointName));
-        editName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    tryToSaveCurrentPosition();
-                    return true;
+            CheckBox checkBox = new CheckBox(getActivity());
+            checkBox.setId(profile.getKey());
+            checkBox.setLayoutParams(
+                    new LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT)
+                    );
+            checkBox.setText(profile.getValue());
+            checkBox.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    checkedFavoritesProfileIds = getCheckedItemsOfFavoritesProfilesCheckBoxGroup();
+                    onStart();
                 }
-                return false;
-            }
-        });
-        ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
-        buttonDelete.setOnClickListener(new View.OnClickListener() {
+            });
+            checkBoxGroupFavoritesProfiles.put(checkBox);
+        }
+        labelNoUserCreatedFavoritesProfiles = (TextView) view.findViewById(R.id.labelNoUserCreatedFavoritesProfiles);
+
+        Button buttonAddFavoritesProfile = (Button) view.findViewById(R.id.buttonAddFavoritesProfile);
+        buttonAddFavoritesProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                // clear edit text
-                editName.setText("");
-                // show keyboard
-                imm.showSoftInput(editName, InputMethodManager.SHOW_IMPLICIT);
+                CreateOrEditFavoritesProfileDialog.newInstance(-1)
+                    .show(getActivity().getSupportFragmentManager(), "CreateOrEditFavoritesProfileDialog");
             }
         });
 
@@ -139,6 +203,13 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
                     public void onClick(DialogInterface dialog, int which) {
                     }
                 })
+            .setNeutralButton(
+                    getResources().getString(R.string.dialogClear),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    }
+                    )
             .setNegativeButton(
                 getResources().getString(R.string.dialogCancel),
                 new DialogInterface.OnClickListener() {
@@ -152,6 +223,13 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
         if(dialog != null) {
+
+            // check boxes
+            for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckBoxList()) {
+                checkBox.setChecked(
+                        checkedFavoritesProfileIds.contains(checkBox.getId()));
+            }
+
             // positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
@@ -159,6 +237,26 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
                     tryToSaveCurrentPosition();
                 }
             });
+
+            // neutral button
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
+                buttonNeutral.setText(
+                        getResources().getString(R.string.dialogAll));
+            } else {
+                buttonNeutral.setText(
+                        getResources().getString(R.string.dialogClear));
+            }
+            buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    checkedFavoritesProfileIds = new TreeSet<Integer>();
+                    if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
+                        checkedFavoritesProfileIds.addAll(accessDatabaseInstance.getFavoritesProfileMap().keySet());
+                    }
+                    onStart();
+                }
+            });
+
             // negative button
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -167,7 +265,30 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
                 }
             });
         }
+
+        // show or hide no user favorites profiles
+        if (checkBoxGroupFavoritesProfiles.getCheckBoxList().isEmpty()) {
+            labelNoUserCreatedFavoritesProfiles.setVisibility(View.VISIBLE);
+        } else {
+            labelNoUserCreatedFavoritesProfiles.setVisibility(View.GONE);
+        }
+        // update current location data
         updateLocationData();
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        JSONArray jsonCheckedFavoritesProfileIdList = new JSONArray();
+        for (Integer id : getCheckedItemsOfFavoritesProfilesCheckBoxGroup()) {
+            jsonCheckedFavoritesProfileIdList.put(id);
+        }
+        savedInstanceState.putString("jsonCheckedFavoritesProfileIdList", jsonCheckedFavoritesProfileIdList.toString());
+    }
+
+    @Override public void onDismiss(final DialogInterface dialog) {
+        super.onDismiss(dialog);
+        // unregister broadcast receiver
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
     @Override public void childDialogClosed() {
@@ -256,16 +377,38 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
                 userCreatedPoint = null;
             } finally {
                 if (userCreatedPoint != null) {
+                    // add to search history
+                    settingsManagerInstance.getSearchTermHistory().addSearchTerm(name);
                     accessDatabaseInstance.addPointToFavoritesProfile(userCreatedPoint, FavoritesProfile.ID_USER_CREATED_POINTS);
-                    for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckBoxList()) {
-                        if (checkBox.isChecked()) {
-                            accessDatabaseInstance.addPointToFavoritesProfile(userCreatedPoint, checkBox.getId());
-                        }
+                    for (Integer favoritesProfileIdToAdd : checkedFavoritesProfileIds) {
+                        accessDatabaseInstance.addPointToFavoritesProfile(userCreatedPoint, favoritesProfileIdToAdd);
                     }
                 }
             }
             dismiss();
         }
     }
+
+    private TreeSet<Integer> getCheckedItemsOfFavoritesProfilesCheckBoxGroup() {
+        TreeSet<Integer> favoritesProfileList = new TreeSet<Integer>();
+        for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckedCheckBoxList()) {
+            favoritesProfileList.add(checkBox.getId());
+        }
+        return favoritesProfileList;
+    }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
+                onStart();
+            } else if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
+                vibrator.vibrate(250);
+                updateLocationData();
+            } else if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
+                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID) {
+                updateLocationData();
+            }
+        }
+    };
 
 }

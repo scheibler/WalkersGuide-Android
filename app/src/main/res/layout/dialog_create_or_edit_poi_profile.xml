@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
 
-    <LinearLayout
+    <TextView
+        android:labelFor="@+id/editInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:focusable="true"
+        android:textStyle="bold"
+        android:textColor="@color/heading"
+        android:text="@string/labelProfileName" />
 
-        <TextView
-            android:labelFor="@+id/editInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textColor="@color/heading"
-            android:text="@string/labelProfileName" />
+    <include
+        layout="@layout/layout_single_edit_text" />
 
-        <include
-            layout="@layout/layout_single_edit_text" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:focusable="true"
+        android:textStyle="bold"
+        android:textColor="@color/heading"
+        android:text="@string/labelPOIProfileCategories" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textColor="@color/heading"
-            android:text="@string/labelPOIProfileCategories" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
 
         <org.walkersguide.android.ui.view.CheckBoxGroupView
             android:id="@+id/checkBoxGroupPOICategories"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:columnCount="1" />
+    </ScrollView>
 
-    </LinearLayout>
-</ScrollView>
+</LinearLayout>

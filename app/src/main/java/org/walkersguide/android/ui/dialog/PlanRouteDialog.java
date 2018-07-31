@@ -8,7 +8,7 @@ import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.google.AddressManager;
+import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.listener.AddressListener;
 import org.walkersguide.android.listener.ChildDialogCloseListener;

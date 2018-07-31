@@ -64,6 +64,8 @@ import android.widget.TextView;
 import org.walkersguide.android.helper.PointUtility;
 import android.view.Menu;
 import java.util.ArrayList;
+import org.walkersguide.android.data.basic.point.StreetAddress;
+import org.json.JSONArray;
 
 public class PointDetailsActivity extends AbstractActivity implements OnMenuItemClickListener {
 
@@ -334,6 +336,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 
         private AccessDatabase accessDatabaseInstance;
         private PointWrapper selectedPoint;
+        private TreeSet<Integer> checkedFavoritesProfileIds;
         private CheckBoxGroupView checkBoxGroupFavoritesProfiles;
 
         public static SelectFavoritesProfilesForPointDialog newInstance(PointWrapper selectedPoint) {
@@ -373,8 +376,32 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 dialog.setTargetFragment(SelectFavoritesProfilesForPointDialog.this, 1);
                 dialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
             } else {
-                TreeSet<Integer> checkedFavoritesProfileIds = accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint);
+                if (savedInstanceState != null) {
+                    checkedFavoritesProfileIds = new TreeSet<Integer>();
+                    JSONArray jsonCheckedFavoritesProfileIdList = null;
+                    try {
+                        jsonCheckedFavoritesProfileIdList = new JSONArray(
+                                savedInstanceState.getString("jsonCheckedFavoritesProfileIdList"));
+                    } catch (JSONException e) {
+                        jsonCheckedFavoritesProfileIdList = null;
+                    } finally {
+                        if (jsonCheckedFavoritesProfileIdList != null) {
+                            for (int i=0; i<jsonCheckedFavoritesProfileIdList.length(); i++) {
+                                try {
+                                    checkedFavoritesProfileIds.add(jsonCheckedFavoritesProfileIdList.getInt(i));
+                                } catch (JSONException e) {}
+                            }
+                        }
+                    }
+                } else {
+                    checkedFavoritesProfileIds = accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint);
+                }
+
                 for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
+                    if (profile.getKey() == FavoritesProfile.ID_ADDRESS_POINTS
+                            && ! (selectedPoint.getPoint() instanceof StreetAddress)) {
+                                continue;
+                    }
                     CheckBox checkBox = new CheckBox(getActivity());
                     checkBox.setId(profile.getKey());
                     checkBox.setLayoutParams(
@@ -383,8 +410,12 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                                 LinearLayout.LayoutParams.WRAP_CONTENT)
                             );
                     checkBox.setText(profile.getValue());
-                    checkBox.setChecked(
-                            checkedFavoritesProfileIds.contains(profile.getKey()));
+                    checkBox.setOnClickListener(new View.OnClickListener() {
+                        @Override public void onClick(View view) {
+                            checkedFavoritesProfileIds = getCheckedItemsOfFavoritesProfilesCheckBoxGroup();
+                            onStart();
+                        }
+                    });
                     checkBoxGroupFavoritesProfiles.put(checkBox);
                 }
             }
@@ -421,27 +452,35 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             super.onStart();
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {
+
+                // check boxes
+                for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckBoxList()) {
+                    checkBox.setChecked(
+                            checkedFavoritesProfileIds.contains(checkBox.getId()));
+                }
+
                 // positive button
                 Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 buttonPositive.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        TreeSet<Integer> checkedFavoritesProfileIds = accessDatabaseInstance
+                        // remove unchecked profiles
+                        TreeSet<Integer> favoritesProfileIdsToRemove = accessDatabaseInstance
                             .getCheckedFavoritesProfileIdsForPoint(selectedPoint);
-                        for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckBoxList()) {
-                            // only update, if value has changed
-                            if (checkBox.isChecked() != checkedFavoritesProfileIds.contains(checkBox.getId())) {
-                                if (checkBox.isChecked()) {
-                                    accessDatabaseInstance.addPointToFavoritesProfile(selectedPoint, checkBox.getId());
-                                    System.out.println("xxx add " + checkBox.getId());
-                                } else {
-                                    accessDatabaseInstance.removePointFromFavoritesProfile(selectedPoint, checkBox.getId());
-                                    System.out.println("xxx remove " + checkBox.getId());
-                                }
-                            }
+                        favoritesProfileIdsToRemove.removeAll(checkedFavoritesProfileIds);
+                        for (Integer favoritesProfileIdToRemove : favoritesProfileIdsToRemove) {
+                            accessDatabaseInstance.removePointFromFavoritesProfile(selectedPoint, favoritesProfileIdToRemove);
+                        }
+                        // add profiles
+                        TreeSet<Integer> favoritesProfileIdsToAdd = new TreeSet<Integer>(checkedFavoritesProfileIds);
+                        favoritesProfileIdsToAdd.removeAll(
+                                accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint));
+                        for (Integer favoritesProfileIdToAdd : favoritesProfileIdsToAdd) {
+                            accessDatabaseInstance.addPointToFavoritesProfile(selectedPoint, favoritesProfileIdToAdd);
                         }
                         dialog.dismiss();
                     }
                 });
+
                 // neutral button
                 Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
                 if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
@@ -453,14 +492,14 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 }
                 buttonNeutral.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
+                        checkedFavoritesProfileIds = new TreeSet<Integer>();
                         if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
-                            checkBoxGroupFavoritesProfiles.checkAll();
-                        } else {
-                            checkBoxGroupFavoritesProfiles.uncheckAll();
+                            checkedFavoritesProfileIds.addAll(accessDatabaseInstance.getFavoritesProfileMap().keySet());
                         }
                         onStart();
                     }
                 });
+
                 // negative button
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -471,8 +510,25 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             }
         }
 
+        @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+            super.onSaveInstanceState(savedInstanceState);
+            JSONArray jsonCheckedFavoritesProfileIdList = new JSONArray();
+            for (Integer id : getCheckedItemsOfFavoritesProfilesCheckBoxGroup()) {
+                jsonCheckedFavoritesProfileIdList.put(id);
+            }
+            savedInstanceState.putString("jsonCheckedFavoritesProfileIdList", jsonCheckedFavoritesProfileIdList.toString());
+        }
+
         @Override public void childDialogClosed() {
             dismiss();
+        }
+
+        private TreeSet<Integer> getCheckedItemsOfFavoritesProfilesCheckBoxGroup() {
+            TreeSet<Integer> favoritesProfileList = new TreeSet<Integer>();
+            for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckedCheckBoxList()) {
+                favoritesProfileList.add(checkBox.getId());
+            }
+            return favoritesProfileList;
         }
     }
 

@@ -182,7 +182,7 @@ public class Point {
                 || this.name.equals(this.subType)) {
             return this.name;
         }
-        return this.name + " (" + this.subType + ")";
+        return String.format("%1$s (%2$s)", this.name, this.subType);
     }
 
 	@Override public int hashCode() {

@@ -8,7 +8,8 @@ import org.walkersguide.android.BuildConfig;
 
 public class SQLiteHelper extends SQLiteOpenHelper {
 
-    public static final String INTERNAL_DATABASE_NAME = BuildConfig.DATABASE_NAME;;
+    public static final String INTERNAL_DATABASE_NAME = BuildConfig.DATABASE_NAME;
+    public static final String INTERNAL_TEMP_DATABASE_NAME = BuildConfig.DATABASE_NAME + ".tmp";
     public static final int DATABASE_VERSION = BuildConfig.DATABASE_VERSION;
 
     // map table
@@ -42,23 +43,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         + PUBLIC_TRANSPORT_PROVIDER_NAME + " text not null);";
     public static final String DROP_PUBLIC_TRANSPORT_PROVIDER_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_PUBLIC_TRANSPORT_PROVIDER + ";";
-
-    // address table
-    public static final String TABLE_ADDRESS = "address";
-    public static final String ADDRESS_LATITUDE = "latitude";
-    public static final String ADDRESS_LONGITUDE = "longitude";
-    public static final String ADDRESS_POINT = "point";
-    public static final String[] TABLE_ADDRESS_ALL_COLUMNS = {
-        ADDRESS_LATITUDE, ADDRESS_LONGITUDE, ADDRESS_POINT
-    };
-    public static final String CREATE_ADDRESS_TABLE = 
-        "CREATE TABLE IF NOT EXISTS " + TABLE_ADDRESS + "("
-        + ADDRESS_LATITUDE + " integer, "
-        + ADDRESS_LONGITUDE + " integer, "
-        + ADDRESS_POINT + " text not null, "
-        + "UNIQUE (" + ADDRESS_LATITUDE + ", " + ADDRESS_LONGITUDE + ") ON CONFLICT IGNORE);";
-    public static final String DROP_ADDRESS_TABLE =
-        "DROP TABLE IF EXISTS " + TABLE_ADDRESS + ";";
 
     // favorites profile table
     public static final String TABLE_FAVORITES_PROFILE = "favorites_profile";
@@ -211,7 +195,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         // create tables
         database.execSQL(CREATE_MAP_TABLE);
         database.execSQL(CREATE_PUBLIC_TRANSPORT_PROVIDER_TABLE);
-        database.execSQL(CREATE_ADDRESS_TABLE);
         database.execSQL(CREATE_FAVORITES_PROFILE_TABLE);
         database.execSQL(CREATE_POINT_TABLE);
         database.execSQL(CREATE_FP_POINTS_TABLE);
@@ -222,7 +205,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
-        System.out.println("xxx onUpdate: " + oldVersion + " / " + newVersion);
+        System.out.println("xxx onUpgrade: " + oldVersion + " / " + newVersion);
 
         if (oldVersion <= 2) {
             // create excluded ways table
@@ -239,11 +222,17 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         }
 
         if (oldVersion <= 3) {
+            // add search term column in poi profile table
             database.execSQL(
                     String.format(
                         "ALTER TABLE %1$s ADD COLUMN %2$s TEXT DEFAULT '';",
                         TABLE_POI_PROFILE, POI_PROFILE_SEARCH_TERM)
                     );
+        }
+
+        if (oldVersion <= 4) {
+            // drop obsolete address cache table
+            database.execSQL("DROP TABLE IF EXISTS address;");
         }
     }
 

@@ -14,12 +14,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
-        <!-- server settings -->
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <!-- server settings -->
 
             <TextView
                 android:layout_width="match_parent"
@@ -47,8 +47,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/buttonServerPublicTransportProviderNoSelection" />
 
+            <Button
+                android:id="@+id/buttonAddressProvider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonAddressProvider" />
 
-        <!-- interface settings -->
+
+            <!-- interface settings -->
 
             <TextView
                 android:layout_width="match_parent"
@@ -64,8 +70,43 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/buttonShakeIntensity" />
+
+
+            <!-- privacy settings -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelPrivacySettingsHeader" />
+
+            <Switch
+                android:id="@+id/buttonEnableTextInputHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonEnableTextInputHistory" />
+
+
+            <!-- import and export settings -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelImportAndExportSettingsHeader" />
+
+            <Button
+                android:id="@+id/buttonImportSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonImportSettings" />
         </LinearLayout>
 
     </ScrollView>
-
 </LinearLayout>

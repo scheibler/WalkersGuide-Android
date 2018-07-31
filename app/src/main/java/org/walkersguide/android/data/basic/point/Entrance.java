@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 
-public class Entrance extends Point {
+public class Entrance extends PointWithAddressData {
 
     private String label;
 
@@ -23,6 +23,10 @@ public class Entrance extends Point {
         return this.label;
     }
 
+    @Override public String getName() {
+        return super.createPrintableAddress();
+    }
+
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
         if (! this.label.equals("")) {
@@ -34,7 +38,11 @@ public class Entrance extends Point {
     }
 
     @Override public String toString() {
-        return super.toString();
+        if (super.getSubType().equals("")
+                || this.createPrintableAddress().equals(super.getSubType())) {
+            return this.createPrintableAddress();
+        }
+        return String.format("%1$s (%2$s)", super.createPrintableAddress(), super.getSubType());
     }
 
 }

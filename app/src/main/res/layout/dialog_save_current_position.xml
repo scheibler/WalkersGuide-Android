@@ -11,6 +11,23 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:focusable="true"
+                android:text="@string/labelPointNameToSave" />
+
+            <include
+                layout="@layout/layout_single_autocomplete_text_view" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
             android:orientation="vertical" >
 
@@ -81,13 +98,12 @@
                     android:focusable="true"
                     android:text="@string/labelCheckFavoritesProfiles" />
 
-                <ImageButton
-                    android:id="@+id/buttonClearFavoritesProfiles"
+                <Button
+                    android:id="@+id/buttonAddFavoritesProfile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@null"
-                    android:src="@drawable/refresh"
-                    android:contentDescription="@string/buttonClearFavoritesProfiles" />
+                    android:text="@string/buttonAddFavoritesProfile"
+                    android:contentDescription="@string/buttonAddFavoritesProfileCD" />
             </LinearLayout>
 
             <org.walkersguide.android.ui.view.CheckBoxGroupView
@@ -102,24 +118,6 @@
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:text="@string/labelNoUserCreatedFavoritesProfiles" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:orientation="vertical" >
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textColor="@color/heading"
-                android:focusable="true"
-                android:text="@string/labelPointNameToSave" />
-
-            <include
-                layout="@layout/layout_single_edit_text" />
         </LinearLayout>
 
     </LinearLayout>

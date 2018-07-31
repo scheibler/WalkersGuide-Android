@@ -242,7 +242,7 @@ public class POIManager {
                         } else if (responseCode != Constants.ID.OK) {
                             returnCode = 1010;          // server connection error
                         } else {
-                            JSONObject jsonServerResponse = DownloadUtility.processServerResponse(connection);
+                            JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
                             if (jsonServerResponse.has("error")
                                     && ! jsonServerResponse.getString("error").equals("")) {
                                 this.additionalMessage = jsonServerResponse.getString("error");

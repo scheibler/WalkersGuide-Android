@@ -37,6 +37,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import org.walkersguide.android.ui.dialog.SearchInPOIDialog;
+import org.walkersguide.android.ui.dialog.SearchInFavoritesDialog;
+import java.util.TreeSet;
+
 
 public abstract class AbstractActivity extends AppCompatActivity {
 
@@ -203,9 +207,17 @@ public abstract class AbstractActivity extends AppCompatActivity {
                         getSupportFragmentManager(), "RequestAddressDialog");
                 break;
             case R.id.menuItemSaveCurrentPosition:
-                SaveCurrentPositionDialog.newInstance().show(
+                SaveCurrentPositionDialog.newInstance(new TreeSet<Integer>()).show(
                         getSupportFragmentManager(), "SaveCurrentPositionDialog");
                 break;
+            case R.id.menuItemSearchInFavorites:
+                SearchInFavoritesDialog.newInstance().show(
+                        getSupportFragmentManager(), "SearchInFavoritesDialog");
+                return true;
+            case R.id.menuItemSearchInPOI:
+                SearchInPOIDialog.newInstance().show(
+                        getSupportFragmentManager(), "SearchInPOIDialog");
+                return true;
             case R.id.menuItemSettings:
                 Intent intentStartSettingsActivity = new Intent(AbstractActivity.this, SettingsActivity.class);
                 startActivity(intentStartSettingsActivity);

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal" >
+
+    <AutoCompleteTextView
+        android:id="@+id/editInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0"
+        android:completionThreshold="3"
+        android:inputType="textFilter"
+        android:imeOptions="actionSearch" />
+
+    <ImageButton
+        android:id="@+id/buttonDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="@dimen/minWidth"
+        android:minHeight="@dimen/minHeight"
+        android:background="@null"
+        android:tint="@color/image"
+        android:src="@drawable/delete"
+        android:contentDescription="@string/buttonDelete" />
+
+
+</LinearLayout>

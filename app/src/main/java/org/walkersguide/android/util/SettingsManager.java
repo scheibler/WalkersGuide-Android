@@ -13,7 +13,6 @@ import org.walkersguide.android.sensor.PositionManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
@@ -22,7 +21,7 @@ import org.json.JSONArray;
 import java.util.Arrays;
 
 public class SettingsManager {
-    public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 50;
+    public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
     // class variables
     private static SettingsManager settingsManagerInstance;
@@ -181,6 +180,7 @@ public class SettingsManager {
 
         private int recentOpenTab;
         private int shakeIntensity;
+        private boolean enableTextInputHistory;
 
         public GeneralSettings(JSONObject jsonObject) {
             this.recentOpenTab = Constants.MAIN_FRAGMENT.ROUTER;
@@ -197,15 +197,11 @@ public class SettingsManager {
                     this.shakeIntensity = intensity;
                 }
             } catch (JSONException e) {}
-        }
-
-        public String getClientVersion() {
+            // enable text input history
+            this.enableTextInputHistory = true;
             try {
-                return context.getPackageManager().getPackageInfo(
-                        context.getPackageName(), 0).versionName;
-            } catch (NameNotFoundException e) {
-                return "";
-            }
+                this.enableTextInputHistory = jsonObject.getBoolean("enableTextInputHistory");
+            } catch (JSONException e) {}
         }
 
         public int getRecentOpenTab() {
@@ -228,6 +224,15 @@ public class SettingsManager {
             }
         }
 
+        public boolean getEnableTextInputHistory() {
+            return this.enableTextInputHistory;
+        }
+
+        public void setEnableTextInputHistory(boolean enabled) {
+            this.enableTextInputHistory = enabled;
+            storeGeneralSettings();
+        }
+
         public void storeGeneralSettings() {
             JSONObject jsonGeneralSettings = new JSONObject();
             try {
@@ -235,6 +240,9 @@ public class SettingsManager {
             } catch (JSONException e) {}
             try {
                 jsonGeneralSettings.put("shakeIntensity", this.shakeIntensity);
+            } catch (JSONException e) {}
+            try {
+                jsonGeneralSettings.put("enableTextInputHistory", this.enableTextInputHistory);
             } catch (JSONException e) {}
     		// save settings
 	    	Editor editor = settings.edit();
@@ -878,6 +886,7 @@ public class SettingsManager {
         private String serverURL;
         private OSMMap selectedMap;
         private PublicTransportProvider selectedPublicTransportProvider;
+        private int selectedAddressProviderId;
 
         public ServerSettings(JSONObject jsonObject) {
             this.serverURL = Constants.DEFAULT.SERVER_URL;
@@ -895,6 +904,14 @@ public class SettingsManager {
             try {
                 this.selectedPublicTransportProvider = AccessDatabase.getInstance(context).getPublicTransportProvider(
                         jsonObject.getString("selectedPublicTransportProviderIdentifier"));
+            } catch (JSONException e) {}
+            // address provider
+            this.selectedAddressProviderId = Constants.ADDRESS_PROVIDER.OSM;
+            try {
+                int addressProviderIdFromJson = jsonObject.getInt("selectedAddressProviderId");
+                if (Ints.contains(Constants.AddressProviderValueArray, addressProviderIdFromJson)) {
+                    this.selectedAddressProviderId = addressProviderIdFromJson;
+                }
             } catch (JSONException e) {}
         }
 
@@ -927,6 +944,17 @@ public class SettingsManager {
             storeServerSettings();
         }
 
+        public int getAddressProviderId() {
+            return this.selectedAddressProviderId;
+        }
+
+        public void setAddressProviderId(int newAddressProviderId) {
+            if (Ints.contains(Constants.AddressProviderValueArray, newAddressProviderId)) {
+                this.selectedAddressProviderId = newAddressProviderId;
+                storeServerSettings();
+            }
+        }
+
         public void storeServerSettings() {
             JSONObject jsonServerSettings = new JSONObject();
             try {
@@ -942,6 +970,9 @@ public class SettingsManager {
                     jsonServerSettings.put("selectedPublicTransportProviderIdentifier", this.selectedPublicTransportProvider.getIdentifier());
                 } catch (JSONException e) {}
             }
+            try {
+                jsonServerSettings.put("selectedAddressProviderId", this.selectedAddressProviderId);
+            } catch (JSONException e) {}
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("serverSettings", jsonServerSettings.toString());
@@ -974,13 +1005,30 @@ public class SettingsManager {
         }
 
         public void addSearchTerm(String searchTerm) {
-            if (! this.searchTermList.contains(searchTerm)) {
-                this.searchTermList.add(0, searchTerm);
-                if (this.searchTermList.size() > MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES) {
-                    searchTermList.remove(searchTermList.size() - 1);
+            for (String word : searchTerm.split("\\s")) {
+                // add every single word at least four chars long
+                if (word.length() > 3
+                        && ! this.searchTermList.contains(word)) {
+                    this.searchTermList.add(0, word);
+                }
+                if (! this.searchTermList.contains(searchTerm)) {
+                    this.searchTermList.add(0, searchTerm);
+                }
+                // clear odd entries
+                int numberOfOddEntries = this.searchTermList.size() - MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES;
+                if (numberOfOddEntries > 0) {
+                    searchTermList.subList(
+                            searchTermList.size() - numberOfOddEntries,
+                            searchTermList.size())
+                        .clear();
                 }
                 storeSearchTermHistory();
             }
+        }
+
+        public void clearSearchTermList() {
+            this.searchTermList = new ArrayList<String>();
+            storeSearchTermHistory();
         }
 
         public void storeSearchTermHistory() {

@@ -169,6 +169,20 @@ public class Constants {
 
 
     /**
+     * AddressManager
+     */
+
+    public interface ADDRESS_PROVIDER {
+        public static final int OSM = 0;
+        public static final int GOOGLE = 1;
+    }
+
+    public final static int[] AddressProviderValueArray = {
+        ADDRESS_PROVIDER.OSM, ADDRESS_PROVIDER.GOOGLE
+    };
+
+
+    /**
      * Direction manager
      */
 

@@ -30,12 +30,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.basic.segment.Footway;
+import org.walkersguide.android.server.FavoritesManager;
+import android.database.SQLException;
 
 public class AccessDatabase {
 
     private Context context;
     private static AccessDatabase accessDatabaseInstance;
     private SQLiteDatabase database;
+    private SQLiteHelper dbHelper;
 
     public static AccessDatabase getInstance(Context context) {
         if(accessDatabaseInstance == null){
@@ -46,8 +49,14 @@ public class AccessDatabase {
 
     private AccessDatabase(Context context) {
         this.context = context;
-        SQLiteHelper dbHelper = new SQLiteHelper(context);
+        dbHelper = new SQLiteHelper(context);
         this.database = dbHelper.getWritableDatabase();
+    }
+
+    public void reOpen() throws SQLException {
+        dbHelper.close();
+        dbHelper = new SQLiteHelper(context);
+        database = dbHelper.getWritableDatabase();
     }
 
     public void setSomeDefaults() {
@@ -286,72 +295,6 @@ public class AccessDatabase {
 
 
     /**
-     * addresses
-     */
-
-    public PointWrapper getAddress(double latitude, double longitude) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_ADDRESS, SQLiteHelper.TABLE_ADDRESS_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT,
-                    "%1$s > %2$f AND %3$s < %4$f AND %5$s > %6$f AND %7$s < %8$f",
-                    SQLiteHelper.ADDRESS_LATITUDE, latitude-0.001,
-                    SQLiteHelper.ADDRESS_LATITUDE, latitude+0.001,
-                    SQLiteHelper.ADDRESS_LONGITUDE, longitude-0.001,
-                    SQLiteHelper.ADDRESS_LONGITUDE, longitude+0.001),
-                null, null, null, null);
-        TreeMap<Float,PointWrapper> addressPointMap = new TreeMap<Float,PointWrapper>();
-        while (cursor.moveToNext()) {
-            // get distance
-            float[] results = new float[1];
-            Location.distanceBetween(
-                    latitude,
-                    longitude,
-                    cursor.getDouble(cursor.getColumnIndex(SQLiteHelper.ADDRESS_LATITUDE)),
-                    cursor.getDouble(cursor.getColumnIndex(SQLiteHelper.ADDRESS_LONGITUDE)),
-                    results);
-            // get point
-            PointWrapper addressPoint = null;
-            try {
-                addressPoint = new PointWrapper(
-                        this.context,
-                        new JSONObject(
-                            cursor.getString(
-                                cursor.getColumnIndex(SQLiteHelper.ADDRESS_POINT))));
-            } catch (JSONException e) {
-                break;
-            }
-            // add to map
-            addressPointMap.put(results[0], addressPoint);
-        }
-        cursor.close();
-        // return closest addres, max 20 meters away
-        Map.Entry<Float,PointWrapper> addressEntry = addressPointMap.firstEntry ();
-        if (addressEntry != null
-                && addressEntry.getKey() < 20.0f) {
-            return addressEntry.getValue();
-        }
-        return null;
-    }
-
-    public void addAddress(double latitude, double longitude, PointWrapper addressPoint) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.ADDRESS_LATITUDE, latitude);
-        values.put(SQLiteHelper.ADDRESS_LONGITUDE, longitude);
-        try {
-            values.put(SQLiteHelper.ADDRESS_POINT, addressPoint.toJson().toString());
-        } catch (JSONException e) {
-            return;
-        }
-        database.insertWithOnConflict(
-                SQLiteHelper.TABLE_ADDRESS,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_IGNORE);
-    }
-
-
-    /**
      * FavoritesProfile
      */
 
@@ -515,6 +458,8 @@ public class AccessDatabase {
                 new String[] {String.valueOf(id)});
         // delete orphan points
         deleteOrphanPointsOfFavoriteProfile(id);
+        // kill previous favorites search instance
+        FavoritesManager.getInstance(this.context).destroySearchInstance();
     }
 
     public void removeFavoritesProfile(int id) {
@@ -525,6 +470,8 @@ public class AccessDatabase {
                 new String[] {String.valueOf(id)});
         // delete orphan points
         deleteOrphanPointsOfFavoriteProfile(id);
+        // kill previous favorites search instance
+        FavoritesManager.getInstance(this.context).destroySearchInstance();
     }
 
     public TreeSet<Integer> getCheckedFavoritesProfileIdsForPoint(PointWrapper pointWrapper) {
@@ -562,7 +509,7 @@ public class AccessDatabase {
                     SQLiteHelper.TABLE_POINT,
                     null,
                     values,
-                    SQLiteDatabase.CONFLICT_IGNORE);
+                    SQLiteDatabase.CONFLICT_REPLACE);
         }
         // add point to point FPPoints table or update order column
         ContentValues fpValues = new ContentValues();
@@ -574,6 +521,8 @@ public class AccessDatabase {
                 null,
                 fpValues,
                 SQLiteDatabase.CONFLICT_REPLACE);
+        // kill previous favorites search instance
+        FavoritesManager.getInstance(this.context).destroySearchInstance();
     }
 
     public void removePointFromFavoritesProfile(PointWrapper pointToRemove, int profileId) {
@@ -588,19 +537,22 @@ public class AccessDatabase {
                 new String[] {
                     String.valueOf(profileId), String.valueOf(pointToRemove.hashCode())});
         // delete point from points table if not longer part of any favorites profile
-        //deleteOrphanPointsOfFavoriteProfile(profileId);
+        deleteOrphanPointsOfFavoriteProfile(profileId);
+        // kill previous favorites search instance
+        FavoritesManager.getInstance(this.context).destroySearchInstance();
     }
 
     private void deleteOrphanPointsOfFavoriteProfile(int id) {
-        database.delete(
-                SQLiteHelper.TABLE_POINT,
+        database.execSQL(
                 String.format(
-                    "NOT EXISTS (SELECT NULL FROM %1$s WHERE %2$s.%3$s = %4$s.%5$s AND %6$s.%7$s = ?)",
-                    SQLiteHelper.TABLE_FP_POINTS,
-                    SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_POINT_ID,
+                    "DELETE FROM %1$s where %2$s IN (SELECT %3$s.%4$s FROM %5$s LEFT JOIN %6$s ON %7$s.%8$s = %9$s.%10$s WHERE %11$s.%12$s IS NULL);",
                     SQLiteHelper.TABLE_POINT, SQLiteHelper.POINT_ID,
-                    SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_PROFILE_ID),
-                new String[] {String.valueOf(id)});
+                    SQLiteHelper.TABLE_POINT, SQLiteHelper.POINT_ID,
+                    SQLiteHelper.TABLE_POINT, SQLiteHelper.TABLE_FP_POINTS,
+                    SQLiteHelper.TABLE_POINT, SQLiteHelper.POINT_ID,
+                    SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_POINT_ID,
+                    SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_POINT_ID)
+                );
     }
 
 

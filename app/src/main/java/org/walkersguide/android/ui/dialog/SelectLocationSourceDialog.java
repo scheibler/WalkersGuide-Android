@@ -31,6 +31,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.TreeSet;
 
 public class SelectLocationSourceDialog extends DialogFragment implements ChildDialogCloseListener {
 
@@ -110,8 +111,8 @@ public class SelectLocationSourceDialog extends DialogFragment implements ChildD
         Button buttonGPSSave = (Button) view.findViewById(R.id.buttonGPSSave);
         buttonGPSSave.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SaveCurrentPositionDialog.newInstance().show(
-                        getActivity().getSupportFragmentManager(), "SaveCurrentPositionDialog");
+                SaveCurrentPositionDialog.newInstance(new TreeSet<Integer>())
+                    .show(getActivity().getSupportFragmentManager(), "SaveCurrentPositionDialog");
             }
         });
 
