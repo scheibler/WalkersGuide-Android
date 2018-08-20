@@ -11,19 +11,36 @@ import android.content.Context;
 public class IntersectionSegment extends Footway {
 
     private String intersectionName;
+    private long nextNodeId;
 
     public IntersectionSegment(Context context, JSONObject inputData) throws JSONException {
         super(context, inputData);
         this.intersectionName = inputData.getString("intersection_name");
+        this.nextNodeId = -1;
+        try {
+            long nextNodeIdValue = inputData.getLong("next_node_id");
+            if (nextNodeIdValue > 0) {
+                this.nextNodeId = nextNodeIdValue;
+            }
+        } catch (JSONException e) {}
     }
 
     public String getIntersectionName() {
         return this.intersectionName;
     }
 
+    public long getNextNodeId() {
+        return this.nextNodeId;
+    }
+
     public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
         jsonObject.put("intersection_name", this.intersectionName);
+        if (this.nextNodeId > -1) {
+            try {
+                jsonObject.put("next_node_id", this.nextNodeId);
+            } catch (JSONException e) {}
+        }
         return jsonObject;
     }
 
@@ -41,6 +58,7 @@ public class IntersectionSegment extends Footway {
 	@Override public int hashCode() {
         int hash = super.hashCode();
 		hash = hash * 31 + this.intersectionName.hashCode();
+		hash = hash * 31 + Long.valueOf(this.nextNodeId).hashCode();
 		return hash;
 	}
 
@@ -54,7 +72,8 @@ public class IntersectionSegment extends Footway {
         }
 		IntersectionSegment other = (IntersectionSegment) obj;
         return super.equals(((Footway) other))
-            && this.intersectionName.equals(other.getIntersectionName());
+            && this.intersectionName.equals(other.getIntersectionName())
+            && this.nextNodeId == other.getNextNodeId();
     }
 
 

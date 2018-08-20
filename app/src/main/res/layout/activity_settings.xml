@@ -65,29 +65,17 @@
                 android:textColor="@color/heading"
                 android:text="@string/labelInterfaceSettingsHeader" />
 
-            <Button
-                android:id="@+id/buttonShakeIntensity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/buttonShakeIntensity" />
-
-
-            <!-- privacy settings -->
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:focusable="true"
-                android:textStyle="bold"
-                android:textColor="@color/heading"
-                android:text="@string/labelPrivacySettingsHeader" />
-
             <Switch
                 android:id="@+id/buttonEnableTextInputHistory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/buttonEnableTextInputHistory" />
+
+            <Button
+                android:id="@+id/buttonShakeIntensity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonShakeIntensity" />
 
 
             <!-- import and export settings -->
@@ -106,6 +94,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/buttonImportSettings" />
+
+
+            <!-- development settings -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelDevelopmentSettingsHeader" />
+
+            <Switch
+                android:id="@+id/buttonShowDevelopmentMaps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonShowDevelopmentMaps" />
+
+            <Switch
+                android:id="@+id/buttonLogQueriesOnServer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonLogQueriesOnServer" />
+
         </LinearLayout>
 
     </ScrollView>

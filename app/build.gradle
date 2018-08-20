@@ -27,14 +27,19 @@ android {
         applicationId "org.walkersguide.android"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 4
-        versionName '0.2.0'
-        // internal
-        buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-        buildConfigField 'Integer', 'DATABASE_VERSION', '5'
+        versionCode 5
+        versionName '0.3.0'
         // personal data
         buildConfigField 'String', 'CONTACT_EMAIL', '"support@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"http://walkersguide.org"'
+        // internal
+        // database
+        buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
+        buildConfigField 'Integer', 'DATABASE_VERSION', '7'
+        // server
+        buildConfigField 'String', 'SERVER_URL', '"https://scheibler-dresden.homelinux.org/walkersguide/prod/"'
+        buildConfigField 'Integer', 'SUPPORTED_API_VERSION', '1'
+        buildConfigField 'boolean', 'DEFAULT_SHOW_DEVELOPMENT_MAPS', 'false'
     }
 
     signingConfigs {
@@ -47,10 +52,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            buildConfigField 'boolean', 'DEFAULT_SHOW_DEVELOPMENT_MAPS', 'true'
+        }
         release {
+            debuggable false
             signingConfig signingConfigs.release
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
 

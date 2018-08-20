@@ -409,7 +409,7 @@ public class FavoriteFragment extends Fragment
         }
 
         // error message dialog
-        if (! (returnCode == Constants.ID.OK || returnCode == Constants.ID.CANCELLED)) {
+        if (! (returnCode == Constants.RC.OK || returnCode == Constants.RC.CANCELLED)) {
             SimpleMessageDialog.newInstance(returnMessage)
                 .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
         }

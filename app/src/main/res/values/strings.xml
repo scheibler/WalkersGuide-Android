@@ -41,12 +41,6 @@
 
     <!-- SelectRoutingWayClassesDialog -->
     <string name="selectRoutingWayClassesDialogTitle">Select way classes allowed for routing:</string>
-    <string name="routingWayClassBigStreets">Big streets</string>
-    <string name="routingWayClassSmallStreets">Small streets</string>
-    <string name="routingWayClassPavedWays">Paved ways</string>
-    <string name="routingWayClassUnpavedWays">Unpaved ways</string>
-    <string name="routingWayClassSteps">Steps</string>
-    <string name="routingWayClassUnclassifiedWays">Ways of unknown type</string>
     <string name="messageNoAllowedWayClassSelected">No way classes selected.</string>
 
     <!-- gps details dialog -->
@@ -84,7 +78,8 @@
     <string name="selectPointDialogNameVia">Select via point %1$d:</string>
     <string name="selectPointDialogNameSimulation">Select point to simulate:</string>
     <string name="pointSelectFromCurrentLocation">Use current location</string>
-    <string name="pointSelectFromEnterAddress">Enter an address</string>
+    <string name="pointSelectFromEnterAddress">Enter address</string>
+    <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromFavorites">choose from your favorites</string>
     <string name="pointSelectFromPOI">Select a nearby POI</string>
 
@@ -92,6 +87,14 @@
     <string name="enterAddressDialogName">Enter Address:</string>
     <string name="editHintAddress">city, street and house number</string>
     <string name="messageAddressMissing">Please enter an address.</string>
+
+    <!-- enter coordinates dialog -->
+    <string name="enterCoordinatesDialogName">Enter Coordinates:</string>
+    <string name="labelName">Name:</string>
+    <string name="hintNameIsOptional">Name is optional</string>
+    <string name="messageLatitudeMissing">Missing or invalid latitude value.</string>
+    <string name="messageLongitudeMissing">Missing or invalid longitude value.</string>
+    <string name="messageCantCreatePointFromCoordinates">Could not create address or point from coordinates.</string>
 
     <!-- request address dialog -->
     <string name="requestAddressDialogName">Request Address:</string>
@@ -269,6 +272,10 @@
     <!-- IntersectionWaysFragment -->
     <string name="fragmentIntersectionWaysName">Ways</string>
     <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$d streets\nDirection: %2$s</string>
+    <!-- next intersection list menu -->
+    <string name="menuItemJumpToNextBigIntersection">Jump to next intersection</string>
+    <string name="menuItemShowNextIntersections">Show next intersections</string>
+
 
     <!-- PedestrianCrossingsFragment -->
     <string name="fragmentPedestrianCrossingsName">Crossings</string>
@@ -323,6 +330,10 @@
     <!-- point: coordinates and gps -->
     <string name="labelPointCoordinatesHeading">Coordinates</string>
 
+    <!-- next intersections dialog -->
+    <string name="nextIntersectionsDialogTitle">Next intersections for</string>
+
+
     <!-- segment details activity -->
     <string name="segmentDetailsActivityTitle">Details</string>
     <string name="labelGeneralSegmentDetails">General:</string>
@@ -372,11 +383,13 @@
     <string name="buttonAddressProvider">Address resolver: %1$s</string>
     <string name="buttonAddressProviderNoSelection">Address resolver: None selected</string>
     <string name="labelInterfaceSettingsHeader">Interface:</string>
-    <string name="buttonShakeIntensity">Shake intensity</string>
-    <string name="labelPrivacySettingsHeader">Privacy</string>
     <string name="buttonEnableTextInputHistory">Enable local text input history</string>
+    <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export</string>
     <string name="buttonImportSettings">Import application settings</string>
+    <string name="labelDevelopmentSettingsHeader">Development</string>
+    <string name="buttonShowDevelopmentMaps">Show developer maps</string>
+    <string name="buttonLogQueriesOnServer">Enable server communication logging (for debugging purposes only)</string>
 
     <!-- new server dialog -->
     <string name="newServerDialogTitle">New server</string>
@@ -407,11 +420,13 @@
     <string name="infoActivityTitle">Info</string>
     <string name="labelAppInformationHeader">WalkersGuide:</string>
     <string name="labelInfoProgramVersion">Version</string>
-    <string name="labelInfoEMail">Contact</string>
+    <string name="labelContactDataHeader">Contact data:</string>
+    <string name="labelInfoEMail">Email</string>
     <string name="labelInfoURL">Website</string>
-    <string name="labelSelectedMapHeader">Selected Map:</string>
-    <string name="labelSelectedMapName">Name:</string>
-    <string name="labelSelectedMapVersion">Version:</string>
+    <string name="labelServerHeader">Map server:</string>
+    <string name="labelServerName">Name:</string>
+    <string name="labelServerVersion">Version:</string>
+    <string name="labelSelectedMapName">Map:</string>
     <string name="labelSelectedMapCreated">Created:</string>
 
 
@@ -451,6 +466,9 @@
     <!-- line -->
     <string name="lineNrAndDirection">%1$s to %2$s</string>
 
+    <!-- public transport provider -->
+    <string name="publicTransportProviderDB">Deutsche Bahn</string>
+    <string name="publicTransportProviderVBB">Verkehrsverbund Berlin-Brandenburg</string>
 
     <!--
          poi management
@@ -459,6 +477,7 @@
     <!-- FavoritesProfile -->
     <string name="fpNameAllPoints">All points</string>
     <string name="fpNameAddressPoints">Addresses</string>
+    <string name="fpNameNextIntersections">Next intersections</string>
     <string name="fpNameRoutePoints">Route points</string>
     <string name="fpNameSimulatedPoints">Simulated points</string>
     <string name="fpNameSearch">Search</string>
@@ -468,28 +487,28 @@
     <string name="ppNameSearch">Search</string>
 
     <!-- POICategory -->
-    <string name="labelPOICategoryBusTram">Bus and tram stations</string>
-    <string name="labelPOICategoryTrain">Train, suburban train and subway stations</string>
-    <string name="labelPOICategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
-    <string name="labelPOICategoryTaxi">Cabs</string>
-    <string name="labelPOICategoryFood">Food</string>
-    <string name="labelPOICategoryTourism">Tourism</string>
-    <string name="labelPOICategoryShop">Shopping</string>
-    <string name="labelPOICategoryHealth">Health</string>
-    <string name="labelPOICategoryEducation">Education</string>
-    <string name="labelPOICategoryFinance">Finance</string>
-    <string name="labelPOICategoryEntertainment">Sports and entertainment</string>
-    <string name="labelPOICategoryPublicService">Public services</string>
-    <string name="labelPOICategoryBuildingsWithName">All buildings with a name</string>
-    <string name="labelPOICategoryEntrance">Entrances</string>
-    <string name="labelPOICategorySurveillance">Surveillance cameras</string>
-    <string name="labelPOICategoryBench">Benches</string>
-    <string name="labelPOICategoryTrash">Trash cans</string>
-    <string name="labelPOICategoryNature">Lakes and mountains</string>
-    <string name="labelPOICategoryBridge">Bridges</string>
-    <string name="labelPOICategoryNamedIntersection">Intersections with name</string>
-    <string name="labelPOICategoryOtherIntersection">Intersections without name</string>
-    <string name="labelPOICategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
+    <string name="poiCategoryBusTram">Bus and tram stations</string>
+    <string name="poiCategoryTrain">Train, suburban train and subway stations</string>
+    <string name="poiCategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
+    <string name="poiCategoryTaxi">Cabs</string>
+    <string name="poiCategoryFood">Food</string>
+    <string name="poiCategoryTourism">Tourism</string>
+    <string name="poiCategoryShop">Shopping</string>
+    <string name="poiCategoryHealth">Health</string>
+    <string name="poiCategoryEducation">Education</string>
+    <string name="poiCategoryFinance">Finance</string>
+    <string name="poiCategoryEntertainment">Sports and entertainment</string>
+    <string name="poiCategoryPublicService">Public services</string>
+    <string name="poiCategoryBuildingsWithName">All buildings with a name</string>
+    <string name="poiCategoryEntrance">Entrances</string>
+    <string name="poiCategorySurveillance">Surveillance cameras</string>
+    <string name="poiCategoryBench">Benches</string>
+    <string name="poiCategoryTrash">Trash cans</string>
+    <string name="poiCategoryNature">Lakes and mountains</string>
+    <string name="poiCategoryBridge">Bridges</string>
+    <string name="poiCategoryNamedIntersection">Intersections with name</string>
+    <string name="poiCategoryOtherIntersection">Intersections without name</string>
+    <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
 
     <!-- PointWrapper Object -->
     <string name="pointListObjectDescription">%1$s\nIn %2$d meters, %3$s</string>
@@ -511,6 +530,13 @@
     <string name="routePointNoTurnToString">%1$s at %2$s</string>
     <string name="routePointTurnToString">Turn %1$s at %2$s</string>
 
+    <!-- way class -->
+    <string name="routingWayClassBigStreets">Big streets</string>
+    <string name="routingWayClassSmallStreets">Small streets</string>
+    <string name="routingWayClassPavedWays">Paved ways</string>
+    <string name="routingWayClassUnpavedWays">Unpaved ways</string>
+    <string name="routingWayClassSteps">Steps</string>
+    <string name="routingWayClassUnclassifiedWays">Ways of unknown type</string>
 
     <!--
          helpers and utils
@@ -526,7 +552,9 @@
     <string name="dialogCancel">Cancel</string>
     <string name="dialogClear">Clear</string>
     <string name="dialogClose">Close</string>
+    <string name="dialogDefault">Default</string>
     <string name="dialogDetails">Details</string>
+    <string name="dialogDone">Done</string>
     <string name="dialogExclude">Exclude</string>
     <string name="dialogImport">Import</string>
     <string name="dialogMore">More</string>
@@ -551,35 +579,38 @@
     <string name="unitSatellites">satellites</string>
 
     <!-- return code errors -->
-    <string name="messageError1000">Cancelled</string>
-    <string name="messageError1003">Error: No internet connection available.</string>
-    <string name="messageError1004">Error: No location found.</string>
-    <string name="messageError1005">Error: No direction found.</string>
-    <string name="messageError1006">Error: No map selected.</string>
-    <string name="messageError1007">Error: This app is outdated..</string>
+    <string name="errorCancelled">Cancelled</string>
+    <string name="errorNoInternetConnection">Error: No internet connection available.</string>
+    <string name="errorNoServerURL">Error: Empty or invalid server URL.</string>
+    <string name="errorAPIClientOutdated">Error: The API version of this app is too old for the selected server. Please check for app updates on walkersguide.org or in the Google play store.</string>
+    <string name="errorAPIServerOutdated">Error: The API version of the selected map server is not longer supported by this app.</string>
+    <string name="errorNoLocationFound">Error: No location found.</string>
+    <string name="errorNoDirectionFound">Error: No direction found.</string>
+    <string name="errorNoMapSelected">Error: No map selected.</string>
+    <string name="errorUserInput">User Input error</string>
     <!-- server -->
-    <string name="messageError1010">Error: Can\'t connect to server.</string>
-    <string name="messageError1011">Error: Invalid server response.</string>
-    <string name="messageError1012">Error from server: %1$s</string>
-    <string name="messageError1013">Error: No coordinates for this address found.</string>
-    <string name="messageError1014">Error: No address for this coordinates found.</string>
-    <string name="messageError1015">You exceeded the daily request quota for the Google maps API.</string>
-    <string name="messageError1016">Address provider not supported</string>
-    <string name="messageError1017">Got neither coordinates nor an address to look up</string>
-    <string name="messageError1018">User Input error</string>
-    <!-- route -->
-    <string name="messageError1020">No start point selected.</string>
-    <string name="messageError1021">No destination point selected.</string>
-    <string name="messageError1022">No route selected.</string>
-    <string name="messageError1023">Route parsing error.</string>
+    <string name="errorServerConnection">Error: Can\'t connect to server.</string>
+    <string name="errorServerResponse">Error: Invalid server response.</string>
+    <string name="errorServerResponseWithExtraData">Error from server: %1$s</string>
+    <!-- address lookup -->
+    <string name="errorNoCoorDinatesForAddress">Error: No coordinates for this address found.</string>
+    <string name="errorNoAddressForCoordinates">Error: No address for this coordinates found.</string>
+    <string name="errorGoogleMapsQuotaExceeded">You exceeded the daily request quota for the Google maps API.</string>
+    <string name="errorNeitherCoordinatesNorAddress">Got neither coordinates nor an address to look up</string>
+    <string name="errorAddressProviderNotSupported">Address provider not supported</string>
     <!-- favorites and poi -->
-    <string name="messageError1030">Missing search term</string>
-    <string name="messageError1031">No favorites profiles selected</string>
-    <string name="messageError1032">Error: No POI profile selected.</string>
-    <string name="messageError1033">Error: No POI category selected.</string>
-    <string name="messageError1034">Unsupported POI request action</string>
+    <string name="errorNoFavoritesProfileSelected">Error: No favorites profile selected.</string>
+    <string name="errorNoPOIProfileSelected">Error: No POI profile selected.</string>
+    <string name="errorNoPOICategorySelected">Error: No POI category selected.</string>
+    <string name="errorUnsupportedPOIRequestAction">Unsupported POI request action</string>
+    <string name="errorNoSearchTerm">Search term missing</string>
+    <!-- route -->
+    <string name="errorNoRouteStartPoint">No start point selected.</string>
+    <string name="errorNoRouteDestinationPoint">No destination point selected.</string>
+    <string name="errorNoRouteSelected">No route selected.</string>
+    <string name="errorRouteParsing">Route parsing error.</string>
     <!-- settings import -->
-    <string name="messageError1040">Database import failed</string>
+    <string name="errorDatabaseImportFailed">Database import failed</string>
     <!-- others -->
     <string name="messageErrorDataLoadingFailed">Data could not be loaded.</string>
     <string name="messageNameMissing">Please enter a name.</string>

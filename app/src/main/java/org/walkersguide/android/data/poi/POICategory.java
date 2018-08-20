@@ -1,68 +1,68 @@
 package org.walkersguide.android.data.poi;
 
 import org.walkersguide.android.R;
+import org.walkersguide.android.util.Constants;
 
 import android.content.Context;
 
+
 public class POICategory {
 
-    private int id;
-    private String name, tag;
+    private String id, name;
 
-    public POICategory(Context context, int id, String tag) {
+    public POICategory(Context context, String id) {
         this.id = id;
-        this.tag = tag;
-        // determine name from tag
-        if (tag.equals("transport_bus_tram")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryBusTram);
-        } else if (tag.equals("transport_train_lightrail_subway")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryTrain);
-        } else if (tag.equals("transport_airport_ferry_aerialway")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryAirportFerry);
-        } else if (tag.equals("transport_taxi")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryTaxi);
-        } else if (tag.equals("food")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryFood);
-        } else if (tag.equals("tourism")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryTourism);
-        } else if (tag.equals("nature")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryNature);
-        } else if (tag.equals("shop")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryShop);
-        } else if (tag.equals("education")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryEducation);
-        } else if (tag.equals("health")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryHealth);
-        } else if (tag.equals("entertainment")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryEntertainment);
-        } else if (tag.equals("finance")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryFinance);
-        } else if (tag.equals("public_service")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryPublicService);
-        } else if (tag.equals("all_buildings_with_name")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryBuildingsWithName);
-        } else if (tag.equals("entrance")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryEntrance);
-        } else if (tag.equals("surveillance")) {
-            this.name = context.getResources().getString(R.string.labelPOICategorySurveillance);
-        } else if (tag.equals("bridge")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryBridge);
-        } else if (tag.equals("bench")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryBench);
-        } else if (tag.equals("trash")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryTrash);
-        } else if (tag.equals("named_intersection")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryNamedIntersection);
-        } else if (tag.equals("other_intersection")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryOtherIntersection);
-        } else if (tag.equals("pedestrian_crossings")) {
-            this.name = context.getResources().getString(R.string.labelPOICategoryPedestrianCrossings);
+        // determine name from id
+        if (id.equals(Constants.POI_CATEGORY.TRANSPORT_BUS_TRAM)) {
+            this.name = context.getResources().getString(R.string.poiCategoryBusTram);
+        } else if (id.equals(Constants.POI_CATEGORY.TRANSPORT_TRAIN_LIGHTRAIL_SUBWAY)) {
+            this.name = context.getResources().getString(R.string.poiCategoryTrain);
+        } else if (id.equals(Constants.POI_CATEGORY.TRANSPORT_AIRPORT_FERRY_AERIALWAY)) {
+            this.name = context.getResources().getString(R.string.poiCategoryAirportFerry);
+        } else if (id.equals(Constants.POI_CATEGORY.TRANSPORT_TAXI)) {
+            this.name = context.getResources().getString(R.string.poiCategoryTaxi);
+        } else if (id.equals(Constants.POI_CATEGORY.FOOD)) {
+            this.name = context.getResources().getString(R.string.poiCategoryFood);
+        } else if (id.equals(Constants.POI_CATEGORY.TOURISM)) {
+            this.name = context.getResources().getString(R.string.poiCategoryTourism);
+        } else if (id.equals(Constants.POI_CATEGORY.NATURE)) {
+            this.name = context.getResources().getString(R.string.poiCategoryNature);
+        } else if (id.equals(Constants.POI_CATEGORY.SHOP)) {
+            this.name = context.getResources().getString(R.string.poiCategoryShop);
+        } else if (id.equals(Constants.POI_CATEGORY.EDUCATION)) {
+            this.name = context.getResources().getString(R.string.poiCategoryEducation);
+        } else if (id.equals(Constants.POI_CATEGORY.HEALTH)) {
+            this.name = context.getResources().getString(R.string.poiCategoryHealth);
+        } else if (id.equals(Constants.POI_CATEGORY.ENTERTAINMENT)) {
+            this.name = context.getResources().getString(R.string.poiCategoryEntertainment);
+        } else if (id.equals(Constants.POI_CATEGORY.FINANCE)) {
+            this.name = context.getResources().getString(R.string.poiCategoryFinance);
+        } else if (id.equals(Constants.POI_CATEGORY.PUBLIC_SERVICE)) {
+            this.name = context.getResources().getString(R.string.poiCategoryPublicService);
+        } else if (id.equals(Constants.POI_CATEGORY.ALL_BUILDINGS_WITH_NAME)) {
+            this.name = context.getResources().getString(R.string.poiCategoryBuildingsWithName);
+        } else if (id.equals(Constants.POI_CATEGORY.ENTRANCE)) {
+            this.name = context.getResources().getString(R.string.poiCategoryEntrance);
+        } else if (id.equals(Constants.POI_CATEGORY.SURVEILLANCE)) {
+            this.name = context.getResources().getString(R.string.poiCategorySurveillance);
+        } else if (id.equals(Constants.POI_CATEGORY.BRIDGE)) {
+            this.name = context.getResources().getString(R.string.poiCategoryBridge);
+        } else if (id.equals(Constants.POI_CATEGORY.BENCH)) {
+            this.name = context.getResources().getString(R.string.poiCategoryBench);
+        } else if (id.equals(Constants.POI_CATEGORY.TRASH)) {
+            this.name = context.getResources().getString(R.string.poiCategoryTrash);
+        } else if (id.equals(Constants.POI_CATEGORY.NAMED_INTERSECTION)) {
+            this.name = context.getResources().getString(R.string.poiCategoryNamedIntersection);
+        } else if (id.equals(Constants.POI_CATEGORY.OTHER_INTERSECTION)) {
+            this.name = context.getResources().getString(R.string.poiCategoryOtherIntersection);
+        } else if (id.equals(Constants.POI_CATEGORY.PEDESTRIAN_CROSSINGS)) {
+            this.name = context.getResources().getString(R.string.poiCategoryPedestrianCrossings);
         } else {
-            this.name = tag;
+            this.name = id;
         }
     }
 
-    public int getId() {
+    public String getId() {
         return this.id;
     }
 
@@ -70,16 +70,12 @@ public class POICategory {
         return this.name;
     }
 
-    public String getTag() {
-        return this.tag;
-    }
-
     @Override public String toString() {
         return this.name;
     }
 
 	@Override public int hashCode() {
-        return this.id;
+        return this.id.hashCode();
 	}
 
 	@Override public boolean equals(Object obj) {
@@ -91,7 +87,7 @@ public class POICategory {
 			return false;
         }
 		POICategory other = (POICategory) obj;
-        return this.id == other.getId();
+        return this.id.equals(other.getId());
     }
 
 }

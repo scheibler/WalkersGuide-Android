@@ -94,20 +94,23 @@ public class DeparturesFragment extends Fragment
     }
 
 	@Override public void onFragmentDisabled() {
-        DepartureManager.getInstance(getActivity()).cancelDepartureRequest();
+        DepartureManager.getInstance(getActivity()).invalidateDepartureRequest(this);
     }
 
-	@Override public void departureQuerySuccessful(ArrayList<Departure> departureList) {
-        listViewDepartures.setAdapter(
-                new ArrayAdapter<Departure>(
-                    getActivity(), android.R.layout.simple_list_item_1, departureList));
-        labelEmptyDepartureListView.setText(
-                getResources().getString(R.string.labelNoDeparturesFound));
-    }
-
-    @Override public void departureQueryFailed(String error) {
-        listViewDepartures.setAdapter(null);
-        labelEmptyDepartureListView.setText(error);
+	@Override public void departureRequestFinished(int returnCode, String returnMessage, ArrayList<Departure> departureList) {
+        if (departureList != null) {
+            listViewDepartures.setAdapter(
+                    new ArrayAdapter<Departure>(
+                        getActivity(), android.R.layout.simple_list_item_1, departureList));
+            if (departureList.isEmpty()) {
+                labelEmptyDepartureListView.setText(
+                        getResources().getString(R.string.labelNoDeparturesFound));
+            } else {
+                labelEmptyDepartureListView.setText("");
+            }
+        } else {
+            labelEmptyDepartureListView.setText(returnMessage);
+        }
     }
 
 }

@@ -60,6 +60,7 @@ import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.profile.POIProfile;
 import org.walkersguide.android.data.profile.SearchFavoritesProfile;
 import org.walkersguide.android.data.route.Route;
+import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
@@ -80,6 +81,7 @@ import android.widget.Spinner;
 import java.util.Map;
 import java.util.TreeMap;
 import org.json.JSONArray;
+import org.walkersguide.android.server.ServerStatusManager;
 
 
 public class SearchInPOIDialog extends DialogFragment implements POIProfileListener {
@@ -315,7 +317,7 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
     private void prepareForSearch() {
         if (TextUtils.isEmpty(searchTerm)) {
             SimpleMessageDialog.newInstance(
-                    getResources().getString(R.string.messageError1030))
+                    getResources().getString(R.string.errorNoSearchTerm))
                 .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
         } else if (! searchTerm.equals(accessDatabaseInstance.getSearchTermOfPOIProfile(poiProfileId))) {
             accessDatabaseInstance.updateSearchTermOfPOIProfile(poiProfileId, searchTerm);
@@ -414,7 +416,7 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
         }
 
         // error message dialog
-        if (! (returnCode == Constants.ID.OK || returnCode == Constants.ID.CANCELLED)) {
+        if (! (returnCode == Constants.RC.OK || returnCode == Constants.RC.CANCELLED)) {
             SimpleMessageDialog.newInstance(returnMessage)
                 .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
         }
@@ -464,6 +466,7 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
         private ArrayList<POICategory> checkedCategoryList;
 
         private AccessDatabase accessDatabaseInstance;
+        private ServerInstance serverInstance;
         private Button buttonQuickSelectPOICategories;
         private CheckBoxGroupView checkBoxGroupPOICategories;
 
@@ -475,6 +478,7 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
         @Override public void onAttach(Context context){
             super.onAttach(context);
             accessDatabaseInstance = AccessDatabase.getInstance(context);
+            serverInstance = ServerStatusManager.getInstance(context).getServerInstance();
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -489,16 +493,11 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
                 } finally {
                     if (jsonCheckedCategoryIdList != null) {
                         for (int i=0; i<jsonCheckedCategoryIdList.length(); i++) {
-                            POICategory poiCategory = null;
                             try {
-                                poiCategory = accessDatabaseInstance.getPOICategory(jsonCheckedCategoryIdList.getInt(i));
-                            } catch (JSONException e) {
-                                poiCategory = null;
-                            } finally {
-                                if (poiCategory != null) {
-                                    checkedCategoryList.add(poiCategory);
-                                }
-                            }
+                                checkedCategoryList.add(
+                                        new POICategory(
+                                            getActivity(), jsonCheckedCategoryIdList.getString(i)));
+                            } catch (JSONException e) {}
                         }
                     }
                 }
@@ -521,22 +520,24 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
             });
 
             checkBoxGroupPOICategories = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroupPOICategories);
-            for (POICategory category : accessDatabaseInstance.getPOICategoryList()) {
-                CheckBox checkBox = new CheckBox(getActivity());
-                checkBox.setId(category.getId());
-                checkBox.setLayoutParams(
-                        new LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT)
-                        );
-                checkBox.setText(category.getName());
-                checkBox.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        checkedCategoryList = getCheckedItemsOfPOICategoriesCheckBoxGroup();
-                        onStart();
-                    }
-                });
-                checkBoxGroupPOICategories.put(checkBox);
+            if (serverInstance != null) {
+                for (POICategory category : serverInstance.getSupportedPOICCategoryList()) {
+                    CheckBox checkBox = new CheckBox(getActivity());
+                    checkBox.setTag(category.getId());
+                    checkBox.setLayoutParams(
+                            new LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT)
+                            );
+                    checkBox.setText(category.getName());
+                    checkBox.setOnClickListener(new View.OnClickListener() {
+                        @Override public void onClick(View view) {
+                            checkedCategoryList = getCheckedItemsOfPOICategoriesCheckBoxGroup();
+                            onStart();
+                        }
+                    });
+                    checkBoxGroupPOICategories.put(checkBox);
+                }
             }
 
             // create dialog
@@ -576,7 +577,7 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
                 for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckBoxList()) {
                     checkBox.setChecked(
                             checkedCategoryList.contains(
-                                accessDatabaseInstance.getPOICategory(checkBox.getId())));
+                                new POICategory(getActivity(), (String) checkBox.getTag())));
                 }
 
                 // positive button
@@ -605,8 +606,9 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
                 }
                 buttonNeutral.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        if (checkBoxGroupPOICategories.nothingChecked()) {
-                            checkedCategoryList = accessDatabaseInstance.getPOICategoryList();
+                        if (checkBoxGroupPOICategories.nothingChecked()
+                                && serverInstance != null) {
+                            checkedCategoryList = serverInstance.getSupportedPOICCategoryList();
                         } else {
                             checkedCategoryList = new ArrayList<POICategory>();
                         }
@@ -668,10 +670,8 @@ public class SearchInPOIDialog extends DialogFragment implements POIProfileListe
         private ArrayList<POICategory> getCheckedItemsOfPOICategoriesCheckBoxGroup() {
             ArrayList<POICategory> poiCategoryList = new ArrayList<POICategory>();
             for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckBoxList()) {
-                POICategory category = accessDatabaseInstance.getPOICategory(checkBox.getId());
-                if (category != null) {
-                    poiCategoryList.add(category);
-                }
+                poiCategoryList.add(
+                        new POICategory(getActivity(), (String) checkBox.getTag()));
             }
             return poiCategoryList;
         }

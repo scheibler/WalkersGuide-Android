@@ -15,41 +15,43 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.ServerStatusManager;
+
 
 public class SelectPublicTransportProviderDialog extends DialogFragment {
 
     // Store instance variables
-    private AccessDatabase accessDatabaseInstance;
     private SettingsManager settingsManagerInstance;
+    private ServerStatusManager serverStatusManagerInstance;
 
-    public static SelectPublicTransportProviderDialog newInstance(PublicTransportProvider provider) {
+    public static SelectPublicTransportProviderDialog newInstance() {
         SelectPublicTransportProviderDialog selectPublicTransportProviderDialogInstance = new SelectPublicTransportProviderDialog();
-        Bundle args = new Bundle();
-        if (provider != null) {
-            args.putString("providerName", provider.getName());
-        } else {
-            args.putString("providerName", "");
-        }
-        selectPublicTransportProviderDialogInstance.setArguments(args);
         return selectPublicTransportProviderDialogInstance;
     }
 
     @Override public void onAttach(Context context){
         super.onAttach(context);
-        accessDatabaseInstance = AccessDatabase.getInstance(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
+        serverStatusManagerInstance = ServerStatusManager.getInstance(context);
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String[] formattedPublicTransportProviderNameArray = new String[accessDatabaseInstance.getPublicTransportProviderList().size()];
+        ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
+        String[] formattedPublicTransportProviderNameArray = new String[0];
+        if (serverInstance != null) {
+            formattedPublicTransportProviderNameArray = new String[serverInstance.getSupportedPublicTransportProviderList().size()];
+        }
         int indexOfSelectedPublicTransportProvider = -1;
         int index = 0;
-        for (PublicTransportProvider provider : accessDatabaseInstance.getPublicTransportProviderList()) {
-            formattedPublicTransportProviderNameArray[index] = provider.getName();
-            if (provider.getName().equals(getArguments().getString("providerName"))) {
-                indexOfSelectedPublicTransportProvider = index;
+        if (serverInstance != null) {
+            for (PublicTransportProvider provider : serverInstance.getSupportedPublicTransportProviderList()) {
+                formattedPublicTransportProviderNameArray[index] = provider.toString();
+                if (provider.equals(settingsManagerInstance.getServerSettings().getSelectedPublicTransportProvider())) {
+                    indexOfSelectedPublicTransportProvider = index;
+                }
+                index += 1;
             }
-            index += 1;
         }
 
         // create dialog
@@ -62,13 +64,12 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int which) {
                             PublicTransportProvider selectedProvider = null;
                             try {
-                                selectedProvider = accessDatabaseInstance.getPublicTransportProviderList().get(which);
+                                selectedProvider = serverStatusManagerInstance.getServerInstance().getSupportedPublicTransportProviderList().get(which);
                             } catch (IndexOutOfBoundsException e) {
                                 selectedProvider = null;
                             } finally {
                                 if (selectedProvider != null) {
-                                    ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
-                                    serverSettings.setSelectedPublicTransportProvider(selectedProvider);
+                                    settingsManagerInstance.getServerSettings().setSelectedPublicTransportProvider(selectedProvider);
                                     Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
                                     LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                                 }

@@ -160,141 +160,6 @@ public class AccessDatabase {
 
 
     /**
-     * maps
-     */
-
-	public ArrayList<OSMMap> getMapList() {
-		Cursor cursor = database.query(
-                SQLiteHelper.TABLE_MAP, SQLiteHelper.TABLE_MAP_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.MAP_NAME + " ASC");
-		ArrayList<OSMMap> mapList = new ArrayList<OSMMap>(cursor.getCount());
-        while (cursor.moveToNext()) {
-			mapList.add(
-                    cursorToMap(cursor));
-		}
-		cursor.close();
-		return mapList;
-	}
-
-    public OSMMap getMap(String name) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_MAP, SQLiteHelper.TABLE_MAP_ALL_COLUMNS,
-                SQLiteHelper.MAP_NAME + " = " + DatabaseUtils.sqlEscapeString(name),
-                null, null, null, null);
-        OSMMap map = null;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            map = cursorToMap(cursor);
-        }
-        cursor.close();
-        return map;
-    }
-
-    public int addMap(String name, String url) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.MAP_NAME, name);
-        values.put(SQLiteHelper.MAP_URL, url);
-        values.put(SQLiteHelper.MAP_VERSION, 0);
-        values.put(SQLiteHelper.MAP_CREATED, 0l);
-        return (int) database.insertWithOnConflict(
-                SQLiteHelper.TABLE_MAP,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_REPLACE);
-    }
-
-    public boolean updateVersionAndCreationOfMap(String name, int version, long created) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.MAP_NAME, name);
-        values.put(SQLiteHelper.MAP_VERSION, version);
-        values.put(SQLiteHelper.MAP_CREATED, created);
-        int numberOfRowsAffected = database.updateWithOnConflict(
-                SQLiteHelper.TABLE_MAP,
-                values,
-                SQLiteHelper.MAP_NAME + " = ?", new String[]{name},
-                SQLiteDatabase.CONFLICT_IGNORE);
-        return numberOfRowsAffected == 1 ? true : false;
-    }
-
-    public void removeMap(String name) {
-        database.delete(
-                SQLiteHelper.TABLE_MAP,
-                SQLiteHelper.MAP_NAME + " = ?",
-                new String[] {name});
-    }
-
-    private OSMMap cursorToMap(Cursor cursor) {
-        return new OSMMap(
-                cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.MAP_NAME)),
-                cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.MAP_URL)),
-                cursor.getInt(
-                    cursor.getColumnIndex(SQLiteHelper.MAP_VERSION)),
-                cursor.getLong(
-                    cursor.getColumnIndex(SQLiteHelper.MAP_CREATED)));
-    }
-
-
-    /**
-     * public transport provider
-     */
-
-	public ArrayList<PublicTransportProvider> getPublicTransportProviderList() {
-		Cursor cursor = database.query(
-                SQLiteHelper.TABLE_PUBLIC_TRANSPORT_PROVIDER, SQLiteHelper.TABLE_PUBLIC_TRANSPORT_PROVIDER_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_NAME + " ASC");
-		ArrayList<PublicTransportProvider> publicTransportProviderList = new ArrayList<PublicTransportProvider>(cursor.getCount());
-        while (cursor.moveToNext()) {
-			publicTransportProviderList.add(
-                    cursorToPublicTransportProvider(cursor));
-		}
-		cursor.close();
-		return publicTransportProviderList;
-	}
-
-    public PublicTransportProvider getPublicTransportProvider(String identifier) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_PUBLIC_TRANSPORT_PROVIDER, SQLiteHelper.TABLE_PUBLIC_TRANSPORT_PROVIDER_ALL_COLUMNS,
-                SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER+ " = " + DatabaseUtils.sqlEscapeString(identifier),
-                null, null, null, null);
-        PublicTransportProvider publicTransportProvider = null;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            publicTransportProvider = cursorToPublicTransportProvider(cursor);
-        }
-        cursor.close();
-        return publicTransportProvider;
-    }
-
-    public int addPublicTransportProvider(String identifier, String name) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER, identifier);
-        values.put(SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_NAME, name);
-        return (int) database.insertWithOnConflict(
-                SQLiteHelper.TABLE_PUBLIC_TRANSPORT_PROVIDER,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_REPLACE);
-    }
-
-    public void removePublicTransportProvider(String identifier) {
-        database.delete(
-                SQLiteHelper.TABLE_PUBLIC_TRANSPORT_PROVIDER,
-                SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER + " = ?",
-                new String[] {identifier});
-    }
-
-    private PublicTransportProvider cursorToPublicTransportProvider(Cursor cursor) {
-        return new PublicTransportProvider(
-                cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER)),
-                cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.PUBLIC_TRANSPORT_PROVIDER_NAME)));
-    }
-
-
-    /**
      * FavoritesProfile
      */
 
@@ -645,17 +510,11 @@ public class AccessDatabase {
                             cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST)));
             } catch (JSONException     e) {}
             for (int i=0; i<jsonPOICategoryIdList.length(); i++) {
-                POICategory category = null;
                 try {
-                    category = getPOICategory(
-                            jsonPOICategoryIdList.getInt(i));
-                } catch (JSONException     e) {
-                    category = null;
-                } finally {
-                    if (category != null) {
-                        poiCategoryList.add(category);
-                    }
-                }
+                    poiCategoryList.add(
+                            new POICategory(
+                                context, jsonPOICategoryIdList.getString(i)));
+                } catch (JSONException     e) {}
             }
         }
         cursor.close();
@@ -782,64 +641,6 @@ public class AccessDatabase {
                 SQLiteHelper.TABLE_POI_PROFILE,
                 SQLiteHelper.POI_PROFILE_ID + " = ?",
                 new String[] {String.valueOf(id)});
-    }
-
-
-    /**
-     * POICategory
-     */
-
-	public ArrayList<POICategory> getPOICategoryList() {
-		Cursor cursor = database.query(
-                SQLiteHelper.TABLE_POI_CATEGORY, SQLiteHelper.TABLE_POI_CATEGORY_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.POI_CATEGORY_ID + " ASC");
-		ArrayList<POICategory> poiCategoryList = new ArrayList<POICategory>(cursor.getCount());
-        while (cursor.moveToNext()) {
-			poiCategoryList.add(
-                    cursorToPOICategory(cursor));
-		}
-		cursor.close();
-		return poiCategoryList;
-	}
-
-    public POICategory getPOICategory(int id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_POI_CATEGORY, SQLiteHelper.TABLE_POI_CATEGORY_ALL_COLUMNS,
-                SQLiteHelper.POI_CATEGORY_ID + " = " + id,
-                null, null, null, null);
-        POICategory category = null;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            category = cursorToPOICategory(cursor);
-        }
-        cursor.close();
-        return category;
-    }
-
-    public int addPOICategory(String tag) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.POI_CATEGORY_TAG, tag);
-        return (int) database.insertWithOnConflict(
-                SQLiteHelper.TABLE_POI_CATEGORY,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_IGNORE);
-    }
-
-    public void removePOICategory(String tag) {
-        database.delete(
-                SQLiteHelper.TABLE_POI_CATEGORY,
-                SQLiteHelper.POI_CATEGORY_TAG + " = ?",
-                new String[] {tag});
-    }
-
-    private POICategory cursorToPOICategory(Cursor cursor) {
-        return new POICategory(
-                this.context,
-                cursor.getInt(
-                    cursor.getColumnIndex(SQLiteHelper.POI_CATEGORY_ID)),
-                cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.POI_CATEGORY_TAG)));
     }
 
 

@@ -19,6 +19,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- client information -->
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -33,6 +35,18 @@
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:text="@string/labelInfoProgramVersion" />
+
+
+            <!-- contact data -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelContactDataHeader" />
 
             <TextView
                 android:id="@+id/labelInfoEMail"
@@ -50,16 +64,31 @@
                 android:text="@string/labelInfoURL"
                 android:autoLink="web" />
 
-            <!-- selected map -->
+
+            <!-- selected server -->
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelSelectedMapHeader" />
+                android:text="@string/labelServerHeader" />
+
+            <TextView
+                android:id="@+id/labelServerName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:text="@string/labelServerName" />
+
+            <TextView
+                android:id="@+id/labelServerVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:text="@string/labelServerVersion" />
 
             <TextView
                 android:id="@+id/labelSelectedMapName"
@@ -67,13 +96,6 @@
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:text="@string/labelSelectedMapName" />
-
-            <TextView
-                android:id="@+id/labelSelectedMapVersion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelSelectedMapVersion" />
 
             <TextView
                 android:id="@+id/labelSelectedMapCreated"

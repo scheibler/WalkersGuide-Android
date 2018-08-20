@@ -6,17 +6,17 @@ import org.walkersguide.android.util.Constants;
 import android.content.Context;
 
 
-public class PublicTransportProvider {
+public class AddressProvider {
 
     private String id, name;
 
-    public PublicTransportProvider(Context context, String id) {
+    public AddressProvider(Context context, String id) {
         this.id = id;
         // determine name from id
-        if (id.equals(Constants.PUBLIC_TRANSPORT_PROVIDER.DB)) {
-            this.name = context.getResources().getString(R.string.publicTransportProviderDB);
-        } else if (id.equals(Constants.PUBLIC_TRANSPORT_PROVIDER.VBB)) {
-            this.name = context.getResources().getString(R.string.publicTransportProviderVBB);
+        if (id.equals(Constants.ADDRESS_PROVIDER.GOOGLE)) {
+            this.name = context.getResources().getString(R.string.addressProviderGoogle);
+        } else if (id.equals(Constants.ADDRESS_PROVIDER.OSM)) {
+            this.name = context.getResources().getString(R.string.addressProviderOSM);
         } else {
             this.name = id;
         }
@@ -43,10 +43,10 @@ public class PublicTransportProvider {
 			return true;
         } else if (obj == null) {
 			return false;
-        } else if (! (obj instanceof PublicTransportProvider)) {
+        } else if (! (obj instanceof AddressProvider)) {
 			return false;
         }
-		PublicTransportProvider other = (PublicTransportProvider) obj;
+		AddressProvider other = (AddressProvider) obj;
         return this.id.equals(other.getId());
     }
 

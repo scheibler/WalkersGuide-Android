@@ -12,38 +12,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String INTERNAL_TEMP_DATABASE_NAME = BuildConfig.DATABASE_NAME + ".tmp";
     public static final int DATABASE_VERSION = BuildConfig.DATABASE_VERSION;
 
-    // map table
-    public static final String TABLE_MAP = "map";
-    public static final String MAP_NAME = "name";
-    public static final String MAP_URL = "url";
-    public static final String MAP_VERSION = "version";
-    public static final String MAP_CREATED = "created";
-    public static final String[] TABLE_MAP_ALL_COLUMNS = {
-        MAP_NAME, MAP_URL, MAP_VERSION, MAP_CREATED
-    };
-    public static final String CREATE_MAP_TABLE = 
-        "CREATE TABLE IF NOT EXISTS " + TABLE_MAP + "("
-        + MAP_NAME + " text not null primary key, "
-        + MAP_URL + " text not null, "
-        + MAP_VERSION + " integer, "
-        + MAP_CREATED + " integer);";
-    public static final String DROP_MAP_TABLE =
-        "DROP TABLE IF EXISTS " + TABLE_MAP + ";";
-
-    // public transport provider table
-    public static final String TABLE_PUBLIC_TRANSPORT_PROVIDER = "public_transport_provider";
-    public static final String PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER = "identifier";
-    public static final String PUBLIC_TRANSPORT_PROVIDER_NAME = "name";
-    public static final String[] TABLE_PUBLIC_TRANSPORT_PROVIDER_ALL_COLUMNS = {
-        PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER, PUBLIC_TRANSPORT_PROVIDER_NAME
-    };
-    public static final String CREATE_PUBLIC_TRANSPORT_PROVIDER_TABLE = 
-        "CREATE TABLE IF NOT EXISTS " + TABLE_PUBLIC_TRANSPORT_PROVIDER + "("
-        + PUBLIC_TRANSPORT_PROVIDER_IDENTIFIER + " text not null primary key, "
-        + PUBLIC_TRANSPORT_PROVIDER_NAME + " text not null);";
-    public static final String DROP_PUBLIC_TRANSPORT_PROVIDER_TABLE =
-        "DROP TABLE IF EXISTS " + TABLE_PUBLIC_TRANSPORT_PROVIDER + ";";
-
     // favorites profile table
     public static final String TABLE_FAVORITES_PROFILE = "favorites_profile";
     public static final String FAVORITES_PROFILE_ID = "_id";
@@ -127,20 +95,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public static final String DROP_POI_PROFILE_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_POI_PROFILE + ";";
 
-    // poi category table
-    public static final String TABLE_POI_CATEGORY = "poi_category";
-    public static final String POI_CATEGORY_ID = "_id";
-    public static final String POI_CATEGORY_TAG = "tag";
-    public static final String[] TABLE_POI_CATEGORY_ALL_COLUMNS = {
-        POI_CATEGORY_ID, POI_CATEGORY_TAG
-    };
-    public static final String CREATE_POI_CATEGORY_TABLE = 
-        "CREATE TABLE IF NOT EXISTS " + TABLE_POI_CATEGORY + "("
-        + POI_CATEGORY_ID + " integer primary key autoincrement, "
-        + POI_CATEGORY_TAG + " text unique not null);";
-    public static final String DROP_POI_CATEGORY_TABLE =
-        "DROP TABLE IF EXISTS " + TABLE_POI_CATEGORY + ";";
-
     // route table
     public static final String TABLE_ROUTE = "route";
     public static final String ROUTE_ID = "_id";
@@ -193,13 +147,10 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override public void onCreate(SQLiteDatabase database) {
         // create tables
-        database.execSQL(CREATE_MAP_TABLE);
-        database.execSQL(CREATE_PUBLIC_TRANSPORT_PROVIDER_TABLE);
         database.execSQL(CREATE_FAVORITES_PROFILE_TABLE);
         database.execSQL(CREATE_POINT_TABLE);
         database.execSQL(CREATE_FP_POINTS_TABLE);
         database.execSQL(CREATE_POI_PROFILE_TABLE);
-        database.execSQL(CREATE_POI_CATEGORY_TABLE);
         database.execSQL(CREATE_ROUTE_TABLE);
         database.execSQL(CREATE_EXCLUDED_WAYS_TABLE);
     }
@@ -210,9 +161,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         if (oldVersion <= 2) {
             // create excluded ways table
             database.execSQL(CREATE_EXCLUDED_WAYS_TABLE);
-            // recreate map table
-            database.execSQL(DROP_MAP_TABLE);
-            database.execSQL(CREATE_MAP_TABLE);
             // add via point column to route table
             database.execSQL(
                     String.format(
@@ -233,6 +181,16 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         if (oldVersion <= 4) {
             // drop obsolete address cache table
             database.execSQL("DROP TABLE IF EXISTS address;");
+        }
+
+        if (oldVersion <= 6) {
+            database.execSQL("DROP TABLE IF EXISTS map;");
+            database.execSQL("DROP TABLE IF EXISTS poi_category;");
+            database.execSQL("DROP TABLE IF EXISTS public_transport_provider;");
+        }
+
+        if (oldVersion <= 7) {
+            database.execSQL("DELETE FROM poi_profile WHERE _id = -1;");
         }
     }
 

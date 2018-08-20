@@ -15,6 +15,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
+import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.BuildConfig;
 
 import android.content.Context;
@@ -22,6 +23,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import org.json.JSONArray;
 import android.os.Build;
+import java.util.ArrayList;
+import android.text.TextUtils;
 
 
 public class DownloadUtility {
@@ -92,66 +95,87 @@ public class DownloadUtility {
     public static String getErrorMessageForReturnCode(Context context, int returnCode, String additionalMessage) {
         switch (returnCode) {
             // general
-            case 200:
+            case Constants.RC.OK:
                 return "";
-            case 1000:      // canceled
-                return context.getResources().getString(R.string.messageError1000);
-            case 1003:      // no internet connection
-                return context.getResources().getString(R.string.messageError1003);
-            case 1004:      // no location found
-                return context.getResources().getString(R.string.messageError1004);
-            case 1005:      // no direction found
-                return context.getResources().getString(R.string.messageError1005);
-            case 1006:      // no map selected
-                return context.getResources().getString(R.string.messageError1006);
-            case 1007:      // app outdated
-                return context.getResources().getString(R.string.messageError1007);
+            case Constants.RC.CANCELLED:
+                return context.getResources().getString(R.string.errorCancelled);
+            case Constants.RC.NO_INTERNET_CONNECTION:
+                return context.getResources().getString(R.string.errorNoInternetConnection);
+            case Constants.RC.NO_SERVER_URL:
+                return context.getResources().getString(R.string.errorNoServerURL);
+            case Constants.RC.API_CLIENT_OUTDATED:
+                return context.getResources().getString(R.string.errorAPIClientOutdated);
+            case Constants.RC.API_SERVER_OUTDATED:
+                return context.getResources().getString(R.string.errorAPIServerOutdated);
+            case Constants.RC.NO_LOCATION_FOUND:
+                return context.getResources().getString(R.string.errorNoLocationFound);
+            case Constants.RC.NO_DIRECTION_FOUND:
+                return context.getResources().getString(R.string.errorNoDirectionFound);
+            case Constants.RC.NO_MAP_SELECTED:
+                return context.getResources().getString(R.string.errorNoMapSelected);
+            case Constants.RC.USER_INPUT_ERROR:
+                return context.getResources().getString(R.string.errorUserInput);
             // server
-            case 1010:      // no connection to server
-                return context.getResources().getString(R.string.messageError1010);
-            case 1011:      // input output error
-                return context.getResources().getString(R.string.messageError1011);
-            case 1012:      // error message from server
+            case Constants.RC.SERVER_CONNECTION_ERROR:
+                return context.getResources().getString(R.string.errorServerConnection);
+            case Constants.RC.SERVER_RESPONSE_ERROR:
+                return context.getResources().getString(R.string.errorServerResponse);
+            case Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA:
                 return String.format(
-                        context.getResources().getString(R.string.messageError1012), additionalMessage);
-            case 1013:      // no coordinates for address
-                return context.getResources().getString(R.string.messageError1013);
-            case 1014:      // no address for coordinates
-                return context.getResources().getString(R.string.messageError1014);
-            case 1015:      // OVER_QUERY_LIMIT
-                return context.getResources().getString(R.string.messageError1015);
-            case 1016:      // unsupported address provider
-                return context.getResources().getString(R.string.messageError1016);
-            case 1017:      // neither address nor coordinates to resolve
-                return context.getResources().getString(R.string.messageError1017);
-            case 1018:      // server input error
-                return context.getResources().getString(R.string.messageError1018);
+                        context.getResources().getString(R.string.errorServerResponseWithExtraData), additionalMessage);
+            // addresses
+            case Constants.RC.NO_COORDINATES_FOR_ADDRESS:
+                return context.getResources().getString(R.string.errorNoCoorDinatesForAddress);
+            case Constants.RC.NO_ADDRESS_FOR_COORDINATES:
+                return context.getResources().getString(R.string.errorNoAddressForCoordinates);
+            case Constants.RC.NEITHER_COORDINATES_NOR_ADDRESS:
+                return context.getResources().getString(R.string.errorNeitherCoordinatesNorAddress);
+            case Constants.RC.GOOGLE_MAPS_QUOTA_EXCEEDED:
+                return context.getResources().getString(R.string.errorGoogleMapsQuotaExceeded);
+            case Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED:
+                return context.getResources().getString(R.string.errorAddressProviderNotSupported);
+            // poi and favorites
+            case Constants.RC.NO_FAVORITES_PROFILE_SELECTED:
+                return context.getResources().getString(R.string.errorNoFavoritesProfileSelected);
+            case Constants.RC.NO_POI_PROFILE_SELECTED:
+                return context.getResources().getString(R.string.errorNoPOIProfileSelected);
+            case Constants.RC.NO_POI_CATEGORY_SELECTED:
+                return context.getResources().getString(R.string.errorNoPOICategorySelected);
+            case Constants.RC.UNSUPPORTED_POI_REQUEST_ACTION:
+                return context.getResources().getString(R.string.errorUnsupportedPOIRequestAction);
+            case Constants.RC.NO_SEARCH_TERM:
+                return context.getResources().getString(R.string.errorNoSearchTerm);
             // route
-            case 1020:      // no start point
-                return context.getResources().getString(R.string.messageError1020);
-            case 1021:      // no destination point
-                return context.getResources().getString(R.string.messageError1021);
-            case 1022:      // no route
-                return context.getResources().getString(R.string.messageError1022);
-            case 1023:      // route parsing error
-                return context.getResources().getString(R.string.messageError1023);
-            // favorites and poi
-            case 1030:      // no favorites or poi search term
-                return context.getResources().getString(R.string.messageError1030);
-            case 1031:      // no favorites profile selected
-                return context.getResources().getString(R.string.messageError1031);
-            case 1032:      // no poi profile selected
-                return context.getResources().getString(R.string.messageError1032);
-            case 1033:      // no poi category selected
-                return context.getResources().getString(R.string.messageError1033);
-            case 1034:      // unsupported poi request action
-                return context.getResources().getString(R.string.messageError1034);
-            case 1040:      // database import failed
-                return context.getResources().getString(R.string.messageError1040);
+            case Constants.RC.NO_ROUTE_START_POINT:
+                return context.getResources().getString(R.string.errorNoRouteStartPoint);
+            case Constants.RC.NO_ROUTE_DESTINATION_POINT:
+                return context.getResources().getString(R.string.errorNoRouteDestinationPoint);
+            case Constants.RC.NO_ROUTE_SELECTED:
+                return context.getResources().getString(R.string.errorNoRouteSelected);
+            case Constants.RC.ROUTE_PARSING_ERROR:
+                return context.getResources().getString(R.string.errorRouteParsing);
+            // settings
+            case Constants.RC.DATABASE_IMPORT_FAILED:      // database import failed
+                return context.getResources().getString(R.string.errorDatabaseImportFailed);
             default:
                 return String.format(
                         context.getResources().getString(R.string.messageUnknownError), returnCode);
         }
+    }
+
+    public static String generateServerCommand(String serverURL, String command) {
+        ArrayList<String> serverCommandPartList = new ArrayList<String>();
+        // server url
+        serverCommandPartList.add(serverURL);
+        if (! serverURL.endsWith("/")) {
+            serverCommandPartList.add("/");
+        }
+        // command
+        serverCommandPartList.add(command);
+        if (! command.endsWith("/")) {
+            serverCommandPartList.add("/");
+        }
+        return TextUtils.join("", serverCommandPartList);
     }
 
     public static String UserAgent(Context context) {

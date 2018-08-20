@@ -1,10 +1,13 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.BuildConfig;
 import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.data.server.AddressProvider;
 import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.database.AccessDatabase;
@@ -14,11 +17,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import java.util.Arrays;
+
 
 public class SettingsManager {
     public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
@@ -180,7 +183,7 @@ public class SettingsManager {
 
         private int recentOpenTab;
         private int shakeIntensity;
-        private boolean enableTextInputHistory;
+        private boolean enableTextInputHistory, showDevelopmentMaps;
 
         public GeneralSettings(JSONObject jsonObject) {
             this.recentOpenTab = Constants.MAIN_FRAGMENT.ROUTER;
@@ -201,6 +204,11 @@ public class SettingsManager {
             this.enableTextInputHistory = true;
             try {
                 this.enableTextInputHistory = jsonObject.getBoolean("enableTextInputHistory");
+            } catch (JSONException e) {}
+            // show development maps
+            this.showDevelopmentMaps = BuildConfig.DEFAULT_SHOW_DEVELOPMENT_MAPS;;
+            try {
+                this.showDevelopmentMaps = jsonObject.getBoolean("showDevelopmentMaps");
             } catch (JSONException e) {}
         }
 
@@ -233,6 +241,15 @@ public class SettingsManager {
             storeGeneralSettings();
         }
 
+        public boolean getShowDevelopmentMaps() {
+            return this.showDevelopmentMaps;
+        }
+
+        public void setShowDevelopmentMaps(boolean enabled) {
+            this.showDevelopmentMaps = enabled;
+            storeGeneralSettings();
+        }
+
         public void storeGeneralSettings() {
             JSONObject jsonGeneralSettings = new JSONObject();
             try {
@@ -243,6 +260,9 @@ public class SettingsManager {
             } catch (JSONException e) {}
             try {
                 jsonGeneralSettings.put("enableTextInputHistory", this.enableTextInputHistory);
+            } catch (JSONException e) {}
+            try {
+                jsonGeneralSettings.put("showDevelopmentMaps", this.showDevelopmentMaps);
             } catch (JSONException e) {}
     		// save settings
 	    	Editor editor = settings.edit();
@@ -655,12 +675,13 @@ public class SettingsManager {
      */
 
     public class RouteSettings {
+        public static final double DEFAULT_INDIRECTION_FACTOR = 2.0;
 
         private int selectedRouteId;
         private PointWrapper start, destination;
         private ArrayList<PointWrapper> viaPointList;
         private double indirectionFactor;
-        private ArrayList<String> wayClassList;
+        private ArrayList<WayClass> wayClassList;
 
         public RouteSettings(JSONObject jsonObject) {
             int restoredRouteId = -1;
@@ -707,15 +728,12 @@ public class SettingsManager {
                 }
             }
             // indirection factor
-            this.indirectionFactor = 2.0;
+            this.indirectionFactor = DEFAULT_INDIRECTION_FACTOR;
             try {
-                double factor = jsonObject.getDouble("indirectionFactor");
-                if (Doubles.contains(Constants.IndirectionFactorValueArray, factor)) {
-                    this.indirectionFactor = factor;
-                }
+                this.indirectionFactor = jsonObject.getDouble("indirectionFactor");
             } catch (JSONException e) {}
             // allowed way classes
-            this.wayClassList = new ArrayList<String>();
+            this.wayClassList = new ArrayList<WayClass>();
             JSONArray jsonWayClassList = null;
             try {
                 jsonWayClassList = jsonObject.getJSONArray("wayClassList");
@@ -725,17 +743,10 @@ public class SettingsManager {
                 if (jsonWayClassList != null) {
                     for (int i=0; i<jsonWayClassList.length(); i++) {
                         try {
-                            String wayClassFromJson = jsonWayClassList.getString(i);
-                            if (Arrays.asList(Constants.RoutingWayClassValueArray).contains(wayClassFromJson)) {
-                                wayClassList.add(wayClassFromJson);
-                            }
+                            wayClassList.add(
+                                    new WayClass(
+                                        context, jsonWayClassList.getString(i)));
                         } catch (JSONException e) {}
-                    }
-                }
-                // default: select all
-                if (wayClassList.isEmpty()) {
-                    for (String defaultWayClass : Constants.RoutingWayClassValueArray) {
-                        wayClassList.add(defaultWayClass);
                     }
                 }
             }
@@ -816,17 +827,15 @@ public class SettingsManager {
         }
 
         public void setIndirectionFactor(double newIndirectionFactor) {
-            if (Doubles.contains(Constants.IndirectionFactorValueArray, newIndirectionFactor)) {
-                this.indirectionFactor = newIndirectionFactor;
-                storeRouteSettings();
-            }
+            this.indirectionFactor = newIndirectionFactor;
+            storeRouteSettings();
         }
 
-        public ArrayList<String> getWayClassList() {
+        public ArrayList<WayClass> getWayClassList() {
             return this.wayClassList;
         }
 
-        public void setWayClassList(ArrayList<String> newWayClassList) {
+        public void setWayClassList(ArrayList<WayClass> newWayClassList) {
             if (newWayClassList != null) {
                 this.wayClassList = newWayClassList;
                 storeRouteSettings();
@@ -861,8 +870,8 @@ public class SettingsManager {
             } catch (JSONException e) {}
             // allowed way classes
             JSONArray jsonWayClassList = new JSONArray();
-            for (String wayClass : this.wayClassList) {
-                jsonWayClassList.put(wayClass);
+            for (WayClass wayClass : this.wayClassList) {
+                jsonWayClassList.put(wayClass.getId());
             }
             try {
                 jsonRouteSettings.put("wayClassList", jsonWayClassList);
@@ -886,32 +895,39 @@ public class SettingsManager {
         private String serverURL;
         private OSMMap selectedMap;
         private PublicTransportProvider selectedPublicTransportProvider;
-        private int selectedAddressProviderId;
+        private AddressProvider selectedAddressProvider;
+        private boolean logQueriesOnServer;
 
         public ServerSettings(JSONObject jsonObject) {
-            this.serverURL = Constants.DEFAULT.SERVER_URL;
+            this.serverURL = BuildConfig.SERVER_URL;
             try {
                 this.serverURL = jsonObject.getString("serverURL");
             } catch (JSONException e) {}
             // map
             this.selectedMap = null;
             try {
-                this.selectedMap = AccessDatabase.getInstance(context).getMap(
-                        jsonObject.getString("selectedMapName"));
-            } catch (JSONException e) {}
+                this.selectedMap = new OSMMap(jsonObject.getJSONObject("selectedMap"));
+            } catch (JSONException e) {
+                System.out.println("xxx create map: " + e.getMessage());
+            }
             // public transport provider
             this.selectedPublicTransportProvider = null;
             try {
-                this.selectedPublicTransportProvider = AccessDatabase.getInstance(context).getPublicTransportProvider(
-                        jsonObject.getString("selectedPublicTransportProviderIdentifier"));
+                this.selectedPublicTransportProvider = new PublicTransportProvider(
+                        context, jsonObject.getString("selectedPublicTransportProviderId"));
             } catch (JSONException e) {}
             // address provider
-            this.selectedAddressProviderId = Constants.ADDRESS_PROVIDER.OSM;
+            this.selectedAddressProvider = new AddressProvider(context, Constants.ADDRESS_PROVIDER.OSM);
             try {
-                int addressProviderIdFromJson = jsonObject.getInt("selectedAddressProviderId");
-                if (Ints.contains(Constants.AddressProviderValueArray, addressProviderIdFromJson)) {
-                    this.selectedAddressProviderId = addressProviderIdFromJson;
+                String addressProviderIdFromJson = jsonObject.getString("selectedAddressProviderId");
+                if (Arrays.asList(Constants.AddressProviderValueArray).contains(addressProviderIdFromJson)) {
+                    this.selectedAddressProvider = new AddressProvider(context, addressProviderIdFromJson);
                 }
+            } catch (JSONException e) {}
+            // allow server logging
+            this.logQueriesOnServer = false;
+            try {
+                this.logQueriesOnServer = jsonObject.getBoolean("logQueriesOnServer");
             } catch (JSONException e) {}
         }
 
@@ -921,8 +937,6 @@ public class SettingsManager {
 
         public void setServerURL(String newServerURL) {
             this.serverURL = newServerURL;
-            this.selectedMap = null;
-            this.selectedPublicTransportProvider = null;
             storeServerSettings();
         }
 
@@ -944,15 +958,24 @@ public class SettingsManager {
             storeServerSettings();
         }
 
-        public int getAddressProviderId() {
-            return this.selectedAddressProviderId;
+        public AddressProvider getSelectedAddressProvider() {
+            return this.selectedAddressProvider;
         }
 
-        public void setAddressProviderId(int newAddressProviderId) {
-            if (Ints.contains(Constants.AddressProviderValueArray, newAddressProviderId)) {
-                this.selectedAddressProviderId = newAddressProviderId;
+        public void setSelectedAddressProvider(AddressProvider newAddressProvider) {
+            if (Arrays.asList(Constants.AddressProviderValueArray).contains(newAddressProvider.getId())) {
+                this.selectedAddressProvider = newAddressProvider;
                 storeServerSettings();
             }
+        }
+
+        public boolean getLogQueriesOnServer() {
+            return this.logQueriesOnServer;
+        }
+
+        public void setLogQueriesOnServer(boolean newValue) {
+            this.logQueriesOnServer = newValue;
+            storeServerSettings();
         }
 
         public void storeServerSettings() {
@@ -962,16 +985,24 @@ public class SettingsManager {
             } catch (JSONException e) {}
             if (this.selectedMap != null) {
                 try {
-                    jsonServerSettings.put("selectedMapName", this.selectedMap.getName());
-                } catch (JSONException e) {}
+                    jsonServerSettings.put("selectedMap", this.selectedMap.toJson());
+                } catch (JSONException e) {
+                    System.out.println("xxx store map: " + e.getMessage());
+                }
             }
             if (this.selectedPublicTransportProvider != null) {
                 try {
-                    jsonServerSettings.put("selectedPublicTransportProviderIdentifier", this.selectedPublicTransportProvider.getIdentifier());
+                    jsonServerSettings.put("selectedPublicTransportProviderId", this.selectedPublicTransportProvider.getId());
                 } catch (JSONException e) {}
             }
+            if (this.selectedAddressProvider != null) {
+                try {
+                    jsonServerSettings.put("selectedAddressProviderId", this.selectedAddressProvider.getId());
+                } catch (JSONException e) {}
+            }
+            // server logging
             try {
-                jsonServerSettings.put("selectedAddressProviderId", this.selectedAddressProviderId);
+                jsonServerSettings.put("logQueriesOnServer", this.logQueriesOnServer);
             } catch (JSONException e) {}
     		// save settings
 	    	Editor editor = settings.edit();

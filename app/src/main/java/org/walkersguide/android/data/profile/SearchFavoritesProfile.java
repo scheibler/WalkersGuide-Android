@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class SearchFavoritesProfile extends PointProfile {
 
     // id of search profile
-    public static final int ID_SEARCH = -1;
+    public static final int ID_SEARCH = -1000000000;
 
     private int sortCriteria;
     private String searchTerm;

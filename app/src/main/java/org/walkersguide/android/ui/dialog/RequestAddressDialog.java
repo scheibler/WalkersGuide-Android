@@ -143,7 +143,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
         if (currentLocation.equals(PositionManager.getDummyLocation(getActivity()))) {
             String error = String.format(
                     getResources().getString(R.string.messageAddressRequestFailed),
-                    getResources().getString(R.string.messageError1004));
+                    getResources().getString(R.string.errorNoLocationFound));
             labelAddress.setText(error);
             //ttsWrapperInstance.speak(error, true, true);
         } else {
@@ -158,7 +158,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
     }
 
     @Override public void addressRequestFinished(int returnCode, String returnMessage, PointWrapper addressPoint) {
-        if (returnCode == Constants.ID.OK) {
+        if (returnCode == Constants.RC.OK) {
             // stick to positive button
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {

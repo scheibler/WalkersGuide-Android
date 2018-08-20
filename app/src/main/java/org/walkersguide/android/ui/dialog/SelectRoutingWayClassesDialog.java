@@ -25,12 +25,21 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.Button;
 import java.util.Arrays;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.data.route.WayClass;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 
 public class SelectRoutingWayClassesDialog extends DialogFragment {
 
     // Store instance variables
     private SettingsManager settingsManagerInstance;
+    private ServerInstance serverInstance;
+    private ArrayList<WayClass> checkedWayClassList;
+
+    // ui components
     private CheckBoxGroupView checkBoxGroupRoutingWayClasses;
 
     public static SelectRoutingWayClassesDialog newInstance() {
@@ -41,53 +50,57 @@ public class SelectRoutingWayClassesDialog extends DialogFragment {
     @Override public void onAttach(Context context){
         super.onAttach(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
+        serverInstance = ServerStatusManager.getInstance(context).getServerInstance();
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            checkedWayClassList = new ArrayList<WayClass>();
+            JSONArray jsonCheckedWayClassIdList = null;
+            try {
+                jsonCheckedWayClassIdList = new JSONArray(
+                        savedInstanceState.getString("jsonCheckedWayClassIdList"));
+            } catch (JSONException e) {
+                jsonCheckedWayClassIdList = null;
+            } finally {
+                if (jsonCheckedWayClassIdList != null) {
+                    for (int i=0; i<jsonCheckedWayClassIdList.length(); i++) {
+                        try {
+                            checkedWayClassList.add(
+                                    new WayClass(
+                                        getActivity(), jsonCheckedWayClassIdList.getString(i)));
+                        } catch (JSONException e) {}
+                    }
+                }
+            }
+        } else {
+            checkedWayClassList = settingsManagerInstance.getRouteSettings().getWayClassList();
+        }
+
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.layout_single_check_box_group, nullParent);
 
         checkBoxGroupRoutingWayClasses = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
-        for (String routingWayClassTag : Constants.RoutingWayClassValueArray) {
-            CheckBox checkBox = new CheckBox(getActivity());
-            checkBox.setId(routingWayClassTag.hashCode());
-            checkBox.setLayoutParams(
-                    new LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT)
-                    );
-            checkBox.setChecked(
-                    settingsManagerInstance.getRouteSettings().getWayClassList().contains(routingWayClassTag));
-            checkBox.setTag(routingWayClassTag);
-            checkBox.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    onStart();
-                }
-            });
-            if (routingWayClassTag.equals(Constants.ROUTING_WAY_CLASS.BIG_STREETS)) {
-                checkBox.setText(
-                        getResources().getString(R.string.routingWayClassBigStreets));
-            } else if (routingWayClassTag.equals(Constants.ROUTING_WAY_CLASS.SMALL_STREETS)) {
-                checkBox.setText(
-                        getResources().getString(R.string.routingWayClassSmallStreets));
-            } else if (routingWayClassTag.equals(Constants.ROUTING_WAY_CLASS.PAVED_WAYS)) {
-                checkBox.setText(
-                        getResources().getString(R.string.routingWayClassPavedWays));
-            } else if (routingWayClassTag.equals(Constants.ROUTING_WAY_CLASS.UNPAVED_WAYS)) {
-                checkBox.setText(
-                        getResources().getString(R.string.routingWayClassUnpavedWays));
-            } else if (routingWayClassTag.equals(Constants.ROUTING_WAY_CLASS.STEPS)) {
-                checkBox.setText(
-                        getResources().getString(R.string.routingWayClassSteps));
-            } else if (routingWayClassTag.equals(Constants.ROUTING_WAY_CLASS.UNCLASSIFIED_WAYS)) {
-                checkBox.setText(
-                        getResources().getString(R.string.routingWayClassUnclassifiedWays));
-            } else {
-                continue;
+        if (serverInstance != null) {
+            for (WayClass wayClass : serverInstance.getSupportedWayClassList()) {
+                CheckBox checkBox = new CheckBox(getActivity());
+                checkBox.setTag(wayClass.getId());
+                checkBox.setLayoutParams(
+                        new LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT)
+                        );
+                checkBox.setText(wayClass.getName());
+                checkBox.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        checkedWayClassList = getCheckedItemsOfWayClassCheckBoxGroup();
+                        onStart();
+                    }
+                });
+                checkBoxGroupRoutingWayClasses.put(checkBox);
             }
-            checkBoxGroupRoutingWayClasses.put(checkBox);
         }
 
         // create dialog
@@ -122,28 +135,29 @@ public class SelectRoutingWayClassesDialog extends DialogFragment {
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
         if(dialog != null) {
+            // check boxes
+            for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckBoxList()) {
+                checkBox.setChecked(
+                        checkedWayClassList.contains(
+                            new WayClass(getActivity(), (String) checkBox.getTag())));
+            }
+
             // positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    ArrayList<String> allowedWayClassList = new ArrayList<String>();
-                    for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckedCheckBoxList()) {
-                        String allowedWayClass = (String) checkBox.getTag();
-                        if (Arrays.asList(Constants.RoutingWayClassValueArray).contains(allowedWayClass)) {
-                            allowedWayClassList.add(allowedWayClass);
-                        }
-                    }
-                    if (allowedWayClassList.isEmpty()) {
+                    if (checkedWayClassList.isEmpty()) {
                         Toast.makeText(
                                 getActivity(),
                                 getResources().getString(R.string.messageNoAllowedWayClassSelected),
                                 Toast.LENGTH_LONG).show();
                     } else {
-                        settingsManagerInstance.getRouteSettings().setWayClassList(allowedWayClassList);
+                        settingsManagerInstance.getRouteSettings().setWayClassList(checkedWayClassList);
                         dialog.dismiss();
                     }
                 }
             });
+
             // neutral button
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             if (checkBoxGroupRoutingWayClasses.nothingChecked()) {
@@ -155,14 +169,16 @@ public class SelectRoutingWayClassesDialog extends DialogFragment {
             }
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    if (checkBoxGroupRoutingWayClasses.nothingChecked()) {
-                        checkBoxGroupRoutingWayClasses.checkAll();
+                    if (checkBoxGroupRoutingWayClasses.nothingChecked()
+                            && serverInstance != null) {
+                        checkedWayClassList = serverInstance.getSupportedWayClassList();
                     } else {
-                        checkBoxGroupRoutingWayClasses.uncheckAll();
+                        checkedWayClassList = new ArrayList<WayClass>();
                     }
                     onStart();
                 }
             });
+
             // negative button
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -171,6 +187,24 @@ public class SelectRoutingWayClassesDialog extends DialogFragment {
                 }
             });
         }
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        JSONArray jsonCheckedWayClassIdList = new JSONArray();
+        for (WayClass wayClass : getCheckedItemsOfWayClassCheckBoxGroup()) {
+            jsonCheckedWayClassIdList.put(wayClass.getId());
+        }
+        savedInstanceState.putString("jsonCheckedWayClassIdList", jsonCheckedWayClassIdList.toString());
+    }
+
+    private ArrayList<WayClass> getCheckedItemsOfWayClassCheckBoxGroup() {
+        ArrayList<WayClass> wayClassList = new ArrayList<WayClass>();
+        for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckedCheckBoxList()) {
+            wayClassList.add(
+                    new WayClass(getActivity(), (String) checkBox.getTag()));
+        }
+        return wayClassList;
     }
 
 }

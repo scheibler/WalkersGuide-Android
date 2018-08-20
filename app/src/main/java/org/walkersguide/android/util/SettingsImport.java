@@ -52,7 +52,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
         try {
             in = new FileInputStream(this.databaseFileToImport);
         } catch(IOException e) {
-            return 1040;
+            return Constants.RC.DATABASE_IMPORT_FAILED;
         }
 
         // create temp database file
@@ -65,7 +65,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
         }
 
         // copy
-        int returnCode = Constants.ID.OK;
+        int returnCode = Constants.RC.OK;
         OutputStream out = null;
         byte[] buffer = new byte[1024];
         int length;
@@ -74,12 +74,12 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
             while ((length = in.read(buffer)) > 0) {
                 out.write(buffer, 0, length);
                 if (isCancelled()) {
-                    returnCode = 1000;
+                    returnCode = Constants.RC.NO_INTERNET_CONNECTION;
                     break;
                 }
             }
         } catch(IOException e) {
-            returnCode = 1040;
+            returnCode = Constants.RC.DATABASE_IMPORT_FAILED;
         } finally {
             if (in != null) {
                 try {
@@ -94,7 +94,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
             }
         }
 
-        if (returnCode == Constants.ID.OK) {
+        if (returnCode == Constants.RC.OK) {
             // replace database
             if (oldDatabaseFile.exists()) {
                 oldDatabaseFile.delete();
@@ -105,7 +105,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
             try {
                 AccessDatabase.getInstance(this.context).reOpen();
             } catch (SQLException e) {
-                returnCode = 1040;
+                returnCode = Constants.RC.DATABASE_IMPORT_FAILED;
             }
         } else {
             // remove temp file
@@ -120,7 +120,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
     @Override protected void onPostExecute(Integer returnCode) {
         System.out.println("xxx settings imported: " + returnCode);
         String returnMessage = context.getResources().getString(R.string.labelImportDatabaseSuccessful);
-        if (returnCode != Constants.ID.OK) {
+        if (returnCode != Constants.RC.OK) {
             returnMessage = DownloadUtility.getErrorMessageForReturnCode(this.context, returnCode, "");
         }
         if (settingsImportListener != null) {
@@ -129,7 +129,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
     }
 
     @Override protected void onCancelled(Integer empty) {
-        int returnCode = Constants.ID.CANCELLED;
+        int returnCode = Constants.RC.CANCELLED;
         String returnMessage = DownloadUtility.getErrorMessageForReturnCode(this.context, returnCode, "");
         if (settingsImportListener != null) {
         	settingsImportListener.settingsImportFinished(returnCode, returnMessage);

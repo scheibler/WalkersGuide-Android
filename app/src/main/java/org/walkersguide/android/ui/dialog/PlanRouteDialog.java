@@ -226,7 +226,7 @@ public class PlanRouteDialog extends DialogFragment
     }
 
     @Override public void addressRequestFinished(int returnCode, String returnMessage, PointWrapper addressPoint) {
-        if (returnCode == Constants.ID.OK) {
+        if (returnCode == Constants.RC.OK) {
             PointUtility.putNewPoint(
                     getActivity(), addressPoint, addressManagerRequest.getPointPutIntoVariable());
             // request gps location again to refresh
@@ -241,7 +241,7 @@ public class PlanRouteDialog extends DialogFragment
 
 	@Override public void routeCalculationFinished(int returnCode, String returnMessage, int routeId) {
         progressHandler.removeCallbacks(progressUpdater);
-        if (returnCode == Constants.ID.OK) {
+        if (returnCode == Constants.RC.OK) {
             RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
             routeSettings.setSelectedRouteId(routeId);
             // add start and destination to route points favorites profile

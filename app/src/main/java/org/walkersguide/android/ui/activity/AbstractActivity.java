@@ -7,7 +7,9 @@ import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.ServerStatus;
+import org.walkersguide.android.listener.ServerStatusListener;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.RequestAddressDialog;
 import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
@@ -42,7 +44,7 @@ import org.walkersguide.android.ui.dialog.SearchInFavoritesDialog;
 import java.util.TreeSet;
 
 
-public abstract class AbstractActivity extends AppCompatActivity {
+public abstract class AbstractActivity extends AppCompatActivity implements ServerStatusListener {
 
     private static final int ASK_FOR_LOCATION_PERMISSION_ID = 61;
 
@@ -51,8 +53,6 @@ public abstract class AbstractActivity extends AppCompatActivity {
     public DirectionManager directionManagerInstance;
     public PositionManager positionManagerInstance;
 	public SettingsManager settingsManagerInstance;
-
-    private SimpleMessageDialog simpleMessageDialog;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,7 +86,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.directionSourceCompass),
-                                getResources().getString(R.string.messageError1005))
+                                getResources().getString(R.string.errorNoDirectionFound))
                             );
                 } else {
                     menu.findItem(R.id.menuItemDirection).setTitle(
@@ -104,7 +104,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.directionSourceGPS),
-                                getResources().getString(R.string.messageError1005))
+                                getResources().getString(R.string.errorNoDirectionFound))
                             );
                 } else {
                     menu.findItem(R.id.menuItemDirection).setTitle(
@@ -122,7 +122,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.directionSourceSimulated),
-                                getResources().getString(R.string.messageError1005))
+                                getResources().getString(R.string.errorNoDirectionFound))
                             );
                 } else {
                     menu.findItem(R.id.menuItemDirection).setTitle(
@@ -149,7 +149,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.locationSourceGPS),
-                                getResources().getString(R.string.messageError1004))
+                                getResources().getString(R.string.errorNoLocationFound))
                             );
                 } else {
                     menu.findItem(R.id.menuItemLocation).setTitle(
@@ -168,7 +168,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                             String.format(
                                 "%1$s: %2$s",
                                 getResources().getString(R.string.locationSourceSimulatedPoint),
-                                getResources().getString(R.string.messageError1004))
+                                getResources().getString(R.string.errorNoLocationFound))
                             );
                 } else {
                     menu.findItem(R.id.menuItemLocation).setTitle(
@@ -239,6 +239,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
 
     @Override public void onPause() {
         super.onPause();
+        ServerStatusManager.getInstance(this).invalidateServerStatusRequest(this);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         globalInstance.startActivityTransitionTimer();
     }
@@ -250,7 +251,6 @@ public abstract class AbstractActivity extends AppCompatActivity {
 
         // listen for some actions
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_SERVER_STATUS_UPDATED);
         filter.addAction(Constants.ACTION_NEW_DIRECTION);
         filter.addAction(Constants.ACTION_NEW_LOCATION);
         filter.addAction(Constants.ACTION_UPDATE_UI);
@@ -276,11 +276,10 @@ public abstract class AbstractActivity extends AppCompatActivity {
             positionManagerInstance.startGPS();
             directionManagerInstance.startSensors();
 
-            // server status
-            ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
-            ServerStatus serverStatus = new ServerStatus(
-                    this, ServerStatus.ACTION_UPDATE_BOTH, serverSettings.getServerURL(), serverSettings.getSelectedMap());
-            serverStatus.execute();
+            // server status request
+            ServerStatusManager.getInstance(this).requestServerStatus(
+                    (AbstractActivity) this,
+                    settingsManagerInstance.getServerSettings().getServerURL());
         }
     }
 
@@ -293,6 +292,20 @@ public abstract class AbstractActivity extends AppCompatActivity {
         }
     }
 
+	@Override public void serverStatusRequestFinished(int returnCode, String returnMessage, ServerInstance serverInstance) {
+        if (returnCode == Constants.RC.OK) {
+            if (settingsManagerInstance.getServerSettings().getSelectedMap() == null) {
+                SelectMapDialog.newInstance()
+                    .show(getSupportFragmentManager(), "SelectMapDialog");
+            }
+            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        } else {
+            SimpleMessageDialog.newInstance(returnMessage)
+                .show(getSupportFragmentManager(), "SimpleMessageDialog");
+        }
+    }
+
 
     /**
      * broadcast receiver
@@ -300,23 +313,6 @@ public abstract class AbstractActivity extends AppCompatActivity {
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            /*
-            // print intent and extras
-            System.out.println("xxx abstract action: " + intent.getAction());
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                for (String key : bundle.keySet()) {
-                    Object value = bundle.get(key);
-                    System.out.println("xxx     " + String.format("%s %s (%s)", key, value.toString(), value.getClass().getName()));
-                }
-            }
-            */
-            // kill previous instance of simple message dialog
-            if (simpleMessageDialog != null) {
-                System.out.println("xxx dismiss");
-                simpleMessageDialog.dismiss();
-                simpleMessageDialog = null;
-            }
             // process intent action
             if (
                        (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
@@ -325,22 +321,6 @@ public abstract class AbstractActivity extends AppCompatActivity {
                         && intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD1.ID)
                     ) {
                 invalidateOptionsMenu();
-            } else if(intent.getAction().equals(Constants.ACTION_SERVER_STATUS_UPDATED)) {
-                if (! AccessDatabase.getInstance(context).getMapList().isEmpty()
-                        && SettingsManager.getInstance(context).getServerSettings().getSelectedMap() == null) {
-                    System.out.println("xxx select map");
-                    SelectMapDialog.newInstance(null)
-                        .show(getSupportFragmentManager(), "SelectMapDialog");
-                } else if (! AccessDatabase.getInstance(context).getPublicTransportProviderList().isEmpty()
-                        && SettingsManager.getInstance(context).getServerSettings().getSelectedPublicTransportProvider() == null) {
-                    SelectPublicTransportProviderDialog.newInstance(null)
-                        .show(getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
-                } else if (! intent.getStringExtra(Constants.ACTION_SERVER_STATUS_UPDATED_ATTR.STRING_RETURN_MESSAGE).equals("")) {
-                    System.out.println("xxx simple");
-                    simpleMessageDialog = SimpleMessageDialog.newInstance(
-                            intent.getStringExtra(Constants.ACTION_SERVER_STATUS_UPDATED_ATTR.STRING_RETURN_MESSAGE));
-                    simpleMessageDialog.show(getSupportFragmentManager(), "SimpleMessageDialog");
-                }
             } else if(intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
                 onPause();
                 onResume();

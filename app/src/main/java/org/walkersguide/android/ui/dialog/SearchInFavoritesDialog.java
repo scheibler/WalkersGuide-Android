@@ -294,7 +294,7 @@ public class SearchInFavoritesDialog extends DialogFragment implements SearchFav
     private void prepareForSearch() {
         if (TextUtils.isEmpty(searchTerm)) {
             SimpleMessageDialog.newInstance(
-                    getResources().getString(R.string.messageError1030))
+                    getResources().getString(R.string.errorNoSearchTerm))
                 .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
         } else if (! searchTerm.equals(settingsManagerInstance.getFavoritesSearchSettings().getSearchTerm())) {
             settingsManagerInstance.getFavoritesSearchSettings().setSearchTerm(searchTerm);
@@ -384,7 +384,7 @@ public class SearchInFavoritesDialog extends DialogFragment implements SearchFav
         }
 
         // error message dialog
-        if (! (returnCode == Constants.ID.OK || returnCode == Constants.ID.CANCELLED)) {
+        if (! (returnCode == Constants.RC.OK || returnCode == Constants.RC.CANCELLED)) {
             SimpleMessageDialog.newInstance(returnMessage)
                 .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
         }

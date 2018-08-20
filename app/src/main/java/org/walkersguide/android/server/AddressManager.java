@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.walkersguide.android.R;
+import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.helper.DownloadUtility;
@@ -58,7 +59,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         this.latitude = 0.0;
         this.longitude = 0.0;
         this.connection = null;
-        this.returnCode = Constants.ID.OK;
+        this.returnCode = Constants.RC.OK;
         this.additionalErrorMessage = null;
         this.cancelConnectionHandler = new Handler();
         this.cancelConnection = new CancelConnection();
@@ -72,7 +73,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         this.latitude = latitude;
         this.longitude = longitude;
         this.connection = null;
-        this.returnCode = Constants.ID.OK;
+        this.returnCode = Constants.RC.OK;
         this.additionalErrorMessage = null;
         this.cancelConnectionHandler = new Handler();
         this.cancelConnection = new CancelConnection();
@@ -94,7 +95,8 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                 distancesToFavoritesMap.put(results[0], address);
             }
             Map.Entry<Float,PointWrapper> closestAddress = distancesToFavoritesMap.firstEntry();
-            if (closestAddress.getKey() < 25.0) {       // PositionManager.THRESHOLD3.DISTANCE) {
+            if (closestAddress != null
+                    && closestAddress.getKey() < 25.0) {       // PositionManager.THRESHOLD3.DISTANCE) {
                 return closestAddress.getValue();
             }
         }
@@ -103,14 +105,14 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         JSONObject jsonStreetAddress = null;
         // check internet connection
         if (! DownloadUtility.isInternetAvailable(context)) {
-            returnCode = 1003;
+            returnCode = Constants.RC.NO_INTERNET_CONNECTION;
             return null;
         }
 
         // got coordinates, require address
         if (latitude != 0.0 && longitude != 0.0) {
-            switch (settingsManagerInstance.getServerSettings().getAddressProviderId()) {
-                case Constants.ADDRESS_PROVIDER.OSM:
+            try {
+                if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.OSM)) {
                     jsonStreetAddress = requestAddressFromOpenStreetMap(
                             context,
                             String.format(
@@ -121,8 +123,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                                 longitude,
                                 Locale.getDefault().getLanguage())
                             );
-                    break;
-                case Constants.ADDRESS_PROVIDER.GOOGLE:
+                } else if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.GOOGLE)) {
                     jsonStreetAddress = requestAddressFromGoogle(
                             context,
                             String.format(
@@ -133,11 +134,12 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                                 longitude,
                                 Locale.getDefault().getLanguage())
                             );
-                    break;
-                default:
-                    returnCode = 1016;          // unsupported address provider
-            }
-            if (returnCode != Constants.ID.OK) {
+                } else {
+                    this.returnCode = Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED;
+                    return null;
+                }
+            } catch (ServerCommunicationException e) {
+                this.returnCode = e.getReturnCode();
                 return null;
             }
             try {
@@ -147,11 +149,11 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                         latitude, longitude, jsonStreetAddress.getDouble("lat"), jsonStreetAddress.getDouble("lon"), results);
                 if (results[0] > PositionManager.THRESHOLD3.DISTANCE) {
                     // if the address differs for more than 100 meters, don't take it
-                    returnCode = 1014;      // no address for given lat,lon
+                    this.returnCode = Constants.RC.NO_ADDRESS_FOR_COORDINATES;
                     return null;
                 }
             } catch (JSONException e) {
-                returnCode = 1011;          // invalid server response
+                this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
                 return null;
             }
 
@@ -161,11 +163,11 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             try {
                 encodedAddress = URLEncoder.encode(address, "UTF-8");
             } catch (UnsupportedEncodingException e ) {
-                returnCode = 1018;          // invalid server input
+                this.returnCode = Constants.RC.USER_INPUT_ERROR;
                 return null;
             }
-            switch (settingsManagerInstance.getServerSettings().getAddressProviderId()) {
-                case Constants.ADDRESS_PROVIDER.OSM:
+            try {
+                if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.OSM)) {
                     jsonStreetAddress = requestCoordinatesFromOpenStreetMap(
                             context,
                             String.format(
@@ -175,8 +177,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                                 encodedAddress,
                                 Locale.getDefault().getLanguage())
                             );
-                    break;
-                case Constants.ADDRESS_PROVIDER.GOOGLE:
+                } else if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.GOOGLE)) {
                     jsonStreetAddress = requestCoordinatesFromGoogle(
                             context,
                             String.format(
@@ -186,23 +187,25 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                                 encodedAddress,
                                 Locale.getDefault().getLanguage())
                             );
-                    break;
-                default:
-                    returnCode = 1016;          // unsupported address provider
+                } else {
+                    this.returnCode = Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED;
+                }
+            } catch (ServerCommunicationException e) {
+                this.returnCode = e.getReturnCode();
+                return null;
             }
 
         // got neither coordinates nor address
         } else {
-            returnCode = 1017;
+            this.returnCode = Constants.RC.NEITHER_COORDINATES_NOR_ADDRESS;
         }
 
         PointWrapper addressPoint = null;
-        if (returnCode == Constants.ID.OK) {
             try {
                 addressPoint = new PointWrapper(context, jsonStreetAddress);
             } catch (JSONException e) {
                 addressPoint = null;
-                returnCode = 1011;          // invalid server response
+                returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
             } finally {
                 if (addressPoint != null) {
                     // add to database
@@ -210,7 +213,6 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                             addressPoint, FavoritesProfile.ID_ADDRESS_POINTS);
                 }
             }
-        }
         return addressPoint;
     }
 
@@ -227,7 +229,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
     @Override protected void onCancelled(PointWrapper addressPoint) {
         if (addressListener != null) {
             addressListener.addressRequestFinished(
-                    Constants.ID.CANCELLED,
+                    Constants.RC.CANCELLED,
                     DownloadUtility.getErrorMessageForReturnCode(
                         context, returnCode, this.additionalErrorMessage),
                     addressPoint);
@@ -267,7 +269,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
 
     /** Google **/
 
-    private JSONObject requestAddressFromGoogle(Context context, String query) {
+    private JSONObject requestAddressFromGoogle(Context context, String query) throws ServerCommunicationException {
         JSONObject jsonStreetAddress = null;
         try {
             // create connection
@@ -277,36 +279,33 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             int responseCode = connection.getResponseCode();
             cancelConnectionHandler.removeCallbacks(cancelConnection);
             if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            } else if (responseCode != Constants.ID.OK) {
-                returnCode = 1010;          // server connection error
+                throw new ServerCommunicationException(context, Constants.RC.CANCELLED);
+            } else if (responseCode != Constants.RC.OK) {
+                throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
             } else {
                 JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
                 if (! jsonServerResponse.has("status")) {
-                    returnCode = 1010;          // server connection error
+                    throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
                 } else if (! jsonServerResponse.getString("status").equals("OK")) {
                     if (jsonServerResponse.getString("status").equals("OVER_QUERY_LIMIT")) {
-                        returnCode = 1015;
+                        throw new ServerCommunicationException(context, Constants.RC.GOOGLE_MAPS_QUOTA_EXCEEDED);
                     } else {
-                        this.additionalErrorMessage = jsonServerResponse.getString("status");
-                        returnCode = 1012;          // error from server
+                        throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
                     }
                 } else if (jsonServerResponse.getJSONArray("results").length() == 0) {
-                    // get the first address object returned from google
-                    returnCode = 1014;
+                    // no address found
+                    throw new ServerCommunicationException(context, Constants.RC.NO_ADDRESS_FOR_COORDINATES);
                 } else {
+                    // get the first address object returned from google
                     jsonStreetAddress = createJsonStreetAddressFromGoogle(
                             context, jsonServerResponse.getJSONArray("results").getJSONObject(0));
                 }
             }
         } catch (IOException e) {
-            returnCode = 1010;          // server connection error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
         } catch (JSONException e) {
-            returnCode = 1011;          // server response error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_RESPONSE_ERROR);
         } finally {
-            if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            }
             if (connection != null) {
                 connection.disconnect();
             }
@@ -314,7 +313,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         return jsonStreetAddress;
     }
 
-    private JSONObject requestCoordinatesFromGoogle(Context context, String query) {
+    private JSONObject requestCoordinatesFromGoogle(Context context, String query) throws ServerCommunicationException {
         JSONObject jsonStreetAddress = null;
         try {
             // create connection
@@ -324,36 +323,32 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             int responseCode = connection.getResponseCode();
             cancelConnectionHandler.removeCallbacks(cancelConnection);
             if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            } else if (responseCode != Constants.ID.OK) {
-                returnCode = 1010;          // server connection error
+                throw new ServerCommunicationException(context, Constants.RC.CANCELLED);
+            } else if (responseCode != Constants.RC.OK) {
+                throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
             } else {
                 JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
                 if (! jsonServerResponse.has("status")) {
-                    returnCode = 1010;          // server connection error
+                    throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
                 } else if (! jsonServerResponse.getString("status").equals("OK")) {
                     if (jsonServerResponse.getString("status").equals("OVER_QUERY_LIMIT")) {
-                        returnCode = 1015;
+                        throw new ServerCommunicationException(context, Constants.RC.GOOGLE_MAPS_QUOTA_EXCEEDED);
                     } else {
-                        this.additionalErrorMessage = jsonServerResponse.getString("status");
-                        returnCode = 1012;          // error from server
+                        throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
                     }
                 } else if (jsonServerResponse.getJSONArray("results").length() == 0) {
-                    // no coordinates
-                    returnCode = 1013;
+                    // no coordinates found
+                    throw new ServerCommunicationException(context, Constants.RC.NO_COORDINATES_FOR_ADDRESS);
                 } else {
                     jsonStreetAddress = createJsonStreetAddressFromGoogle(
                             context, jsonServerResponse.getJSONArray("results").getJSONObject(0));
                 }
             }
         } catch (IOException e) {
-            returnCode = 1010;          // server connection error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
         } catch (JSONException e) {
-            returnCode = 1011;          // server response error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_RESPONSE_ERROR);
         } finally {
-            if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            }
             if (connection != null) {
                 connection.disconnect();
             }
@@ -435,7 +430,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
 
     /** OSM **/
 
-    private JSONObject requestAddressFromOpenStreetMap(Context context, String queryURL) {
+    private JSONObject requestAddressFromOpenStreetMap(Context context, String queryURL) throws ServerCommunicationException {
         JSONObject jsonStreetAddress = null;
         try {
             // create connection
@@ -446,22 +441,19 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             int responseCode = connection.getResponseCode();
             cancelConnectionHandler.removeCallbacks(cancelConnection);
             if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            } else if (responseCode != Constants.ID.OK) {
-                returnCode = 1010;          // server connection error
+                throw new ServerCommunicationException(context, Constants.RC.CANCELLED);
+            } else if (responseCode != Constants.RC.OK) {
+                throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
             } else {
                 JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
                 // create street address in json format
                 jsonStreetAddress = createJsonStreetAddressFromOSM(context, jsonServerResponse);
             }
         } catch (IOException e) {
-            returnCode = 1010;          // server connection error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
         } catch (JSONException e) {
-            returnCode = 1011;          // server response error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_RESPONSE_ERROR);
         } finally {
-            if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            }
             if (connection != null) {
                 connection.disconnect();
             }
@@ -470,7 +462,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
     }
 
 
-    private JSONObject requestCoordinatesFromOpenStreetMap(Context context, String queryURL) {
+    private JSONObject requestCoordinatesFromOpenStreetMap(Context context, String queryURL) throws ServerCommunicationException {
         JSONObject jsonStreetAddress = null;
         try {
             // create connection
@@ -481,27 +473,24 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             int responseCode = connection.getResponseCode();
             cancelConnectionHandler.removeCallbacks(cancelConnection);
             if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            } else if (responseCode != Constants.ID.OK) {
-                returnCode = 1010;          // server connection error
+                throw new ServerCommunicationException(context, Constants.RC.CANCELLED);
+            } else if (responseCode != Constants.RC.OK) {
+                throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
             } else {
                 JSONArray jsonServerResponse = DownloadUtility.processServerResponseAsJSONArray(connection);
                 if (jsonServerResponse.length() == 0) {
                     // no coordinates
-                    returnCode = 1013;
+                    throw new ServerCommunicationException(context, Constants.RC.NO_COORDINATES_FOR_ADDRESS);
                 } else {
                     // create street address in json format
                     jsonStreetAddress = createJsonStreetAddressFromOSM(context, jsonServerResponse.getJSONObject(0));
                 }
             }
         } catch (IOException e) {
-            returnCode = 1010;          // server connection error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_CONNECTION_ERROR);
         } catch (JSONException e) {
-            returnCode = 1011;          // server response error
+            throw new ServerCommunicationException(context, Constants.RC.SERVER_RESPONSE_ERROR);
         } finally {
-            if (isCancelled()) {
-                returnCode = 1000;          // cancelled
-            }
             if (connection != null) {
                 connection.disconnect();
             }

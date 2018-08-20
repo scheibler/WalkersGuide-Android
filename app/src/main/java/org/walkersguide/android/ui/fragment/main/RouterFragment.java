@@ -193,7 +193,7 @@ public class RouterFragment extends Fragment
                     PlanRouteDialog.newInstance().show(
                             getActivity().getSupportFragmentManager(), "PlanRouteDialog");
                 } else {
-                    SimpleMessageDialog.newInstance(getResources().getString(R.string.messageError1022))
+                    SimpleMessageDialog.newInstance(getResources().getString(R.string.errorNoRouteSelected))
                         .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
                 }
                 return true;
@@ -206,7 +206,7 @@ public class RouterFragment extends Fragment
                     PlanRouteDialog.newInstance().show(
                             getActivity().getSupportFragmentManager(), "PlanRouteDialog");
                 } else {
-                    SimpleMessageDialog.newInstance(getResources().getString(R.string.messageError1022))
+                    SimpleMessageDialog.newInstance(getResources().getString(R.string.errorNoRouteSelected))
                         .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
                 }
                 return true;
@@ -242,7 +242,7 @@ public class RouterFragment extends Fragment
     }
 
 	@Override public void routeRequestFinished(int returnCode, String returnMessage, Route route) {
-        if (returnCode == Constants.ID.OK) {
+        if (returnCode == Constants.RC.OK) {
             if (route == null) {
                 // no route available yet
                 buttonPlanRoute.setVisibility(View.VISIBLE);
@@ -438,7 +438,7 @@ public class RouterFragment extends Fragment
 
         @Override public void routeRequestFinished(int returnCode, String returnMessage, Route route) {
             labelEmptyRouteObjectListView.setText(returnMessage);
-            if (returnCode == Constants.ID.OK) {
+            if (returnCode == Constants.RC.OK) {
                 if (route == null) {
                     // no route available yet
                     labelEmptyRouteObjectListView.setText(

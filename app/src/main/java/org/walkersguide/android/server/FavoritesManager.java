@@ -94,7 +94,7 @@ public class FavoritesManager {
                 this.favoritesProfileListenerList.add(profileListener);
             }
             this.favoritesProfileIdToRequest = favoritesProfileIdToRequest;
-            this.returnCode = Constants.ID.OK;
+            this.returnCode = Constants.RC.OK;
             this.resetListPosition = false;
         }
 
@@ -103,7 +103,7 @@ public class FavoritesManager {
             AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
             FavoritesProfile favoritesProfile = accessDatabaseInstance.getFavoritesProfile(this.favoritesProfileIdToRequest);
             if (favoritesProfile == null) {
-                this.returnCode = 1032;
+                this.returnCode = Constants.RC.NO_FAVORITES_PROFILE_SELECTED;
                 return null;
             }
 
@@ -111,7 +111,7 @@ public class FavoritesManager {
             PositionManager positionManagerInstance = PositionManager.getInstance(context);
             PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
             if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
-                this.returnCode = 1004;
+                this.returnCode = Constants.RC.NO_LOCATION_FOUND;
                 return null;
             }
 
@@ -119,7 +119,7 @@ public class FavoritesManager {
             DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
             int currentDirection = directionManagerInstance.getCurrentDirection();
             if (currentDirection == Constants.DUMMY.DIRECTION) {
-                this.returnCode = 1005;
+                this.returnCode = Constants.RC.NO_DIRECTION_FOUND;
                 return null;
             }
 
@@ -146,8 +146,8 @@ public class FavoritesManager {
         @Override protected void onCancelled(FavoritesProfile favoritesProfile) {
             for (FavoritesProfileListener favoritesProfileListener : this.favoritesProfileListenerList) {
                 favoritesProfileListener.favoritesProfileRequestFinished(
-                        Constants.ID.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.ID.CANCELLED, ""),
+                        Constants.RC.CANCELLED,
+                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
                         favoritesProfile,
                         false);
             }
@@ -246,7 +246,7 @@ public class FavoritesManager {
             if (profileListener != null) {
                 this.searchFavoritesProfileListenerList.add(profileListener);
             }
-            this.returnCode = Constants.ID.OK;
+            this.returnCode = Constants.RC.OK;
             this.searchTerm = searchTerm;
             this.favoritesProfileIdList = favoritesProfileIdList;
             this.sortCriteria = sortCriteria;
@@ -262,7 +262,8 @@ public class FavoritesManager {
                 searchFavoritesProfile = null;
             } finally {
                 if (searchFavoritesProfile == null) {
-                    this.returnCode = 1032;
+                    this.returnCode = Constants.RC.NO_FAVORITES_PROFILE_SELECTED;
+                    this.returnCode = Constants.RC.NO_FAVORITES_PROFILE_SELECTED;
                     return null;
                 }
             }
@@ -271,7 +272,7 @@ public class FavoritesManager {
             PositionManager positionManagerInstance = PositionManager.getInstance(context);
             PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
             if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
-                this.returnCode = 1004;
+                this.returnCode = Constants.RC.NO_LOCATION_FOUND;
                 return null;
             }
 
@@ -279,13 +280,13 @@ public class FavoritesManager {
             DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
             int currentDirection = directionManagerInstance.getCurrentDirection();
             if (currentDirection == Constants.DUMMY.DIRECTION) {
-                this.returnCode = 1005;
+                this.returnCode = Constants.RC.NO_DIRECTION_FOUND;
                 return null;
             }
 
             // no search term
             if (TextUtils.isEmpty(this.searchTerm)) {
-                this.returnCode = 1030;
+                this.returnCode = Constants.RC.NO_SEARCH_TERM;
                 return null;
             }
             //String regexp = String.format(
@@ -295,7 +296,7 @@ public class FavoritesManager {
             // no favorites profiles to search in
             if (this.favoritesProfileIdList == null
                     || favoritesProfileIdList.isEmpty()) {
-                this.returnCode = 1031;
+                this.returnCode = Constants.RC.NO_FAVORITES_PROFILE_SELECTED;
                 return null;
             }
 
@@ -350,7 +351,7 @@ public class FavoritesManager {
 
         @Override protected void onPostExecute(SearchFavoritesProfile searchFavoritesProfile) {
             System.out.println("xxx favManager search: " + this.returnCode + "   reset: " + resetListPosition);
-            if (this.returnCode == Constants.ID.OK) {
+            if (this.returnCode == Constants.RC.OK) {
                 lastSearchFavoritesProfile = searchFavoritesProfile;
             }
             for (SearchFavoritesProfileListener searchFavoritesProfileListener : this.searchFavoritesProfileListenerList) {
@@ -366,8 +367,8 @@ public class FavoritesManager {
             System.out.println("xxx favManager search: cancelled");
             for (SearchFavoritesProfileListener searchFavoritesProfileListener : this.searchFavoritesProfileListenerList) {
                 searchFavoritesProfileListener.searchFavoritesProfileRequestFinished(
-                        Constants.ID.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.ID.CANCELLED, ""),
+                        Constants.RC.CANCELLED,
+                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
                         searchFavoritesProfile,
                         false);
             }

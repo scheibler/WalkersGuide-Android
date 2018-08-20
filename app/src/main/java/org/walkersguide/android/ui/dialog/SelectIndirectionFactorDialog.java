@@ -14,11 +14,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.ServerStatusManager;
+
 
 public class SelectIndirectionFactorDialog extends DialogFragment {
 
     // Store instance variables
     private SettingsManager settingsManagerInstance;
+    private ServerStatusManager serverStatusManagerInstance;
 
     public static SelectIndirectionFactorDialog newInstance() {
         SelectIndirectionFactorDialog selectIndirectionFactorDialog = new SelectIndirectionFactorDialog();
@@ -28,18 +32,25 @@ public class SelectIndirectionFactorDialog extends DialogFragment {
     @Override public void onAttach(Context context){
         super.onAttach(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
+        serverStatusManagerInstance = ServerStatusManager.getInstance(context);
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String[] formattedIndirectionFactorArray = new String[Constants.IndirectionFactorValueArray.length];
+        ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
+        String[] formattedIndirectionFactorArray = new String[0];
+        if (serverInstance != null) {
+            formattedIndirectionFactorArray = new String[serverInstance.getSupportedIndirectionFactorList().size()];
+        }
         int indexOfSelectedIndirectionFactor = -1;
         int index = 0;
-        for (double indirectionFactor : Constants.IndirectionFactorValueArray) {
-            formattedIndirectionFactorArray[index] = String.format("%1$.1f", indirectionFactor);
-            if (indirectionFactor == settingsManagerInstance.getRouteSettings().getIndirectionFactor()) {
-                indexOfSelectedIndirectionFactor = index;
+        if (serverInstance != null) {
+            for (Double indirectionFactor : serverInstance.getSupportedIndirectionFactorList()) {
+                formattedIndirectionFactorArray[index] = String.format("%1$.1f", indirectionFactor);
+                if (indirectionFactor == settingsManagerInstance.getRouteSettings().getIndirectionFactor()) {
+                    indexOfSelectedIndirectionFactor = index;
+                }
+                index += 1;
             }
-            index += 1;
         }
 
         // create dialog
@@ -52,7 +63,7 @@ public class SelectIndirectionFactorDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int which) {
                             double newIndirectionFactor = -1.0;
                             try {
-                                newIndirectionFactor = Constants.IndirectionFactorValueArray[which];
+                                newIndirectionFactor = serverStatusManagerInstance.getServerInstance().getSupportedIndirectionFactorList().get(which);
                             } catch (IndexOutOfBoundsException e) {
                                 newIndirectionFactor = -1.0;
                             } finally {

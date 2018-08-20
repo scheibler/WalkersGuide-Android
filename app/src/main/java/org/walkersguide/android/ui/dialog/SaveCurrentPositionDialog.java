@@ -365,7 +365,7 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
         } else if (currentLocation.equals(PositionManager.getDummyLocation(getActivity()))) {
             Toast.makeText(
                     getActivity(),
-                    getResources().getString(R.string.messageError1004),
+                    getResources().getString(R.string.errorNoLocationFound),
                     Toast.LENGTH_LONG).show();
         } else {
             PointWrapper userCreatedPoint = null;

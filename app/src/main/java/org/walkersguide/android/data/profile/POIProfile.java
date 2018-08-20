@@ -40,11 +40,11 @@ public class POIProfile extends PointProfile {
         // poi categories
         this.poiCategoryList = new ArrayList<POICategory>();
         for (int i=0; i<jsonPOICategoryIdList.length(); i++) {
-            POICategory category = AccessDatabase.getInstance(context).getPOICategory(
-                    jsonPOICategoryIdList.getInt(i));
-            if (category != null) {
-                this.poiCategoryList.add(category);
-            }
+            try {
+                this.poiCategoryList.add(
+                        new POICategory(
+                            context, jsonPOICategoryIdList.getString(i)));
+            } catch (JSONException e) {}
         }
     }
 

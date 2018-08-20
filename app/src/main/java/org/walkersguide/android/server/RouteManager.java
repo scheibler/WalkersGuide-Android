@@ -29,6 +29,10 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.basic.segment.Footway;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.exception.ServerCommunicationException;
+import org.walkersguide.android.data.route.WayClass;
+
 
 public class RouteManager {
 
@@ -90,7 +94,7 @@ public class RouteManager {
 
         public CalculateRoute(RouteListener routeListener) {
             this.routeListener = routeListener;
-            this.returnCode = Constants.ID.OK;
+            this.returnCode = Constants.RC.OK;
             this.additionalMessage = "";
             this.connection = null;
             this.cancelConnectionHandler = new Handler();
@@ -98,134 +102,151 @@ public class RouteManager {
         }
 
         @Override protected Integer doInBackground(Void... params) {
-            // check for map port
-            ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
-            if (serverSettings.getSelectedMap() == null) {
-                this.returnCode = Constants.ID.NO_MAP_SELECTED;
-                return -1;
-            }
-
             RouteSettings routeSettings = SettingsManager.getInstance(context).getRouteSettings();
+            ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
             // start and destination
             PointWrapper startPoint = routeSettings.getStartPoint();
             if (startPoint.equals(PositionManager.getDummyLocation(context))) {
-                this.returnCode = 1020;
+                this.returnCode = Constants.RC.NO_ROUTE_START_POINT;
                 return -1;
             }
             PointWrapper destinationPoint = routeSettings.getDestinationPoint();
             if (destinationPoint.equals(PositionManager.getDummyLocation(context))) {
-                this.returnCode = 1021;
+                this.returnCode = Constants.RC.NO_ROUTE_DESTINATION_POINT;
                 return -1;
             }
 
-            String description = null;
-            ArrayList<RouteObject> routeObjectList = new ArrayList<RouteObject>();
+            // internet connection and server instance
+            // check for internet connection
             if (! DownloadUtility.isInternetAvailable(context)) {
-                this.returnCode = 1003;
-            } else {
-                try {
-                    // start and destination
-                    JSONArray jsonSourcePoints = new JSONArray();
-                    jsonSourcePoints.put(startPoint.toJson());
-                    for (PointWrapper viaPoint : routeSettings.getViaPointList()) {
-                        if (! viaPoint.equals(PositionManager.getDummyLocation(context))) {
-                            jsonSourcePoints.put(viaPoint.toJson());
-                        }
+                this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
+                return -1;
+            }
+            // get server instance
+            ServerInstance serverInstance = null;
+            try {
+                serverInstance = ServerStatusManager.getInstance(context)
+                    .getServerInstanceForURL(serverSettings.getServerURL());
+            } catch (ServerCommunicationException e) {
+                this.returnCode = e.getReturnCode();
+                return -1;
+            }
+
+            // check selected map
+            if (serverSettings.getSelectedMap() == null) {
+                this.returnCode = Constants.RC.NO_MAP_SELECTED;
+                return null;
+            }
+
+            String description = null;
+            JSONArray jsonRouteObjectList = null;
+            try {
+                // start and destination
+                JSONArray jsonSourcePoints = new JSONArray();
+                jsonSourcePoints.put(startPoint.toJson());
+                for (PointWrapper viaPoint : routeSettings.getViaPointList()) {
+                    if (! viaPoint.equals(PositionManager.getDummyLocation(context))) {
+                        jsonSourcePoints.put(viaPoint.toJson());
                     }
-                    jsonSourcePoints.put(destinationPoint.toJson());
-                    // excluded ways
-                    JSONArray jsonExcludedWays = new JSONArray();
-                    for (SegmentWrapper segmentWrapper : accessDatabaseInstance.getExcludedWaysList()) {
-                        if (segmentWrapper.getSegment() instanceof Footway) {
-                            jsonExcludedWays.put(
-                                    ((Footway) segmentWrapper.getSegment()).getWayId());
-                        }
+                }
+                jsonSourcePoints.put(destinationPoint.toJson());
+                // excluded ways
+                JSONArray jsonExcludedWays = new JSONArray();
+                for (SegmentWrapper segmentWrapper : accessDatabaseInstance.getExcludedWaysList()) {
+                    if (segmentWrapper.getSegment() instanceof Footway) {
+                        jsonExcludedWays.put(
+                                ((Footway) segmentWrapper.getSegment()).getWayId());
                     }
-                    // allowed way classes
-                    JSONArray jsonAllowedWayClassList = new JSONArray();
-                    for (String wayClass : routeSettings.getWayClassList()) {
-                        jsonAllowedWayClassList.put(wayClass);
-                    }
-                    // create parameter list
-                    JSONObject requestJson = new JSONObject();
-                    requestJson.put("source_points", jsonSourcePoints);
-                    requestJson.put("blocked_ways", jsonExcludedWays);
-                    requestJson.put("allowed_way_classes", jsonAllowedWayClassList);
-                    requestJson.put("indirection_factor", routeSettings.getIndirectionFactor());
-                    requestJson.put("language", Locale.getDefault().getLanguage());
-                    requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
-                    System.out.println("xxx route request: " + requestJson.toString());
-                    // create connection
-                    connection = DownloadUtility.getHttpsURLConnectionObject(
-                            context,
-                            String.format("%1$s/get_route", serverSettings.getSelectedMap().getURL()),
-                            requestJson);
-                    cancelConnectionHandler.postDelayed(cancelConnection, 100);
-                    connection.connect();
-                    int responseCode = connection.getResponseCode();
-                    cancelConnectionHandler.removeCallbacks(cancelConnection);
-                    if (isCancelled()) {
-                        returnCode = 1000;          // cancelled
-                    } else if (responseCode != Constants.ID.OK) {
-                        returnCode = 1010;          // server connection error
+                }
+                // allowed way classes
+                JSONArray jsonAllowedWayClassList = new JSONArray();
+                for (WayClass wayClass : routeSettings.getWayClassList()) {
+                    jsonAllowedWayClassList.put(wayClass.getId());
+                }
+                // create parameter list
+                JSONObject requestJson = new JSONObject();
+                requestJson.put("source_points", jsonSourcePoints);
+                requestJson.put("blocked_ways", jsonExcludedWays);
+                requestJson.put("allowed_way_classes", jsonAllowedWayClassList);
+                requestJson.put("indirection_factor", routeSettings.getIndirectionFactor());
+                requestJson.put("language", Locale.getDefault().getLanguage());
+                requestJson.put("logging_allowed", serverSettings.getLogQueriesOnServer());
+                requestJson.put("map_id", serverSettings.getSelectedMap().getId());
+                requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
+                System.out.println("xxx route request: " + requestJson.toString());
+                // create connection
+                connection = DownloadUtility.getHttpsURLConnectionObject(
+                        context,
+                        DownloadUtility.generateServerCommand(
+                            serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_ROUTE),
+                        requestJson);
+                cancelConnectionHandler.postDelayed(cancelConnection, 100);
+                connection.connect();
+                int responseCode = connection.getResponseCode();
+                cancelConnectionHandler.removeCallbacks(cancelConnection);
+                if (isCancelled()) {
+                    this.returnCode = Constants.RC.CANCELLED;
+                } else if (responseCode != Constants.RC.OK) {
+                    this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
+                } else {
+                    JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
+                    if (jsonServerResponse.has("error")
+                            && ! jsonServerResponse.getString("error").equals("")) {
+                        this.additionalMessage = jsonServerResponse.getString("error");
+                        this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA;
                     } else {
-                        JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
-                        if (jsonServerResponse.has("error")
-                                && ! jsonServerResponse.getString("error").equals("")) {
-                            this.additionalMessage = jsonServerResponse.getString("error");
-                            returnCode = 1012;          // error from server
-                        } else {
-                            // get poi list
-                            description= jsonServerResponse.getString("description");
-                            JSONArray jsonRouteObjectList = jsonServerResponse.getJSONArray("route");
-                            for (int i=0; i<jsonRouteObjectList.length(); i+=2) {
-                                if (i == 0) {
-                                    // start object
-                                    routeObjectList.add(
-                                            new RouteObject(
-                                                context,
-                                                0,
-                                                new JSONObject(Constants.DUMMY.FOOTWAY),
-                                                jsonRouteObjectList.getJSONObject(i))
-                                            );
-                                } else {
-                                    // all other route objects
-                                    routeObjectList.add(
-                                            new RouteObject(
-                                                context,
-                                                i/2,
-                                                jsonRouteObjectList.getJSONObject(i-1),
-                                                jsonRouteObjectList.getJSONObject(i))
-                                            );
-                                }
-                            }
-                        }
+                        // get route list
+                        description= jsonServerResponse.getString("description");
+                        jsonRouteObjectList = jsonServerResponse.getJSONArray("route");
                     }
-                } catch (IOException e) {
-                    returnCode = 1010;          // server connection error
-                } catch (JSONException e) {
-                    returnCode = 1011;          // server response error
-                } finally {
-                    if (isCancelled()) {
-                        returnCode = 1000;          // cancelled
-                    }
-                    if (connection != null) {
-                        connection.disconnect();
-                    }
+                }
+            } catch (IOException e) {
+                this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
+            } catch (JSONException e) {
+                this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                if (this.returnCode != Constants.RC.OK) {
+                    return -1;
                 }
             }
 
-            if (returnCode == Constants.ID.OK
-                    && ! routeObjectList.isEmpty()) {
-                AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
-                try {
-                    return accessDatabaseInstance.addRoute(
+            int routeId = -1;
+            ArrayList<RouteObject> routeObjectList = new ArrayList<RouteObject>();
+            try {
+                // parse route
+                for (int i=0; i<jsonRouteObjectList.length(); i+=2) {
+                    if (i == 0) {
+                        // start object
+                        routeObjectList.add(
+                                new RouteObject(
+                                    context,
+                                    0,
+                                    new JSONObject(Constants.DUMMY.FOOTWAY),
+                                    jsonRouteObjectList.getJSONObject(i))
+                                );
+                    } else {
+                        // all other route objects
+                        routeObjectList.add(
+                                new RouteObject(
+                                    context,
+                                    i/2,
+                                    jsonRouteObjectList.getJSONObject(i-1),
+                                    jsonRouteObjectList.getJSONObject(i))
+                                );
+                    }
+                }
+                // add to database
+                routeId = AccessDatabase.getInstance(context).addRoute(
                             startPoint, destinationPoint,
                             SettingsManager.getInstance(context).getRouteSettings().getViaPointList(),
                             description, routeObjectList);
-                } catch (JSONException e) {}
+            } catch (JSONException e) {
+                this.returnCode = Constants.RC.ROUTE_PARSING_ERROR;
             }
-            return -1;
+            return routeId;
         }
 
         @Override protected void onPostExecute(Integer routeId) {
@@ -242,8 +263,8 @@ public class RouteManager {
             System.out.println("xxx add route: cancelled");
             if (this.routeListener != null) {
                 this.routeListener.routeCalculationFinished(
-                        Constants.ID.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.ID.CANCELLED, ""),
+                        Constants.RC.CANCELLED,
+                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
                         routeId);
             }
         }
@@ -261,6 +282,8 @@ public class RouteManager {
                             connection.disconnect();
                         } catch (Exception e) {}
                     }
+                    // send cancel request
+                    ServerStatusManager.getInstance(context).cancelRunningRequestOnServer();
                     return;
                 }
                 cancelConnectionHandler.postDelayed(this, 100);
@@ -353,7 +376,7 @@ public class RouteManager {
         public RequestRoute(RouteListener routeListener, int routeId) {
             this.routeListener = routeListener;
             this.routeIdToRequest = routeId;
-            this.returnCode = Constants.ID.OK;
+            this.returnCode = Constants.RC.OK;
         }
 
         @Override protected Route doInBackground(Void... params) {
@@ -361,7 +384,7 @@ public class RouteManager {
             try {
                 route = AccessDatabase.getInstance(context).getRoute(this.routeIdToRequest);
             } catch (JSONException e) {
-                this.returnCode = 1023;
+                this.returnCode = Constants.RC.ROUTE_PARSING_ERROR;
             }
             return route;
         }
@@ -379,8 +402,8 @@ public class RouteManager {
         @Override protected void onCancelled(Route route) {
             if (this.routeListener != null) {
                 this.routeListener.routeRequestFinished(
-                        Constants.ID.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.ID.CANCELLED, ""),
+                        Constants.RC.CANCELLED,
+                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
                         route);
             }
         }

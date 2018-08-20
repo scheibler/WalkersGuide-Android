@@ -12,9 +12,14 @@ import android.text.format.DateFormat;
 import android.view.Menu;
 import android.widget.TextView;
 import org.walkersguide.android.BuildConfig;
+import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.data.server.OSMMap;
+import org.walkersguide.android.data.server.ServerInstance;
 
 
 public class InfoActivity extends AbstractActivity {
+
+    private TextView labelServerName, labelServerVersion, labelSelectedMapName, labelSelectedMapCreated;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -36,6 +41,7 @@ public class InfoActivity extends AbstractActivity {
                     getResources().getString(R.string.labelInfoProgramVersion),
                     BuildConfig.VERSION_NAME)
                 );
+
         TextView labelInfoEMail = (TextView) findViewById(R.id.labelInfoEMail);
         labelInfoEMail.setText(
                 String.format(
@@ -52,34 +58,59 @@ public class InfoActivity extends AbstractActivity {
                     BuildConfig.CONTACT_WEBSITE)
                 );
 
-        if (serverSettings.getSelectedMap() != null) {
-    		TextView labelSelectedMapName = (TextView) findViewById(R.id.labelSelectedMapName);
+        labelServerName = (TextView) findViewById(R.id.labelServerName);
+        labelServerVersion = (TextView) findViewById(R.id.labelServerVersion);
+        labelSelectedMapName = (TextView) findViewById(R.id.labelSelectedMapName);
+        labelSelectedMapCreated= (TextView) findViewById(R.id.labelSelectedMapCreated);
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+
+        ServerInstance serverInstance = ServerStatusManager.getInstance(this).getServerInstance();
+        if (serverInstance != null) {
+	    	labelServerName.setText(
+                    String.format(
+                        "%1$s: %2$s",
+    			    	getResources().getString(R.string.labelServerName),
+                        serverInstance.getServerName())
+                    );
+	    	labelServerVersion.setText(
+                    String.format(
+                        "%1$s: %2$s",
+    			    	getResources().getString(R.string.labelServerVersion),
+                        serverInstance.getServerVersion())
+                    );
+        } else {
+	    	labelServerName.setText(
+    			    getResources().getString(R.string.labelServerName));
+	    	labelServerVersion.setText(
+    			    getResources().getString(R.string.labelServerVersion));
+        }
+
+        OSMMap selectedMap = settingsManagerInstance.getServerSettings().getSelectedMap();
+        if (selectedMap != null) {
+            // map name
 	    	labelSelectedMapName.setText(
                     String.format(
                         "%1$s: %2$s",
     			    	getResources().getString(R.string.labelSelectedMapName),
-	    			    serverSettings.getSelectedMap().getName())
+	    			    selectedMap.getName())
                     );
-            if (serverSettings.getSelectedMap().getVersion() > 0) {
-        		TextView labelSelectedMapVersion = (TextView) findViewById(R.id.labelSelectedMapVersion);
-	        	labelSelectedMapVersion.setText(
-                        String.format(
-                            "%1$s: %2$d",
-    			        	getResources().getString(R.string.labelSelectedMapVersion),
-    	    			    serverSettings.getSelectedMap().getVersion())
-                        );
-            }
-            if (serverSettings.getSelectedMap().getCreated() > 0l) {
-                String formattedDate = DateFormat.getDateFormat(this).format(
-                        new Date(serverSettings.getSelectedMap().getCreated()));
-    	    	TextView labelSelectedMapCreated = (TextView) findViewById(R.id.labelSelectedMapCreated);
-	    	    labelSelectedMapCreated.setText(
-                        String.format(
-                            "%1$s: %2$s",
-    			    	    getResources().getString(R.string.labelSelectedMapCreated),
-    	    			    formattedDate)
-                        );
-            }
+            // map creation date
+            String formattedDate = DateFormat.getDateFormat(this).format(
+                    new Date(selectedMap.getCreated()));
+	    	labelSelectedMapCreated.setText(
+                    String.format(
+                        "%1$s: %2$s",
+    				    getResources().getString(R.string.labelSelectedMapCreated),
+    	    		    formattedDate)
+                    );
+        } else {
+	    	labelSelectedMapName.setText(
+    			    getResources().getString(R.string.labelSelectedMapName));
+	    	labelSelectedMapCreated.setText(
+    			    getResources().getString(R.string.labelSelectedMapCreated));
         }
     }
 
