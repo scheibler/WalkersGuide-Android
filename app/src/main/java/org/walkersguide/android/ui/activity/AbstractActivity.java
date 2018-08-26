@@ -42,6 +42,9 @@ import android.view.MenuItem;
 import org.walkersguide.android.ui.dialog.SearchInPOIDialog;
 import org.walkersguide.android.ui.dialog.SearchInFavoritesDialog;
 import java.util.TreeSet;
+import org.walkersguide.android.data.route.RouteObject;
+import android.widget.Toast;
+import org.json.JSONException;
 
 
 public abstract class AbstractActivity extends AppCompatActivity implements ServerStatusListener {
@@ -76,6 +79,26 @@ public abstract class AbstractActivity extends AppCompatActivity implements Serv
 
     @Override public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
+
+        // update next route point
+        RouteObject currentRouteObject = accessDatabaseInstance.getCurrentObjectDataOfRoute(
+                settingsManagerInstance.getRouteSettings().getSelectedRouteId());
+        if (currentRouteObject != null) {
+            int distanceFromCurrentLocation = currentRouteObject.getRoutePoint().distanceFromCurrentLocation();
+            menu.findItem(R.id.menuItemNextRoutePoint).setTitle(
+                    String.format(
+                        "%1$s: %2$s, %3$s (%4$s)",
+                        getResources().getString(R.string.menuItemNextRoutePoint),
+                        getResources().getQuantityString(
+                            R.plurals.meter, distanceFromCurrentLocation, distanceFromCurrentLocation),
+                        StringUtility.formatInstructionDirection(
+                            AbstractActivity.this, currentRouteObject.getRoutePoint().bearingFromCurrentLocation()),
+                        currentRouteObject.getRoutePoint().getPoint().getName())
+                    );
+        } else {
+            menu.findItem(R.id.menuItemNextRoutePoint).setTitle(
+                    getResources().getString(R.string.labelEmptyRouteObjectListView));
+        }
 
         // update direction menu item
         int currentDirection = directionManagerInstance.getCurrentDirection();
@@ -190,6 +213,27 @@ public abstract class AbstractActivity extends AppCompatActivity implements Serv
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menuItemNextRoutePoint:
+                RouteObject currentRouteObject = accessDatabaseInstance.getCurrentObjectDataOfRoute(
+                        settingsManagerInstance.getRouteSettings().getSelectedRouteId());
+                if (currentRouteObject != null) {
+                    Intent pointDetailsIntent = new Intent(AbstractActivity.this, PointDetailsActivity.class);
+                    try {
+                        pointDetailsIntent.putExtra(
+                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
+                                currentRouteObject.getRoutePoint().toJson().toString());
+                    } catch (JSONException e) {
+                        pointDetailsIntent.putExtra(
+                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
+                    }
+                    startActivity(pointDetailsIntent);
+                } else {
+                    Toast.makeText(
+                            AbstractActivity.this,
+                            getResources().getString(R.string.labelEmptyRouteObjectListView),
+                            Toast.LENGTH_LONG).show();
+                }
+                break;
             case R.id.menuItemDirection:
                 SelectDirectionSourceDialog.newInstance().show(
                         getSupportFragmentManager(), "SelectDirectionSourceDialog");

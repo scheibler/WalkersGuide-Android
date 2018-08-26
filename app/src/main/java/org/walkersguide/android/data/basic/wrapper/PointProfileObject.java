@@ -54,13 +54,16 @@ public class PointProfileObject extends PointWrapper {
     }
 
     @Override public String toString() {
-        if (distanceFromCenter() > -1 && bearingFromCenter() > -1) {
+        int distanceFromCenter = distanceFromCenter();
+        int bearingFromCenter = bearingFromCenter();
+        if (distanceFromCenter > -1 && bearingFromCenter > -1) {
             return String.format(
                     super.getContext().getResources().getString(R.string.pointListObjectDescription),
                     super.pointToString(),
-                    distanceFromCenter(),
+                    super.getContext().getResources().getQuantityString(
+                        R.plurals.meter, distanceFromCenter, distanceFromCenter),
                     StringUtility.formatInstructionDirection(
-                        super.getContext(), bearingFromCenter())
+                        super.getContext(), bearingFromCenter)
                     );
         }
         return super.toString();

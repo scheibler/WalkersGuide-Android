@@ -6,6 +6,7 @@
     -->
 
     <!-- abstract activity menu -->
+    <string name="menuItemNextRoutePoint">Next RP</string>
     <string name="menuItemDirection">Direction</string>
     <string name="menuItemLocation">Location</string>
     <string name="menuItemPlanRoute">Plan route</string>
@@ -511,7 +512,7 @@
     <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
 
     <!-- PointWrapper Object -->
-    <string name="pointListObjectDescription">%1$s\nIn %2$d meters, %3$s</string>
+    <string name="pointListObjectDescription">%1$s\nIn %2$s, %3$s</string>
 
 
     <!--

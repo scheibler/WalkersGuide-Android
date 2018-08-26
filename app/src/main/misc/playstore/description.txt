@@ -1,0 +1,12 @@
+The Android client for the WalkersGuide project
+
+--------------------
+
+WalkersGuide is a navigation aid based on OpenStreetMap data. It's designed especially but not
+exclusively for visual impaired people. 
+
+Main features:
+- Calculate routes which are optimized for visually impaired walkers
+- Show nearby POI
+- Remember self-created points and group them into favorites profiles
+

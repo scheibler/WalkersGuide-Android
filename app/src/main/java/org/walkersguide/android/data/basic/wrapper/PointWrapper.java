@@ -132,13 +132,16 @@ public class PointWrapper {
     }
 
     @Override public String toString() {
-        if (distanceFromCurrentLocation() > -1 && bearingFromCurrentLocation() > -1) {
+        int distanceFromCurrentLocation = distanceFromCurrentLocation();
+        int bearingFromCurrentLocation = bearingFromCurrentLocation();
+        if (distanceFromCurrentLocation > -1 && bearingFromCurrentLocation > -1) {
             return String.format(
                     context.getResources().getString(R.string.pointListObjectDescription),
                     this.pointToString(),
-                    distanceFromCurrentLocation(),
+                    context.getResources().getQuantityString(
+                        R.plurals.meter, distanceFromCurrentLocation, distanceFromCurrentLocation),
                     StringUtility.formatInstructionDirection(
-                        context, bearingFromCurrentLocation())
+                        context, bearingFromCurrentLocation)
                     );
         }
         return pointToString();

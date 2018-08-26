@@ -41,3 +41,5 @@ proguard/
 /out/
 /captures
 
+# lint
+lint-baseline.xml

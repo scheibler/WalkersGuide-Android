@@ -3,6 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/menuItemNextRoutePoint"
+        android:icon="@drawable/compass"
+        android:title="@string/menuItemNextRoutePoint"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/menuItemDirection"
         android:icon="@drawable/compass"
         android:title="@string/menuItemDirection"

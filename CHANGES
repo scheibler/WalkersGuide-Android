@@ -2,6 +2,25 @@ Change Log
 ==========
 
 
+v0.3.1: 2018-08-26
+------------------
+
+- Toolbar: Distance and bearing towards next route point added (matching icon is still missing)
+
+
+
+v0.3.0: 2018-08-21
+------------------
+
+- Compatibility to WalkersGuide-Server v1.0.0
+- Enter coordinates action
+- Show next intersections for selected intersection and way segment
+- Favorites and poi search
+- New address resolver: OpenStreetMap
+- StreetAddress: Support for address components
+
+
+
 v0.2.0: 2018-07-18
 ------------------
 
