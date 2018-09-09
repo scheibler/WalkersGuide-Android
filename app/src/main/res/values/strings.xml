@@ -340,8 +340,7 @@
     <string name="labelGeneralSegmentDetails">General:</string>
     <string name="labelSegmentName">Name: %1$s</string>
     <string name="labelSegmentType">Type: %1$s</string>
-    <string name="labelSegmentAbsoluteBearing">Bearing: %1$d degree (%2$s)</string>
-    <string name="labelSegmentRelativeBearing">Relative: %1$s</string>
+    <string name="labelSegmentDirection">Direction: %1$s</string>
     <string name="buttonSegmentExcludeFromRouting">Exclude</string>
     <string name="buttonSegmentSimulateDirection">Simulate</string>
     <string name="labelAttributesSegmentDetails">Attributes:</string>
@@ -352,13 +351,14 @@
     <!-- SegmentDetailsFragment -->
     <string name="fragmentSegmentDetailsName">Details</string>
     <!-- intersection segment -->
-    <string name="labelSegmentIntersectionAttributesHeading">Intersection</string>
+    <string name="labelSegmentIntersectionAttributesHeading">Part of intersection</string>
     <string name="labelSegmentIntersectionName">Name:</string>
     <!-- route segment -->
     <string name="labelSegmentRouteAttributesHeading">Route</string>
     <string name="labelSegmentRouteDistance">Distance:</string>
     <!-- footway segment -->
     <string name="labelSegmentFootwayAttributesHeading">Attributes</string>
+    <string name="labelSegmentBearing">Bearing: %1$d°, %2$s</string>
     <string name="labelSegmentFootwaySurface">Surface:</string>
     <string name="labelSegmentFootwayNumberOfLanes">Number of Lanes:</string>
     <string name="labelSegmentFootwaySegregated">Cycleway segregated:</string>
@@ -370,7 +370,9 @@
     <string name="labelSegmentUserDescription">Description:</string>
 
     <!-- NextIntersectionsFragment -->
-    <string name="fragmentNextIntersectionsName">Intersections</string>
+    <string name="fragmentNextIntersectionsName">Next points</string>
+    <string name="labelNextIntersectionsSuccess">%1$d points found\nTotal length: %2$s</string>
+    <string name="buttonShowAllPoints">All points</string>
 
     <!-- settings activity -->
     <string name="settingsActivityTitle">Settings</string>

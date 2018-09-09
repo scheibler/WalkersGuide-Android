@@ -59,7 +59,7 @@ public class SegmentDetailsActivity extends AbstractActivity {
 	private ViewPager mViewPager;
     private TabLayout tabLayout;
     private int recentFragment;
-    private TextView labelSegmentAbsoluteBearing, labelSegmentRelativeBearing;
+    private TextView labelSegmentDirection;
 
     // footway and transport segments
 	private SegmentPagerAdapter segmentPagerAdapter;
@@ -125,9 +125,8 @@ public class SegmentDetailsActivity extends AbstractActivity {
             // load or hide bearing labels and switches
             if (segmentWrapper.getSegment() instanceof Footway) {
                 layoutFootwaySpecific.setVisibility(View.VISIBLE);
-                // bearing labels
-        		labelSegmentAbsoluteBearing = (TextView) findViewById(R.id.labelSegmentAbsoluteBearing);
-        		labelSegmentRelativeBearing = (TextView) findViewById(R.id.labelSegmentRelativeBearing);
+                // direction label
+        		labelSegmentDirection = (TextView) findViewById(R.id.labelSegmentDirection);
 
                 // exclude from routing
         		Switch buttonSegmentExcludeFromRouting = (Switch) findViewById(R.id.buttonSegmentExcludeFromRouting);
@@ -241,27 +240,16 @@ public class SegmentDetailsActivity extends AbstractActivity {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
                     && (
-                           labelSegmentAbsoluteBearing.getText().toString().trim().equals("")
-                        || labelSegmentRelativeBearing.getText().toString().trim().equals("")
+                           labelSegmentDirection.getText().toString().trim().equals("")
                         || intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD1.ID)
                     ) {
-                // update bearing labels
-                // absolute bearing
-                int absoluteBearing = ((Footway) segmentWrapper.getSegment()).getBearing();
-                labelSegmentAbsoluteBearing.setText(
+                // update direction label
+                int direction = ((Footway) segmentWrapper.getSegment()).bearingFromCurrentDirection();
+                labelSegmentDirection.setText(
                         String.format(
-                            getResources().getString(R.string.labelSegmentAbsoluteBearing),
-                            absoluteBearing,
-                            StringUtility.formatGeographicDirection(
-                                context, absoluteBearing))
-                        );
-                // relative bearing
-                int relativeBearing = ((Footway) segmentWrapper.getSegment()).bearingFromCurrentDirection();
-                labelSegmentRelativeBearing.setText(
-                        String.format(
-                            getResources().getString(R.string.labelSegmentRelativeBearing),
+                            getResources().getString(R.string.labelSegmentDirection),
                             StringUtility.formatInstructionDirection(
-                                context, relativeBearing))
+                                context, direction))
                         );
             }
         }

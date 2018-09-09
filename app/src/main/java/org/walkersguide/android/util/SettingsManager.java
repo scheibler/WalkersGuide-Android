@@ -41,6 +41,7 @@ public class SettingsManager {
     private ServerSettings serverSettings;
     private SearchTermHistory searchTermHistory;
     private FavoritesSearchSettings favoritesSearchSettings;
+    private PointAndSegmentDetailsSettings pointAndSegmentDetailsSettings;
 
 	public static SettingsManager getInstance(Context context) {
 		if (settingsManagerInstance == null) {
@@ -172,6 +173,19 @@ public class SettingsManager {
             favoritesSearchSettings = new FavoritesSearchSettings(jsonFavoritesSearchSettings);
         }
 		return favoritesSearchSettings;
+	}
+
+	public PointAndSegmentDetailsSettings getPointAndSegmentDetailsSettings() {
+        if (pointAndSegmentDetailsSettings == null) {
+            JSONObject jsonPointAndSegmentDetailsSettings;
+            try {
+    		    jsonPointAndSegmentDetailsSettings = new JSONObject(settings.getString("pointAndSegmentDetailsSettings", "{}"));
+    		} catch (JSONException e) {
+                jsonPointAndSegmentDetailsSettings = new JSONObject();
+            }
+            pointAndSegmentDetailsSettings = new PointAndSegmentDetailsSettings(jsonPointAndSegmentDetailsSettings);
+        }
+		return pointAndSegmentDetailsSettings;
 	}
 
 
@@ -1179,5 +1193,40 @@ public class SettingsManager {
         }
     }
 
+
+    public class PointAndSegmentDetailsSettings {
+
+        private boolean showAllPoints;
+
+        public PointAndSegmentDetailsSettings(JSONObject jsonObject) {
+            // show all points switch at the next intersections fragment
+            this.showAllPoints = false;
+            try {
+                this.showAllPoints = jsonObject.getBoolean("showAllPoints");
+            } catch (JSONException e) {}
+        }
+
+        public boolean getShowAllPoints() {
+            return this.showAllPoints;
+        }
+
+        public void setShowAllPoints(boolean newShowAllPoints) {
+            this.showAllPoints = newShowAllPoints;
+            storePointAndSegmentDetailsSettings();
+        }
+
+        public void storePointAndSegmentDetailsSettings() {
+            JSONObject jsonPointAndSegmentDetailsSettings = new JSONObject();
+            try {
+                jsonPointAndSegmentDetailsSettings.put("showAllPoints", this.showAllPoints);
+            } catch (JSONException e) {}
+            // save settings
+            Editor editor = settings.edit();
+            editor.putString("pointAndSegmentDetailsSettings", jsonPointAndSegmentDetailsSettings.toString());
+            editor.apply();
+            // null PointAndSegmentDetailsSettings object to force reload on next getPointAndSegmentDetailsSettings()
+            pointAndSegmentDetailsSettings = null;
+        }
+    }
 
 }

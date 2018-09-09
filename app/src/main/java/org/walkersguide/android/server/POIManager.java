@@ -496,14 +496,13 @@ public class POIManager {
                 return null;
             }
 
-            ArrayList<PointProfileObject> nextIntersectionsPointList = null;
             if (lastNextIntersectionsProfile != null
                     && lastNextIntersectionsProfile.getNodeId() == this.nodeId
                     && lastNextIntersectionsProfile.getWayId() == this.wayId
                     && lastNextIntersectionsProfile.getNextNodeId() == this.nextNodeId) {
-                System.out.println("xxx next intersections from cache");
                 // load data from cache
-                nextIntersectionsPointList = lastNextIntersectionsProfile.getPointProfileObjectList();
+                nextIntersectionsProfile.setPointProfileObjectList(
+                        lastNextIntersectionsProfile.getPointProfileObjectList());
 
             } else {
                 // request next intersections from server
@@ -583,7 +582,7 @@ public class POIManager {
                 }
 
                 // load point list
-                nextIntersectionsPointList = new ArrayList<PointProfileObject>();
+                ArrayList<PointProfileObject> nextIntersectionsPointList = new ArrayList<PointProfileObject>();
                 for (int i=0; i<jsonPointList.length(); i++) {
                     try {
                         nextIntersectionsPointList.add(
@@ -597,12 +596,14 @@ public class POIManager {
 
             // update location and direction
             nextIntersectionsProfile.setCenterAndDirection(currentLocation, currentDirection);
-            lastNextIntersectionsProfile = nextIntersectionsProfile;
             return nextIntersectionsProfile;
         }
 
         @Override protected void onPostExecute(NextIntersectionsProfile nextIntersectionsProfile) {
             System.out.println("xxx next intersections: " + this.returnCode + "     resetListPosition: " + resetListPosition);
+            if (this.returnCode == Constants.RC.OK) {
+                lastNextIntersectionsProfile = nextIntersectionsProfile;
+            }
             for (NextIntersectionsListener nextIntersectionsListener : this.nextIntersectionsListenerList) {
                 nextIntersectionsListener.nextIntersectionsRequestFinished(
                         this.returnCode,

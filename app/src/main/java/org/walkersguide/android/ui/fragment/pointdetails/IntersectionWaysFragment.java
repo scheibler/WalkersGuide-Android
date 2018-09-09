@@ -108,6 +108,17 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
         listViewIntersectionWays.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 final IntersectionSegment intersectionSegment = (IntersectionSegment) parent.getItemAtPosition(position);
+                Intent segmentDetailsIntent = new Intent(getActivity(), SegmentDetailsActivity.class);
+                try {
+                    segmentDetailsIntent.putExtra(
+                            Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED,
+                            intersectionSegment.toJson().toString());
+                } catch (JSONException e) {
+                    segmentDetailsIntent.putExtra(
+                            Constants.SEGMENT_DETAILS_ACTIVITY_EXTRA.JSON_SEGMENT_SERIALIZED, "");
+                }
+                getActivity().startActivity(segmentDetailsIntent);
+                /*
                 // show options popup menu
                 PopupMenu popupMore = new PopupMenu(getActivity(), view);
                 popupMore.inflate(R.menu.menu_intersection_ways_fragment_list_view);
@@ -134,7 +145,7 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
                                 }
                                 // show next intersections dialog
                                 LoadNextIntersectionsDialog.newInstance(
-                                        intersection.getNodeId(),
+                                        intersectionSegment.getIntersectionNodeId(),
                                         intersectionSegment.getWayId(),
                                         intersectionSegment.getNextNodeId(),
                                         jumpToNextBigIntersection)
@@ -146,6 +157,7 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
                     }
                 });
                 popupMore.show();
+                */
             }
         });
     }
@@ -178,6 +190,7 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
     };
 
 
+    /*
     public static class LoadNextIntersectionsDialog extends DialogFragment implements NextIntersectionsListener {
 
         // Store instance variables
@@ -427,5 +440,6 @@ public class IntersectionWaysFragment extends Fragment implements FragmentCommun
             }
         }
     }
+    */
 
 }

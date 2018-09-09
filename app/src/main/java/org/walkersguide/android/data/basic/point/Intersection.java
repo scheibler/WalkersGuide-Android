@@ -25,8 +25,14 @@ public class Intersection extends Point {
         this.segmentList = new ArrayList<IntersectionSegment>();
         JSONArray jsonIntersectionSegmentList = inputData.getJSONArray("way_list");
         for (int j=0; j<jsonIntersectionSegmentList.length(); j++) {
+            JSONObject jsonIntersectionSegment = jsonIntersectionSegmentList.getJSONObject(j);
+            // include intersection node id
+            try {
+                jsonIntersectionSegment.put("intersectionNodeId", super.getNodeId());
+            } catch (JSONException e) {}
+            // add to list
             this.segmentList.add(
-                    new IntersectionSegment(context, jsonIntersectionSegmentList.getJSONObject(j)));
+                    new IntersectionSegment(context, jsonIntersectionSegment));
         }
 
         // pedestrian crossing list

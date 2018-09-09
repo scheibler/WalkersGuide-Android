@@ -123,127 +123,130 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
                     }
                 }
 
-                // footway attributes
-                if (! TextUtils.isEmpty(footway.getSurface())
-                        || footway.getLanes() != -1
-                        || footway.getSegregated() != -1
-                        || footway.getSidewalk() != -1
-                        || footway.getTram() != -1
-                        || footway.getWidth() != -1.0) {
-                    // heading
-                   	addTextView(
-                            TEXTVIEW_NO_ID,
-                			getResources().getString(R.string.labelSegmentFootwayAttributesHeading),
-                            true, TEXTVIEW_NO_AUTO_LINK);
+                // footway specific attributes
+                // heading
+                addTextView(
+                        TEXTVIEW_NO_ID,
+                        getResources().getString(R.string.labelSegmentFootwayAttributesHeading),
+                        true, TEXTVIEW_NO_AUTO_LINK);
 
-                    // sidewalk
-                    if (footway.getSidewalk() != -1) {
-                        String sidewalkValue = null;
-                        switch (footway.getSidewalk()) {
-                            case Footway.SIDEWALK.NO:
-                                sidewalkValue = getResources().getString(R.string.sidewalkNo);
-                                break;
-                            case Footway.SIDEWALK.LEFT:
-                                sidewalkValue = getResources().getString(R.string.sidewalkLeft);
-                                break;
-                            case Footway.SIDEWALK.RIGHT:
-                                sidewalkValue = getResources().getString(R.string.sidewalkRight);
-                                break;
-                            case Footway.SIDEWALK.BOTH:
-                                sidewalkValue = getResources().getString(R.string.sidewalkBoth);
-                                break;
-                            default:
-                                sidewalkValue = null;
-                        }
-                        if (sidewalkValue != null) {
-                            addTextView(
-                                    TEXTVIEW_NO_ID,
-                                    String.format(
-                                        "%1$s: %2$s",
-                                        getResources().getString(R.string.labelSegmentFootwaySidewalk),
-                                        sidewalkValue),
-                                    false, TEXTVIEW_NO_AUTO_LINK);
-                        }
+                // bearing
+                addTextView(
+                        TEXTVIEW_NO_ID,
+                        String.format(
+                            getResources().getString(R.string.labelSegmentBearing),
+                            footway.getBearing(),
+                            StringUtility.formatGeographicDirection(
+                                getActivity(), footway.getBearing())),
+                        false, TEXTVIEW_NO_AUTO_LINK);
+
+                // sidewalk
+                if (footway.getSidewalk() != -1) {
+                    String sidewalkValue = null;
+                    switch (footway.getSidewalk()) {
+                        case Footway.SIDEWALK.NO:
+                            sidewalkValue = getResources().getString(R.string.sidewalkNo);
+                            break;
+                        case Footway.SIDEWALK.LEFT:
+                            sidewalkValue = getResources().getString(R.string.sidewalkLeft);
+                            break;
+                        case Footway.SIDEWALK.RIGHT:
+                            sidewalkValue = getResources().getString(R.string.sidewalkRight);
+                            break;
+                        case Footway.SIDEWALK.BOTH:
+                            sidewalkValue = getResources().getString(R.string.sidewalkBoth);
+                            break;
+                        default:
+                            sidewalkValue = null;
                     }
-
-                    // surface, width and number of lanes
-                    // surface
-                    if (! TextUtils.isEmpty(footway.getSurface())) {
-                       	addTextView(
+                    if (sidewalkValue != null) {
+                        addTextView(
                                 TEXTVIEW_NO_ID,
                                 String.format(
                                     "%1$s: %2$s",
-            	    		        getResources().getString(R.string.labelSegmentFootwaySurface),
-                                    footway.getSurface()),
+                                    getResources().getString(R.string.labelSegmentFootwaySidewalk),
+                                    sidewalkValue),
                                 false, TEXTVIEW_NO_AUTO_LINK);
                     }
-                    // width
-                    if (footway.getWidth() != -1.0) {
-                       	addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$.1f",
-            	    		        getResources().getString(R.string.labelSegmentFootwayWidth),
-                                    footway.getWidth()),
-                                false, TEXTVIEW_NO_AUTO_LINK);
-                    }
-                    // number of lanes
-                    if (footway.getLanes() != -1) {
-                       	addTextView(
-                                TEXTVIEW_NO_ID,
-                                String.format(
-                                    "%1$s: %2$d",
-            	    		        getResources().getString(R.string.labelSegmentFootwayNumberOfLanes),
-                                    footway.getLanes()),
-                                false, TEXTVIEW_NO_AUTO_LINK);
-                    }
+                }
 
-                    // segregated and tram
-                    // cycleway segregated
-                    if (footway.getSegregated() != -1) {
-                        String segregatedValue = null;
-                        switch (footway.getSegregated()) {
-                            case Footway.SEGREGATED.NO:
-                                segregatedValue = getResources().getString(R.string.dialogNo);
-                                break;
-                            case Footway.SEGREGATED.YES:
-                                segregatedValue = getResources().getString(R.string.dialogYes);
-                                break;
-                            default:
-                                segregatedValue = null;
-                        }
-                        if (segregatedValue != null) {
-                            addTextView(
-                                    TEXTVIEW_NO_ID,
-                                    String.format(
-                                        "%1$s: %2$s",
-                                        getResources().getString(R.string.labelSegmentFootwaySegregated),
-                                        segregatedValue),
-                                    false, TEXTVIEW_NO_AUTO_LINK);
-                        }
+                // surface, width and number of lanes
+                // surface
+                if (! TextUtils.isEmpty(footway.getSurface())) {
+                    addTextView(
+                            TEXTVIEW_NO_ID,
+                            String.format(
+                                "%1$s: %2$s",
+                                getResources().getString(R.string.labelSegmentFootwaySurface),
+                                footway.getSurface()),
+                            false, TEXTVIEW_NO_AUTO_LINK);
+                }
+                // width
+                if (footway.getWidth() != -1.0) {
+                    addTextView(
+                            TEXTVIEW_NO_ID,
+                            String.format(
+                                "%1$s: %2$.1f",
+                                getResources().getString(R.string.labelSegmentFootwayWidth),
+                                footway.getWidth()),
+                            false, TEXTVIEW_NO_AUTO_LINK);
+                }
+                // number of lanes
+                if (footway.getLanes() != -1) {
+                    addTextView(
+                            TEXTVIEW_NO_ID,
+                            String.format(
+                                "%1$s: %2$d",
+                                getResources().getString(R.string.labelSegmentFootwayNumberOfLanes),
+                                footway.getLanes()),
+                            false, TEXTVIEW_NO_AUTO_LINK);
+                }
+
+                // segregated and tram
+                // cycleway segregated
+                if (footway.getSegregated() != -1) {
+                    String segregatedValue = null;
+                    switch (footway.getSegregated()) {
+                        case Footway.SEGREGATED.NO:
+                            segregatedValue = getResources().getString(R.string.dialogNo);
+                            break;
+                        case Footway.SEGREGATED.YES:
+                            segregatedValue = getResources().getString(R.string.dialogYes);
+                            break;
+                        default:
+                            segregatedValue = null;
                     }
-                    // tram rails
-                    if (footway.getTram() != -1) {
-                        String tramValue = null;
-                        switch (footway.getTram()) {
-                            case Footway.TRAM.NO:
-                                tramValue = getResources().getString(R.string.dialogNo);
-                                break;
-                            case Footway.TRAM.YES:
-                                tramValue = getResources().getString(R.string.dialogYes);
-                                break;
-                            default:
-                                tramValue = null;
-                        }
-                        if (tramValue != null) {
-                            addTextView(
-                                    TEXTVIEW_NO_ID,
-                                    String.format(
-                                        "%1$s: %2$s",
-                                        getResources().getString(R.string.labelSegmentFootwayTram),
-                                        tramValue),
-                                    false, TEXTVIEW_NO_AUTO_LINK);
-                        }
+                    if (segregatedValue != null) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelSegmentFootwaySegregated),
+                                    segregatedValue),
+                                false, TEXTVIEW_NO_AUTO_LINK);
+                    }
+                }
+                // tram rails
+                if (footway.getTram() != -1) {
+                    String tramValue = null;
+                    switch (footway.getTram()) {
+                        case Footway.TRAM.NO:
+                            tramValue = getResources().getString(R.string.dialogNo);
+                            break;
+                        case Footway.TRAM.YES:
+                            tramValue = getResources().getString(R.string.dialogYes);
+                            break;
+                        default:
+                            tramValue = null;
+                    }
+                    if (tramValue != null) {
+                        addTextView(
+                                TEXTVIEW_NO_ID,
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelSegmentFootwayTram),
+                                    tramValue),
+                                false, TEXTVIEW_NO_AUTO_LINK);
                     }
                 }
 

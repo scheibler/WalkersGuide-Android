@@ -37,13 +37,7 @@
             android:orientation="vertical" >
 
             <TextView
-                android:id="@+id/labelSegmentAbsoluteBearing"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/labelSegmentRelativeBearing"
+                android:id="@+id/labelSegmentDirection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="true" />

@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menuItemNextRoutePoint"
-        android:icon="@drawable/compass"
+        android:icon="@drawable/route_position"
         android:title="@string/menuItemNextRoutePoint"
         app:showAsAction="always" />
     <item

@@ -11,11 +11,18 @@ import android.content.Context;
 public class IntersectionSegment extends Footway {
 
     private String intersectionName;
-    private long nextNodeId;
+    private long intersectionNodeId, nextNodeId;
 
     public IntersectionSegment(Context context, JSONObject inputData) throws JSONException {
         super(context, inputData);
         this.intersectionName = inputData.getString("intersection_name");
+        this.intersectionNodeId = -1;
+        try {
+            long intersectionNodeIdValue = inputData.getLong("intersectionNodeId");
+            if (intersectionNodeIdValue > 0) {
+                this.intersectionNodeId = intersectionNodeIdValue;
+            }
+        } catch (JSONException e) {}
         this.nextNodeId = -1;
         try {
             long nextNodeIdValue = inputData.getLong("next_node_id");
@@ -29,6 +36,10 @@ public class IntersectionSegment extends Footway {
         return this.intersectionName;
     }
 
+    public long getIntersectionNodeId() {
+        return this.intersectionNodeId;
+    }
+
     public long getNextNodeId() {
         return this.nextNodeId;
     }
@@ -36,6 +47,11 @@ public class IntersectionSegment extends Footway {
     public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
         jsonObject.put("intersection_name", this.intersectionName);
+        if (this.intersectionNodeId > -1) {
+            try {
+                jsonObject.put("intersectionNodeId", this.intersectionNodeId);
+            } catch (JSONException e) {}
+        }
         if (this.nextNodeId > -1) {
             try {
                 jsonObject.put("next_node_id", this.nextNodeId);
