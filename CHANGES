@@ -2,6 +2,21 @@ Change Log
 ==========
 
 
+v0.4.0: 2018-10-14
+------------------
+
+Favorites and poi profiles merged: Add favorite points directly to a poi profile
+UI reworked:
+- Favorites fragment removed
+- Search moved into poi tab
+- Main menu reorganized
+- New dialog for last visited points
+German localization
+New image resources
+Many smaller bug fixes
+
+
+
 v0.3.2: 2018-09-09
 ------------------
 
