@@ -1,9 +1,10 @@
 package org.walkersguide.android.data.basic.segment;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
 
 public abstract class Segment {
 

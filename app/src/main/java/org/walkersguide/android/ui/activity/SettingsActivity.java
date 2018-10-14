@@ -1,50 +1,55 @@
 package org.walkersguide.android.ui.activity;
 
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.server.ServerInstance;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.ui.dialog.SelectAddressProviderDialog;
-import org.walkersguide.android.ui.dialog.SelectShakeIntensityDialog;
-import org.walkersguide.android.ui.dialog.SelectMapDialog;
-import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-import org.walkersguide.android.util.SettingsImport;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
+
 import android.text.InputType;
+
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
+
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+
+import org.walkersguide.android.BuildConfig;
+import org.walkersguide.android.data.server.AddressProvider;
+import org.walkersguide.android.data.server.PublicTransportProvider;
+import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.listener.ChildDialogCloseListener;
 import org.walkersguide.android.listener.ServerStatusListener;
 import org.walkersguide.android.listener.SettingsImportListener;
-import java.io.File;
+import org.walkersguide.android.R;
+import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.ui.dialog.SelectMapDialog;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsImport;
 import org.walkersguide.android.util.SettingsManager;
-import android.widget.Switch;
-import android.widget.CompoundButton;
-import org.walkersguide.android.BuildConfig;
+import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 
 public class SettingsActivity extends AbstractActivity {
@@ -147,20 +152,13 @@ public class SettingsActivity extends AbstractActivity {
                 }
             }
         });
-
     }
 
     @Override public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.menuItemNextRoutePoint).setVisible(false);
         menu.findItem(R.id.menuItemDirection).setVisible(false);
         menu.findItem(R.id.menuItemLocation).setVisible(false);
-        menu.findItem(R.id.menuItemPlanRoute).setVisible(false);
-        menu.findItem(R.id.menuItemRequestAddress).setVisible(false);
-        menu.findItem(R.id.menuItemSaveCurrentPosition).setVisible(false);
-        menu.findItem(R.id.menuItemSearchInFavorites).setVisible(false);
-        menu.findItem(R.id.menuItemSearchInPOI).setVisible(false);
-        menu.findItem(R.id.menuItemSettings).setVisible(false);
-        menu.findItem(R.id.menuItemInfo).setVisible(false);
         return true;
     }
 
@@ -395,6 +393,223 @@ public class SettingsActivity extends AbstractActivity {
     }
 
 
+    public static class SelectPublicTransportProviderDialog extends DialogFragment {
+
+        // Store instance variables
+        private SettingsManager settingsManagerInstance;
+        private ServerStatusManager serverStatusManagerInstance;
+
+        public static SelectPublicTransportProviderDialog newInstance() {
+            SelectPublicTransportProviderDialog selectPublicTransportProviderDialogInstance = new SelectPublicTransportProviderDialog();
+            return selectPublicTransportProviderDialogInstance;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            settingsManagerInstance = SettingsManager.getInstance(context);
+            serverStatusManagerInstance = ServerStatusManager.getInstance(context);
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
+            String[] formattedPublicTransportProviderNameArray = new String[0];
+            if (serverInstance != null) {
+                formattedPublicTransportProviderNameArray = new String[serverInstance.getSupportedPublicTransportProviderList().size()];
+            }
+            int indexOfSelectedPublicTransportProvider = -1;
+            int index = 0;
+            if (serverInstance != null) {
+                for (PublicTransportProvider provider : serverInstance.getSupportedPublicTransportProviderList()) {
+                    formattedPublicTransportProviderNameArray[index] = provider.toString();
+                    if (provider.equals(settingsManagerInstance.getServerSettings().getSelectedPublicTransportProvider())) {
+                        indexOfSelectedPublicTransportProvider = index;
+                    }
+                    index += 1;
+                }
+            }
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.selectPublicTransportProviderDialogTitle))
+                .setSingleChoiceItems(
+                        formattedPublicTransportProviderNameArray,
+                        indexOfSelectedPublicTransportProvider,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                PublicTransportProvider selectedProvider = null;
+                                try {
+                                    selectedProvider = serverStatusManagerInstance.getServerInstance().getSupportedPublicTransportProviderList().get(which);
+                                } catch (IndexOutOfBoundsException e) {
+                                    selectedProvider = null;
+                                } finally {
+                                    if (selectedProvider != null) {
+                                        settingsManagerInstance.getServerSettings().setSelectedPublicTransportProvider(selectedProvider);
+                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                                    }
+                                }
+                                dismiss();
+                            }
+                        }
+                        )
+                            .setNegativeButton(
+                                    getResources().getString(R.string.dialogCancel),
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dismiss();
+                                        }
+                                    }
+                                    )
+                            .create();
+        }
+    }
+
+
+    public static class SelectAddressProviderDialog extends DialogFragment {
+
+        // Store instance variables
+        private SettingsManager settingsManagerInstance;
+
+        public static SelectAddressProviderDialog newInstance() {
+            SelectAddressProviderDialog selectAddressProviderDialogInstance = new SelectAddressProviderDialog();
+            return selectAddressProviderDialogInstance;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            settingsManagerInstance = SettingsManager.getInstance(context);
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            String[] formattedAddressProviderNameArray = new String[Constants.AddressProviderValueArray.length];
+            int indexOfSelectedAddressProvider = -1;
+            for (int i=0; i<Constants.AddressProviderValueArray.length; i++) {
+                AddressProvider addressProvider = new AddressProvider(getActivity(), Constants.AddressProviderValueArray[i]);
+                formattedAddressProviderNameArray[i] = addressProvider.getName();
+                if (addressProvider.equals(settingsManagerInstance.getServerSettings().getSelectedAddressProvider())) {
+                    indexOfSelectedAddressProvider = i;
+                }
+            }
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.selectAddressProviderDialogTitle))
+                .setSingleChoiceItems(
+                        formattedAddressProviderNameArray,
+                        indexOfSelectedAddressProvider,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                AddressProvider newAddressProvider = null;
+                                try {
+                                    newAddressProvider = new AddressProvider(
+                                            getActivity(), Constants.AddressProviderValueArray[which]);
+                                } catch (IndexOutOfBoundsException e) {
+                                    newAddressProvider = null;
+                                } finally {
+                                    if (newAddressProvider != null) {
+                                        settingsManagerInstance.getServerSettings().setSelectedAddressProvider(newAddressProvider);
+                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                                    }
+                                }
+                                dismiss();
+                            }
+                        }
+            )
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogCancel),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dismiss();
+                            }
+                        }
+                        )
+                .create();
+        }
+    }
+
+
+    public static class SelectShakeIntensityDialog extends DialogFragment {
+
+        // Store instance variables
+        private SettingsManager settingsManagerInstance;
+
+        public static SelectShakeIntensityDialog newInstance() {
+            SelectShakeIntensityDialog selectShakeIntensityDialogInstance = new SelectShakeIntensityDialog();
+            return selectShakeIntensityDialogInstance;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            settingsManagerInstance = SettingsManager.getInstance(context);
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            int indexOfSelectedShakeIntensity = -1;
+            String[] formattedShakeIntensityArray = new String[Constants.ShakeIntensityValueArray.length];
+            for (int i=0; i<Constants.ShakeIntensityValueArray.length; i++) {
+                switch (Constants.ShakeIntensityValueArray[i]) {
+                    case Constants.SHAKE_INTENSITY.DISABLED:
+                        formattedShakeIntensityArray[i] = getResources().getString(R.string.shakeIntensityDisabled);
+                        break;
+                    case Constants.SHAKE_INTENSITY.VERY_WEAK:
+                        formattedShakeIntensityArray[i] = getResources().getString(R.string.shakeIntensityVeryWeak);
+                        break;
+                    case Constants.SHAKE_INTENSITY.WEAK:
+                        formattedShakeIntensityArray[i] = getResources().getString(R.string.shakeIntensityWeak);
+                        break;
+                    case Constants.SHAKE_INTENSITY.MEDIUM:
+                        formattedShakeIntensityArray[i] = getResources().getString(R.string.shakeIntensityMedium);
+                        break;
+                    case Constants.SHAKE_INTENSITY.STRONG:
+                        formattedShakeIntensityArray[i] = getResources().getString(R.string.shakeIntensityStrong);
+                        break;
+                    case Constants.SHAKE_INTENSITY.VERY_STRONG:
+                        formattedShakeIntensityArray[i] = getResources().getString(R.string.shakeIntensityVeryStrong);
+                        break;
+                    default:
+                        formattedShakeIntensityArray[i] = String.valueOf(Constants.ShakeIntensityValueArray[i]);
+                        break;
+                }
+                if (Constants.ShakeIntensityValueArray[i] == settingsManagerInstance.getGeneralSettings().getShakeIntensity()) {
+                    indexOfSelectedShakeIntensity = i;
+                }
+            }
+
+            return  new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.selectShakeIntensityDialogTitle))
+                .setSingleChoiceItems(
+                        formattedShakeIntensityArray,
+                        indexOfSelectedShakeIntensity,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                int selectedShakeIntensity = -1;
+                                try {
+                                    selectedShakeIntensity = Constants.ShakeIntensityValueArray[which];
+                                } catch (ArrayIndexOutOfBoundsException e) {
+                                    selectedShakeIntensity = -1;
+                                } finally {
+                                    if (selectedShakeIntensity > -1) {
+                                        settingsManagerInstance.getGeneralSettings().setShakeIntensity(selectedShakeIntensity);
+                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                                    }
+                                }
+                                dismiss();
+                            }
+                        })
+            .setNegativeButton(
+                    getResources().getString(R.string.dialogCancel),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                        }
+                    })
+            .create();
+        }
+    }
+
+
     public static class ImportSettingsDialog extends DialogFragment implements SettingsImportListener, ChildDialogCloseListener {
         private static final String DATABASE_FILE_TO_IMPORT = "walkersguide.db";
 
@@ -526,7 +741,5 @@ public class SettingsActivity extends AbstractActivity {
             }
         }
     }
-
-
 
 }

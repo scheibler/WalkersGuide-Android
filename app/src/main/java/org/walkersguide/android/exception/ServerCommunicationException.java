@@ -1,9 +1,7 @@
 package org.walkersguide.android.exception;
 
-import java.io.IOException;
-import org.walkersguide.android.R;
-import org.walkersguide.android.util.Constants;
 import android.content.Context;
+
 import org.walkersguide.android.helper.DownloadUtility;
 
 

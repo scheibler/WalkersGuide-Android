@@ -8,18 +8,43 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/radioGPSLocation"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:text="@string/locationSourceGPS" />
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/buttonGPSAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/buttonGPSAddress" />
+
+            <Button
+                android:id="@+id/buttonGPSSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/buttonGPSSave" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelGPSSignal" />
 
             <TextView
                 android:id="@+id/labelGPSProvider"
@@ -41,54 +66,32 @@
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:text="@string/labelGPSTime" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" >
-
-            <Button
-                android:id="@+id/buttonGPSAddress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:text="@string/buttonGPSAddress" />
 
             <Button
                 android:id="@+id/buttonGPSDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
                 android:text="@string/buttonGPSDetails" />
-
-            <Button
-                android:id="@+id/buttonGPSSave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:text="@string/buttonGPSSave" />
         </LinearLayout>
 
-        <RadioButton
-            android:id="@+id/radioSimulatedLocation"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:text="@string/locationSourceSimulatedPoint" />
+            android:layout_marginTop="20dp"
+            android:orientation="vertical" >
 
-        <Button
-            android:id="@+id/buttonSimulatedLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/labelNoSimulatedPointSelected" />
+            <Switch
+                android:id="@+id/buttonEnableSimulation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonEnableLocationSimulation" />
+
+            <Button
+                android:id="@+id/buttonSimulatedLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/labelNoSimulatedPointSelected" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

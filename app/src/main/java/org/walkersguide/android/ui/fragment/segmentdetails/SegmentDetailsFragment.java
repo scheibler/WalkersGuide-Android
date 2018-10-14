@@ -1,17 +1,22 @@
 package org.walkersguide.android.ui.fragment.segmentdetails;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
-import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
-
 import android.app.Activity;
+
 import android.content.Context;
+import android.content.Intent;
+
+import android.net.Uri;
+
 import android.os.Bundle;
+
 import android.support.v4.app.Fragment;
+
+import android.text.TextUtils;
+
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
@@ -19,16 +24,26 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
-import org.walkersguide.android.data.basic.segment.Segment;
+
+import java.util.Locale;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.segment.RouteSegment;
-import org.walkersguide.android.util.Constants;
-import android.text.TextUtils;
+import org.walkersguide.android.data.basic.segment.Segment;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.R;
+import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
+import org.walkersguide.android.util.Constants;
 
 
 public class SegmentDetailsFragment extends Fragment implements FragmentCommunicator {
+    private static final String OSM_WAY_URL = "https://www.openstreetmap.org/way/%1$d/";
 
     // constants
     private static final int TEXTVIEW_NO_AUTO_LINK = -1;
@@ -63,8 +78,47 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
 		}
 	}
 
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_toolbar_segment_details_fragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemSegmentOpenStreetMap = menu.findItem(R.id.menuItemSegmentOpenStreetMap);
+        long wayId = -1;
+        if (segmentWrapper != null
+                && segmentWrapper.getSegment() instanceof Footway) {
+            wayId = ((Footway) segmentWrapper.getSegment()).getWayId();
+        }
+        if (wayId == -1) {
+            menuItemSegmentOpenStreetMap.setVisible(false);
+        }
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menuItemSegmentOpenStreetMap:
+                long wayId = -1;
+                if (segmentWrapper != null
+                        && segmentWrapper.getSegment() instanceof Footway) {
+                    wayId = ((Footway) segmentWrapper.getSegment()).getWayId();
+                }
+                Intent openBrowserIntent = new Intent(Intent.ACTION_VIEW);
+                openBrowserIntent.setData(
+                        Uri.parse(
+                            String.format(Locale.ROOT, OSM_WAY_URL, wayId)));
+                getActivity().startActivity(openBrowserIntent);
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_point_details, container, false);
+        setHasOptionsMenu(true);
+		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -77,7 +131,7 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
         }
 
         // attributes layout
-		layoutAttributes = (LinearLayout) view.findViewById(R.id.layoutAttributes);
+		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
     }
 
     @Override public void onFragmentEnabled() {
@@ -116,9 +170,12 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
                         addTextView(
                                 TEXTVIEW_NO_ID,
                                 String.format(
-                                    "%1$s: %2$d",
+                                    "%1$s: %2$s",
                                     getResources().getString(R.string.labelSegmentRouteDistance),
-                                    routeSegment.getDistance()),
+                                    getResources().getQuantityString(
+                                        R.plurals.meter,
+                                        routeSegment.getDistance(),
+                                        routeSegment.getDistance())),
                                 false, TEXTVIEW_NO_AUTO_LINK);
                     }
                 }
@@ -182,13 +239,19 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
                             false, TEXTVIEW_NO_AUTO_LINK);
                 }
                 // width
-                if (footway.getWidth() != -1.0) {
+                double footwayWidth = footway.getWidth();
+                if (footwayWidth != -1.0) {
+                    int quantity = 0;
+                    if (((footwayWidth%10) == 0) && ((footwayWidth/10) == 1)){
+                        quantity = 1;
+                    }
                     addTextView(
                             TEXTVIEW_NO_ID,
                             String.format(
-                                "%1$s: %2$.1f",
+                                "%1$s: %2$s",
                                 getResources().getString(R.string.labelSegmentFootwayWidth),
-                                footway.getWidth()),
+                                getResources().getQuantityString(
+                                    R.plurals.meterFloat, quantity, footwayWidth)),
                             false, TEXTVIEW_NO_AUTO_LINK);
                 }
                 // number of lanes

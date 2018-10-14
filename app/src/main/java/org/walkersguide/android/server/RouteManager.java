@@ -1,6 +1,12 @@
 package org.walkersguide.android.server;
 
+import android.content.Context;
+
+import android.os.AsyncTask;
+import android.os.Handler;
+
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -9,13 +15,19 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
+import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.RouteObject;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.helper.DownloadUtility;
 import org.walkersguide.android.listener.RouteListener;
+import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
@@ -23,15 +35,6 @@ import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.RouteSettings;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import org.walkersguide.android.util.TTSWrapper;
-
-import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Handler;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
-import org.walkersguide.android.data.basic.segment.Footway;
-import org.walkersguide.android.data.server.ServerInstance;
-import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.data.route.WayClass;
 
 
 public class RouteManager {
@@ -298,8 +301,10 @@ public class RouteManager {
 
     public void requestRoute(RouteListener routeListener, int routeId) {
         if (routeRequestInProgress()) {
-            if (this.requestRoute.getRouteId() == routeId) {
-                this.requestRoute.updateListener(routeListener);
+            if (routeListener == null) {
+                return;
+            } else if (this.requestRoute.getRouteId() == routeId) {
+                this.requestRoute.addListener(routeListener);
                 return;
             } else {
                 cancelRouteRequest();
@@ -307,6 +312,12 @@ public class RouteManager {
         }
         this.requestRoute = new RequestRoute(routeListener, routeId);
         this.requestRoute.execute();
+    }
+
+    public void invalidateRouteRequest(RouteListener routeListener) {
+        if (routeRequestInProgress()) {
+            this.requestRoute.removeListener(routeListener);
+        }
     }
 
     public boolean routeRequestInProgress() {
@@ -326,7 +337,7 @@ public class RouteManager {
     public void skipToPreviousRouteObject(RouteListener routeListener, int routeId) {
         int currentObjectIndex = accessDatabaseInstance.getCurrentObjectIndexOfRoute(routeId);
         if (currentObjectIndex != -1) {
-            boolean success = accessDatabaseInstance.setCurrentObjectIndexOfRoute(
+            boolean success = accessDatabaseInstance.updateCurrentObjectIndexOfRoute(
                     routeId, currentObjectIndex-1);
             if (! success) {
                 ttsWrapperInstance.speak(
@@ -343,7 +354,7 @@ public class RouteManager {
     public void skipToNextRouteObject(RouteListener routeListener, int routeId) {
         int currentObjectIndex = accessDatabaseInstance.getCurrentObjectIndexOfRoute(routeId);
         if (currentObjectIndex != -1) {
-            boolean success = accessDatabaseInstance.setCurrentObjectIndexOfRoute(
+            boolean success = accessDatabaseInstance.updateCurrentObjectIndexOfRoute(
                     routeId, currentObjectIndex+1);
             if (! success) {
                 ttsWrapperInstance.speak(
@@ -358,7 +369,7 @@ public class RouteManager {
     }
 
     public void jumpToRouteObjectAtIndex(RouteListener routeListener, int routeId, int objectIndex) {
-        accessDatabaseInstance.setCurrentObjectIndexOfRoute(routeId, objectIndex);
+        accessDatabaseInstance.updateCurrentObjectIndexOfRoute(routeId, objectIndex);
         if (routeListener != null) {
             if (routeRequestInProgress()) {
                 cancelRouteRequest();
@@ -370,16 +381,30 @@ public class RouteManager {
 
     private class RequestRoute extends AsyncTask<Void, Void, Route> {
 
-        private RouteListener routeListener;
+        private ArrayList<RouteListener> routeListenerList;
         private int routeIdToRequest, returnCode;
 
         public RequestRoute(RouteListener routeListener, int routeId) {
-            this.routeListener = routeListener;
+            this.routeListenerList = new ArrayList<RouteListener>();
+            if (routeListener != null) {
+                this.routeListenerList.add(routeListener);
+            }
             this.routeIdToRequest = routeId;
             this.returnCode = Constants.RC.OK;
         }
 
         @Override protected Route doInBackground(Void... params) {
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
+            if (accessDatabaseInstance.getRouteIdList(null).isEmpty()) {
+                this.returnCode = Constants.RC.NO_ROUTE_CREATED;
+                return null;
+            }
+            // check existence of poi profile
+            if (! accessDatabaseInstance.getRouteIdList(null).contains(this.routeIdToRequest)) {
+                this.returnCode = Constants.RC.NO_ROUTE_SELECTED;
+                return null;
+            }
+            // load poi profile
             Route route = null;
             try {
                 route = AccessDatabase.getInstance(context).getRoute(this.routeIdToRequest);
@@ -390,9 +415,8 @@ public class RouteManager {
         }
 
         @Override protected void onPostExecute(Route route) {
-            System.out.println("xxx request route: " + this.returnCode);
-            if (this.routeListener != null) {
-                this.routeListener.routeRequestFinished(
+            for (RouteListener routeListener : this.routeListenerList) {
+                routeListener.routeRequestFinished(
                         returnCode,
                         DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, ""),
                         route);
@@ -400,8 +424,8 @@ public class RouteManager {
         }
 
         @Override protected void onCancelled(Route route) {
-            if (this.routeListener != null) {
-                this.routeListener.routeRequestFinished(
+            for (RouteListener routeListener : this.routeListenerList) {
+                routeListener.routeRequestFinished(
                         Constants.RC.CANCELLED,
                         DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
                         route);
@@ -412,9 +436,17 @@ public class RouteManager {
             return this.routeIdToRequest;
         }
 
-        public void updateListener(RouteListener newRouteListener) {
-            if (newRouteListener != null) {
-                this.routeListener = newRouteListener;
+        public void addListener(RouteListener newRouteListener) {
+            if (newRouteListener != null
+                    && ! this.routeListenerList.contains(newRouteListener)) {
+                this.routeListenerList.add(newRouteListener);
+            }
+        }
+
+        public void removeListener(RouteListener newRouteListener) {
+            if (newRouteListener != null
+                    && this.routeListenerList.contains(newRouteListener)) {
+                this.routeListenerList.remove(newRouteListener);
             }
         }
 

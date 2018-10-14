@@ -1,10 +1,12 @@
 package org.walkersguide.android.data.basic.segment;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.walkersguide.android.R;
 
-import android.content.Context;
 
 public class RouteSegment extends Footway {
 
@@ -27,9 +29,9 @@ public class RouteSegment extends Footway {
 
     @Override public String toString() {
         return String.format(
-                "%1$d %2$s at %3$s",
-                this.distance,
-                super.getContext().getResources().getString(R.string.unitMeters),
+                super.getContext().getResources().getString(R.string.routeSegmentToString),
+                super.getContext().getResources().getQuantityString(
+                    R.plurals.meter, this.distance, this.distance),
                 super.toString());
     }
 

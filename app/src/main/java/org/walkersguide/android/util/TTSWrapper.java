@@ -1,18 +1,23 @@
 package org.walkersguide.android.util;
 
+import android.annotation.TargetApi;
+
+import android.content.Context;
+
+import android.os.Build;
+
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+
+import android.view.accessibility.AccessibilityManager;
+
+import com.google.common.base.Splitter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.os.Build;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
-import android.view.accessibility.AccessibilityManager;
-
-import com.google.common.base.Splitter;
 
 public class TTSWrapper extends UtteranceProgressListener {
 

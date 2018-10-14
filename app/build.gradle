@@ -25,6 +25,7 @@ android {
 
     defaultConfig {
         applicationId "org.walkersguide.android"
+        resConfigs "en", "de"
         minSdkVersion 16
         targetSdkVersion 27
         versionCode 8
@@ -35,7 +36,7 @@ android {
         // internal
         // database
         buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-        buildConfigField 'Integer', 'DATABASE_VERSION', '7'
+        buildConfigField 'Integer', 'DATABASE_VERSION', '9'
         // server
         buildConfigField 'String', 'SERVER_URL', '"https://scheibler-dresden.homelinux.org/walkersguide/prod/"'
         buildConfigField 'Integer', 'SUPPORTED_API_VERSION', '1'
@@ -65,14 +66,17 @@ android {
     }
 
     lintOptions {
-        baseline file("lint-baseline.xml")
-            abortOnError false
+        disable "StaticFieldLeak", "InflateParams", "GoogleAppIndexingWarning",
+                "ButtonStyle", "UseSparseArrays", "UseCompoundDrawables", "DefaultLocale"
     }
 }
 
 dependencies {
     compile 'com.android.support:design:27.0.2'
+    // guava: google java library
     compile 'com.google.guava:guava:20.0'
+    // simple gesture library dependency
+	compile 'in.championswimmer:SimpleFingerGestures_Android_Library:1.2'
 }
 
 // REQUIRED: Google's new Maven repo is required for the latest
@@ -84,5 +88,9 @@ repositories {
     // If you're using a version of Gradle lower than 4.1, you must instead use:
     maven {
         url 'https://maven.google.com'
+    }
+    // simple gesture library repository
+    maven {
+        url 'https://jitpack.io'
     }
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menuItemPlanRoute"
+        android:title="@string/menuItemPlanRoute" />
+    <item
+        android:id="@+id/menuItemRouterFragment"
+        android:title="@string/fragmentRouterName" />
+    <item
+        android:id="@+id/menuItemPOIFragment"
+        android:title="@string/fragmentPOIName" />
+    <item
+        android:id="@+id/menuItemLastVisitedPoints"
+        android:title="@string/menuItemLastVisitedPoints" />
+    <item
+        android:id="@+id/menuItemSaveCurrentPosition"
+        android:title="@string/menuItemSaveCurrentPosition" />
+    <item
+        android:id="@+id/menuItemRequestAddress"
+        android:title="@string/menuItemRequestAddress" />
+    <item
+        android:id="@+id/menuItemSettings"
+        android:title="@string/menuItemSettings" />
+    <item
+        android:id="@+id/menuItemInfo"
+        android:title="@string/menuItemInfo" />
+</menu>

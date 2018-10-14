@@ -1,27 +1,19 @@
 package org.walkersguide.android.ui.activity;
 
-import java.lang.ref.WeakReference;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.segment.Footway;
-import org.walkersguide.android.data.basic.segment.IntersectionSegment;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
-import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.sensor.DirectionManager;
-import org.walkersguide.android.ui.fragment.segmentdetails.NextIntersectionsFragment;
-import org.walkersguide.android.ui.fragment.segmentdetails.SegmentDetailsFragment;
-import org.walkersguide.android.util.Constants;
+import android.app.AlertDialog;
+import android.app.Dialog;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+
 import android.os.Bundle;
 import android.os.Handler;
+
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -29,24 +21,40 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+
+import android.text.InputType;
+
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.ImageButton;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.view.ViewGroup;
-import android.view.LayoutInflater;
+
+import java.lang.ref.WeakReference;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import org.walkersguide.android.database.AccessDatabase;
-import android.support.v4.app.DialogFragment;
-import android.app.Dialog;
-import android.view.inputmethod.EditorInfo;
-import android.view.KeyEvent;
-import android.content.DialogInterface;
-import android.app.AlertDialog;
-import android.widget.Button;
+import org.walkersguide.android.data.basic.segment.Footway;
+import org.walkersguide.android.data.basic.segment.IntersectionSegment;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.R;
+import org.walkersguide.android.sensor.DirectionManager;
+import org.walkersguide.android.ui.fragment.segmentdetails.NextIntersectionsFragment;
+import org.walkersguide.android.ui.fragment.segmentdetails.SegmentDetailsFragment;
+import org.walkersguide.android.util.Constants;
 
 
 public class SegmentDetailsActivity extends AbstractActivity {
@@ -60,6 +68,7 @@ public class SegmentDetailsActivity extends AbstractActivity {
     private TabLayout tabLayout;
     private int recentFragment;
     private TextView labelSegmentDirection;
+    private Switch buttonSegmentExcludeFromRouting, buttonSegmentSimulateDirection;
 
     // footway and transport segments
 	private SegmentPagerAdapter segmentPagerAdapter;
@@ -102,7 +111,8 @@ public class SegmentDetailsActivity extends AbstractActivity {
 
         if (segmentWrapper != null) {
             getSupportActionBar().setTitle(
-                    segmentWrapper.getSegment().getType());
+                    StringUtility.formatSegmentType(
+                        SegmentDetailsActivity.this, segmentWrapper.getSegment().getType()));
             // name and subtype
     		TextView labelSegmentName = (TextView) findViewById(R.id.labelSegmentName);
             labelSegmentName.setText(
@@ -129,34 +139,32 @@ public class SegmentDetailsActivity extends AbstractActivity {
         		labelSegmentDirection = (TextView) findViewById(R.id.labelSegmentDirection);
 
                 // exclude from routing
-        		Switch buttonSegmentExcludeFromRouting = (Switch) findViewById(R.id.buttonSegmentExcludeFromRouting);
-                buttonSegmentExcludeFromRouting.setChecked(
-                        accessDatabaseInstance.getExcludedWaysList().contains(segmentWrapper));
+        		buttonSegmentExcludeFromRouting = (Switch) findViewById(R.id.buttonSegmentExcludeFromRouting);
                 buttonSegmentExcludeFromRouting.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                        if (isChecked) {
+                        boolean isExcluded = accessDatabaseInstance.getExcludedWaysList().contains(segmentWrapper);
+                        if (isChecked && ! isExcluded) {
                             SetNameForExcludedWayDialog.newInstance(segmentWrapper).show(
                                     getSupportFragmentManager(), "SetNameForExcludedWayDialog");
-                        } else {
+                        } else if (! isChecked && isExcluded) {
                             accessDatabaseInstance.removeExcludedWaySegment(segmentWrapper);
                         }
                     }
                 });
 
                 // simulate direction
-        		Switch buttonSegmentSimulateDirection = (Switch) findViewById(R.id.buttonSegmentSimulateDirection);
-                if (directionManagerInstance.getDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION
-                        && directionManagerInstance.getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing()) {
-                    buttonSegmentSimulateDirection.setChecked(true);
-                }
+        		buttonSegmentSimulateDirection = (Switch) findViewById(R.id.buttonSegmentSimulateDirection);
                 buttonSegmentSimulateDirection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                        if (isChecked) {
+                        boolean isSimulated =
+                               directionManagerInstance.getDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION
+                            && directionManagerInstance.getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing();
+                        if (isChecked && ! isSimulated) {
                             directionManagerInstance.setSimulatedDirection(
                                     ((Footway) segmentWrapper.getSegment()).getBearing());
                             directionManagerInstance.setDirectionSource(
                                     Constants.DIRECTION_SOURCE.SIMULATION);
-                        } else {
+                        } else if (! isChecked && isSimulated) {
                             directionManagerInstance.setDirectionSource(
                                     directionManagerInstance.getPreviousDirectionSource());
                         }
@@ -220,6 +228,10 @@ public class SegmentDetailsActivity extends AbstractActivity {
     @Override public void onResume() {
         super.onResume();
         if (segmentWrapper != null) {
+            if (buttonSegmentExcludeFromRouting != null) {
+                buttonSegmentExcludeFromRouting.setChecked(
+                        accessDatabaseInstance.getExcludedWaysList().contains(segmentWrapper));
+            }
             if (segmentWrapper.getSegment() instanceof Footway) {
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(Constants.ACTION_NEW_DIRECTION);
@@ -248,9 +260,15 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 labelSegmentDirection.setText(
                         String.format(
                             getResources().getString(R.string.labelSegmentDirection),
-                            StringUtility.formatInstructionDirection(
+                            StringUtility.formatRelativeViewingDirection(
                                 context, direction))
                         );
+                if (segmentWrapper != null
+                        && buttonSegmentSimulateDirection != null) {
+                    buttonSegmentSimulateDirection.setChecked(
+                               DirectionManager.getInstance(context).getDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION
+                            && DirectionManager.getInstance(context).getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing());
+                }
             }
         }
     };
@@ -494,6 +512,7 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 editSegmentDescription.setText(segmentWrapper.getSegment().getName());
             }
             editSegmentDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            editSegmentDescription.setInputType(InputType.TYPE_CLASS_TEXT);
             editSegmentDescription.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -530,6 +549,16 @@ public class SegmentDetailsActivity extends AbstractActivity {
                             public void onClick(DialogInterface dialog, int which) {
                             }
                         })
+            .setOnKeyListener(
+                    new Dialog.OnKeyListener() {
+                        @Override public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                close();
+                                return true;
+                            }
+                            return false;
+                        }
+                    })
                 .create();
         }
 
@@ -552,7 +581,7 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        dialog.dismiss();
+                        close();
                     }
                 });
             }
@@ -581,6 +610,10 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 // add to database without modification
                 accessDatabaseInstance.addExcludedWaySegment(segmentWrapper);
             }
+            close();
+        }
+
+        private void close() {
             // reload ui and dismiss
             Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
             LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);

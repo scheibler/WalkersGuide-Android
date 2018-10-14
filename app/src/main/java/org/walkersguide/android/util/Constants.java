@@ -1,9 +1,10 @@
 package org.walkersguide.android.util;
 
+
 public class Constants {
 
     public interface DUMMY {
-        public static final int DIRECTION = 0;
+        public static final int DIRECTION = -1;
         public static final String LOCATION =
             "{\"name\":\"Dummy location\", \"lat\":0.0, \"lon\":0.0, \"type\":\"gps\", \"sub_type\":\"Dummy Location\"}";
         public static final String FOOTWAY =
@@ -44,15 +45,15 @@ public class Constants {
         // route
         public static final int NO_ROUTE_START_POINT = 1020;
         public static final int NO_ROUTE_DESTINATION_POINT = 1021;
-        public static final int NO_ROUTE_SELECTED = 1022;
-        public static final int ROUTE_PARSING_ERROR = 1023;
+        public static final int NO_ROUTE_CREATED = 1022;
+        public static final int NO_ROUTE_SELECTED = 1023;
+        public static final int ROUTE_PARSING_ERROR = 1024;
         // favorites and poi
-        public static final int NO_FAVORITES_PROFILE_SELECTED = 1031;
+        public static final int DEPARTURE_LIST_EMPTY = 1030;
+        public static final int NO_POI_PROFILE_CREATED = 1031;
         public static final int NO_POI_PROFILE_SELECTED = 1032;
-        public static final int NO_POI_CATEGORY_SELECTED = 1033;
+        public static final int POI_PROFILE_PARSING_ERROR = 1033;
         public static final int UNSUPPORTED_POI_REQUEST_ACTION = 1034;
-        // search
-        public static final int NO_SEARCH_TERM = 1035;
         // settings
         public static final int DATABASE_IMPORT_FAILED = 1040;
     }
@@ -61,18 +62,18 @@ public class Constants {
         public static final int CURRENT_LOCATION = 0;
         public static final int ENTER_ADDRESS = 1;
         public static final int ENTER_COORDINATES = 2;
-        public static final int FROM_FAVORITES = 3;
+        public static final int FROM_HISTORY_POINTS = 3;
         public static final int FROM_POI = 4;
     }
 
     public final static int[] PointSelectFromValueArray = {
         POINT_SELECT_FROM.CURRENT_LOCATION, POINT_SELECT_FROM.ENTER_ADDRESS, POINT_SELECT_FROM.ENTER_COORDINATES,
-        POINT_SELECT_FROM.FROM_FAVORITES, POINT_SELECT_FROM.FROM_POI
+        POINT_SELECT_FROM.FROM_HISTORY_POINTS, POINT_SELECT_FROM.FROM_POI
     };
 
     public final static int[] PointSelectFromValueArrayWithoutCurrentLocation = {
         POINT_SELECT_FROM.ENTER_ADDRESS, POINT_SELECT_FROM.ENTER_COORDINATES,
-        POINT_SELECT_FROM.FROM_FAVORITES, POINT_SELECT_FROM.FROM_POI
+        POINT_SELECT_FROM.FROM_HISTORY_POINTS, POINT_SELECT_FROM.FROM_POI
     };
 
     public interface POINT_PUT_INTO {
@@ -109,15 +110,6 @@ public class Constants {
         public static final int ORDER_DESC = 5;
     }
 
-    public final static int[] FavoritesProfileSortCriteriaValueArray = {
-        SORT_CRITERIA.NAME_ASC, SORT_CRITERIA.NAME_DESC, SORT_CRITERIA.DISTANCE_ASC,
-        SORT_CRITERIA.DISTANCE_DESC, SORT_CRITERIA.ORDER_ASC, SORT_CRITERIA.ORDER_DESC
-    };
-
-    public final static int[] SearchFavoritesProfileSortCriteriaValueArray = {
-        SORT_CRITERIA.NAME_ASC, SORT_CRITERIA.NAME_DESC, SORT_CRITERIA.DISTANCE_ASC, SORT_CRITERIA.DISTANCE_DESC
-    };
-
 
     /**
      * fragments, used in activities
@@ -126,13 +118,12 @@ public class Constants {
      */
 
     public interface MAIN_FRAGMENT {
-        public static final int FAVORITE = 0;
-        public static final int ROUTER = 1;
-        public static final int POI = 2;
+        public static final int ROUTER = 0;
+        public static final int POI = 1;
     }
 
     public final static int[] MainActivityFragmentValueArray = {
-        MAIN_FRAGMENT.FAVORITE, MAIN_FRAGMENT.ROUTER, MAIN_FRAGMENT.POI
+        MAIN_FRAGMENT.ROUTER, MAIN_FRAGMENT.POI
     };
 
 
@@ -337,6 +328,10 @@ public class Constants {
 
     public static final String ACTION_UPDATE_UI = "update_ui";
 
+    /** new poi profile selected **/
+
+    public static final String ACTION_NEW_POI_PROFILE = "new_poi_profile";
+
     /** server status **/
 
     public static final String ACTION_SERVER_STATUS_UPDATED = "server_status_updated";
@@ -374,6 +369,10 @@ public class Constants {
     }
 
     /** location **/
+
+    public static final String ACTION_LOCATION_PROVIDER_DISABLED = "location_provider_disabled";
+
+    public static final String ACTION_LOCATION_PERMISSION_DENIED = "location_permission_denied";
 
     public static final String ACTION_NEW_LOCATION = "new_location";
     public interface ACTION_NEW_LOCATION_ATTR {

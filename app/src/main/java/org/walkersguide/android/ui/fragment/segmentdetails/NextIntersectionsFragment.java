@@ -1,48 +1,53 @@
 package org.walkersguide.android.ui.fragment.segmentdetails;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.Intersection;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
-import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.sensor.DirectionManager;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
-import org.walkersguide.android.util.Constants;
-
 import android.app.Activity;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.TextView;
-import org.walkersguide.android.server.POIManager;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.widget.Button;
-import android.widget.Switch;
-import org.walkersguide.android.data.profile.NextIntersectionsProfile;
-import android.widget.ImageButton;
-import org.walkersguide.android.ui.activity.PointDetailsActivity;
-import android.widget.CompoundButton;
-import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.PointAndSegmentDetailsSettings;
-import java.util.ArrayList;
-import android.widget.ArrayAdapter;
+
+import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
+
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
 import android.widget.AbsListView;
-import org.walkersguide.android.listener.NextIntersectionsListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.walkersguide.android.data.basic.point.Intersection;
+import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.data.profile.NextIntersectionsProfile;
+import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.listener.NextIntersectionsListener;
+import org.walkersguide.android.R;
+import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.server.POIManager;
+import org.walkersguide.android.ui.activity.PointDetailsActivity;
+import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.SettingsManager.POISettings;
 
 
 public class NextIntersectionsFragment extends Fragment
@@ -60,10 +65,9 @@ public class NextIntersectionsFragment extends Fragment
     private Vibrator vibrator;
 
     // ui components
-    private Button buttonRefresh;
+    private ImageButton buttonRefresh;
     private ListView listViewNextIntersections;
-    private Switch buttonShowAllPoints;
-    private TextView labelFragmentHeader, labelListViewEmpty;
+    private TextView labelHeading, labelEmptyListView;
 
 
 	// newInstance constructor for creating fragment with arguments
@@ -96,8 +100,52 @@ public class NextIntersectionsFragment extends Fragment
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 	}
 
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_toolbar_next_intersections_fragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
+        if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
+            menuItemRefresh.setTitle(getResources().getString(R.string.menuItemCancel));
+        } else {
+            menuItemRefresh.setTitle(getResources().getString(R.string.menuItemRefresh));
+        }
+        // check or uncheck show all points menu item
+        MenuItem menuItemShowAllPoints = menu.findItem(R.id.menuItemShowAllPoints);
+        menuItemShowAllPoints.setChecked(
+                settingsManagerInstance.getPOISettings().getShowAllPoints());
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menuItemRefresh:
+                if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
+                    poiManagerInstance.cancelNextIntersectionsRequest();
+                } else {
+                    requestNextIntersections();
+                }
+                break;
+            case R.id.menuItemShowAllPoints:
+                POISettings poiSettings = settingsManagerInstance.getPOISettings();
+                poiSettings.setShowAllPoints(! poiSettings.getShowAllPoints());
+                listPosition = 0;
+                if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
+                    poiManagerInstance.cancelNextIntersectionsRequest();
+                }
+                requestNextIntersections();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_next_intersections, container, false);
+        setHasOptionsMenu(true);
+		return inflater.inflate(R.layout.layout_heading_and_list_view_with_refresh_button, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -115,17 +163,19 @@ public class NextIntersectionsFragment extends Fragment
             listPosition = 0;
         }
 
-        labelFragmentHeader = (TextView) view.findViewById(R.id.labelFragmentHeader);
-        ImageButton buttonJumpToTop = (ImageButton) view.findViewById(R.id.buttonJumpToTop);
-        buttonJumpToTop.setOnClickListener(new View.OnClickListener() {
+        labelHeading = (TextView) view.findViewById(R.id.labelHeading);
+        buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
+        buttonRefresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                if (listViewNextIntersections.getAdapter() != null) {
-                    listViewNextIntersections.setSelection(0);
+                if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
+                    poiManagerInstance.cancelNextIntersectionsRequest();
+                } else {
+                    requestNextIntersections();
                 }
             }
         });
 
-        listViewNextIntersections = (ListView) view.findViewById(R.id.listViewNextIntersections);
+        listViewNextIntersections = (ListView) view.findViewById(R.id.listView);
         listViewNextIntersections.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 PointProfileObject pointProfileObject = (PointProfileObject) parent.getItemAtPosition(position);
@@ -139,42 +189,16 @@ public class NextIntersectionsFragment extends Fragment
                 startActivity(detailsIntent);
             }
         });
-        labelListViewEmpty    = (TextView) view.findViewById(R.id.labelListViewEmpty);
-        listViewNextIntersections.setEmptyView(labelListViewEmpty);
+        labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
+        listViewNextIntersections.setEmptyView(labelEmptyListView);
+    }
 
-        // bottom layout
-
-        buttonRefresh = (Button) view.findViewById(R.id.buttonRefresh);
-        buttonRefresh.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
-                    poiManagerInstance.cancelNextIntersectionsRequest();
-                } else {
-                    requestNextIntersections();
-                }
-            }
-        });
-
-        buttonShowAllPoints = (Switch) view.findViewById(R.id.buttonShowAllPoints);
-        buttonShowAllPoints.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                PointAndSegmentDetailsSettings pointAndSegmentDetailsSettings = settingsManagerInstance.getPointAndSegmentDetailsSettings();
-                if (pointAndSegmentDetailsSettings.getShowAllPoints() != isChecked) {
-                    if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
-                        poiManagerInstance.cancelNextIntersectionsRequest();
-                    }
-                    pointAndSegmentDetailsSettings.setShowAllPoints(isChecked);
-                    listPosition = 0;
-                    requestNextIntersections();
-                }
-            }
-        });
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putInt("listPosition",  listPosition);
     }
 
     @Override public void onFragmentEnabled() {
-        PointAndSegmentDetailsSettings pointAndSegmentDetailsSettings = settingsManagerInstance.getPointAndSegmentDetailsSettings();
-        buttonShowAllPoints.setChecked(
-                pointAndSegmentDetailsSettings.getShowAllPoints());
         // listen for device shakes
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_LOCATION);
@@ -189,26 +213,19 @@ public class NextIntersectionsFragment extends Fragment
         progressHandler.removeCallbacks(progressUpdater);
         // unregister shake broadcast receiver
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
-        // list view
-        listViewNextIntersections.setAdapter(null);
-        listViewNextIntersections.setOnScrollListener(null);
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt("listPosition",  listPosition);
     }
 
     private void requestNextIntersections() {
+        // heading
+        labelHeading.setText(
+                getResources().getString(R.string.messagePleaseWait));
+        buttonRefresh.setContentDescription(
+                getResources().getString(R.string.buttonCancel));
+        buttonRefresh.setImageResource(R.drawable.cancel);
+        // list view
         listViewNextIntersections.setAdapter(null);
         listViewNextIntersections.setOnScrollListener(null);
-        labelListViewEmpty.setText("");
-        labelListViewEmpty.setVisibility(View.GONE);
-        // header and refresh button
-        labelFragmentHeader.setText(
-                getResources().getString(R.string.messagePleaseWait));
-        buttonRefresh.setText(
-                getResources().getString(R.string.buttonCancel));
+        labelEmptyListView.setText("");
         // start poi profile update request
         progressHandler.postDelayed(progressUpdater, 2000);
         poiManagerInstance.requestNextIntersections(
@@ -219,9 +236,10 @@ public class NextIntersectionsFragment extends Fragment
     }
 
     @Override public void nextIntersectionsRequestFinished(int returnCode, String returnMessage, NextIntersectionsProfile nextIntersectionsProfile, boolean resetListPosition) {
-        PointAndSegmentDetailsSettings pointAndSegmentDetailsSettings = settingsManagerInstance.getPointAndSegmentDetailsSettings();
-        buttonRefresh.setText(
+        POISettings poiSettings = settingsManagerInstance.getPOISettings();
+        buttonRefresh.setContentDescription(
                 getResources().getString(R.string.buttonRefresh));
+        buttonRefresh.setImageResource(R.drawable.refresh);
         progressHandler.removeCallbacks(progressUpdater);
 
         if (nextIntersectionsProfile != null
@@ -234,7 +252,7 @@ public class NextIntersectionsFragment extends Fragment
                     .distanceTo(nextIntersectionsList.get(i-1).getPoint());
             }
 
-            if (! pointAndSegmentDetailsSettings.getShowAllPoints()) {
+            if (! poiSettings.getShowAllPoints()) {
                 // big intersections only
                 nextIntersectionsList = new ArrayList<PointProfileObject>();
                 for (PointProfileObject pointProfileObject : nextIntersectionsProfile.getPointProfileObjectList()) {
@@ -247,20 +265,17 @@ public class NextIntersectionsFragment extends Fragment
                 }
             }
 
-            labelFragmentHeader.setText(
+            labelHeading.setText(
                     String.format(
                         getResources().getString(R.string.labelNextIntersectionsSuccess),
-                        nextIntersectionsList.size(),
+                        getResources().getQuantityString(
+                            R.plurals.point, nextIntersectionsList.size(), nextIntersectionsList.size()),
                         getResources().getQuantityString(
                             R.plurals.meter, totalLength, totalLength))
                     );
-
             listViewNextIntersections.setAdapter(
                     new ArrayAdapter<PointProfileObject>(
-                        getActivity(),
-                        android.R.layout.simple_list_item_1,
-                        nextIntersectionsList)
-                    );
+                        getActivity(), android.R.layout.simple_list_item_1, nextIntersectionsList));
 
             // list position
             if (resetListPosition) {
@@ -278,14 +293,8 @@ public class NextIntersectionsFragment extends Fragment
             });
 
         } else {
-            labelListViewEmpty.setText(returnMessage);
-            labelListViewEmpty.setVisibility(View.VISIBLE);
-        }
-
-        // error message dialog
-        if (! (returnCode == Constants.RC.OK || returnCode == Constants.RC.CANCELLED)) {
-            SimpleMessageDialog.newInstance(returnMessage)
-                .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+            labelHeading.setText(getResources().getString(R.string.fragmentNextIntersectionsName));
+            labelEmptyListView.setText(returnMessage);
         }
     }
 

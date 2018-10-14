@@ -1,21 +1,25 @@
 package org.walkersguide.android.data.basic.point;
 
+import android.content.Context;
+
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.station.Line;
 
-import android.content.Context;
-import android.text.TextUtils;
+import org.walkersguide.android.data.station.Line;
+import org.walkersguide.android.R;
+
 
 public class Station extends POI {
 
     private ArrayList<Line> lineList;
     private ArrayList<String> vehicleList;
     private long stationId;
+    private int exactPosition;
 
     public Station(Context context, JSONObject inputData) throws JSONException {
         // poi super constructor
@@ -25,6 +29,17 @@ public class Station extends POI {
             this.stationId = inputData.getLong("station_id");
         } catch (JSONException e) {
             this.stationId = -1l;
+        }
+        // exact position: only for route objects
+        try {
+            boolean exactPositionFromJson = inputData.getBoolean("exact_position");
+            if (exactPositionFromJson) {
+                this.exactPosition = 1;
+            } else {
+                this.exactPosition = 0;
+            }
+        } catch (JSONException e) {
+            this.exactPosition = -1;
         }
 
         // lines
@@ -88,11 +103,20 @@ public class Station extends POI {
         return this.stationId;
     }
 
+    public int getExactPosition() {
+        return this.exactPosition;
+    }
+
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
         if (this.stationId > -1) {
             try {
                 jsonObject.put("stationId", this.stationId);
+            } catch (JSONException e) {}
+        }
+        if (this.exactPosition > -1) {
+            try {
+                jsonObject.put("exact_position", this.exactPosition == 1 ? true : false);
             } catch (JSONException e) {}
         }
         // lines

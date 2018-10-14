@@ -1,35 +1,42 @@
 package org.walkersguide.android.server;
 
+import android.content.Context;
+
+import android.location.Location;
+
+import android.os.AsyncTask;
+import android.os.Handler;
+
+import android.text.TextUtils;
+
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import java.net.URLEncoder;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+
 import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
+import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.helper.DownloadUtility;
+import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.AddressListener;
+import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
-
-import android.content.Context;
-import android.location.Location;
-import android.os.AsyncTask;
-import android.os.Handler;
 import org.walkersguide.android.util.SettingsManager;
-import java.util.ArrayList;
-import android.text.TextUtils;
-import java.util.Iterator;
-import java.io.UnsupportedEncodingException;
-import org.walkersguide.android.data.profile.FavoritesProfile;
-import java.util.TreeMap;
-import java.util.Map;
 
 
 public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
@@ -83,21 +90,30 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
 
         // first look into local database
-        FavoritesProfile favoritesProfile = accessDatabaseInstance.getFavoritesProfile(FavoritesProfile.ID_ADDRESS_POINTS);
-        if (favoritesProfile != null) {
-            TreeMap<Float,PointWrapper> distancesToFavoritesMap = new TreeMap<Float,PointWrapper>();
-            for (PointWrapper address : favoritesProfile.getPointProfileObjectList()) {
-                float[] results = new float[1];
-                Location.distanceBetween(
-                        latitude, longitude,
-                        address.getPoint().getLatitude(), address.getPoint().getLongitude(),
-                        results);
-                distancesToFavoritesMap.put(results[0], address);
-            }
-            Map.Entry<Float,PointWrapper> closestAddress = distancesToFavoritesMap.firstEntry();
-            if (closestAddress != null
-                    && closestAddress.getKey() < 25.0) {       // PositionManager.THRESHOLD3.DISTANCE) {
-                return closestAddress.getValue();
+        HistoryPointProfile historyPointProfile = null;
+        try {
+            historyPointProfile = new HistoryPointProfile(
+                    context,
+                    HistoryPointProfile.ID_ADDRESS_POINTS,
+                    accessDatabaseInstance.getJSONFavoritePointListOfProfile(HistoryPointProfile.ID_ADDRESS_POINTS));
+        } catch (JSONException e) {
+            historyPointProfile = null;
+        } finally {
+            if (historyPointProfile != null) {
+                TreeMap<Float,PointWrapper> distancesToFavoritesMap = new TreeMap<Float,PointWrapper>();
+                for (PointWrapper address : historyPointProfile.getPointProfileObjectList()) {
+                    float[] results = new float[1];
+                    Location.distanceBetween(
+                            latitude, longitude,
+                            address.getPoint().getLatitude(), address.getPoint().getLongitude(),
+                            results);
+                    distancesToFavoritesMap.put(results[0], address);
+                }
+                Map.Entry<Float,PointWrapper> closestAddress = distancesToFavoritesMap.firstEntry();
+                if (closestAddress != null
+                        && closestAddress.getKey() < 25.0) {       // PositionManager.THRESHOLD3.DISTANCE) {
+                    return closestAddress.getValue();
+                }
             }
         }
 
@@ -209,8 +225,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             } finally {
                 if (addressPoint != null) {
                     // add to database
-                    accessDatabaseInstance.addPointToFavoritesProfile(
-                            addressPoint, FavoritesProfile.ID_ADDRESS_POINTS);
+                    accessDatabaseInstance.addFavoritePointToProfile(addressPoint, HistoryPointProfile.ID_ADDRESS_POINTS);
                 }
             }
         return addressPoint;
@@ -365,7 +380,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         jsonStreetAddress.put("display_name", jsonAddressData.getString("formatted_address"));
         // type and subtype
         jsonStreetAddress.put("type", Constants.POINT.STREET_ADDRESS);
-        jsonStreetAddress.put("sub_type", context.getResources().getString(R.string.streetAddressPointName));
+        jsonStreetAddress.put("sub_type", StringUtility.formatPointType(context, Constants.POINT.STREET_ADDRESS));
         // cordinates
         JSONObject jsonCoordinates = jsonAddressData.getJSONObject("geometry").getJSONObject("location");
         jsonStreetAddress.put("lat", jsonCoordinates.getDouble("lat"));
@@ -507,7 +522,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         jsonStreetAddress.put("display_name", jsonAddressData.getString("display_name"));
         // type and subtype
         jsonStreetAddress.put("type", Constants.POINT.STREET_ADDRESS);
-        jsonStreetAddress.put("sub_type", context.getResources().getString(R.string.streetAddressPointName));
+        jsonStreetAddress.put("sub_type", StringUtility.formatPointType(context, Constants.POINT.STREET_ADDRESS));
         // coordinates
         jsonStreetAddress.put("lat", jsonAddressData.getDouble("lat"));
         jsonStreetAddress.put("lon", jsonAddressData.getDouble("lon"));

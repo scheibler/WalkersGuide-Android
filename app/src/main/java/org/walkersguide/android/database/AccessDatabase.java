@@ -1,37 +1,35 @@
 package org.walkersguide.android.database;
 
+import android.content.ContentValues;
+import android.content.Context;
+
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+
+import android.text.TextUtils;
+
 import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.FavoritesProfile;
+
+import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.poi.POICategory;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
 import org.walkersguide.android.data.profile.POIProfile;
-import org.walkersguide.android.data.profile.SearchFavoritesProfile;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.RouteObject;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.PublicTransportProvider;
+import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
-import android.location.Location;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
-import org.walkersguide.android.data.basic.segment.Footway;
-import org.walkersguide.android.server.FavoritesManager;
-import android.database.SQLException;
 
 public class AccessDatabase {
 
@@ -60,76 +58,7 @@ public class AccessDatabase {
     }
 
     public void setSomeDefaults() {
-        // insert some default favorites profiles if table is empty
-        if (getFavoritesProfileMap().isEmpty()) {
-            String sqlInsertFavoritesProfileQuery = String.format(
-                    "INSERT INTO %1$s (%2$s, %3$s, %4$s, %5$s, %6$s) VALUES (?, ?, ?, ?, ?)",
-                    SQLiteHelper.TABLE_FAVORITES_PROFILE, SQLiteHelper.FAVORITES_PROFILE_ID,
-                    SQLiteHelper.FAVORITES_PROFILE_NAME, SQLiteHelper.FAVORITES_PROFILE_SORT_CRITERIA,
-                    SQLiteHelper.FAVORITES_PROFILE_CENTER, SQLiteHelper.FAVORITES_PROFILE_DIRECTION);
-            // all history points
-            database.execSQL(
-                    sqlInsertFavoritesProfileQuery,
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_ALL_POINTS),
-                        context.getResources().getString(R.string.fpNameAllPoints),
-                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION)});
-            // addresses
-            database.execSQL(
-                    sqlInsertFavoritesProfileQuery,
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_ADDRESS_POINTS),
-                        context.getResources().getString(R.string.fpNameAddressPoints),
-                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION)});
-            // route points
-            database.execSQL(
-                    sqlInsertFavoritesProfileQuery,
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_ROUTE_POINTS),
-                        context.getResources().getString(R.string.fpNameRoutePoints),
-                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION)});
-            // simulated points
-            database.execSQL(
-                    sqlInsertFavoritesProfileQuery,
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_SIMULATED_POINTS),
-                        context.getResources().getString(R.string.fpNameSimulatedPoints),
-                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION)});
-            // user created
-            database.execSQL(
-                    sqlInsertFavoritesProfileQuery,
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_USER_CREATED_POINTS),
-                        context.getResources().getString(R.string.fpNameUserCreatedPoints),
-                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION)});
-            // create a custom profile and delete immediately
-            database.execSQL(
-                    sqlInsertFavoritesProfileQuery,
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE),
-                        "placeholder",
-                        String.valueOf(Constants.SORT_CRITERIA.ORDER_DESC),
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION)});
-            database.execSQL(
-                    String.format(
-                        "DELETE FROM %1$s WHERE %2$s = ?",
-                        SQLiteHelper.TABLE_FAVORITES_PROFILE,
-                        SQLiteHelper.FAVORITES_PROFILE_ID),
-                    new String[] {
-                        String.valueOf(FavoritesProfile.ID_FIRST_USER_CREATED_PROFILE)});
-        }
-
+        /*
         // add search poi profile
         POIProfile searchPOIProfile = getPOIProfile(SearchFavoritesProfile.ID_SEARCH);
         if (searchPOIProfile == null) {
@@ -156,52 +85,17 @@ public class AccessDatabase {
                         String.valueOf(Constants.DUMMY.DIRECTION),
                         jsonEmptyArray.toString() });
         }
+        */
     }
 
 
     /**
-     * FavoritesProfile
+     * manage favorites
      */
 
-    public TreeMap<Integer,String> getFavoritesProfileMap() {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE, SQLiteHelper.TABLE_FAVORITES_PROFILE_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.FAVORITES_PROFILE_ID + " ASC");
-        TreeMap<Integer,String> favoritesProfileMap = new TreeMap<Integer,String>();
-        while (cursor.moveToNext()) {
-            favoritesProfileMap.put(
-                    cursor.getInt(cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_ID)),
-                    cursor.getString(cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_NAME)));
-        }
-        cursor.close();
-        return favoritesProfileMap;
-    }
-
-    public FavoritesProfile getFavoritesProfile(int id) {
-        // get profile parameters
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE, SQLiteHelper.TABLE_FAVORITES_PROFILE_ALL_COLUMNS,
-                String.format("%1$s = %2$d", SQLiteHelper.FAVORITES_PROFILE_ID, id),
-                null, null, null, null);
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-        } else {
-            cursor.close();
-            return null;
-        }
-        String favoritesProfileName = cursor.getString(
-                cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_NAME));
-        int favoritesProfileSortCriteria = cursor.getInt(
-                cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_SORT_CRITERIA));
-        String favoritesProfileJSONCenterSerialized = cursor.getString(
-                cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_CENTER));
-        int favoritesProfileDirection = cursor.getInt(
-                cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_DIRECTION));
-        cursor.close();
-
-        // get points for selected profile
-        JSONArray jsonPointList = new JSONArray();
-        cursor = database.rawQuery(
+    public JSONArray getJSONFavoritePointListOfProfile(int profileId) {
+        JSONArray jsonFavoritesPointList = new JSONArray();
+        Cursor cursor = database.rawQuery(
                 String.format(
                     "SELECT %1$s.%2$s AS %3$s, %4$s.%5$s AS %6$s FROM %7$s LEFT JOIN %8$s WHERE %9$s.%10$s = %11$s.%12$s AND %13$s.%14$s = ?",
                     SQLiteHelper.TABLE_POINT, SQLiteHelper.POINT_DATA, SQLiteHelper.POINT_DATA,
@@ -210,7 +104,7 @@ public class AccessDatabase {
                     SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_POINT_ID,
                     SQLiteHelper.TABLE_POINT, SQLiteHelper.POINT_ID,
                     SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.FP_POINTS_PROFILE_ID),
-                new String[]{String.valueOf(id)});
+                new String[]{String.valueOf(profileId)});
         while (cursor.moveToNext()) {
             JSONObject jsonPoint = null;
             try {
@@ -221,125 +115,15 @@ public class AccessDatabase {
                 jsonPoint = null;
             } finally {
                 if (jsonPoint != null) {
-                    jsonPointList.put(jsonPoint);
+                    jsonFavoritesPointList.put(jsonPoint);
                 }
             }
         }
         cursor.close();
-
-        // create favorites profile object
-        try {
-            return new FavoritesProfile(
-                    this.context,
-                    id,
-                    favoritesProfileName,
-                    favoritesProfileSortCriteria,
-                    new JSONObject(favoritesProfileJSONCenterSerialized),
-                    favoritesProfileDirection,
-                    jsonPointList);
-        } catch (JSONException e) {
-            return null;
-        }
+        return jsonFavoritesPointList;
     }
 
-    public String getNameOfFavoritesProfile(int id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE, SQLiteHelper.TABLE_FAVORITES_PROFILE_ALL_COLUMNS,
-                String.format("%1$s = %2$d", SQLiteHelper.FAVORITES_PROFILE_ID, id),
-                null, null, null, null);
-        String name = "";
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            name = cursor.getString(
-                    cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_NAME));
-        }
-        cursor.close();
-        return name;
-    }
-
-    public int getSortCriteriaOfFavoritesProfile(int id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE, SQLiteHelper.TABLE_FAVORITES_PROFILE_ALL_COLUMNS,
-                String.format("%1$s = %2$d", SQLiteHelper.FAVORITES_PROFILE_ID, id),
-                null, null, null, null);
-        int sortCriteria = Constants.SORT_CRITERIA.ORDER_DESC;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            sortCriteria = cursor.getInt(
-                    cursor.getColumnIndex(SQLiteHelper.FAVORITES_PROFILE_SORT_CRITERIA));
-        }
-        cursor.close();
-        return sortCriteria;
-    }
-
-    public int addFavoritesProfile(String newName, int newSortCriteria) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.FAVORITES_PROFILE_NAME, newName);
-        values.put(SQLiteHelper.FAVORITES_PROFILE_SORT_CRITERIA, newSortCriteria);
-        values.put(SQLiteHelper.FAVORITES_PROFILE_CENTER, Constants.DUMMY.LOCATION);
-        values.put(SQLiteHelper.FAVORITES_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
-        return (int) database.insertWithOnConflict(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_IGNORE);
-    }
-
-    public boolean updateNameAndSortCriteriaOfFavoritesProfile(
-            int id, String newName, int newSortCriteria) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.FAVORITES_PROFILE_NAME, newName);
-        values.put(SQLiteHelper.FAVORITES_PROFILE_SORT_CRITERIA, newSortCriteria);
-        int numberOfRowsAffected = database.updateWithOnConflict(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE,
-                values,
-                SQLiteHelper.FAVORITES_PROFILE_ID + " = ?", new String[]{String.valueOf(id)},
-                SQLiteDatabase.CONFLICT_IGNORE);
-        return numberOfRowsAffected == 1 ? true : false;
-    }
-
-    public boolean updateCenterAndDirectionOfFavoritesProfile(
-            int id, PointWrapper newCenter, int newDirection) {
-        ContentValues values = new ContentValues();
-        try {
-            values.put(SQLiteHelper.FAVORITES_PROFILE_CENTER, newCenter.toJson().toString());
-        } catch (JSONException | NullPointerException e) {
-            values.put(SQLiteHelper.FAVORITES_PROFILE_CENTER, "");
-        }
-        values.put(SQLiteHelper.FAVORITES_PROFILE_DIRECTION, newDirection);
-        int numberOfRowsAffected = database.updateWithOnConflict(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE,
-                values,
-                SQLiteHelper.FAVORITES_PROFILE_ID + " = ?", new String[]{String.valueOf(id)},
-                SQLiteDatabase.CONFLICT_IGNORE);
-        return numberOfRowsAffected == 1 ? true : false;
-    }
-
-    public void clearFavoritesProfile(int id) {
-        // delete points from FPPoints table
-        database.delete(
-                SQLiteHelper.TABLE_FP_POINTS,
-                String.format("%1$s = ?", SQLiteHelper.FP_POINTS_PROFILE_ID),
-                new String[] {String.valueOf(id)});
-        // delete orphan points
-        deleteOrphanPointsOfFavoriteProfile(id);
-        // kill previous favorites search instance
-        FavoritesManager.getInstance(this.context).destroySearchInstance();
-    }
-
-    public void removeFavoritesProfile(int id) {
-        // delete profile row from favorites_profile table
-        database.delete(
-                SQLiteHelper.TABLE_FAVORITES_PROFILE,
-                String.format("%1$s = ?", SQLiteHelper.FAVORITES_PROFILE_ID),
-                new String[] {String.valueOf(id)});
-        // delete orphan points
-        deleteOrphanPointsOfFavoriteProfile(id);
-        // kill previous favorites search instance
-        FavoritesManager.getInstance(this.context).destroySearchInstance();
-    }
-
-    public TreeSet<Integer> getCheckedFavoritesProfileIdsForPoint(PointWrapper pointWrapper) {
+    public TreeSet<Integer> getCheckedProfileIdsForFavoritePoint(PointWrapper pointWrapper, boolean poiProfilesOnly) {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_FP_POINTS, SQLiteHelper.TABLE_FP_POINTS_ALL_COLUMNS,
                 String.format(
@@ -349,18 +133,21 @@ public class AccessDatabase {
                 null, null, null, SQLiteHelper.FP_POINTS_PROFILE_ID + " ASC");
         TreeSet<Integer> profileIdSet = new TreeSet<Integer>();
         while (cursor.moveToNext()) {
-            profileIdSet.add(
-                    cursor.getInt(cursor.getColumnIndex(SQLiteHelper.FP_POINTS_PROFILE_ID)));
+            int profileId = cursor.getInt(cursor.getColumnIndex(SQLiteHelper.FP_POINTS_PROFILE_ID));
+            if (! poiProfilesOnly
+                    || profileId > 0) {
+                profileIdSet.add(profileId);
+            }
         }
         cursor.close();
         return profileIdSet;
     }
 
-    public void addPointToFavoritesProfile(PointWrapper pointToAdd, int profileId) {
+    public void addFavoritePointToProfile(PointWrapper pointToAdd, int profileId) {
         if (pointToAdd == null) {
             return;
-        } else if (profileId != FavoritesProfile.ID_ALL_POINTS) {
-            this.addPointToFavoritesProfile(pointToAdd, FavoritesProfile.ID_ALL_POINTS);
+        } else if (profileId != HistoryPointProfile.ID_ALL_POINTS) {
+            this.addFavoritePointToProfile(pointToAdd, HistoryPointProfile.ID_ALL_POINTS);
         } else {
             // add point to point table
             ContentValues values = new ContentValues();
@@ -386,11 +173,9 @@ public class AccessDatabase {
                 null,
                 fpValues,
                 SQLiteDatabase.CONFLICT_REPLACE);
-        // kill previous favorites search instance
-        FavoritesManager.getInstance(this.context).destroySearchInstance();
     }
 
-    public void removePointFromFavoritesProfile(PointWrapper pointToRemove, int profileId) {
+    public void removeFavoritePointFromProfile(PointWrapper pointToRemove, int profileId) {
         if (pointToRemove == null) {
             return;
         }
@@ -402,12 +187,20 @@ public class AccessDatabase {
                 new String[] {
                     String.valueOf(profileId), String.valueOf(pointToRemove.hashCode())});
         // delete point from points table if not longer part of any favorites profile
-        deleteOrphanPointsOfFavoriteProfile(profileId);
-        // kill previous favorites search instance
-        FavoritesManager.getInstance(this.context).destroySearchInstance();
+        deleteOrphanFavoritePointsOfProfile(profileId);
     }
 
-    private void deleteOrphanPointsOfFavoriteProfile(int id) {
+    public void removeAllFavoritePointsFromProfile(int profileId) {
+        // delete points from FPPoints table
+        database.delete(
+                SQLiteHelper.TABLE_FP_POINTS,
+                String.format("%1$s = ?", SQLiteHelper.FP_POINTS_PROFILE_ID),
+                new String[] {String.valueOf(profileId)});
+        // delete orphan points
+        deleteOrphanFavoritePointsOfProfile(profileId);
+    }
+
+    private void deleteOrphanFavoritePointsOfProfile(int id) {
         database.execSQL(
                 String.format(
                     "DELETE FROM %1$s where %2$s IN (SELECT %3$s.%4$s FROM %5$s LEFT JOIN %6$s ON %7$s.%8$s = %9$s.%10$s WHERE %11$s.%12$s IS NULL);",
@@ -428,8 +221,7 @@ public class AccessDatabase {
     public TreeMap<Integer,String> getPOIProfileMap() {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
-                String.format("%1$s != %2$d", SQLiteHelper.POI_PROFILE_ID, SearchFavoritesProfile.ID_SEARCH),
-                null, null, null, SQLiteHelper.POI_PROFILE_ID + " ASC");
+                null, null, null, null, SQLiteHelper.POI_PROFILE_ID + " ASC");
         TreeMap<Integer,String> poiProfileMap = new TreeMap<Integer,String>();
         while (cursor.moveToNext()) {
             poiProfileMap.put(
@@ -459,6 +251,9 @@ public class AccessDatabase {
                             cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_RADIUS)),
                         cursor.getInt(
                             cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS)),
+                        new JSONArray(
+                            cursor.getString(
+                                cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_FAVORITE_ID_LIST))),
                         new JSONArray(
                             cursor.getString(
                                 cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST))),
@@ -493,6 +288,30 @@ public class AccessDatabase {
         }
         cursor.close();
         return name;
+    }
+
+    public ArrayList<Integer> getFavoriteIdListOfPOIProfile(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
+                String.format("%1$s = %2$d", SQLiteHelper.POI_PROFILE_ID, id),
+                null, null, null, null);
+        ArrayList<Integer> favoriteIdList = new ArrayList<Integer>();
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            JSONArray jsonFavoriteIdList = new JSONArray();
+            try {
+                jsonFavoriteIdList = new JSONArray(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_FAVORITE_ID_LIST)));
+            } catch (JSONException     e) {}
+            for (int i=0; i<jsonFavoriteIdList.length(); i++) {
+                try {
+                    favoriteIdList.add(jsonFavoriteIdList.getInt(i));
+                } catch (JSONException     e) {}
+            }
+        }
+        cursor.close();
+        return favoriteIdList;
     }
 
     public ArrayList<POICategory> getCategoryListOfPOIProfile(int id) {
@@ -536,16 +355,13 @@ public class AccessDatabase {
         return searchTerm;
     }
 
-    public int addPOIProfile(String name, ArrayList<POICategory> poiCategoryList) {
+    public int addPOIProfile(String name) {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.POI_PROFILE_NAME, name);
         values.put(SQLiteHelper.POI_PROFILE_RADIUS, POIProfile.INITIAL_RADIUS);
         values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
-        JSONArray jsonPOICategoryIdList = new JSONArray();
-        for (POICategory category : poiCategoryList) {
-            jsonPOICategoryIdList.put(category.getId());
-        }
-        values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, jsonPOICategoryIdList.toString());
+        values.put(SQLiteHelper.POI_PROFILE_FAVORITE_ID_LIST, (new JSONArray()).toString());
+        values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, (new JSONArray()).toString());
         values.put(SQLiteHelper.POI_PROFILE_SEARCH_TERM, "");
         values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
         values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
@@ -557,45 +373,47 @@ public class AccessDatabase {
                 SQLiteDatabase.CONFLICT_IGNORE);
     }
 
-    public boolean updateNameAndCategoryListOfPOIProfile(
-            int id, String name, ArrayList<POICategory> poiCategoryList) {
+    public boolean updateNameAndCategoriesOfPOIProfile(int id, String name,
+            ArrayList<Integer> favorite_id_list, ArrayList<POICategory> poiCategoryList) {
+        return updateNameCategoriesAndSearchTermOfPOIProfile(
+                id,
+                name,
+                favorite_id_list,
+                poiCategoryList,
+                getSearchTermOfPOIProfile(id));
+    }
+
+    public boolean updateSearchTermOfPOIProfile(int id, String newSearchTerm) {
+        return updateNameCategoriesAndSearchTermOfPOIProfile(
+                id,
+                getNameOfPOIProfile(id),
+                getFavoriteIdListOfPOIProfile(id),
+                getCategoryListOfPOIProfile(id),
+                newSearchTerm);
+    }
+
+    private boolean updateNameCategoriesAndSearchTermOfPOIProfile(int id, String name,
+            ArrayList<Integer> favorite_id_list, ArrayList<POICategory> poiCategoryList, String newSearchTerm) {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.POI_PROFILE_NAME, name);
-        values.put(SQLiteHelper.POI_PROFILE_RADIUS, id == SearchFavoritesProfile.ID_SEARCH ? POIProfile.INITIAL_SEARCH_RADIUS : POIProfile.INITIAL_RADIUS);
+        if (poiCategoryList.isEmpty()) {
+            values.put(SQLiteHelper.POI_PROFILE_RADIUS, POIProfile.INITIAL_LOCAL_FAVORITES_RADIUS);
+        } else if (! TextUtils.isEmpty(newSearchTerm)) {
+            values.put(SQLiteHelper.POI_PROFILE_RADIUS, POIProfile.INITIAL_SEARCH_RADIUS);
+        } else {
+            values.put(SQLiteHelper.POI_PROFILE_RADIUS, POIProfile.INITIAL_RADIUS);
+        }
         values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
+        JSONArray jsonFavoriteIdList = new JSONArray();
+        for (Integer favoriteId : favorite_id_list) {
+            jsonFavoriteIdList.put(favoriteId);
+        }
+        values.put(SQLiteHelper.POI_PROFILE_FAVORITE_ID_LIST, jsonFavoriteIdList.toString());
         JSONArray jsonPOICategoryIdList = new JSONArray();
         for (POICategory category : poiCategoryList) {
             jsonPOICategoryIdList.put(category.getId());
         }
         values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, jsonPOICategoryIdList.toString());
-        values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
-        values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
-        values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
-        int numberOfRowsAffected = database.updateWithOnConflict(
-                SQLiteHelper.TABLE_POI_PROFILE,
-                values,
-                SQLiteHelper.POI_PROFILE_ID + " = ?", new String[]{String.valueOf(id)},
-                SQLiteDatabase.CONFLICT_IGNORE);
-        return numberOfRowsAffected == 1 ? true : false;
-    }
-
-    public boolean updateRadiusAndNumberOfResultsOfPOIProfile(
-            int id, int newRadius, int newNumberOfResults) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.POI_PROFILE_RADIUS, newRadius);
-        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, newNumberOfResults);
-        int numberOfRowsAffected = database.updateWithOnConflict(
-                SQLiteHelper.TABLE_POI_PROFILE,
-                values,
-                SQLiteHelper.POI_PROFILE_ID + " = ?", new String[]{String.valueOf(id)},
-                SQLiteDatabase.CONFLICT_IGNORE);
-        return numberOfRowsAffected == 1 ? true : false;
-    }
-
-    public boolean updateSearchTermOfPOIProfile(int id, String newSearchTerm) {
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.POI_PROFILE_RADIUS, id == SearchFavoritesProfile.ID_SEARCH ? POIProfile.INITIAL_SEARCH_RADIUS : POIProfile.INITIAL_RADIUS);
-        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, POIProfile.INITIAL_NUMBER_OF_RESULTS);
         values.put(SQLiteHelper.POI_PROFILE_SEARCH_TERM, newSearchTerm);
         values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
         values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
@@ -608,9 +426,12 @@ public class AccessDatabase {
         return numberOfRowsAffected == 1 ? true : false;
     }
 
-    public boolean updateCenterDirectionANPointListOfPOIProfile(
-            int id, PointWrapper newCenter, int newDirection, ArrayList<PointProfileObject> newPointList) {
+    public boolean updateRadiusNumberOfResultsCenterDirectionAndPointListOfPOIProfile(
+            int id, int newRadius, int newNumberOfResults,
+            PointWrapper newCenter, int newDirection, ArrayList<PointProfileObject> newPointList) {
         ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.POI_PROFILE_RADIUS, newRadius);
+        values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, newNumberOfResults);
         try {
             values.put(SQLiteHelper.POI_PROFILE_CENTER, newCenter.toJson().toString());
         } catch (JSONException | NullPointerException e) {
@@ -637,10 +458,13 @@ public class AccessDatabase {
     }
 
     public void removePOIProfile(int id) {
+        // delete poi profile
         database.delete(
                 SQLiteHelper.TABLE_POI_PROFILE,
                 SQLiteHelper.POI_PROFILE_ID + " = ?",
                 new String[] {String.valueOf(id)});
+        // delete favorite points from fp_points table
+        removeAllFavoritePointsFromProfile(id);
     }
 
 
@@ -648,28 +472,31 @@ public class AccessDatabase {
      * routes
      */
 
-    public TreeMap<Integer,String> getRouteMap() {
+    public ArrayList<Integer> getRouteIdList(String orderBy) {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.ROUTE_CREATED + " ASC");
-        TreeMap<Integer,String> routeMap = new TreeMap<Integer,String>();
+                null, null, null, null, orderBy);
+        ArrayList<Integer> routeIdList = new ArrayList<Integer>();
         while (cursor.moveToNext()) {
-            try {
-                routeMap.put(
-                        cursor.getInt(cursor.getColumnIndex(SQLiteHelper.ROUTE_ID)),
-                        String.format(
-                            "%1$s: %2$s\n%3$s: %4$s",
-                            context.getResources().getString(R.string.buttonStartPoint),
-                            (new JSONObject(
-                                cursor.getString(cursor.getColumnIndex(SQLiteHelper.ROUTE_START)))).getString("name"),
-                            context.getResources().getString(R.string.buttonDestinationPoint),
-                            (new JSONObject(
-                                cursor.getString(cursor.getColumnIndex(SQLiteHelper.ROUTE_DESTINATION)))).getString("name"))
-                        );
-            } catch (JSONException e) {}
+            routeIdList.add(cursor.getInt(cursor.getColumnIndex(SQLiteHelper.ROUTE_ID)));
         }
         cursor.close();
-        return routeMap;
+        return routeIdList;
+    }
+
+    public String getNameOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        String name = "";
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            name = cursor.getString(
+                    cursor.getColumnIndex(SQLiteHelper.ROUTE_NAME));
+        }
+        cursor.close();
+        return name;
     }
 
     public Route getRoute(int id) throws JSONException {
@@ -702,61 +529,6 @@ public class AccessDatabase {
         }
         cursor.close();
         return route;
-    }
-
-    public int getCurrentObjectIndexOfRoute(int id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
-                SQLiteHelper.ROUTE_ID + " = " + id,
-                null, null, null, null);
-        int currentObjectIndex = -1;
-        if (cursor.moveToFirst()) {
-            currentObjectIndex = cursor.getInt(
-                    cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX));
-        }
-        cursor.close();
-        return currentObjectIndex;
-    }
-
-    public boolean setCurrentObjectIndexOfRoute(int id, int newObjectIndex) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
-                SQLiteHelper.ROUTE_ID + " = " + id,
-                null, null, null, null);
-        if (cursor.moveToFirst()) {
-            int currentObjectIndex = cursor.getInt(
-                    cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX));
-            JSONArray jsonRouteObjectList = null;
-            try {
-                jsonRouteObjectList = new JSONArray(
-                        cursor.getString(
-                            cursor.getColumnIndex(SQLiteHelper.ROUTE_OBJECT_LIST)));
-            } catch (JSONException e) {
-                jsonRouteObjectList = new JSONArray();
-            }
-            if (newObjectIndex != currentObjectIndex
-                    && newObjectIndex >= 0
-                    && newObjectIndex < jsonRouteObjectList.length()) {
-                ContentValues values = null;
-                try {
-                    values = new ContentValues();
-                    values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX, newObjectIndex);
-                    values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_DATA, jsonRouteObjectList.getJSONObject(newObjectIndex).toString());
-                } catch (JSONException e) {
-                    values = null;
-                }
-                if (values != null) {
-                    int numberOfRowsAffected = database.updateWithOnConflict(
-                            SQLiteHelper.TABLE_ROUTE,
-                            values,
-                            SQLiteHelper.ROUTE_ID + " = ?",
-                            new String[]{String.valueOf(id)},
-                            SQLiteDatabase.CONFLICT_REPLACE);
-                    return numberOfRowsAffected == 1 ? true : false;
-                }
-            }
-        }
-        return false;
     }
 
     public PointWrapper getStartPointOfRoute(int id) {
@@ -827,6 +599,20 @@ public class AccessDatabase {
         return viaPointList;
     }
 
+    public int getCurrentObjectIndexOfRoute(int id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        int currentObjectIndex = -1;
+        if (cursor.moveToFirst()) {
+            currentObjectIndex = cursor.getInt(
+                    cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX));
+        }
+        cursor.close();
+        return currentObjectIndex;
+    }
+
     public RouteObject getCurrentObjectDataOfRoute(int id) {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
@@ -860,6 +646,10 @@ public class AccessDatabase {
             jsonViaPointList.put(viaPoint.toJson());
         }
         values.put(SQLiteHelper.ROUTE_VIA_POINT_LIST, jsonViaPointList.toString());
+        values.put(SQLiteHelper.ROUTE_NAME, String.format(
+                    "%1$s\n%2$s",
+                    startPoint.getPoint().getName(),
+                    destinationPoint.getPoint().getName()));
         values.put(SQLiteHelper.ROUTE_DESCRIPTION, description);
         values.put(SQLiteHelper.ROUTE_CREATED, System.currentTimeMillis());
         values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX, 0);
@@ -870,34 +660,72 @@ public class AccessDatabase {
         }
         values.put(SQLiteHelper.ROUTE_OBJECT_LIST, jsonRouteObjectList.toString());
         // try to insert
-        int id = (int) database.insertWithOnConflict(
-                SQLiteHelper.TABLE_ROUTE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-        System.out.println("xxx insert route: " + id);
-        // if insertion fails, update the existing row
-        if (id == -1) {
-            Cursor cursor = database.query(
-                    SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
-                    String.format(
-                        "%1$s = %2$s AND %3$s = %4$s AND %5$s = %6$s",
-                        SQLiteHelper.ROUTE_START,
-                        DatabaseUtils.sqlEscapeString(values.getAsString(SQLiteHelper.ROUTE_START)),
-                        SQLiteHelper.ROUTE_DESTINATION,
-                        DatabaseUtils.sqlEscapeString(values.getAsString(SQLiteHelper.ROUTE_DESTINATION)),
-                        SQLiteHelper.ROUTE_DESCRIPTION,
-                        DatabaseUtils.sqlEscapeString(values.getAsString(SQLiteHelper.ROUTE_DESCRIPTION))),
-                    null, null, null, null);
-            if (cursor.moveToFirst()) {
-                id = cursor.getInt(cursor.getColumnIndex(SQLiteHelper.ROUTE_ID));
-                database.update(
-                        SQLiteHelper.TABLE_ROUTE,
-                        values,
-                        String.format("%1$s = ?", SQLiteHelper.ROUTE_ID),
-                        new String[]{String.valueOf(id)});
-                System.out.println("xxx updated route: " + id);
+        return (int) database.insertWithOnConflict(
+                SQLiteHelper.TABLE_ROUTE,
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public boolean updateCurrentObjectIndexOfRoute(int id, int newObjectIndex) {
+        ContentValues values = null;
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_ROUTE, SQLiteHelper.TABLE_ROUTE_ALL_COLUMNS,
+                SQLiteHelper.ROUTE_ID + " = " + id,
+                null, null, null, null);
+        if (cursor.moveToFirst()) {
+            int currentObjectIndex = cursor.getInt(
+                    cursor.getColumnIndex(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX));
+            JSONArray jsonRouteObjectList = null;
+            try {
+                jsonRouteObjectList = new JSONArray(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.ROUTE_OBJECT_LIST)));
+            } catch (JSONException e) {
+                jsonRouteObjectList = new JSONArray();
             }
-            cursor.close();
+            if (newObjectIndex != currentObjectIndex
+                    && newObjectIndex >= 0
+                    && newObjectIndex < jsonRouteObjectList.length()) {
+                values = new ContentValues();
+                try {
+                    values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_INDEX, newObjectIndex);
+                    values.put(SQLiteHelper.ROUTE_CURRENT_OBJECT_DATA, jsonRouteObjectList.getJSONObject(newObjectIndex).toString());
+                } catch (JSONException e) {
+                    values = null;
+                }
+            }
         }
-        return id;
+		cursor.close();
+        // update row
+        if (values != null) {
+            int numberOfRowsAffected = database.updateWithOnConflict(
+                    SQLiteHelper.TABLE_ROUTE,
+                    values,
+                    SQLiteHelper.ROUTE_ID + " = ?",
+                    new String[]{String.valueOf(id)},
+                    SQLiteDatabase.CONFLICT_REPLACE);
+            return numberOfRowsAffected == 1 ? true : false;
+        }
+        return false;
+    }
+
+    public boolean updateTimestampOfRoute(int id) {
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.ROUTE_CREATED, System.currentTimeMillis());
+        int numberOfRowsAffected = database.updateWithOnConflict(
+                SQLiteHelper.TABLE_ROUTE,
+                values,
+                SQLiteHelper.ROUTE_ID + " = ?", new String[]{String.valueOf(id)},
+                SQLiteDatabase.CONFLICT_IGNORE);
+        return numberOfRowsAffected == 1 ? true : false;
+    }
+
+    public void removeRoute(int id) {
+        database.delete(
+                SQLiteHelper.TABLE_ROUTE,
+                SQLiteHelper.ROUTE_ID + " = ?",
+                new String[] {String.valueOf(id)});
     }
 
 

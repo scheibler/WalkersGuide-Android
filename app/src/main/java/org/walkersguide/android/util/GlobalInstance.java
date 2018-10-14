@@ -1,14 +1,15 @@
 package org.walkersguide.android.util;
 
+import android.app.Application;
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 
-import android.app.Application;
-import org.walkersguide.android.database.AccessDatabase;
 
 public class GlobalInstance extends Application {
 

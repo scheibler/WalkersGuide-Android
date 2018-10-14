@@ -1,8 +1,10 @@
 package org.walkersguide.android.data.server;
 
 import android.text.TextUtils;
-import org.json.JSONObject;
+
 import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class OSMMap {
 

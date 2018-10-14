@@ -18,7 +18,8 @@
     <!-- paddings -->
     <dimen name="smallPadding">5dp</dimen>
 
-    <!-- screen sizes smaller than 380 -->
+    <!-- text size -->
     <dimen name="globalTextSize">20sp</dimen>
+    <dimen name="bigTextSize">26sp</dimen>
 
 </resources>

@@ -1,21 +1,21 @@
 package org.walkersguide.android.ui.adapter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByDistanceFromCurrentPosition;
-
 import android.content.Context;
+
+import android.text.TextUtils;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.text.TextUtils;
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+
+import java.util.ArrayList;
+
 import org.walkersguide.android.data.basic.segment.Footway;
+import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.R;
 
 
 public class SegmentWrapperAdapter extends ArrayAdapter<SegmentWrapper> {

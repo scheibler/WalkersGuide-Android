@@ -1,22 +1,24 @@
 package org.walkersguide.android.data.profile;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByDistanceFromCenterASC;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByDistanceFromCenterDESC;
-import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByNameASC;
-import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByNameDESC;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameASC;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameDESC;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByOrderASC;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByOrderDESC;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.util.Constants;
 
-import android.content.Context;
 
 public abstract class PointProfile {
 
@@ -75,9 +77,16 @@ public abstract class PointProfile {
         return this.direction;
     }
 
-    public void setCenterAndDirection(PointWrapper newCenter, int newDirection) {
+    public ArrayList<PointProfileObject> getPointProfileObjectList() {
+        return this.pointProfileObjectList;
+    }
+
+    public void setCenterDirectionAndPointList(PointWrapper newCenter, int newDirection,
+            ArrayList<PointProfileObject> newPointProfileObjectList) {
         this.center = newCenter;
         this.direction = newDirection;
+        this.pointProfileObjectList = newPointProfileObjectList;
+        // sort point list
         if (this.pointProfileObjectList != null) {
             switch (getSortCriteria()) {
                 case Constants.SORT_CRITERIA.NAME_ASC:
@@ -108,14 +117,6 @@ public abstract class PointProfile {
                     break;
             }
         }
-    }
-
-    public ArrayList<PointProfileObject> getPointProfileObjectList() {
-        return this.pointProfileObjectList;
-    }
-
-    public void setPointProfileObjectList(ArrayList<PointProfileObject> newPointList) {
-        this.pointProfileObjectList = newPointList;
     }
 
     @Override public String toString() {

@@ -1,13 +1,15 @@
 package org.walkersguide.android.data.route;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 
-import android.content.Context;
 
 public class RoutePoint extends PointWrapper {
 
@@ -31,19 +33,16 @@ public class RoutePoint extends PointWrapper {
     @Override public String toString() {
         if (this.turn == -1) {
             return this.getPoint().getName();
-        }
-        switch (StringUtility.getDirectionConstant(turn)) {
-            case Constants.DIRECTION.NORTH:
-            case Constants.DIRECTION.SOUTH:
-                return String.format(
-                        super.getContext().getResources().getString(R.string.routePointNoTurnToString),
-                        StringUtility.formatInstructionDirection(super.getContext(), this.turn),
-                        this.getPoint().getName());
-            default:
-                return String.format(
-                        super.getContext().getResources().getString(R.string.routePointTurnToString),
-                        StringUtility.formatInstructionDirection(super.getContext(), this.turn),
-                        this.getPoint().getName());
+        } else if (StringUtility.getDirectionConstant(turn) == Constants.DIRECTION.NORTH) {
+            return String.format(
+                    super.getContext().getResources().getString(R.string.routePointToStringCross),
+                    StringUtility.formatInstructionDirection(super.getContext(), this.turn),
+                    this.getPoint().getName());
+        } else {
+            return String.format(
+                    super.getContext().getResources().getString(R.string.routePointToString),
+                    StringUtility.formatInstructionDirection(super.getContext(), this.turn),
+                    this.getPoint().getName());
         }
     }
 

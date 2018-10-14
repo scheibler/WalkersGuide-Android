@@ -1,43 +1,59 @@
 package org.walkersguide.android.ui.dialog;
 
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.FavoritesProfile;
-import org.walkersguide.android.data.route.Route;
-import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.server.AddressManager;
-import org.walkersguide.android.helper.PointUtility;
-import org.walkersguide.android.listener.AddressListener;
-import org.walkersguide.android.listener.ChildDialogCloseListener;
-import org.walkersguide.android.listener.RouteListener;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.RouteManager;
-import org.walkersguide.android.ui.activity.MainActivity;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.RouteSettings;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.Toast;
+
 import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.point.GPS;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
+import org.walkersguide.android.data.route.Route;
+import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.helper.PointUtility;
+import org.walkersguide.android.listener.AddressListener;
+import org.walkersguide.android.listener.ChildDialogCloseListener;
+import org.walkersguide.android.listener.RouteListener;
+import org.walkersguide.android.R;
+import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.server.AddressManager;
+import org.walkersguide.android.server.RouteManager;
+import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.view.CheckBoxGroupView;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.SettingsManager.RouteSettings;
+import android.widget.CheckBox;
+
 
 public class PlanRouteDialog extends DialogFragment
     implements AddressListener, ChildDialogCloseListener, RouteListener {
@@ -244,16 +260,16 @@ public class PlanRouteDialog extends DialogFragment
         if (returnCode == Constants.RC.OK) {
             RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
             routeSettings.setSelectedRouteId(routeId);
-            // add start and destination to route points favorites profile
+            // add start and destination to route points history point profile
             PointWrapper startPoint = routeSettings.getStartPoint();
             if (! startPoint.equals(PositionManager.getDummyLocation(getActivity()))
                     && ! GPS.class.isInstance(startPoint.getPoint())) {
-                accessDatabaseInstance.addPointToFavoritesProfile(startPoint, FavoritesProfile.ID_ROUTE_POINTS);
+                accessDatabaseInstance.addFavoritePointToProfile(startPoint, HistoryPointProfile.ID_ROUTE_POINTS);
             }
             PointWrapper destinationPoint = routeSettings.getDestinationPoint();
             if (! destinationPoint.equals(PositionManager.getDummyLocation(getActivity()))
                     && ! GPS.class.isInstance(destinationPoint.getPoint())) {
-                accessDatabaseInstance.addPointToFavoritesProfile(destinationPoint, FavoritesProfile.ID_ROUTE_POINTS);
+                accessDatabaseInstance.addFavoritePointToProfile(destinationPoint, HistoryPointProfile.ID_ROUTE_POINTS);
             }
             // show router fragment of main activity
     		settingsManagerInstance.getGeneralSettings().setRecentOpenTab(Constants.MAIN_FRAGMENT.ROUTER);
@@ -297,14 +313,14 @@ public class PlanRouteDialog extends DialogFragment
                 if (startPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
                     buttonStartPoint.setText(
                             String.format(
-                                "%1$s\n%2$s",
+                                "%1$s:\n%2$s",
                                 context.getResources().getString(R.string.buttonStartPoint),
                                 context.getResources().getString(R.string.labelNoSimulatedPointSelected))
                             );
                 } else {
                     buttonStartPoint.setText(
                             String.format(
-                                "%1$s\n%2$s",
+                                "%1$s:\n%2$s",
                                 context.getResources().getString(R.string.buttonStartPoint),
                                 startPoint.toString())
                             );
@@ -364,14 +380,14 @@ public class PlanRouteDialog extends DialogFragment
                 if (destinationPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
                     buttonDestinationPoint.setText(
                             String.format(
-                                "%1$s\n%2$s",
+                                "%1$s:\n%2$s",
                                 context.getResources().getString(R.string.buttonDestinationPoint),
                                 context.getResources().getString(R.string.labelNoSimulatedPointSelected))
                             );
                 } else {
                     buttonDestinationPoint.setText(
                             String.format(
-                                "%1$s\n%2$s",
+                                "%1$s:\n%2$s",
                                 context.getResources().getString(R.string.buttonDestinationPoint),
                                 destinationPoint.toString())
                             );
@@ -424,6 +440,256 @@ public class PlanRouteDialog extends DialogFragment
             vibrator.vibrate(50);
             progressHandler.postDelayed(this, 2000);
         }
+    }
+
+
+    public static class SelectIndirectionFactorDialog extends DialogFragment {
+
+        // Store instance variables
+        private SettingsManager settingsManagerInstance;
+        private ServerStatusManager serverStatusManagerInstance;
+
+        public static SelectIndirectionFactorDialog newInstance() {
+            SelectIndirectionFactorDialog selectIndirectionFactorDialog = new SelectIndirectionFactorDialog();
+            return selectIndirectionFactorDialog;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            settingsManagerInstance = SettingsManager.getInstance(context);
+            serverStatusManagerInstance = ServerStatusManager.getInstance(context);
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
+            String[] formattedIndirectionFactorArray = new String[0];
+            if (serverInstance != null) {
+                formattedIndirectionFactorArray = new String[serverInstance.getSupportedIndirectionFactorList().size()];
+            }
+            int indexOfSelectedIndirectionFactor = -1;
+            int index = 0;
+            if (serverInstance != null) {
+                for (Double indirectionFactor : serverInstance.getSupportedIndirectionFactorList()) {
+                    formattedIndirectionFactorArray[index] = String.format("%1$.1f", indirectionFactor);
+                    if (indirectionFactor == settingsManagerInstance.getRouteSettings().getIndirectionFactor()) {
+                        indexOfSelectedIndirectionFactor = index;
+                    }
+                    index += 1;
+                }
+            }
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.selectIndirectionFactorDialogTitle))
+                .setSingleChoiceItems(
+                        formattedIndirectionFactorArray,
+                        indexOfSelectedIndirectionFactor,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                double newIndirectionFactor = -1.0;
+                                try {
+                                    newIndirectionFactor = serverStatusManagerInstance.getServerInstance().getSupportedIndirectionFactorList().get(which);
+                                } catch (IndexOutOfBoundsException e) {
+                                    newIndirectionFactor = -1.0;
+                                } finally {
+                                    if (newIndirectionFactor != -1.0) {
+                                        settingsManagerInstance.getRouteSettings().setIndirectionFactor(newIndirectionFactor);
+                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                                    }
+                                }
+                                dismiss();
+                            }
+                        }
+                        )
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogCancel),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dismiss();
+                            }
+                        }
+                        )
+                .create();
+        }
+    }
+
+
+    public static class SelectRoutingWayClassesDialog extends DialogFragment {
+
+        // Store instance variables
+        private SettingsManager settingsManagerInstance;
+        private ServerInstance serverInstance;
+        private ArrayList<WayClass> checkedWayClassList;
+
+        // ui components
+        private CheckBoxGroupView checkBoxGroupRoutingWayClasses;
+
+        public static SelectRoutingWayClassesDialog newInstance() {
+            SelectRoutingWayClassesDialog selectRoutingWayClassesDialog = new SelectRoutingWayClassesDialog();
+            return selectRoutingWayClassesDialog;
+        }
+
+        @Override public void onAttach(Context context){
+            super.onAttach(context);
+            settingsManagerInstance = SettingsManager.getInstance(context);
+            serverInstance = ServerStatusManager.getInstance(context).getServerInstance();
+        }
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            if (savedInstanceState != null) {
+                checkedWayClassList = new ArrayList<WayClass>();
+                JSONArray jsonCheckedWayClassIdList = null;
+                try {
+                    jsonCheckedWayClassIdList = new JSONArray(
+                            savedInstanceState.getString("jsonCheckedWayClassIdList"));
+                } catch (JSONException e) {
+                    jsonCheckedWayClassIdList = null;
+                } finally {
+                    if (jsonCheckedWayClassIdList != null) {
+                        for (int i=0; i<jsonCheckedWayClassIdList.length(); i++) {
+                            try {
+                                checkedWayClassList.add(
+                                        new WayClass(
+                                            getActivity(), jsonCheckedWayClassIdList.getString(i)));
+                            } catch (JSONException e) {}
+                        }
+                    }
+                }
+            } else {
+                checkedWayClassList = settingsManagerInstance.getRouteSettings().getWayClassList();
+            }
+
+            // custom view
+            final ViewGroup nullParent = null;
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.layout_single_check_box_group, nullParent);
+
+            checkBoxGroupRoutingWayClasses = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
+            if (serverInstance != null) {
+                for (WayClass wayClass : serverInstance.getSupportedWayClassList()) {
+                    CheckBox checkBox = new CheckBox(getActivity());
+                    checkBox.setTag(wayClass.getId());
+                    checkBox.setLayoutParams(
+                            new LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT)
+                            );
+                    checkBox.setText(wayClass.getName());
+                    checkBox.setOnClickListener(new View.OnClickListener() {
+                        @Override public void onClick(View view) {
+                            checkedWayClassList = getCheckedItemsOfWayClassCheckBoxGroup();
+                            onStart();
+                        }
+                    });
+                    checkBoxGroupRoutingWayClasses.put(checkBox);
+                }
+            }
+
+            // create dialog
+            return new AlertDialog.Builder(getActivity())
+                .setTitle(getResources().getString(R.string.selectRoutingWayClassesDialogTitle))
+                .setView(view)
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogOK),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
+                .setNeutralButton(
+                        getResources().getString(R.string.dialogClear),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogCancel),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }
+                        )
+                .create();
+        }
+
+        @Override public void onStart() {
+            super.onStart();
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                // check boxes
+                for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckBoxList()) {
+                    checkBox.setChecked(
+                            checkedWayClassList.contains(
+                                new WayClass(getActivity(), (String) checkBox.getTag())));
+                }
+
+                // positive button
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        if (checkedWayClassList.isEmpty()) {
+                            Toast.makeText(
+                                    getActivity(),
+                                    getResources().getString(R.string.messageNoAllowedWayClassSelected),
+                                    Toast.LENGTH_LONG).show();
+                        } else {
+                            settingsManagerInstance.getRouteSettings().setWayClassList(checkedWayClassList);
+                            dialog.dismiss();
+                        }
+                    }
+                });
+
+                // neutral button
+                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                if (checkBoxGroupRoutingWayClasses.nothingChecked()) {
+                    buttonNeutral.setText(
+                            getResources().getString(R.string.dialogAll));
+                } else {
+                    buttonNeutral.setText(
+                            getResources().getString(R.string.dialogClear));
+                }
+                buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        if (checkBoxGroupRoutingWayClasses.nothingChecked()
+                                && serverInstance != null) {
+                            checkedWayClassList = serverInstance.getSupportedWayClassList();
+                        } else {
+                            checkedWayClassList = new ArrayList<WayClass>();
+                        }
+                        onStart();
+                    }
+                });
+
+                // negative button
+                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                buttonNegative.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+            }
+        }
+
+        @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+            super.onSaveInstanceState(savedInstanceState);
+            JSONArray jsonCheckedWayClassIdList = new JSONArray();
+            for (WayClass wayClass : getCheckedItemsOfWayClassCheckBoxGroup()) {
+                jsonCheckedWayClassIdList.put(wayClass.getId());
+            }
+            savedInstanceState.putString("jsonCheckedWayClassIdList", jsonCheckedWayClassIdList.toString());
+        }
+
+        private ArrayList<WayClass> getCheckedItemsOfWayClassCheckBoxGroup() {
+            ArrayList<WayClass> wayClassList = new ArrayList<WayClass>();
+            for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckedCheckBoxList()) {
+                wayClassList.add(
+                        new WayClass(getActivity(), (String) checkBox.getTag()));
+            }
+            return wayClassList;
+        }
+
     }
 
 }

@@ -1,21 +1,63 @@
 package org.walkersguide.android.ui.activity;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+
+import android.os.Bundle;
+import android.os.Handler;
+
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.ViewPager;
+import android.support.v7.widget.Toolbar;
+
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
+import android.widget.Switch;
+import android.widget.TextView;
+
 import java.lang.ref.WeakReference;
+
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
+import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.basic.point.Intersection;
 import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.FavoritesProfile;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.ChildDialogCloseListener;
 import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
@@ -28,44 +70,7 @@ import org.walkersguide.android.ui.fragment.pointdetails.PointDetailsFragment;
 import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.RouteSettings;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.PopupMenu;
-import android.widget.PopupMenu.OnMenuItemClickListener;
-import android.widget.Switch;
-import android.widget.TextView;
-import org.walkersguide.android.helper.PointUtility;
-import android.view.Menu;
-import java.util.ArrayList;
-import org.walkersguide.android.data.basic.point.StreetAddress;
-import org.json.JSONArray;
 
 public class PointDetailsActivity extends AbstractActivity implements OnMenuItemClickListener {
 
@@ -79,6 +84,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
     private TabLayout tabLayout;
     private int recentFragment;
     private TextView labelPointDistanceAndBearing;
+    private Switch buttonPointSimulateLocation;
 
     // point, address, entrance, gps,
 	private PointPagerAdapter pointPagerAdapter;
@@ -128,7 +134,8 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 
         if (pointWrapper != null) {
             getSupportActionBar().setTitle(
-                    pointWrapper.getPoint().getType());
+                    StringUtility.formatPointType(
+                        PointDetailsActivity.this, pointWrapper.getPoint().getType()));
             // name, subtype and distance
     		TextView labelPointName = (TextView) findViewById(R.id.labelPointName);
             labelPointName.setText(
@@ -148,38 +155,37 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
     		Button buttonPointFavorite = (Button) findViewById(R.id.buttonPointFavorite);
 	    	buttonPointFavorite.setOnClickListener(new View.OnClickListener() {
 		    	public void onClick(View view) {
-                    SelectFavoritesProfilesForPointDialog.newInstance(pointWrapper)
-                        .show(getSupportFragmentManager(), "SelectFavoritesProfilesForPointDialog");
+                    SelectPOIProfilesForPointDialog.newInstance(pointWrapper)
+                        .show(getSupportFragmentManager(), "SelectPOIProfilesForPointDialog");
                 }
             });
 
             // simulate location
-            Switch buttonPointSimulateLocation = (Switch) findViewById(R.id.buttonPointSimulateLocation);
-            if (positionManagerInstance.getLocationSource() == Constants.LOCATION_SOURCE.SIMULATION
-                    && pointWrapper.equals(positionManagerInstance.getCurrentLocation())) {
-                buttonPointSimulateLocation.setChecked(true);
-            }
+            buttonPointSimulateLocation = (Switch) findViewById(R.id.buttonPointSimulateLocation);
             buttonPointSimulateLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                    if (isChecked) {
+                    boolean isSimulated = 
+                           positionManagerInstance.getLocationSource() == Constants.LOCATION_SOURCE.SIMULATION
+                        && pointWrapper.equals(positionManagerInstance.getCurrentLocation());
+                    if (isChecked && ! isSimulated) {
                         positionManagerInstance.setSimulatedLocation(pointWrapper);
                         positionManagerInstance.setLocationSource(
                                 Constants.LOCATION_SOURCE.SIMULATION);
-                    } else {
+                    } else if (! isChecked && isSimulated) {
                         positionManagerInstance.setLocationSource(
                                 Constants.LOCATION_SOURCE.GPS);
                     }
                 }
             });
 
-            // more options
-            Button buttonMore = (Button) findViewById(R.id.buttonMore);
-            buttonMore.setOnClickListener(new View.OnClickListener() {
+            // add to route
+            Button buttonAddToRoute = (Button) findViewById(R.id.buttonAddToRoute);
+            buttonAddToRoute.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
-                    PopupMenu popupMore = new PopupMenu(PointDetailsActivity.this, view);
-                    popupMore.setOnMenuItemClickListener(PointDetailsActivity.this);
+                    PopupMenu popupAddToRoute = new PopupMenu(PointDetailsActivity.this, view);
+                    popupAddToRoute.setOnMenuItemClickListener(PointDetailsActivity.this);
                     // start point
-                    popupMore.getMenu().add(
+                    popupAddToRoute.getMenu().add(
                             Menu.NONE,
                             Constants.POINT_PUT_INTO.START,
                             1,
@@ -187,7 +193,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                     // via points
                     ArrayList<PointWrapper> viaPointList = SettingsManager.getInstance(PointDetailsActivity.this).getRouteSettings().getViaPointList();
                     for (int viaPointIndex=0; viaPointIndex<viaPointList.size(); viaPointIndex++) {;
-                        popupMore.getMenu().add(
+                        popupAddToRoute.getMenu().add(
                                 Menu.NONE,
                                 viaPointIndex+Constants.POINT_PUT_INTO.VIA,
                                 viaPointIndex+2,
@@ -196,12 +202,12 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                                     viaPointIndex+1));
                     }
                     // destination point
-                    popupMore.getMenu().add(
+                    popupAddToRoute.getMenu().add(
                             Menu.NONE,
                             Constants.POINT_PUT_INTO.DESTINATION,
                             viaPointList.size()+2,
                             getResources().getString(R.string.menuItemAsRouteDestinationPoint));
-                    popupMore.show();
+                    popupAddToRoute.show();
                 }
             });
 
@@ -319,36 +325,45 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 labelPointDistanceAndBearing.setText(
                         String.format(
                             context.getResources().getString(R.string.labelPointDistanceAndBearing),
-                            pointWrapper.distanceFromCurrentLocation(),
-                            StringUtility.formatInstructionDirection(
+                            getResources().getQuantityString(
+                                R.plurals.meter,
+                                pointWrapper.distanceFromCurrentLocation(),
+                                pointWrapper.distanceFromCurrentLocation()),
+                            StringUtility.formatRelativeViewingDirection(
                                 context, pointWrapper.bearingFromCurrentLocation()))
                         );
+                if (pointWrapper != null
+                        && buttonPointSimulateLocation != null) {
+                    buttonPointSimulateLocation.setChecked(
+                               positionManagerInstance.getLocationSource() == Constants.LOCATION_SOURCE.SIMULATION
+                            && pointWrapper.equals(positionManagerInstance.getCurrentLocation()));
+                }
             }
         }
     };
 
 
     /**
-     * select favorites profiles for point
+     * select poi profiles for point
      */
 
-    public static class SelectFavoritesProfilesForPointDialog extends DialogFragment implements ChildDialogCloseListener {
+    public static class SelectPOIProfilesForPointDialog extends DialogFragment implements ChildDialogCloseListener {
 
         private AccessDatabase accessDatabaseInstance;
         private PointWrapper selectedPoint;
-        private TreeSet<Integer> checkedFavoritesProfileIds;
-        private CheckBoxGroupView checkBoxGroupFavoritesProfiles;
+        private TreeSet<Integer> checkedPOIProfileIds;
+        private CheckBoxGroupView checkBoxGroupPOIProfiles;
 
-        public static SelectFavoritesProfilesForPointDialog newInstance(PointWrapper selectedPoint) {
-            SelectFavoritesProfilesForPointDialog selectFavoritesProfilesForPointDialogInstance = new SelectFavoritesProfilesForPointDialog();
+        public static SelectPOIProfilesForPointDialog newInstance(PointWrapper selectedPoint) {
+            SelectPOIProfilesForPointDialog selectPOIProfilesForPointDialogInstance = new SelectPOIProfilesForPointDialog();
             Bundle args = new Bundle();
             try {
                 args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, selectedPoint.toJson().toString());
             } catch (JSONException e) {
                 args.putString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
             }
-            selectFavoritesProfilesForPointDialogInstance.setArguments(args);
-            return selectFavoritesProfilesForPointDialogInstance;
+            selectPOIProfilesForPointDialogInstance.setArguments(args);
+            return selectPOIProfilesForPointDialogInstance;
         }
 
         @Override public void onAttach(Context context){
@@ -369,39 +384,35 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View view = inflater.inflate(R.layout.layout_single_check_box_group, nullParent);
 
-            checkBoxGroupFavoritesProfiles = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
+            checkBoxGroupPOIProfiles = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
             if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
                 SimpleMessageDialog dialog = SimpleMessageDialog.newInstance(
-                        getResources().getString(R.string.messageErrorDataLoadingFailed));
-                dialog.setTargetFragment(SelectFavoritesProfilesForPointDialog.this, 1);
+                        getResources().getString(R.string.messageErrorPointDataLoadingFailed));
+                dialog.setTargetFragment(SelectPOIProfilesForPointDialog.this, 1);
                 dialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
             } else {
                 if (savedInstanceState != null) {
-                    checkedFavoritesProfileIds = new TreeSet<Integer>();
-                    JSONArray jsonCheckedFavoritesProfileIdList = null;
+                    checkedPOIProfileIds = new TreeSet<Integer>();
+                    JSONArray jsonCheckedPOIProfileIdList = null;
                     try {
-                        jsonCheckedFavoritesProfileIdList = new JSONArray(
-                                savedInstanceState.getString("jsonCheckedFavoritesProfileIdList"));
+                        jsonCheckedPOIProfileIdList = new JSONArray(
+                                savedInstanceState.getString("jsonCheckedPOIProfileIdList"));
                     } catch (JSONException e) {
-                        jsonCheckedFavoritesProfileIdList = null;
+                        jsonCheckedPOIProfileIdList = null;
                     } finally {
-                        if (jsonCheckedFavoritesProfileIdList != null) {
-                            for (int i=0; i<jsonCheckedFavoritesProfileIdList.length(); i++) {
+                        if (jsonCheckedPOIProfileIdList != null) {
+                            for (int i=0; i<jsonCheckedPOIProfileIdList.length(); i++) {
                                 try {
-                                    checkedFavoritesProfileIds.add(jsonCheckedFavoritesProfileIdList.getInt(i));
+                                    checkedPOIProfileIds.add(jsonCheckedPOIProfileIdList.getInt(i));
                                 } catch (JSONException e) {}
                             }
                         }
                     }
                 } else {
-                    checkedFavoritesProfileIds = accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint);
+                    checkedPOIProfileIds = accessDatabaseInstance.getCheckedProfileIdsForFavoritePoint(selectedPoint, true);
                 }
 
-                for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getFavoritesProfileMap().entrySet()) {
-                    if (profile.getKey() == FavoritesProfile.ID_ADDRESS_POINTS
-                            && ! (selectedPoint.getPoint() instanceof StreetAddress)) {
-                                continue;
-                    }
+                for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getPOIProfileMap().entrySet()) {
                     CheckBox checkBox = new CheckBox(getActivity());
                     checkBox.setId(profile.getKey());
                     checkBox.setLayoutParams(
@@ -412,17 +423,17 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                     checkBox.setText(profile.getValue());
                     checkBox.setOnClickListener(new View.OnClickListener() {
                         @Override public void onClick(View view) {
-                            checkedFavoritesProfileIds = getCheckedItemsOfFavoritesProfilesCheckBoxGroup();
+                            checkedPOIProfileIds = getCheckedItemsOfPOIProfilesCheckBoxGroup();
                             onStart();
                         }
                     });
-                    checkBoxGroupFavoritesProfiles.put(checkBox);
+                    checkBoxGroupPOIProfiles.put(checkBox);
                 }
             }
 
             // create dialog
             return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.selectFavoritesProfilesForPointDialogName))
+                .setTitle(getResources().getString(R.string.selectPOIProfilesForPointDialogName))
                 .setView(view)
                 .setPositiveButton(
                         getResources().getString(R.string.dialogOK),
@@ -454,9 +465,9 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             if(dialog != null) {
 
                 // check boxes
-                for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckBoxList()) {
+                for (CheckBox checkBox : checkBoxGroupPOIProfiles.getCheckBoxList()) {
                     checkBox.setChecked(
-                            checkedFavoritesProfileIds.contains(checkBox.getId()));
+                            checkedPOIProfileIds.contains(checkBox.getId()));
                 }
 
                 // positive button
@@ -464,18 +475,18 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 buttonPositive.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
                         // remove unchecked profiles
-                        TreeSet<Integer> favoritesProfileIdsToRemove = accessDatabaseInstance
-                            .getCheckedFavoritesProfileIdsForPoint(selectedPoint);
-                        favoritesProfileIdsToRemove.removeAll(checkedFavoritesProfileIds);
-                        for (Integer favoritesProfileIdToRemove : favoritesProfileIdsToRemove) {
-                            accessDatabaseInstance.removePointFromFavoritesProfile(selectedPoint, favoritesProfileIdToRemove);
+                        TreeSet<Integer> poiProfileIdsToRemove = accessDatabaseInstance
+                            .getCheckedProfileIdsForFavoritePoint(selectedPoint, true);
+                        poiProfileIdsToRemove.removeAll(checkedPOIProfileIds);
+                        for (Integer poiProfileIdToRemove : poiProfileIdsToRemove) {
+                            accessDatabaseInstance.removeFavoritePointFromProfile(selectedPoint, poiProfileIdToRemove);
                         }
                         // add profiles
-                        TreeSet<Integer> favoritesProfileIdsToAdd = new TreeSet<Integer>(checkedFavoritesProfileIds);
-                        favoritesProfileIdsToAdd.removeAll(
-                                accessDatabaseInstance.getCheckedFavoritesProfileIdsForPoint(selectedPoint));
-                        for (Integer favoritesProfileIdToAdd : favoritesProfileIdsToAdd) {
-                            accessDatabaseInstance.addPointToFavoritesProfile(selectedPoint, favoritesProfileIdToAdd);
+                        TreeSet<Integer> poiProfileIdsToAdd = new TreeSet<Integer>(checkedPOIProfileIds);
+                        poiProfileIdsToAdd.removeAll(
+                                accessDatabaseInstance.getCheckedProfileIdsForFavoritePoint(selectedPoint, true));
+                        for (Integer poiProfileIdToAdd : poiProfileIdsToAdd) {
+                            accessDatabaseInstance.addFavoritePointToProfile(selectedPoint, poiProfileIdToAdd);
                         }
                         dialog.dismiss();
                     }
@@ -483,7 +494,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 
                 // neutral button
                 Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
+                if (checkBoxGroupPOIProfiles.nothingChecked()) {
                     buttonNeutral.setText(
                             getResources().getString(R.string.dialogAll));
                 } else {
@@ -492,9 +503,9 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 }
                 buttonNeutral.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        checkedFavoritesProfileIds = new TreeSet<Integer>();
-                        if (checkBoxGroupFavoritesProfiles.nothingChecked()) {
-                            checkedFavoritesProfileIds.addAll(accessDatabaseInstance.getFavoritesProfileMap().keySet());
+                        checkedPOIProfileIds = new TreeSet<Integer>();
+                        if (checkBoxGroupPOIProfiles.nothingChecked()) {
+                            checkedPOIProfileIds.addAll(accessDatabaseInstance.getPOIProfileMap().keySet());
                         }
                         onStart();
                     }
@@ -512,23 +523,23 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 
         @Override public void onSaveInstanceState(Bundle savedInstanceState) {
             super.onSaveInstanceState(savedInstanceState);
-            JSONArray jsonCheckedFavoritesProfileIdList = new JSONArray();
-            for (Integer id : getCheckedItemsOfFavoritesProfilesCheckBoxGroup()) {
-                jsonCheckedFavoritesProfileIdList.put(id);
+            JSONArray jsonCheckedPOIProfileIdList = new JSONArray();
+            for (Integer id : getCheckedItemsOfPOIProfilesCheckBoxGroup()) {
+                jsonCheckedPOIProfileIdList.put(id);
             }
-            savedInstanceState.putString("jsonCheckedFavoritesProfileIdList", jsonCheckedFavoritesProfileIdList.toString());
+            savedInstanceState.putString("jsonCheckedPOIProfileIdList", jsonCheckedPOIProfileIdList.toString());
         }
 
         @Override public void childDialogClosed() {
             dismiss();
         }
 
-        private TreeSet<Integer> getCheckedItemsOfFavoritesProfilesCheckBoxGroup() {
-            TreeSet<Integer> favoritesProfileList = new TreeSet<Integer>();
-            for (CheckBox checkBox : checkBoxGroupFavoritesProfiles.getCheckedCheckBoxList()) {
-                favoritesProfileList.add(checkBox.getId());
+        private TreeSet<Integer> getCheckedItemsOfPOIProfilesCheckBoxGroup() {
+            TreeSet<Integer> poiProfileList = new TreeSet<Integer>();
+            for (CheckBox checkBox : checkBoxGroupPOIProfiles.getCheckedCheckBoxList()) {
+                poiProfileList.add(checkBox.getId());
             }
-            return favoritesProfileList;
+            return poiProfileList;
         }
     }
 

@@ -1,9 +1,9 @@
 package org.walkersguide.android.data.server;
 
+import android.content.Context;
+
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
-
-import android.content.Context;
 
 
 public class PublicTransportProvider {

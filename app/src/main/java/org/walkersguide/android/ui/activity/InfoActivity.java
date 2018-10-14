@@ -1,20 +1,24 @@
 package org.walkersguide.android.ui.activity;
 
+import android.os.Bundle;
+
+import android.support.v7.widget.Toolbar;
+
+import android.text.format.DateFormat;
+
+import android.view.Menu;
+
+import android.widget.TextView;
+
 import java.util.Date;
 
-import org.walkersguide.android.R;
-import org.walkersguide.android.util.SettingsManager.GeneralSettings;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
-
-import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
-import android.text.format.DateFormat;
-import android.view.Menu;
-import android.widget.TextView;
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.R;
+import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.util.SettingsManager.GeneralSettings;
+import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 
 public class InfoActivity extends AbstractActivity {
@@ -116,15 +120,9 @@ public class InfoActivity extends AbstractActivity {
 
     @Override public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.menuItemNextRoutePoint).setVisible(false);
         menu.findItem(R.id.menuItemDirection).setVisible(false);
         menu.findItem(R.id.menuItemLocation).setVisible(false);
-        menu.findItem(R.id.menuItemPlanRoute).setVisible(false);
-        menu.findItem(R.id.menuItemRequestAddress).setVisible(false);
-        menu.findItem(R.id.menuItemSaveCurrentPosition).setVisible(false);
-        menu.findItem(R.id.menuItemSearchInFavorites).setVisible(false);
-        menu.findItem(R.id.menuItemSearchInPOI).setVisible(false);
-        menu.findItem(R.id.menuItemSettings).setVisible(false);
-        menu.findItem(R.id.menuItemInfo).setVisible(false);
         return true;
     }
 

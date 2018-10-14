@@ -1,11 +1,13 @@
 package org.walkersguide.android.ui.view;
 
-import java.util.ArrayList;
-
 import android.content.Context;
+
 import android.util.AttributeSet;
+
 import android.widget.CheckBox;
 import android.widget.GridLayout;
+
+import java.util.ArrayList;
 
 
 public class CheckBoxGroupView extends GridLayout {

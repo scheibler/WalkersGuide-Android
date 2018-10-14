@@ -1,29 +1,39 @@
 package org.walkersguide.android.sensor;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+
+import android.hardware.GeomagneticField;
+
+import android.location.Location;
+import android.location.LocationManager;
+
+import android.Manifest;
+
+import android.os.Bundle;
+import android.os.Vibrator;
+
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
+
+import com.google.common.primitives.Ints;
+
 import java.util.HashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
+import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.FavoritesProfile;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
+import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.DirectionSettings;
 import org.walkersguide.android.util.SettingsManager.LocationSettings;
 
-import android.content.Context;
-import android.content.Intent;
-import android.hardware.GeomagneticField;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.os.Vibrator;
-import android.support.v4.content.LocalBroadcastManager;
-
-import com.google.common.primitives.Ints;
 
 public class PositionManager implements android.location.LocationListener {
 
@@ -43,6 +53,10 @@ public class PositionManager implements android.location.LocationListener {
     public interface THRESHOLD3 {
         public static final int ID = 3;
         public static final float DISTANCE = 100.0f;          // 100 meters
+    }
+    public interface THRESHOLD4 {
+        public static final int ID = 4;
+        public static final float DISTANCE = 250.0f;          // 250 meters
     }
 
     // high speed
@@ -102,9 +116,19 @@ public class PositionManager implements android.location.LocationListener {
     public void startGPS() {
         if (locationManager == null) {
             locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);
-            gpsFixFound = false;
+            if (! locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager = null;
+                Intent locationProviderDisabledIntent = new Intent(Constants.ACTION_LOCATION_PROVIDER_DISABLED);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(locationProviderDisabledIntent);
+            } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                locationManager = null;
+                Intent locationPermissionDeniedIntent = new Intent(Constants.ACTION_LOCATION_PERMISSION_DENIED);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(locationPermissionDeniedIntent);
+            } else {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+                gpsFixFound = false;
+            }
         }
     }
 
@@ -402,8 +426,8 @@ public class PositionManager implements android.location.LocationListener {
             LocationSettings locationSettings = this.settingsManagerInstance.getLocationSettings();
             locationSettings.setSimulatedLocation(newLocation);
             // add to simulated points profile
-            AccessDatabase.getInstance(this.context).addPointToFavoritesProfile(
-                    newLocation, FavoritesProfile.ID_SIMULATED_POINTS);
+            AccessDatabase.getInstance(this.context).addFavoritePointToProfile(
+                    newLocation, HistoryPointProfile.ID_SIMULATED_POINTS);
             // broadcast new simulated location action
             broadcastSimulatedLocation();
             // broadcast new location action

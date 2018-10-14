@@ -1,19 +1,64 @@
 package org.walkersguide.android.helper;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.walkersguide.android.R;
-import org.walkersguide.android.util.Constants;
-
 import android.content.Context;
+
 import android.graphics.Color;
 import android.graphics.Typeface;
+
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
+import java.util.Locale;
+
+import org.walkersguide.android.R;
+import org.walkersguide.android.util.Constants;
+
+
 public class StringUtility {
+
+    /**
+     * printable point and segment type
+     */
+
+    public static String formatPointType(Context context, String type) {
+        if (type.equals(Constants.POINT.STATION)) {
+            return context.getResources().getString(R.string.pointTypeStation);
+        } else if (type.equals(Constants.POINT.ENTRANCE)) {
+            return context.getResources().getString(R.string.pointTypeEntrance);
+        } else if (type.equals(Constants.POINT.POI)) {
+            return context.getResources().getString(R.string.pointTypePOI);
+        } else if (type.equals(Constants.POINT.STREET_ADDRESS)) {
+            return context.getResources().getString(R.string.pointTypeStreetAddress);
+        } else if (type.equals(Constants.POINT.GPS)) {
+            return context.getResources().getString(R.string.pointTypeGPS);
+        } else if (type.equals(Constants.POINT.INTERSECTION)) {
+            return context.getResources().getString(R.string.pointTypeIntersection);
+        } else if (type.equals(Constants.POINT.PEDESTRIAN_CROSSING)) {
+            return context.getResources().getString(R.string.pointTypePedestrianCrossing);
+        } else {
+            return context.getResources().getString(R.string.pointTypePoint);
+        }
+    }
+
+
+    public static String formatSegmentType(Context context, String type) {
+        if (type.equals(Constants.SEGMENT.INTERSECTION)) {
+            return context.getResources().getString(R.string.segmentTypeIntersection);
+        } else if (type.equals(Constants.SEGMENT.ROUTE)) {
+            return context.getResources().getString(R.string.segmentTypeRoute);
+        } else {
+            return context.getResources().getString(R.string.segmentTypeFootway);
+        }
+    }
+
+
+    /**
+     * format directions
+     */
 
     public static int getDirectionConstant(int direction) {
         if (direction < 0) {
@@ -46,7 +91,7 @@ public class StringUtility {
         }
         switch (getDirectionConstant(direction)) {
             case Constants.DIRECTION.NORTH:
-                return context.getResources().getString(R.string.directionStraightforward);
+                return context.getResources().getString(R.string.directionCross);
             case Constants.DIRECTION.NORTH_EAST:
                 return context.getResources().getString(R.string.directionTurnRightSlightly);
             case Constants.DIRECTION.EAST:
@@ -54,13 +99,39 @@ public class StringUtility {
             case Constants.DIRECTION.SOUTH_EAST:
                 return context.getResources().getString(R.string.directionTurnRightStrongly);
             case Constants.DIRECTION.SOUTH:
-                return context.getResources().getString(R.string.directionBehindYou);
+                return context.getResources().getString(R.string.directionTurnRound);
             case Constants.DIRECTION.SOUTH_WEST:
                 return context.getResources().getString(R.string.directionTurnLeftStrongly);
             case Constants.DIRECTION.WEST:
                 return context.getResources().getString(R.string.directionTurnLeft);
             case Constants.DIRECTION.NORTH_WEST:
                 return context.getResources().getString(R.string.directionTurnLeftSlightly);
+            default:
+                return context.getResources().getString(R.string.directionStraightforward);
+        }
+    }
+
+    public static String formatRelativeViewingDirection(Context context, int direction) {
+        if (direction < 0) {
+            direction += 360;
+        }
+        switch (getDirectionConstant(direction)) {
+            case Constants.DIRECTION.NORTH:
+                return context.getResources().getString(R.string.directionStraightforward);
+            case Constants.DIRECTION.NORTH_EAST:
+                return context.getResources().getString(R.string.directionRightSlightly);
+            case Constants.DIRECTION.EAST:
+                return context.getResources().getString(R.string.directionRight);
+            case Constants.DIRECTION.SOUTH_EAST:
+                return context.getResources().getString(R.string.directionRightStrongly);
+            case Constants.DIRECTION.SOUTH:
+                return context.getResources().getString(R.string.directionBehind);
+            case Constants.DIRECTION.SOUTH_WEST:
+                return context.getResources().getString(R.string.directionLeftStrongly);
+            case Constants.DIRECTION.WEST:
+                return context.getResources().getString(R.string.directionLeft);
+            case Constants.DIRECTION.NORTH_WEST:
+                return context.getResources().getString(R.string.directionLeftSlightly);
             default:
                 return context.getResources().getString(R.string.directionStraightforward);
         }
@@ -92,28 +163,38 @@ public class StringUtility {
         }
     }
 
-    public static String formatHoursMinutes(long timestamp) {
-        SimpleDateFormat hoursMinutesFormat = new SimpleDateFormat("HH:mm");
-        return hoursMinutesFormat.format(new Date(timestamp));
-    }
+
+    /**
+     * poi profile
+     */
 
     public static String formatProfileSortCriteria(Context context, int sortCriteria) {
         switch (sortCriteria) {
             case Constants.SORT_CRITERIA.NAME_ASC:
-                return context.getResources().getString(R.string.radioButtonSortNameAsc);
+                return context.getResources().getString(R.string.sortNameAsc);
             case Constants.SORT_CRITERIA.NAME_DESC:
-                return context.getResources().getString(R.string.radioButtonSortNameDesc);
+                return context.getResources().getString(R.string.sortNameDesc);
             case Constants.SORT_CRITERIA.DISTANCE_ASC:
-                return context.getResources().getString(R.string.radioButtonSortDistanceAsc);
+                return context.getResources().getString(R.string.sortDistanceAsc);
             case Constants.SORT_CRITERIA.DISTANCE_DESC:
-                return context.getResources().getString(R.string.radioButtonSortDistanceDesc);
+                return context.getResources().getString(R.string.sortDistanceDesc);
             case Constants.SORT_CRITERIA.ORDER_ASC:
-                return context.getResources().getString(R.string.radioButtonSortOrderAsc);
+                return context.getResources().getString(R.string.sortOrderAsc);
             case Constants.SORT_CRITERIA.ORDER_DESC:
-                return context.getResources().getString(R.string.radioButtonSortOrderDesc);
+                return context.getResources().getString(R.string.sortOrderDesc);
             default:
                 return "";
         }
+    }
+
+
+    /**
+     * format strings
+     */
+
+    public static String formatHoursMinutes(long timestamp) {
+        SimpleDateFormat hoursMinutesFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return hoursMinutesFormat.format(new Date(timestamp));
     }
 
     public static SpannableString boldAndRed(String text) {

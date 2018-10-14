@@ -1,5 +1,8 @@
-- Several subcategories for route history
-- List of next intersections for intersection way and direction
+ToDo list for WalkersGuide-ng
+=============================
+
 - Headset control service
-- Distance and bearing of next route point and recent poi in the toolbar
-- Plan routes with public transport segments
+- Include public transportation into route planner
+- Show nearby hiking routes
+- Braille printer support
+

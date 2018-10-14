@@ -3,6 +3,7 @@ package org.walkersguide.android.data.station;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 public class Line {
 
     private String nr, to;

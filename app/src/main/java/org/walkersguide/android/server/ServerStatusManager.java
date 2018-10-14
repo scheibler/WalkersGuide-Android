@@ -1,38 +1,39 @@
 package org.walkersguide.android.server;
 
+import android.content.Context;
+
+import android.os.AsyncTask;
+import android.os.Handler;
+
+import android.text.TextUtils;
+
 import java.io.IOException;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.PublicTransportProvider;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.helper.DownloadUtility;
 import org.walkersguide.android.listener.ServerStatusListener;
 import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.RouteSettings;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
-
-import android.content.Context;
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
-import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.data.server.ServerInstance;
-import android.text.TextUtils;
-import java.util.Collections;
-import java.util.Locale;
-import org.walkersguide.android.util.GlobalInstance;
 
 
 public class ServerStatusManager {

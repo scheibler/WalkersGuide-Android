@@ -1,6 +1,19 @@
 package org.walkersguide.android.server;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+
+import android.os.AsyncTask;
+import android.os.Handler;
+
+import android.support.v4.content.LocalBroadcastManager;
+
+import android.text.TextUtils;
+
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -9,33 +22,27 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.data.server.ServerInstance;
+
+import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.POICategory;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
 import org.walkersguide.android.data.profile.NextIntersectionsProfile;
 import org.walkersguide.android.data.profile.POIProfile;
-import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.helper.DownloadUtility;
+import org.walkersguide.android.listener.HistoryPointProfileListener;
 import org.walkersguide.android.listener.NextIntersectionsListener;
 import org.walkersguide.android.listener.POIProfileListener;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
-import org.walkersguide.android.data.profile.SearchFavoritesProfile;
-import org.walkersguide.android.exception.ServerCommunicationException;
 
 
 public class POIManager {
@@ -136,16 +143,24 @@ public class POIManager {
         }
 
         @Override protected POIProfile doInBackground(Void... params) {
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
             ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
 
-            // load poi profile
-            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
-            POIProfile poiProfile = accessDatabaseInstance.getPOIProfile(this.poiProfileIdToRequest);
-            if (poiProfile == null) {
+            // does any poi profile exist?
+            if (accessDatabaseInstance.getPOIProfileMap().keySet().isEmpty()) {
+                this.returnCode = Constants.RC.NO_POI_PROFILE_CREATED;
+                return null;
+            }
+            // does the selected poi profile exist?
+            if (! accessDatabaseInstance.getPOIProfileMap().containsKey(this.poiProfileIdToRequest)) {
                 this.returnCode = Constants.RC.NO_POI_PROFILE_SELECTED;
                 return null;
-            } else if (poiProfile.getPOICategoryList().isEmpty()) {
-                this.returnCode = Constants.RC.NO_POI_CATEGORY_SELECTED;
+            }
+
+            // load poi profile
+            POIProfile poiProfile = accessDatabaseInstance.getPOIProfile(this.poiProfileIdToRequest);
+            if (poiProfile == null) {
+                this.returnCode = Constants.RC.POI_PROFILE_PARSING_ERROR;
                 return null;
             }
 
@@ -165,14 +180,61 @@ public class POIManager {
                 return null;
             }
 
+            // get poi profile data
             ArrayList<PointProfileObject> pointList = poiProfile.getPointProfileObjectList();
             boolean distanceToLastPOIProfileCenterPointTooLarge = 
-                currentLocation.distanceTo(poiProfile.getCenter()) > (poiProfile.getLookupRadius() / 2);
+                   poiProfile.getCenter() == null
+                || currentLocation.distanceTo(poiProfile.getCenter()) > (poiProfile.getLookupRadius() / 2);
+            if (this.requestAction == ACTION_UPDATE
+                    && currentLocation.distanceTo(poiProfile.getCenter()) > PositionManager.THRESHOLD4.DISTANCE) {
+                this.resetListPosition = true;
+            }
 
-            if (pointList == null
-                    || poiProfile.getCenter() == null
-                    || distanceToLastPOIProfileCenterPointTooLarge
-                    || this.requestAction == ACTION_MORE_RESULTS) {
+            // new values for radius and number of results
+            int radius;
+            int numberOfResults;
+            switch (this.requestAction) {
+                case ACTION_UPDATE:
+                case ACTION_MORE_RESULTS:
+                    if (distanceToLastPOIProfileCenterPointTooLarge) {
+                        // new location
+                        // (re)start with initial values
+                        radius = poiProfile.getInitialRadius();
+                        numberOfResults = poiProfile.getInitialNumberOfResults();
+                    } else {
+                        // more or less the same position again
+                        radius = poiProfile.getRadius();
+                        numberOfResults = poiProfile.getNumberOfResults();
+                        // increase radius, number or results or both
+                        if (this.requestAction == ACTION_MORE_RESULTS) {
+                            //          num_low num_hgh
+                            //  rad_low r++,--- ---,n++
+                            //  rad_hgh r++,--- r++,n++
+                            if (((float) poiProfile.getLookupNumberOfResults() / poiProfile.getNumberOfResults()) > 0.66) {
+                                // num_hgh: increase number of results
+                                numberOfResults += poiProfile.getInitialNumberOfResults();
+                                if (((float) poiProfile.getLookupRadius() / poiProfile.getRadius()) > 0.33) {
+                                    // rad_hgh: increase radius
+                                    radius += poiProfile.getInitialRadius();
+                                }
+                            } else {
+                                // num_low: increase radius
+                                radius += poiProfile.getInitialRadius();
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    this.returnCode = Constants.RC.UNSUPPORTED_POI_REQUEST_ACTION;
+                    return null;
+            }
+
+            if (! poiProfile.getPOICategoryList().isEmpty()
+                    && (
+                           pointList == null
+                        || distanceToLastPOIProfileCenterPointTooLarge
+                        || this.requestAction == ACTION_MORE_RESULTS)
+                    ) {
 
                 // internet connection and server instance
                 // check for internet connection
@@ -196,42 +258,6 @@ public class POIManager {
                     return null;
                 }
 
-                // get radius and number of results
-                int radius;
-                int numberOfResults;
-                switch (this.requestAction) {
-                    case ACTION_UPDATE:
-                        radius = poiProfile.getInitialRadius();
-                        numberOfResults = poiProfile.getInitialNumberOfResults();
-                        break;
-                    case ACTION_MORE_RESULTS:
-                        if (distanceToLastPOIProfileCenterPointTooLarge) {
-                            // new location therefore start at initial values
-                            radius = poiProfile.getInitialRadius();
-                            numberOfResults = poiProfile.getInitialNumberOfResults();
-                        } else {
-                            // more or less the same position again therefore increase radius,
-                            // number or results or both
-                            radius = poiProfile.getRadius();
-                            numberOfResults = poiProfile.getNumberOfResults();
-                            if (radius == poiProfile.getLookupRadius()) {
-                                radius += poiProfile.getInitialRadius();
-                                if ((numberOfResults - poiProfile.getLookupNumberOfResults()) < 20) {
-                                    numberOfResults += poiProfile.getInitialNumberOfResults();
-                                }
-                            } else {
-                                numberOfResults += poiProfile.getInitialNumberOfResults();
-                                if ((radius - poiProfile.getLookupRadius()) < 200) {
-                                    radius += poiProfile.getInitialRadius();
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        this.returnCode = Constants.RC.UNSUPPORTED_POI_REQUEST_ACTION;
-                        return null;
-                }
-
                 // poi category tags
                 JSONArray jsonPOICategoryTagList = new JSONArray();
                 for (POICategory poiCategory : poiProfile.getPOICategoryList()) {
@@ -239,7 +265,7 @@ public class POIManager {
                 } 
 
                 // request poi from server
-                JSONArray jsonPointList = null;
+                JSONArray jsonPOIList = null;
                 try {
                     // create parameter list
                     JSONObject requestJson = new JSONObject();
@@ -276,7 +302,7 @@ public class POIManager {
                             this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA;
                         } else {
                             // get poi list
-                            jsonPointList = jsonServerResponse.getJSONArray("poi");
+                            jsonPOIList = jsonServerResponse.getJSONArray("poi");
                         }
                     }
                 } catch (IOException e) {
@@ -293,28 +319,57 @@ public class POIManager {
                 }
 
                 // parse points
-                // set new radius and number of results
-                poiProfile.setRadiusAndNumberOfResults(radius, numberOfResults);
-                // load point list
                 pointList = new ArrayList<PointProfileObject>();
-                for (int i=0; i<jsonPointList.length(); i++) {
+                for (int i=0; i<jsonPOIList.length(); i++) {
                     try {
                         pointList.add(
                                 new PointProfileObject(
-                                    context, poiProfile, jsonPointList.getJSONObject(i))
+                                    context, poiProfile, jsonPOIList.getJSONObject(i))
                                 );
                     } catch (JSONException e) {}
                 }
-                poiProfile.setPointProfileObjectList(pointList);
+            }
+            // update poi profile
+            poiProfile.setRadiusNumberOfResultsCenterDirectionAndPointListAndUpdateInDatabase(
+                    radius, numberOfResults, currentLocation, currentDirection, pointList);
+
+            // include points from favorite ids
+            for (Integer favoriteId : poiProfile.getFavoriteIdList()) {
+                JSONArray jsonFavoritesList = accessDatabaseInstance.getJSONFavoritePointListOfProfile(favoriteId);
+                for (int i=0; i<jsonFavoritesList.length(); i++) {
+                    PointProfileObject object = null;
+                    try {
+                        object = new PointProfileObject(
+                                context, poiProfile, jsonFavoritesList.getJSONObject(i));
+                    } catch (JSONException e) {
+                        object = null;
+                    } finally {
+                        if (object != null
+                                && ! pointList.contains(object)
+                                && object.distanceTo(poiProfile.getCenter()) <= poiProfile.getLookupRadius()) {
+                            if (! TextUtils.isEmpty(poiProfile.getSearchTerm())) {
+                                // search
+                                boolean matches = true;
+                                for (String word : poiProfile.getSearchTerm().split("\\s")) {
+                                    if (! object.toString().toLowerCase().contains(word.toLowerCase())) {
+                                        matches = false;
+                                        break;
+                                    }
+                                }
+                                if (matches) {
+                                    pointList.add(object);
+                                }
+                            } else {
+                                pointList.add(object);
+                            }
+                        }
+                    }
+                }
             }
 
-            if (this.requestAction == ACTION_UPDATE
-                    && currentLocation.distanceTo(poiProfile.getCenter()) > PositionManager.THRESHOLD3.DISTANCE) {
-                this.resetListPosition = true;
-            }
-
-            // update location and direction
-            poiProfile.setCenterAndDirection(currentLocation, currentDirection);
+            // update location and direction and return
+            poiProfile.setCenterDirectionAndPointList(
+                    currentLocation, currentDirection, pointList);
             return poiProfile;
         }
 
@@ -380,6 +435,148 @@ public class POIManager {
                 }
                 cancelConnectionHandler.postDelayed(this, 100);
             }
+        }
+    }
+
+
+    /**
+     * historyPoint  profiles
+     */
+    private RequestHistoryPointProfile requestHistoryPointProfile;
+
+    public void requestHistoryPointProfile(HistoryPointProfileListener profileListener, int profileId) {
+        if (historyPointProfileRequestInProgress()) {
+            if (profileListener == null) {
+                return;
+            } else if (this.requestHistoryPointProfile.getHistoryPointProfileId() == profileId) {
+                this.requestHistoryPointProfile.addListener(profileListener);
+                return;
+            } else {
+                cancelHistoryPointProfileRequest();
+            }
+        }
+        this.requestHistoryPointProfile = new RequestHistoryPointProfile(profileListener, profileId);
+        this.requestHistoryPointProfile.execute();
+    }
+
+    public void invalidateHistoryPointProfileRequest(HistoryPointProfileListener profileListener) {
+        if (historyPointProfileRequestInProgress()) {
+            this.requestHistoryPointProfile.removeListener(profileListener);
+        }
+    }
+
+    public boolean historyPointProfileRequestInProgress() {
+        if (this.requestHistoryPointProfile != null
+                && this.requestHistoryPointProfile.getStatus() != AsyncTask.Status.FINISHED) {
+            return true;
+        }
+        return false;
+    }
+
+    public void cancelHistoryPointProfileRequest() {
+        if (historyPointProfileRequestInProgress()) {
+            this.requestHistoryPointProfile.cancel();
+        }
+    }
+
+
+    private class RequestHistoryPointProfile extends AsyncTask<Void, Void, HistoryPointProfile> {
+
+        private ArrayList<HistoryPointProfileListener> historyPointProfileListenerList;
+        private int historyPointProfileIdToRequest, returnCode;
+        private boolean resetListPosition;
+
+        public RequestHistoryPointProfile(HistoryPointProfileListener profileListener, int historyPointProfileIdToRequest) {
+            this.historyPointProfileListenerList = new ArrayList<HistoryPointProfileListener>();
+            if (profileListener != null) {
+                this.historyPointProfileListenerList.add(profileListener);
+            }
+            this.historyPointProfileIdToRequest = historyPointProfileIdToRequest;
+            this.returnCode = Constants.RC.OK;
+            this.resetListPosition = false;
+        }
+
+        @Override protected HistoryPointProfile doInBackground(Void... params) {
+            // load historyPoint profile
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
+            HistoryPointProfile historyPointProfile = null;
+            try {
+                historyPointProfile = new HistoryPointProfile(
+                        context, 
+                        this.historyPointProfileIdToRequest,
+                        accessDatabaseInstance.getJSONFavoritePointListOfProfile(this.historyPointProfileIdToRequest));
+            } catch (JSONException e) {
+                historyPointProfile = null;
+            } finally {
+                if (historyPointProfile == null) {
+                    this.returnCode = Constants.RC.POI_PROFILE_PARSING_ERROR;
+                    return null;
+                }
+            }
+
+            // get current location
+            PositionManager positionManagerInstance = PositionManager.getInstance(context);
+            PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
+            if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
+                this.returnCode = Constants.RC.NO_LOCATION_FOUND;
+                return null;
+            }
+
+            // get current direction
+            DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
+            int currentDirection = directionManagerInstance.getCurrentDirection();
+            if (currentDirection == Constants.DUMMY.DIRECTION) {
+                this.returnCode = Constants.RC.NO_DIRECTION_FOUND;
+                return null;
+            }
+
+            // update center and direction of profile and return
+            historyPointProfile.setCenterDirectionAndPointList(
+                    currentLocation, currentDirection, historyPointProfile.getPointProfileObjectList());
+            return historyPointProfile;
+        }
+
+        @Override protected void onPostExecute(HistoryPointProfile historyPointProfile) {
+            System.out.println("xxx poiManager HistoryProfile: " + this.returnCode + "     resetListPosition: " + resetListPosition + "    id: "  + this.historyPointProfileIdToRequest);
+            for (HistoryPointProfileListener historyPointProfileListener : this.historyPointProfileListenerList) {
+                historyPointProfileListener.historyPointProfileRequestFinished(
+                        this.returnCode,
+                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, ""),
+                        historyPointProfile,
+                        this.resetListPosition);
+            }
+        }
+
+        @Override protected void onCancelled(HistoryPointProfile historyPointProfile) {
+            for (HistoryPointProfileListener historyPointProfileListener : this.historyPointProfileListenerList) {
+                historyPointProfileListener.historyPointProfileRequestFinished(
+                        Constants.RC.CANCELLED,
+                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
+                        historyPointProfile,
+                        false);
+            }
+        }
+
+        public int getHistoryPointProfileId() {
+            return this.historyPointProfileIdToRequest;
+        }
+
+        public void addListener(HistoryPointProfileListener newHistoryPointProfileListener) {
+            if (newHistoryPointProfileListener != null
+                    && ! this.historyPointProfileListenerList.contains(newHistoryPointProfileListener)) {
+                this.historyPointProfileListenerList.add(newHistoryPointProfileListener);
+            }
+        }
+
+        public void removeListener(HistoryPointProfileListener newHistoryPointProfileListener) {
+            if (newHistoryPointProfileListener != null
+                    && this.historyPointProfileListenerList.contains(newHistoryPointProfileListener)) {
+                this.historyPointProfileListenerList.remove(newHistoryPointProfileListener);
+            }
+        }
+
+        public void cancel() {
+            this.cancel(true);
         }
     }
 
@@ -475,7 +672,7 @@ public class POIManager {
                 nextIntersectionsProfile = null;
             } finally {
                 if (nextIntersectionsProfile == null) {
-                    this.returnCode = Constants.RC.NO_POI_PROFILE_SELECTED;
+                    this.returnCode = Constants.RC.POI_PROFILE_PARSING_ERROR;
                     return null;
                 }
             }
@@ -496,13 +693,13 @@ public class POIManager {
                 return null;
             }
 
+            ArrayList<PointProfileObject> nextIntersectionsPointList = null;
             if (lastNextIntersectionsProfile != null
                     && lastNextIntersectionsProfile.getNodeId() == this.nodeId
                     && lastNextIntersectionsProfile.getWayId() == this.wayId
                     && lastNextIntersectionsProfile.getNextNodeId() == this.nextNodeId) {
                 // load data from cache
-                nextIntersectionsProfile.setPointProfileObjectList(
-                        lastNextIntersectionsProfile.getPointProfileObjectList());
+                nextIntersectionsPointList = lastNextIntersectionsProfile.getPointProfileObjectList();
 
             } else {
                 // request next intersections from server
@@ -582,7 +779,7 @@ public class POIManager {
                 }
 
                 // load point list
-                ArrayList<PointProfileObject> nextIntersectionsPointList = new ArrayList<PointProfileObject>();
+                nextIntersectionsPointList = new ArrayList<PointProfileObject>();
                 for (int i=0; i<jsonPointList.length(); i++) {
                     try {
                         nextIntersectionsPointList.add(
@@ -591,11 +788,10 @@ public class POIManager {
                                 );
                     } catch (JSONException e) {}
                 }
-                nextIntersectionsProfile.setPointProfileObjectList(nextIntersectionsPointList);
             }
 
             // update location and direction
-            nextIntersectionsProfile.setCenterAndDirection(currentLocation, currentDirection);
+            nextIntersectionsProfile.setCenterDirectionAndPointList(currentLocation, currentDirection, nextIntersectionsPointList);
             return nextIntersectionsProfile;
         }
 
@@ -678,9 +874,9 @@ public class POIManager {
                     && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID
                     && ! intent.getBooleanExtra(Constants.ACTION_NEW_LOCATION_ATTR.BOOL_AT_HIGH_SPEED, false)
                     && ! requestInProgress()) {
-                System.out.println("xxx request poi profile with threshold3: " + settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId());
+                System.out.println("xxx request poi profile with threshold3: " + settingsManagerInstance.getPOISettings().getSelectedPOIProfileId());
                 requestPOIProfile(
-                        null, settingsManagerInstance.getPOIFragmentSettings().getSelectedPOIProfileId(), ACTION_UPDATE);
+                        null, settingsManagerInstance.getPOISettings().getSelectedPOIProfileId(), ACTION_UPDATE);
             }
         }
     };

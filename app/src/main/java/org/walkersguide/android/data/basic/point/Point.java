@@ -1,13 +1,15 @@
 package org.walkersguide.android.data.basic.point;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
+
 import android.location.Location;
 import android.location.LocationManager;
 
 import com.google.common.primitives.Ints;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class Point {
 
@@ -188,8 +190,8 @@ public class Point {
 	@Override public int hashCode() {
         int hash = 17;
 		hash = hash * 31 + this.type.hashCode();
-		hash = hash * 31 + new Double(this.location.getLatitude()).hashCode();
-		hash = hash * 31 + new Double(this.location.getLongitude()).hashCode();
+		hash = hash * 31 + Double.valueOf(this.location.getLatitude()).hashCode();
+		hash = hash * 31 + Double.valueOf(this.location.getLongitude()).hashCode();
 		return hash;
 	}
 

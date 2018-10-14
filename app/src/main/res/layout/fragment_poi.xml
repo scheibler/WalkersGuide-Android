@@ -10,119 +10,22 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="10dp"
-        android:orientation="horizontal" >
-
-        <ImageButton
-            android:id="@+id/buttonPreviousProfile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="@dimen/minWidth"
-            android:minHeight="@dimen/minHeight"
-            android:padding="2dp"
-            android:background="@null"
-            android:src="@drawable/arrow_left"
-            android:contentDescription="@string/buttonPreviousProfile" />
+        android:orientation="vertical" >
 
         <Button
             android:id="@+id/buttonSelectProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:text="@string/emptyProfileList" />
+            android:text="@string/buttonSelectProfile" />
 
-        <ImageButton
-            android:id="@+id/buttonNextProfile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="@dimen/minWidth"
-            android:minHeight="@dimen/minHeight"
-            android:padding="2dp"
-            android:background="@null"
-            android:src="@drawable/arrow_right"
-            android:contentDescription="@string/buttonNextProfile" />
+        <include
+            layout="@layout/layout_single_autocomplete_text_view" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layoutBottom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/buttonRefresh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:text="@string/buttonRefresh" />
-
-        <Switch
-            android:id="@+id/buttonFilter"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:text="@string/buttonFilter" />
-
-        <Button
-            android:id="@+id/buttonMore"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:text="@string/buttonMore" />
-    </LinearLayout>
-
-    <LinearLayout
+    <include
+        layout="@layout/layout_heading_and_list_view_with_refresh_button"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/layoutTop"
-        android:layout_above="@id/layoutBottom"
-        android:orientation="vertical" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" >
-
-            <TextView
-                android:id="@+id/labelPOIFragmentHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:focusable="true"
-                android:textStyle="bold"
-                android:textColor="@color/heading" />
-
-            <ImageButton
-                android:id="@+id/buttonJumpToTop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="@dimen/minWidth"
-                android:minHeight="@dimen/minHeight"
-                android:padding="2dp"
-                android:background="@null"
-                android:src="@drawable/arrow_up"
-                android:contentDescription="@string/buttonJumpToTop" />
-        </LinearLayout>
-
-        <ListView
-            android:id="@+id/listViewPOI"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="@color/divider"
-            android:dividerHeight="@dimen/listDividerHeight" />
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fillViewport="true" >
-
-            <TextView
-                android:id="@+id/labelListViewPOIEmpty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true" />
-        </ScrollView>
-    </LinearLayout>
+        android:layout_below="@id/layoutTop" />
 
 </RelativeLayout>

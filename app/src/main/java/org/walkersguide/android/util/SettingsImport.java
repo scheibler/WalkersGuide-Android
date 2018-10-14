@@ -1,37 +1,24 @@
 package org.walkersguide.android.util;
 
+import android.content.Context;
+
+import android.database.SQLException;
+
+import android.os.AsyncTask;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.io.OutputStream;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.database.SQLiteHelper;
 import org.walkersguide.android.helper.DownloadUtility;
 import org.walkersguide.android.listener.SettingsImportListener;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
-
-import android.content.Context;
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
-import java.io.FileInputStream;
-import java.io.File;
-import java.io.InputStream;
-import org.walkersguide.android.database.SQLiteHelper;
-import java.io.OutputStream;
-import android.database.SQLException;
 import org.walkersguide.android.R;
-import java.io.FileOutputStream;
+import org.walkersguide.android.util.Constants;
 
 
 public class SettingsImport extends AsyncTask<Void, Void, Integer> {

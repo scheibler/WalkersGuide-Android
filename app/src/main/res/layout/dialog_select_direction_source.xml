@@ -8,29 +8,44 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/radioCompassDirection"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/directionSourceCompass" />
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/radioGPSDirection"
+            <RadioButton
+                android:id="@+id/radioCompassDirection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/directionSourceCompass" />
+
+            <RadioButton
+                android:id="@+id/radioGPSDirection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/directionSourceGPS" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/directionSourceGPS" />
+            android:layout_marginTop="20dp"
+            android:orientation="vertical" >
 
-        <RadioButton
-            android:id="@+id/radioSimulatedDirection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/directionSourceSimulated" />
+            <Switch
+                android:id="@+id/buttonEnableSimulation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonEnableDirectionSimulation" />
 
-        <include
-            layout="@layout/layout_single_edit_text" />
+            <Button
+                android:id="@+id/buttonSimulatedDirection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/labelNoDirectionAvailable" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

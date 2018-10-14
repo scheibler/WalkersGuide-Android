@@ -3,6 +3,9 @@ package org.walkersguide.android.ui.fragment.pointdetails;
 import android.app.Activity;
 
 import android.content.Context;
+import android.content.Intent;
+
+import android.net.Uri;
 
 import android.os.Bundle;
 
@@ -13,6 +16,9 @@ import android.text.TextUtils;
 import android.text.util.Linkify;
 
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
@@ -23,6 +29,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,16 +44,19 @@ import org.walkersguide.android.data.basic.point.PointWithAddressData;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.point.StreetAddress;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.station.Line;
+import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.data.station.Line;
-import android.content.Intent;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class PointDetailsFragment extends Fragment implements FragmentCommunicator {
+    private static final String OSM_NODE_URL = "https://www.openstreetmap.org/node/%1$d/";
 
     // constants
     private static final int TEXTVIEW_NO_AUTO_LINK = -1;
@@ -82,8 +92,45 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
 		}
 	}
 
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_toolbar_point_details_fragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemPointOpenStreetMap = menu.findItem(R.id.menuItemPointOpenStreetMap);
+        long nodeId = -1;
+        if (pointWrapper != null) {
+            nodeId = pointWrapper.getPoint().getNodeId();
+        }
+        if (nodeId == -1) {
+            menuItemPointOpenStreetMap.setVisible(false);
+        }
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menuItemPointOpenStreetMap:
+                long nodeId = -1;
+                if (pointWrapper != null) {
+                    nodeId = pointWrapper.getPoint().getNodeId();
+                }
+                Intent openBrowserIntent = new Intent(Intent.ACTION_VIEW);
+                openBrowserIntent.setData(
+                        Uri.parse(
+                            String.format(Locale.ROOT, OSM_NODE_URL, nodeId)));
+                getActivity().startActivity(openBrowserIntent);
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_point_details, container, false);
+        setHasOptionsMenu(true);
+		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -96,7 +143,7 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
         }
 
         // attributes layout
-		layoutAttributes = (LinearLayout) view.findViewById(R.id.layoutAttributes);
+		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
     }
 
     @Override public void onFragmentEnabled() {
@@ -160,6 +207,18 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
                                         line.getDescription(),
                                         false, TEXTVIEW_NO_AUTO_LINK);
                             }
+                        }
+                        // exact position
+                        if (station.getExactPosition() == 0) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    getResources().getString(R.string.stationNoExactStopPosition),
+                                    false, TEXTVIEW_NO_AUTO_LINK);
+                        } else if (station.getExactPosition() == 1) {
+                            addTextView(
+                                    TEXTVIEW_NO_ID,
+                                    getResources().getString(R.string.stationExactStopPosition),
+                                    false, TEXTVIEW_NO_AUTO_LINK);
                         }
                     }
 
@@ -395,11 +454,11 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
                     addTextView(
                             TEXTVIEW_NO_ID,
                             String.format(
-                                "%1$s: %2$s, %3$d %4$s",
+                                "%1$s: %2$s, %3$s",
                                 getResources().getString(R.string.labelGPSProvider),
                                 gps.getProvider(),
-                                gps.getNumberOfSatellites(),
-                                getResources().getString(R.string.unitSatellites)),
+                                getResources().getQuantityString(
+                                    R.plurals.satellite, gps.getNumberOfSatellites(), gps.getNumberOfSatellites())),
                             false, TEXTVIEW_NO_AUTO_LINK);
                 } else {
                     addTextView(
@@ -415,10 +474,12 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
                     addTextView(
                             TEXTVIEW_NO_ID,
                             String.format(
-                                "%1$s: %2$d %3$s",
+                                "%1$s: %2$s",
                                 getResources().getString(R.string.labelGPSAccuracy),
-                                Math.round(gps.getAccuracy()),
-                                getResources().getString(R.string.unitMeters)),
+                                getResources().getQuantityString(
+                                    R.plurals.meter,
+                                    Math.round(gps.getAccuracy()),
+                                    Math.round(gps.getAccuracy()))),
                             false, TEXTVIEW_NO_AUTO_LINK);
                 }
                 // altitude
@@ -426,10 +487,12 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
                     addTextView(
                             TEXTVIEW_NO_ID,
                             String.format(
-                                "%1$s: %2$d %3$s",
+                                "%1$s: %2$s",
                                 getResources().getString(R.string.labelGPSAltitude),
-                                Math.round(gps.getAltitude()),
-                                getResources().getString(R.string.unitMeters)),
+                                getResources().getQuantityString(
+                                    R.plurals.meter,
+                                    (int) Math.round(gps.getAltitude()),
+                                    (int) Math.round(gps.getAltitude()))),
                             false, TEXTVIEW_NO_AUTO_LINK);
                 }
                 // timestamp

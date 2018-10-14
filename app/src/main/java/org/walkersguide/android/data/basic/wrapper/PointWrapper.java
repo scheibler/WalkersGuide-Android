@@ -1,24 +1,26 @@
 package org.walkersguide.android.data.basic.wrapper;
 
+import android.content.Context;
+
 import java.util.Comparator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
 import org.walkersguide.android.data.basic.point.Entrance;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.point.Intersection;
-import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.PedestrianCrossing;
+import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.point.StreetAddress;
 import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
 
-import android.content.Context;
 
 public class PointWrapper {
 
@@ -140,7 +142,7 @@ public class PointWrapper {
                     this.pointToString(),
                     context.getResources().getQuantityString(
                         R.plurals.meter, distanceFromCurrentLocation, distanceFromCurrentLocation),
-                    StringUtility.formatInstructionDirection(
+                    StringUtility.formatRelativeViewingDirection(
                         context, bearingFromCurrentLocation)
                     );
         }
@@ -161,6 +163,18 @@ public class PointWrapper {
         }
 		PointWrapper other = (PointWrapper) obj;
         return this.point.equals(other.getPoint());
+    }
+
+    public static class SortByNameASC implements Comparator<PointWrapper > {
+        @Override public int compare(PointWrapper object1, PointWrapper object2) {
+            return object1.getPoint().getName().compareTo(object2.getPoint().getName());
+        }
+    }
+
+    public static class SortByNameDESC implements Comparator<PointWrapper> {
+        @Override public int compare(PointWrapper object1, PointWrapper object2) {
+            return object2.getPoint().getName().compareTo(object1.getPoint().getName());
+        }
     }
 
     public static class SortByDistanceFromCurrentPosition implements Comparator<PointWrapper> {

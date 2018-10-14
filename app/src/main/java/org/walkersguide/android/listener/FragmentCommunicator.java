@@ -5,6 +5,7 @@ package org.walkersguide.android.listener;
  * The fragments must implement the defined functions
 **/
 
+
 public interface FragmentCommunicator {
     public void onFragmentEnabled();
     public void onFragmentDisabled();

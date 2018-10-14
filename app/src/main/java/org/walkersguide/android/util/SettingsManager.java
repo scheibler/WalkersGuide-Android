@@ -1,26 +1,27 @@
 package org.walkersguide.android.util;
 
-import org.walkersguide.android.BuildConfig;
-import java.util.TreeMap;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.route.WayClass;
-import org.walkersguide.android.data.server.AddressProvider;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.PublicTransportProvider;
-import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.sensor.PositionManager;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 import com.google.common.primitives.Ints;
+
 import java.util.ArrayList;
-import org.json.JSONArray;
 import java.util.Arrays;
+import java.util.TreeMap;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.walkersguide.android.BuildConfig;
+import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.data.server.AddressProvider;
+import org.walkersguide.android.data.server.OSMMap;
+import org.walkersguide.android.data.server.PublicTransportProvider;
+import org.walkersguide.android.sensor.PositionManager;
 
 
 public class SettingsManager {
@@ -35,13 +36,10 @@ public class SettingsManager {
     private GeneralSettings generalSettings;
     private DirectionSettings directionSettings;
     private LocationSettings locationSettings;
-    private FavoritesFragmentSettings favoritesFragmentSettings;
-    private POIFragmentSettings poiFragmentSettings;
+    private POISettings poiSettings;
     private RouteSettings routeSettings;
     private ServerSettings serverSettings;
     private SearchTermHistory searchTermHistory;
-    private FavoritesSearchSettings favoritesSearchSettings;
-    private PointAndSegmentDetailsSettings pointAndSegmentDetailsSettings;
 
 	public static SettingsManager getInstance(Context context) {
 		if (settingsManagerInstance == null) {
@@ -95,30 +93,17 @@ public class SettingsManager {
 		return locationSettings;
 	}
 
-	public FavoritesFragmentSettings getFavoritesFragmentSettings() {
-        if (favoritesFragmentSettings == null) {
-            JSONObject jsonFavoritesFragmentSettings;
+	public POISettings getPOISettings() {
+        if (poiSettings == null) {
+            JSONObject jsonPOISettings;
             try {
-    		    jsonFavoritesFragmentSettings = new JSONObject(settings.getString("favoritesFragmentSettings", "{}"));
+    		    jsonPOISettings = new JSONObject(settings.getString("poiSettings", "{}"));
     		} catch (JSONException e) {
-                jsonFavoritesFragmentSettings = new JSONObject();
+                jsonPOISettings = new JSONObject();
             }
-            favoritesFragmentSettings = new FavoritesFragmentSettings(jsonFavoritesFragmentSettings);
+            poiSettings = new POISettings(jsonPOISettings);
         }
-		return favoritesFragmentSettings;
-	}
-
-	public POIFragmentSettings getPOIFragmentSettings() {
-        if (poiFragmentSettings == null) {
-            JSONObject jsonPOIFragmentSettings;
-            try {
-    		    jsonPOIFragmentSettings = new JSONObject(settings.getString("poiFragmentSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonPOIFragmentSettings = new JSONObject();
-            }
-            poiFragmentSettings = new POIFragmentSettings(jsonPOIFragmentSettings);
-        }
-		return poiFragmentSettings;
+		return poiSettings;
 	}
 
 	public RouteSettings getRouteSettings() {
@@ -162,33 +147,6 @@ public class SettingsManager {
 	}
 
 
-	public FavoritesSearchSettings getFavoritesSearchSettings() {
-        if (favoritesSearchSettings == null) {
-            JSONObject jsonFavoritesSearchSettings;
-            try {
-    		    jsonFavoritesSearchSettings = new JSONObject(settings.getString("favoritesSearchSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonFavoritesSearchSettings = new JSONObject();
-            }
-            favoritesSearchSettings = new FavoritesSearchSettings(jsonFavoritesSearchSettings);
-        }
-		return favoritesSearchSettings;
-	}
-
-	public PointAndSegmentDetailsSettings getPointAndSegmentDetailsSettings() {
-        if (pointAndSegmentDetailsSettings == null) {
-            JSONObject jsonPointAndSegmentDetailsSettings;
-            try {
-    		    jsonPointAndSegmentDetailsSettings = new JSONObject(settings.getString("pointAndSegmentDetailsSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonPointAndSegmentDetailsSettings = new JSONObject();
-            }
-            pointAndSegmentDetailsSettings = new PointAndSegmentDetailsSettings(jsonPointAndSegmentDetailsSettings);
-        }
-		return pointAndSegmentDetailsSettings;
-	}
-
-
     /**
      * General, direction and location settings
      */
@@ -207,7 +165,7 @@ public class SettingsManager {
                     this.recentOpenTab = tab;
                 }
             } catch (JSONException e) {}
-            this.shakeIntensity = Constants.SHAKE_INTENSITY.MEDIUM;
+            this.shakeIntensity = Constants.SHAKE_INTENSITY.DISABLED;
             try {
                 int intensity = jsonObject.getInt("shakeIntensity");
                 if (Ints.contains(Constants.ShakeIntensityValueArray, intensity)) {
@@ -281,7 +239,7 @@ public class SettingsManager {
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("generalSettings", jsonGeneralSettings.toString());
-    		editor.commit();
+    		editor.apply();
             // null GeneralSettings object to force reload on next getGeneralSettings()
             generalSettings = null;
         }
@@ -423,7 +381,7 @@ public class SettingsManager {
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("directionSettings", jsonDirectionSettings.toString());
-    		editor.commit();
+    		editor.apply();
             // null DirectionSettings object to force reload on next getDirectionSettings()
             directionSettings = null;
         }
@@ -509,7 +467,7 @@ public class SettingsManager {
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("locationSettings", jsonLocationSettings.toString());
-    		editor.commit();
+    		editor.apply();
             // null LocationSettings object to force reload on next getLocationSettings()
             locationSettings = null;
         }
@@ -517,25 +475,58 @@ public class SettingsManager {
 
 
     /**
-     * fragment settings
+     * poi settings
      */
 
-    public abstract class PointFragmentSettings {
+    public class POISettings {
 
-        private int selectedPositionInPointList;
+        private int selectedPOIProfileId;
+        private boolean autoUpdate;
         private boolean directionFilter;
+        private boolean showAllPoints;
 
-        public PointFragmentSettings(JSONObject jsonObject) {
-            // direction filter
+        public POISettings(JSONObject jsonObject) {
+            // selected poi profile id
+            this.selectedPOIProfileId = -1;
+            try {
+                this.selectedPOIProfileId = jsonObject.getInt("selectedPOIProfileId");
+            } catch (JSONException e) {}
+            // auto update point and segment lists
+            this.autoUpdate = false;
+            try {
+                this.autoUpdate = jsonObject.getBoolean("autoUpdate");
+            } catch (JSONException e) {}
+            // viewing direction filter
             this.directionFilter = false;
             try {
                 this.directionFilter = jsonObject.getBoolean("directionFilter");
             } catch (JSONException e) {}
-            // position in list
-            this.selectedPositionInPointList = 0;
+            // show all points switch at the next intersections fragment
+            this.showAllPoints = false;
             try {
-                this.selectedPositionInPointList = jsonObject.getInt("selectedPositionInPointList");
+                this.showAllPoints = jsonObject.getBoolean("showAllPoints");
             } catch (JSONException e) {}
+        }
+
+        public int getSelectedPOIProfileId() {
+            if (! AccessDatabase.getInstance(context).getPOIProfileMap().containsKey(this.selectedPOIProfileId)) {
+                setSelectedPOIProfileId(-1);
+            }
+            return this.selectedPOIProfileId;
+        }
+
+        public void setSelectedPOIProfileId(int newPOIProfileId) {
+            this.selectedPOIProfileId = newPOIProfileId;
+            storePOISettings();
+        }
+
+        public boolean getAutoUpdate() {
+            return this.autoUpdate;
+        }
+
+        public void setAutoUpdate(boolean newAutoUpdate) {
+            this.autoUpdate = newAutoUpdate;
+            storePOISettings();
         }
 
         public boolean filterPointListByDirection() {
@@ -544,142 +535,38 @@ public class SettingsManager {
 
         public void setDirectionFilterStatus(boolean newStatus) {
             this.directionFilter = newStatus;
-            this.selectedPositionInPointList = 0;
+            storePOISettings();
         }
 
-        public int getSelectedPositionInPointList() {
-            return this.selectedPositionInPointList;
+        public boolean getShowAllPoints() {
+            return this.showAllPoints;
         }
 
-        public void setSelectedPositionInPointList(int newPosition) {
-            this.selectedPositionInPointList = newPosition;
+        public void setShowAllPoints(boolean newShowAllPoints) {
+            this.showAllPoints = newShowAllPoints;
+            storePOISettings();
         }
 
-        public JSONObject toJson() {
-            JSONObject jsonSettings = new JSONObject();
+        public void storePOISettings() {
+            JSONObject jsonPOISettings = new JSONObject();
             try {
-                jsonSettings.put("directionFilter", this.directionFilter);
+                jsonPOISettings.put("selectedPOIProfileId", this.selectedPOIProfileId);
             } catch (JSONException e) {}
             try {
-                jsonSettings.put("selectedPositionInPointList", this.selectedPositionInPointList);
+                jsonPOISettings.put("autoUpdate", this.autoUpdate);
             } catch (JSONException e) {}
-            return jsonSettings;
-        }
-    }
-
-
-    public class FavoritesFragmentSettings extends PointFragmentSettings {
-
-        private int selectedFavoritesProfileId;
-
-        public FavoritesFragmentSettings(JSONObject jsonObject) {
-            super(jsonObject);
-            // profile id
-            int restoredFavoritesProfileId = -1;
             try {
-                restoredFavoritesProfileId = jsonObject.getInt("selectedFavoritesProfileId");
+                jsonPOISettings.put("directionFilter", this.directionFilter);
             } catch (JSONException e) {}
-            // verify, that profile still exists
-            TreeMap<Integer,String> favoritesProfileMap = AccessDatabase.getInstance(context).getFavoritesProfileMap();
-            if (favoritesProfileMap.containsKey(restoredFavoritesProfileId)) {
-                this.selectedFavoritesProfileId = restoredFavoritesProfileId;
-            } else if (! favoritesProfileMap.isEmpty()) {
-                this.selectedFavoritesProfileId = favoritesProfileMap.firstKey();
-            } else {
-                this.selectedFavoritesProfileId = -1;
-            }
-        }
-
-        public int getSelectedFavoritesProfileId() {
-            return this.selectedFavoritesProfileId;
-        }
-
-        public void setSelectedFavoritesProfileId(int newFavoritesProfileId) {
-            this.selectedFavoritesProfileId = newFavoritesProfileId;
-            storeFavoritesFragmentSettings();
-        }
-
-        @Override public void setDirectionFilterStatus(boolean newStatus) {
-            super.setDirectionFilterStatus(newStatus);
-            storeFavoritesFragmentSettings();
-        }
-
-        @Override public void setSelectedPositionInPointList(int newPosition) {
-            if (newPosition >= 0) {
-                super.setSelectedPositionInPointList(newPosition);
-                storeFavoritesFragmentSettings();
-            }
-        }
-
-        public void storeFavoritesFragmentSettings() {
-            JSONObject jsonFavoritesFragmentSettings = super.toJson();
             try {
-                jsonFavoritesFragmentSettings.put("selectedFavoritesProfileId", this.selectedFavoritesProfileId);
+                jsonPOISettings.put("showAllPoints", this.showAllPoints);
             } catch (JSONException e) {}
             // save settings
             Editor editor = settings.edit();
-            editor.putString("favoritesFragmentSettings", jsonFavoritesFragmentSettings.toString());
-            editor.commit();
-            // null FavoritesFragmentSettings object to force reload on next getFavoritesFragmentSettings()
-            favoritesFragmentSettings = null;
-        }
-    }
-
-
-    public class POIFragmentSettings extends PointFragmentSettings {
-
-        private int selectedPOIProfileId;
-
-        public POIFragmentSettings(JSONObject jsonObject) {
-            super(jsonObject);
-            // restore poi profile id from settings
-            int restoredPOIProfileId = -1;
-            try {
-                restoredPOIProfileId = jsonObject.getInt("selectedPOIProfileId");
-            } catch (JSONException e) {}
-            // verify, that profile still exists
-            TreeMap<Integer,String> poiProfileMap = AccessDatabase.getInstance(context).getPOIProfileMap();
-            if (poiProfileMap.containsKey(restoredPOIProfileId)) {
-                this.selectedPOIProfileId = restoredPOIProfileId;
-            } else if (! poiProfileMap.isEmpty()) {
-                this.selectedPOIProfileId = poiProfileMap.firstKey();
-            } else {
-                this.selectedPOIProfileId = -1;
-            }
-        }
-
-        public int getSelectedPOIProfileId() {
-            return this.selectedPOIProfileId;
-        }
-
-        public void setSelectedPOIProfileId(int newPOIProfileId) {
-            this.selectedPOIProfileId = newPOIProfileId;
-            storePOIFragmentSettings();
-        }
-
-        @Override public void setDirectionFilterStatus(boolean newStatus) {
-            super.setDirectionFilterStatus(newStatus);
-            storePOIFragmentSettings();
-        }
-
-        @Override public void setSelectedPositionInPointList(int newPosition) {
-            if (newPosition >= 0) {
-                super.setSelectedPositionInPointList(newPosition);
-                storePOIFragmentSettings();
-            }
-        }
-
-        public void storePOIFragmentSettings() {
-            JSONObject jsonPOIFragmentSettings = super.toJson();
-            try {
-                jsonPOIFragmentSettings.put("selectedPOIProfileId", this.selectedPOIProfileId);
-            } catch (JSONException e) {}
-            // save settings
-            Editor editor = settings.edit();
-            editor.putString("poiFragmentSettings", jsonPOIFragmentSettings.toString());
-            editor.commit();
-            // null POIFragmentSettings object to force reload on next getPOIFragmentSettings()
-            poiFragmentSettings = null;
+            editor.putString("poiSettings", jsonPOISettings.toString());
+            editor.apply();
+            // null POISettings object to force reload on next getPOISettings()
+            poiSettings = null;
         }
     }
 
@@ -698,19 +585,10 @@ public class SettingsManager {
         private ArrayList<WayClass> wayClassList;
 
         public RouteSettings(JSONObject jsonObject) {
-            int restoredRouteId = -1;
+            this.selectedRouteId = -1;
             try {
-                restoredRouteId = jsonObject.getInt("selectedRouteId");
+                this.selectedRouteId = jsonObject.getInt("selectedRouteId");
             } catch (JSONException e) {}
-            // verify, that route still exists
-            TreeMap<Integer,String> routeMap = AccessDatabase.getInstance(context).getRouteMap();
-            if (routeMap.containsKey(restoredRouteId)) {
-                this.selectedRouteId = restoredRouteId;
-            } else if (! routeMap.isEmpty()) {
-                this.selectedRouteId = routeMap.firstKey();
-            } else {
-                this.selectedRouteId = -1;
-            }
             // start point
             this.start = PositionManager.getDummyLocation(context);
             try {
@@ -767,6 +645,9 @@ public class SettingsManager {
         }
 
         public int getSelectedRouteId() {
+            if (! AccessDatabase.getInstance(context).getRouteIdList(null).contains(this.selectedRouteId)) {
+                setSelectedRouteId(-1);
+            }
             return this.selectedRouteId;
         }
 
@@ -893,7 +774,7 @@ public class SettingsManager {
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("routeSettings", jsonRouteSettings.toString());
-    		editor.commit();
+    		editor.apply();
             // null RouteSettings object to force reload on next getRouteSettings()
             routeSettings = null;
         }
@@ -1021,7 +902,7 @@ public class SettingsManager {
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("serverSettings", jsonServerSettings.toString());
-    		editor.commit();
+    		editor.apply();
             // null ServerSettings object to force reload on next getServerSettings()
             serverSettings = null;
         }
@@ -1084,148 +965,9 @@ public class SettingsManager {
     		// save settings
 	    	Editor editor = settings.edit();
 		    editor.putString("searchTermList", jsonSearchTermList.toString());
-    		editor.commit();
+    		editor.apply();
             // null searchTermHistory object to force reload on next getSearchTermHistory()
             searchTermHistory = null;
-        }
-    }
-
-
-    public class FavoritesSearchSettings {
-
-        private String searchTerm;
-        private ArrayList<Integer> favoritesProfileIdList;
-        private int sortCriteria;
-
-        public FavoritesSearchSettings(JSONObject jsonObject) {
-            // search term
-            this.searchTerm = "";
-            try {
-                this.searchTerm = jsonObject.getString("searchTerm");
-            } catch (JSONException e) {}
-            // selected favorites profiles
-            favoritesProfileIdList = new ArrayList<Integer>();
-            JSONArray jsonFavoritesProfileIdList = null;
-            try {
-                jsonFavoritesProfileIdList = jsonObject.getJSONArray("favoritesProfileIdList");
-            } catch (JSONException e) {
-                jsonFavoritesProfileIdList = null;
-            } finally {
-                if (jsonFavoritesProfileIdList != null) {
-                    for (int i=0; i<jsonFavoritesProfileIdList.length(); i++) {
-                        try {
-                            this.favoritesProfileIdList.add(jsonFavoritesProfileIdList.getInt(i));
-                        } catch (JSONException e) {}
-                    }
-                } else {
-                    for (Integer favoritesProfileId : AccessDatabase.getInstance(context).getFavoritesProfileMap().keySet()) {
-                        favoritesProfileIdList.add(favoritesProfileId);
-                    }
-                }
-            }
-            // search sort criteria
-            this.sortCriteria = Constants.SORT_CRITERIA.DISTANCE_ASC;
-            try {
-                int sortCriteriaFromJson = jsonObject.getInt("sortCriteria");
-                if (Ints.contains(Constants.SearchFavoritesProfileSortCriteriaValueArray, sortCriteriaFromJson)) {
-                    this.sortCriteria = sortCriteriaFromJson;
-                }
-            } catch (JSONException e) {}
-        }
-
-        public String getSearchTerm() {
-            return this.searchTerm;
-        }
-
-        public void setSearchTerm(String newSearchTerm) {
-            if (newSearchTerm != null) {
-                this.searchTerm = newSearchTerm;
-                getSearchTermHistory().addSearchTerm(newSearchTerm);
-                storeFavoritesSearchSettings();
-            }
-        }
-
-        public ArrayList<Integer> getFavoritesProfileIdList() {
-            return this.favoritesProfileIdList;
-        }
-
-        public void setFavoritesProfileIdList(ArrayList<Integer> newFavoritesProfileIdList) {
-            if (newFavoritesProfileIdList != null) {
-                this.favoritesProfileIdList = newFavoritesProfileIdList;
-                storeFavoritesSearchSettings();
-            }
-        }
-
-        public int getSortCriteria() {
-            return this.sortCriteria;
-        }
-
-
-        public void setSortCriteria(int newSortCriteria) {
-            if (Ints.contains(Constants.SearchFavoritesProfileSortCriteriaValueArray, newSortCriteria)) {
-                this.sortCriteria = newSortCriteria;
-                storeFavoritesSearchSettings();
-            }
-        }
-
-        public void storeFavoritesSearchSettings() {
-            JSONObject jsonFavoritesSearchSettings = new JSONObject();
-            try {
-                jsonFavoritesSearchSettings.put("searchTerm", this.searchTerm);
-            } catch (JSONException e) {}
-            JSONArray jsonFavoritesProfileIdList = new JSONArray();
-            for (Integer favoritesProfileId : this.favoritesProfileIdList) {
-                jsonFavoritesProfileIdList.put(favoritesProfileId);
-            }
-            try {
-                jsonFavoritesSearchSettings.put("favoritesProfileIdList", jsonFavoritesProfileIdList);
-            } catch (JSONException e) {}
-            // search sort criteria
-            try {
-                jsonFavoritesSearchSettings.put("sortCriteria", this.sortCriteria);
-            } catch (JSONException e) {}
-            // save settings
-            Editor editor = settings.edit();
-            editor.putString("favoritesSearchSettings", jsonFavoritesSearchSettings.toString());
-            editor.commit();
-            // null FavoritesSearchSettings object to force reload on next getFavoritesSearchSettings()
-            favoritesSearchSettings = null;
-        }
-    }
-
-
-    public class PointAndSegmentDetailsSettings {
-
-        private boolean showAllPoints;
-
-        public PointAndSegmentDetailsSettings(JSONObject jsonObject) {
-            // show all points switch at the next intersections fragment
-            this.showAllPoints = false;
-            try {
-                this.showAllPoints = jsonObject.getBoolean("showAllPoints");
-            } catch (JSONException e) {}
-        }
-
-        public boolean getShowAllPoints() {
-            return this.showAllPoints;
-        }
-
-        public void setShowAllPoints(boolean newShowAllPoints) {
-            this.showAllPoints = newShowAllPoints;
-            storePointAndSegmentDetailsSettings();
-        }
-
-        public void storePointAndSegmentDetailsSettings() {
-            JSONObject jsonPointAndSegmentDetailsSettings = new JSONObject();
-            try {
-                jsonPointAndSegmentDetailsSettings.put("showAllPoints", this.showAllPoints);
-            } catch (JSONException e) {}
-            // save settings
-            Editor editor = settings.edit();
-            editor.putString("pointAndSegmentDetailsSettings", jsonPointAndSegmentDetailsSettings.toString());
-            editor.apply();
-            // null PointAndSegmentDetailsSettings object to force reload on next getPointAndSegmentDetailsSettings()
-            pointAndSegmentDetailsSettings = null;
         }
     }
 

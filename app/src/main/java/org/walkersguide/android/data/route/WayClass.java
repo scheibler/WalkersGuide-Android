@@ -1,8 +1,8 @@
 package org.walkersguide.android.data.route;
 
-import org.walkersguide.android.R;
-
 import android.content.Context;
+
+import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 
 

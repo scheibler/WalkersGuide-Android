@@ -1,13 +1,15 @@
 package org.walkersguide.android.data.route;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 
-import android.content.Context;
 
 public class RouteObject {
 
@@ -61,11 +63,13 @@ public class RouteObject {
     @Override public String toString() {
         if (this.index == 0) {
             return String.format(
-                    this.context.getResources().getString(R.string.firstRouteObjectToString),
+                    this.context.getResources().getString(R.string.routeObjectToString),
+                    this.index+1,
+                    this.context.getResources().getString(R.string.proceedToFirstRoutePoint),
                     this.point.toString());
         } else {
             return String.format(
-                    this.context.getResources().getString(R.string.otherRouteObjectsToString),
+                    this.context.getResources().getString(R.string.routeObjectToString),
                     this.index+1,
                     this.segment.toString(),
                     this.point.toString());

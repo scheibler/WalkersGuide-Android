@@ -1,31 +1,41 @@
 package org.walkersguide.android.ui.activity;
 
-import org.walkersguide.android.R;
+import android.content.Intent;
+
+import android.os.Bundle;
+import android.os.Handler;
+
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
+
+import android.view.MenuItem;
+
+import java.util.TreeSet;
+
 import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.ui.fragment.main.FavoriteFragment;
+import org.walkersguide.android.R;
+import org.walkersguide.android.ui.dialog.LastVisitedPointsDialog;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.ui.dialog.RequestAddressDialog;
+import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
 import org.walkersguide.android.ui.fragment.main.POIFragment;
 import org.walkersguide.android.ui.fragment.main.RouterFragment;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
 import org.walkersguide.android.util.TTSWrapper;
 
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 
 public class MainActivity extends AbstractActivity {
 
 	// communicate with attached fragments
-	public FragmentCommunicator favoriteFragmentCommunicator;
 	public FragmentCommunicator routerFragmentCommunicator;
 	public FragmentCommunicator poiFragmentCommunicator;
 
@@ -116,15 +126,41 @@ public class MainActivity extends AbstractActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override public boolean onNavigationItemSelected(MenuItem menuItem) {
                 drawerLayout.closeDrawers();
-                if (menuItem.getItemId() == R.id.menuItemFavoriteFragment) {
-                    switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.FAVORITE);
-                } else if (menuItem.getItemId() == R.id.menuItemRouterFragment) {
-                    switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.ROUTER);
-                } else if (menuItem.getItemId() == R.id.menuItemPOIFragment) {
-                    switchFragmentGestureDetected = false;
-                    mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.POI);
+                switch (menuItem.getItemId()) {
+                    case R.id.menuItemPlanRoute:
+                        PlanRouteDialog.newInstance().show(
+                                getSupportFragmentManager(), "PlanRouteDialog");
+                        break;
+                    case R.id.menuItemRouterFragment:
+                        switchFragmentGestureDetected = false;
+                        mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.ROUTER);
+                        break;
+                    case R.id.menuItemPOIFragment:
+                        switchFragmentGestureDetected = false;
+                        mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.POI);
+                        break;
+                    case R.id.menuItemLastVisitedPoints:
+                        LastVisitedPointsDialog.newInstance().show(
+                                getSupportFragmentManager(), "LastVisitedPointsDialog");
+                        break;
+                    case R.id.menuItemSaveCurrentPosition:
+                        SaveCurrentPositionDialog.newInstance(new TreeSet<Integer>()).show(
+                                getSupportFragmentManager(), "SaveCurrentPositionDialog");
+                        break;
+                    case R.id.menuItemRequestAddress:
+                        RequestAddressDialog.newInstance().show(
+                                getSupportFragmentManager(), "RequestAddressDialog");
+                        break;
+                    case R.id.menuItemSettings:
+                        Intent intentStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
+                        startActivity(intentStartSettingsActivity);
+                        break;
+                    case R.id.menuItemInfo:
+                        Intent intentStartInfoActivity = new Intent(MainActivity.this, InfoActivity.class);
+                        startActivity(intentStartInfoActivity);
+                        break;
+                    default:
+                        break;
                 }
                 return true;
             }
@@ -150,6 +186,14 @@ public class MainActivity extends AbstractActivity {
         enterActiveFragment();
     }
 
+    @Override public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawers();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 
     /**
      * fragment management
@@ -172,12 +216,6 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case Constants.MAIN_FRAGMENT.FAVORITE:
-                    if (favoriteFragmentCommunicator != null) {
-                        favoriteFragmentCommunicator.onFragmentDisabled();
-                        return;
-                    }
-                    break;
                 case Constants.MAIN_FRAGMENT.ROUTER:
                     if (routerFragmentCommunicator != null) {
                         routerFragmentCommunicator.onFragmentDisabled();
@@ -217,12 +255,6 @@ public class MainActivity extends AbstractActivity {
 
         @Override public void run() {
             switch (currentFragment) {
-                case Constants.MAIN_FRAGMENT.FAVORITE:
-                    if (favoriteFragmentCommunicator != null) {
-                        favoriteFragmentCommunicator.onFragmentEnabled();
-                        return;
-                    }
-                    break;
                 case Constants.MAIN_FRAGMENT.ROUTER:
                     if (routerFragmentCommunicator != null) {
                         routerFragmentCommunicator.onFragmentEnabled();
@@ -259,8 +291,6 @@ public class MainActivity extends AbstractActivity {
 
         @Override public Fragment getItem(int position) {
             switch (position) {
-                case Constants.MAIN_FRAGMENT.FAVORITE:
-                    return FavoriteFragment.newInstance();
                 case Constants.MAIN_FRAGMENT.ROUTER:
                     return RouterFragment.newInstance();
                 case Constants.MAIN_FRAGMENT.POI:
@@ -272,8 +302,6 @@ public class MainActivity extends AbstractActivity {
 
 		@Override public CharSequence getPageTitle(int position) {
             switch (position) {
-                case Constants.MAIN_FRAGMENT.FAVORITE:
-    				return getResources().getString(R.string.fragmentFavoriteName);
                 case Constants.MAIN_FRAGMENT.ROUTER:
     				return getResources().getString(R.string.fragmentRouterName);
                 case Constants.MAIN_FRAGMENT.POI:

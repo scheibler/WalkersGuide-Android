@@ -1,16 +1,18 @@
 package org.walkersguide.android.data.basic.wrapper;
 
+import android.content.Context;
+
 import java.util.Comparator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.profile.PointProfile;
 import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 
-import android.content.Context;
-import org.walkersguide.android.data.profile.PointProfile;
 
 public class PointProfileObject extends PointWrapper {
 
@@ -62,7 +64,7 @@ public class PointProfileObject extends PointWrapper {
                     super.pointToString(),
                     super.getContext().getResources().getQuantityString(
                         R.plurals.meter, distanceFromCenter, distanceFromCenter),
-                    StringUtility.formatInstructionDirection(
+                    StringUtility.formatRelativeViewingDirection(
                         super.getContext(), bearingFromCenter)
                     );
         }
@@ -98,18 +100,6 @@ public class PointProfileObject extends PointWrapper {
             } else {
                 return object2.getPoint().getName().compareTo(object1.getPoint().getName());
             }
-        }
-    }
-
-    public static class SortByNameASC implements Comparator<PointProfileObject> {
-        @Override public int compare(PointProfileObject object1, PointProfileObject object2) {
-            return object1.getPoint().getName().compareTo(object2.getPoint().getName());
-        }
-    }
-
-    public static class SortByNameDESC implements Comparator<PointProfileObject> {
-        @Override public int compare(PointProfileObject object1, PointProfileObject object2) {
-            return object2.getPoint().getName().compareTo(object1.getPoint().getName());
         }
     }
 

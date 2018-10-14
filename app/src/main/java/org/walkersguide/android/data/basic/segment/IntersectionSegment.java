@@ -1,12 +1,13 @@
 package org.walkersguide.android.data.basic.segment;
 
+import android.content.Context;
+
 import java.util.Comparator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.helper.StringUtility;
 
-import android.content.Context;
+import org.walkersguide.android.helper.StringUtility;
 
 public class IntersectionSegment extends Footway {
 
@@ -64,7 +65,7 @@ public class IntersectionSegment extends Footway {
         if (super.bearingFromCurrentDirection() > -1) {
             return String.format(
                     "%1$s: %2$s",
-                    StringUtility.formatInstructionDirection(
+                    StringUtility.formatRelativeViewingDirection(
                         super.getContext(), super.bearingFromCurrentDirection()),
                     super.toString());
         }

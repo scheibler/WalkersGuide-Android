@@ -1,15 +1,16 @@
 package org.walkersguide.android.data.basic.point;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
+
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-
-import android.content.Context;
+import org.walkersguide.android.R;
 
 public class Intersection extends Point {
 
@@ -122,7 +123,8 @@ public class Intersection extends Point {
         return String.format(
                 super.getContext().getResources().getString(R.string.intersectionDescription),
                 super.getName(),
-                this.numberOfStreets);
+                super.getContext().getResources().getQuantityString(
+                    R.plurals.street, this.numberOfStreets, this.numberOfStreets));
     }
 
 

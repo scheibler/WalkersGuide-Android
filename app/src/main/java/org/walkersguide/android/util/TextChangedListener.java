@@ -3,6 +3,7 @@ package org.walkersguide.android.util;
 import android.text.Editable;
 import android.text.TextWatcher;
 
+
 public abstract class TextChangedListener<T> implements TextWatcher {
 
     private T target;

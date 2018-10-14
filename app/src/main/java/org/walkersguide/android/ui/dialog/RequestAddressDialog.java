@@ -3,7 +3,6 @@ package org.walkersguide.android.ui.dialog;
 import org.json.JSONException;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.FavoritesProfile;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.server.AddressManager;
 import org.walkersguide.android.listener.AddressListener;
@@ -80,7 +79,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
                         }
                     })
             .setNeutralButton(
-                    getResources().getString(R.string.dialogUpdate),
+                    getResources().getString(R.string.dialogRefresh),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -171,8 +170,11 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
                     addressPoint.getPoint().getName(),
                     String.format(
                         getResources().getString(R.string.labelPointDistanceAndBearing),
-                        addressPoint.distanceFromCurrentLocation(),
-                        StringUtility.formatInstructionDirection(
+                        getResources().getQuantityString(
+                            R.plurals.meter,
+                            addressPoint.distanceFromCurrentLocation(),
+                            addressPoint.distanceFromCurrentLocation()),
+                        StringUtility.formatRelativeViewingDirection(
                             getActivity(), addressPoint.bearingFromCurrentLocation()))
                     );
             labelAddress.setText(success);

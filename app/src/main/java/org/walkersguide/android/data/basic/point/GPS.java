@@ -1,9 +1,10 @@
 package org.walkersguide.android.data.basic.point;
 
+import android.content.Context;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
 
 public class GPS extends Point {
 

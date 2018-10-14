@@ -1,6 +1,12 @@
 package org.walkersguide.android.server;
 
+import android.content.Context;
+
+import android.os.AsyncTask;
+import android.os.Handler;
+
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
@@ -10,21 +16,19 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.data.server.ServerInstance;
+
 import org.walkersguide.android.data.basic.point.Station;
+import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.data.station.Departure;
+import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.helper.DownloadUtility;
 import org.walkersguide.android.listener.DepartureResultListener;
+import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Handler;
 
 public class DepartureManager {
 
@@ -95,6 +99,7 @@ public class DepartureManager {
         private HttpsURLConnection connection;
         private Handler cancelConnectionHandler;
         private CancelConnection cancelConnection;
+        private boolean resetListPosition;
 
         public RequestDepartures(DepartureResultListener departureResultListener, Station station) {
             this.departureResultListenerList = new ArrayList<DepartureResultListener>();
@@ -107,24 +112,28 @@ public class DepartureManager {
             this.connection = null;
             this.cancelConnectionHandler = new Handler();
             this.cancelConnection = new CancelConnection();
+            this.resetListPosition = false;
         }
 
         @Override protected ArrayList<Departure> doInBackground(Void... params) {
             ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
 
             ArrayList<Departure> departureList = null;
-            if (this.station.equals(lastStation)
+            if (! lastDepartureList.isEmpty()
+                    && this.station.equals(lastStation)
                     && System.currentTimeMillis()-lastRefreshed < 30*60*1000) {
                 // cleanup already passed departures
                 for (Iterator<Departure> iterator = lastDepartureList.iterator(); iterator.hasNext();) {
                     Departure departure = iterator.next();
-                    if (departure.getTime()-System.currentTimeMillis() < 0) {
+                    if (departure.getTime()-System.currentTimeMillis() < -60000) {
                         iterator.remove();
+                        this.resetListPosition = true;
                     }
                 }
                 departureList = lastDepartureList;
 
             } else {
+                this.resetListPosition = true;
                 // internet connection and server instance
                 // check for internet connection
                 if (! DownloadUtility.isInternetAvailable(context)) {
@@ -206,8 +215,6 @@ public class DepartureManager {
                     if (this.returnCode != Constants.RC.OK) {
                         return null;
                     }
-                    lastStation = this.station;
-                    lastRefreshed = System.currentTimeMillis();
                 }
 
                 departureList = new ArrayList<Departure>();
@@ -222,8 +229,15 @@ public class DepartureManager {
                                 );
                     } catch (JSONException e) {}
                 }
+                lastDepartureList = departureList;
+                lastStation = this.station;
+                lastRefreshed = System.currentTimeMillis();
             }
 
+            if (departureList.isEmpty()) {
+                this.returnCode = Constants.RC.DEPARTURE_LIST_EMPTY;
+                return null;
+            }
             return departureList;
         }
 
@@ -232,7 +246,8 @@ public class DepartureManager {
                 departureResultListener.departureRequestFinished(
                         this.returnCode,
                         DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, this.additionalMessage),
-                        departureList);
+                        departureList,
+                        this.resetListPosition);
             }
         }
 
@@ -241,7 +256,8 @@ public class DepartureManager {
                 departureResultListener.departureRequestFinished(
                         Constants.RC.CANCELLED,
                         DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        departureList);
+                        departureList,
+                        false);
             }
         }
 

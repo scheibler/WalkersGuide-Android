@@ -1,10 +1,13 @@
 package org.walkersguide.android.helper;
 
 import android.content.Context;
+
 import android.view.ViewGroup.LayoutParams;
+
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 
 public class UIViewUtility {
 

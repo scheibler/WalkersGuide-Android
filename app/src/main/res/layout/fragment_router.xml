@@ -9,21 +9,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:orientation="horizontal" >
+        android:layout_marginBottom="30dp"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/labelRouteStartPoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minLines="1"
+            android:maxLines = "1"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/labelRouteDestinationPoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minLines="1"
+            android:maxLines = "1"
+            android:focusable="true" />
 
         <Button
             android:id="@+id/buttonRouteCommandList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
             android:text="@string/buttonRouteCommandList" />
-
-        <Button
-            android:id="@+id/buttonMore"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:text="@string/buttonMore" />
     </LinearLayout>
 
     <LinearLayout
@@ -31,6 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_marginTop="10dp"
         android:orientation="vertical" >
 
         <include
@@ -43,6 +53,7 @@
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
             android:textStyle="bold"
+            android:textSize="@dimen/bigTextSize"
             android:gravity="center_horizontal"
             android:focusable="true" />
 
@@ -59,17 +70,8 @@
                 android:layout_weight="1.0"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
-                android:text="@string/buttonPreviousRouteObject" />
-
-            <TextView
-                android:id="@+id/labelRoutePosition"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:gravity="center_horizontal"
-                android:focusable="true" />
+                android:text="@string/buttonPreviousRouteObject"
+                android:contentDescription="@string/buttonPreviousRouteObjectCD" />
 
             <Button
                 android:id="@+id/buttonNextRouteObject"
@@ -78,18 +80,10 @@
                 android:layout_weight="1.0"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
-                android:text="@string/buttonNextRouteObject" />
+                android:text="@string/buttonNextRouteObject"
+                android:contentDescription="@string/buttonNextRouteObjectCD" />
         </LinearLayout>
     </LinearLayout>
-
-    <Button
-        android:id="@+id/buttonPlanRoute"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:layout_below="@id/layoutTop"
-        android:layout_above="@id/layoutBottom"
-        android:text="@string/buttonPlanRoute" />
 
     <ScrollView
         android:id="@+id/scrollviewDescription"
@@ -102,6 +96,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/labelHeading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:focusable="true" />
 
             <TextView
                 android:id="@+id/labelRouteSegmentDescription"

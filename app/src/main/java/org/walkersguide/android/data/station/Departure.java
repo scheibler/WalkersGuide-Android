@@ -1,6 +1,8 @@
 package org.walkersguide.android.data.station;
 
 import org.walkersguide.android.helper.StringUtility;
+import java.lang.Math;
+
 
 public class Departure {
 
@@ -26,7 +28,7 @@ public class Departure {
     }
 
     public int getRemaining() {
-        return (int) ((this.time - System.currentTimeMillis()) / 60000);
+        return (int) Math.ceil((this.time - System.currentTimeMillis()) / 60000.0);
     }
 
     @Override public String toString() {

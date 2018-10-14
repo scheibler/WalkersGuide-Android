@@ -1,73 +1,85 @@
 package org.walkersguide.android.ui.dialog;
 
-import java.util.ArrayList;
-import java.util.TreeMap;
-
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.FavoritesProfile;
-import org.walkersguide.android.data.profile.POIProfile;
-import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
-import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.server.AddressManager;
-import org.walkersguide.android.helper.PointUtility;
-import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.AddressListener;
-import org.walkersguide.android.listener.ChildDialogCloseListener;
-import org.walkersguide.android.listener.FavoritesProfileListener;
-import org.walkersguide.android.listener.POIProfileListener;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.FavoritesManager;
-import org.walkersguide.android.server.POIManager;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
+
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+
 import android.support.v4.app.DialogFragment;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseExpandableListAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ExpandableListView;
-import android.widget.ExpandableListView.OnChildClickListener;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-import org.json.JSONException;
-import android.content.Intent;
-import org.walkersguide.android.ui.activity.PointDetailsActivity;
-import org.walkersguide.android.ui.dialog.SelectFavoritesProfileDialog;
-import org.walkersguide.android.ui.dialog.SelectPOIProfileDialog;
-import org.walkersguide.android.listener.SelectFavoritesProfileListener;
-import org.walkersguide.android.listener.SelectPOIProfileListener;
-import android.content.BroadcastReceiver;
-import android.widget.AbsListView;
-import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.AutoCompleteTextView;
-import org.json.JSONObject;
+
+import android.text.Editable;
 import android.text.TextUtils;
 
+import android.view.Gravity;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 
-public class SelectPointDialog extends DialogFragment
-    implements ChildDialogCloseListener, SelectFavoritesProfileListener, SelectPOIProfileListener {
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameASC;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
+import org.walkersguide.android.data.profile.POIProfile;
+import org.walkersguide.android.helper.PointUtility;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.listener.AddressListener;
+import org.walkersguide.android.listener.ChildDialogCloseListener;
+import org.walkersguide.android.listener.HistoryPointProfileListener;
+import org.walkersguide.android.listener.POIProfileListener;
+import org.walkersguide.android.R;
+import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.server.AddressManager;
+import org.walkersguide.android.server.POIManager;
+import org.walkersguide.android.ui.activity.PointDetailsActivity;
+import org.walkersguide.android.ui.adapter.POIProfilePointAdapter;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.SettingsManager.POISettings;
+import org.walkersguide.android.util.TextChangedListener;
+
+
+public class SelectPointDialog extends DialogFragment implements ChildDialogCloseListener {
 
     private ChildDialogCloseListener childDialogCloseListener;
+    private AccessDatabase accessDatabaseInstance;
     private PositionManager positionManagerInstance;
     private SettingsManager settingsManagerInstance;
     private int pointPutInto;
@@ -88,6 +100,7 @@ public class SelectPointDialog extends DialogFragment
                 && getTargetFragment() instanceof ChildDialogCloseListener) {
             childDialogCloseListener = (ChildDialogCloseListener) getTargetFragment();
         }
+        accessDatabaseInstance = AccessDatabase.getInstance(context);
         positionManagerInstance = PositionManager.getInstance(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
     }
@@ -180,8 +193,8 @@ public class SelectPointDialog extends DialogFragment
                 case Constants.POINT_SELECT_FROM.ENTER_COORDINATES:
                     formattedPointSelectFromArray[i] = getResources().getString(R.string.pointSelectFromEnterCoordinates);
                     break;
-                case Constants.POINT_SELECT_FROM.FROM_FAVORITES:
-                    formattedPointSelectFromArray[i] = getResources().getString(R.string.pointSelectFromFavorites);
+                case Constants.POINT_SELECT_FROM.FROM_HISTORY_POINTS:
+                    formattedPointSelectFromArray[i] = getResources().getString(R.string.pointSelectFromHistoryPoints);
                     break;
                 case Constants.POINT_SELECT_FROM.FROM_POI:
                     formattedPointSelectFromArray[i] = getResources().getString(R.string.pointSelectFromPOI);
@@ -291,20 +304,6 @@ public class SelectPointDialog extends DialogFragment
         }
     }
 
-    @Override public void favoritesProfileSelected(int favoritesProfileId) {
-        SelectFavoriteDialog selectFavoriteDialog = SelectFavoriteDialog.newInstance(favoritesProfileId, pointPutInto);
-        selectFavoriteDialog.setTargetFragment(SelectPointDialog.this, 1);
-        selectFavoriteDialog.show(
-                getActivity().getSupportFragmentManager(), "SelectFavoriteDialog");
-    }
-
-    @Override public void poiProfileSelected(int poiProfileId) {
-        SelectPOIDialog selectPOIDialog = SelectPOIDialog.newInstance(poiProfileId, pointPutInto);
-        selectPOIDialog.setTargetFragment(SelectPointDialog.this, 1);
-        selectPOIDialog.show(
-                getActivity().getSupportFragmentManager(), "SelectPOIDialog");
-    }
-
     @Override public void childDialogClosed() {
         close();
     }
@@ -315,6 +314,13 @@ public class SelectPointDialog extends DialogFragment
     }
 
     private void executeAction(int pointSelectFromIndex) {
+        int menuItemPosition = 1;
+        Button buttonNegative = null;
+        AlertDialog dialog = (AlertDialog) getDialog();
+        if(dialog != null) {
+            buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        }
+
         switch (pointSelectFromIndex) {
             case Constants.POINT_SELECT_FROM.CURRENT_LOCATION:
                 PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
@@ -328,30 +334,75 @@ public class SelectPointDialog extends DialogFragment
                     close();
                 }
                 break;
+
             case Constants.POINT_SELECT_FROM.ENTER_ADDRESS:
                 EnterAddressDialog enterAddressDialog = EnterAddressDialog.newInstance(pointPutInto);
                 enterAddressDialog.setTargetFragment(SelectPointDialog.this, 1);
                 enterAddressDialog.show(
                         getActivity().getSupportFragmentManager(), "EnterAddressDialog");
                 break;
+
             case Constants.POINT_SELECT_FROM.ENTER_COORDINATES:
                 EnterCoordinatesDialog enterCoordinatesDialog = EnterCoordinatesDialog.newInstance(pointPutInto);
                 enterCoordinatesDialog.setTargetFragment(SelectPointDialog.this, 1);
                 enterCoordinatesDialog.show(
                         getActivity().getSupportFragmentManager(), "EnterCoordinatesDialog");
                 break;
-            case Constants.POINT_SELECT_FROM.FROM_FAVORITES:
-                SelectFavoritesProfileDialog selectFavoritesProfileDialog = SelectFavoritesProfileDialog.newInstance(-1);
-                selectFavoritesProfileDialog.setTargetFragment(SelectPointDialog.this, 1);
-                selectFavoritesProfileDialog.show(
-                        getActivity().getSupportFragmentManager(), "SelectFavoritesProfileDialog");
+
+            case Constants.POINT_SELECT_FROM.FROM_HISTORY_POINTS:
+                if (buttonNegative != null) {
+                    PopupMenu popupHistoryPointProfileList = new PopupMenu(getActivity(), buttonNegative);
+                    // create menu
+                    menuItemPosition = 1;
+                    for (Map.Entry<Integer,String> profile : HistoryPointProfile.getProfileMap(getActivity()).entrySet()) {
+                        popupHistoryPointProfileList.getMenu().add(
+                                Menu.NONE,
+                                profile.getKey(),
+                                menuItemPosition,
+                                profile.getValue());
+                        menuItemPosition += 1;
+                    }
+                    popupHistoryPointProfileList.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                        @Override public boolean onMenuItemClick(MenuItem item) {
+                            SelectHistoryPointDialog selectHistoryPointDialog = SelectHistoryPointDialog
+                                .newInstance(item.getItemId(), pointPutInto);
+                            selectHistoryPointDialog.setTargetFragment(SelectPointDialog.this, 1);
+                            selectHistoryPointDialog.show(
+                                    getActivity().getSupportFragmentManager(), "SelectHistoryPointDialog");
+                            return true;
+                        }
+                    });
+                    popupHistoryPointProfileList.show();
+                }
                 break;
+
             case Constants.POINT_SELECT_FROM.FROM_POI:
-                SelectPOIProfileDialog selectPOIProfileDialog = SelectPOIProfileDialog.newInstance(-1);
-                selectPOIProfileDialog.setTargetFragment(SelectPointDialog.this, 1);
-                selectPOIProfileDialog.show(
-                        getActivity().getSupportFragmentManager(), "SelectPOIProfileDialog");
+                if (buttonNegative != null) {
+                    PopupMenu popupPOIProfileList = new PopupMenu(getActivity(), buttonNegative);
+                    // create menu
+                    menuItemPosition = 1;
+                    for (Map.Entry<Integer,String> profile : accessDatabaseInstance.getPOIProfileMap().entrySet()) {
+                        popupPOIProfileList.getMenu().add(
+                                Menu.NONE,
+                                profile.getKey(),
+                                menuItemPosition,
+                                profile.getValue());
+                        menuItemPosition += 1;
+                    }
+                    popupPOIProfileList.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                        @Override public boolean onMenuItemClick(MenuItem item) {
+                            SelectPOIDialog selectPOIDialog = SelectPOIDialog
+                                .newInstance(item.getItemId(), pointPutInto);
+                            selectPOIDialog.setTargetFragment(SelectPointDialog.this, 1);
+                            selectPOIDialog.show(
+                                    getActivity().getSupportFragmentManager(), "SelectPOIDialog");
+                            return true;
+                        }
+                    });
+                    popupPOIProfileList.show();
+                }
                 break;
+
             default:
                 break;
         }
@@ -425,8 +476,8 @@ public class SelectPointDialog extends DialogFragment
                     settingsManagerInstance.getSearchTermHistory().getSearchTermList());
             editAddress.setAdapter(searchTermHistoryAdapter);
 
-            ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
-            buttonDelete.setOnClickListener(new View.OnClickListener() {
+            ImageButton buttonClearInput = (ImageButton) view.findViewById(R.id.buttonClearInput);
+            buttonClearInput.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
                     // clear edit text
                     editAddress.setText("");
@@ -666,7 +717,8 @@ public class SelectPointDialog extends DialogFragment
                     // put into
                     PointUtility.putNewPoint(getActivity(), createdPoint, pointPutInto);
                     // add to user created point history
-                    accessDatabaseInstance.addPointToFavoritesProfile(createdPoint, FavoritesProfile.ID_USER_CREATED_POINTS);
+                    accessDatabaseInstance.addFavoritePointToProfile(
+                            createdPoint, HistoryPointProfile.ID_USER_CREATED_POINTS);
                     // reload ui
                     if (childDialogCloseListener != null) {
                         childDialogCloseListener.childDialogClosed();
@@ -687,12 +739,15 @@ public class SelectPointDialog extends DialogFragment
     }
 
 
-    public static class SelectFavoriteDialog extends DialogFragment implements FavoritesProfileListener {
+    public static class SelectHistoryPointDialog extends DialogFragment implements HistoryPointProfileListener {
 
         private AccessDatabase accessDatabaseInstance;
         private ChildDialogCloseListener childDialogCloseListener;
-        private FavoritesManager favoritesManagerInstance;
-        private int favoritesProfileId, pointPutInto, listPosition;
+        private InputMethodManager imm;
+        private POIManager poiManagerInstance;
+    	private SettingsManager settingsManagerInstance;
+        private int historyPointProfileId, pointPutInto, listPosition;
+        private String searchTerm;
 
         // query in progress vibration
         private Handler progressHandler;
@@ -700,26 +755,34 @@ public class SelectPointDialog extends DialogFragment
         private Vibrator vibrator;
 
         // ui components
+        private AutoCompleteTextView editSearch;
+        private ImageButton buttonRefresh, buttonClearSearch;
         private ListView listViewPOI;
-        private TextView labelListViewEmpty;
+        private TextView labelHeading, labelEmptyListView;
 
-        public static SelectFavoriteDialog newInstance(int favoritesProfileId, int pointPutInto) {
-            SelectFavoriteDialog selectFavoriteDialogInstance = new SelectFavoriteDialog();
+        public static SelectHistoryPointDialog newInstance(int historyPointProfileId, int pointPutInto) {
+            SelectHistoryPointDialog selectHistoryPointDialogInstance = new SelectHistoryPointDialog();
             Bundle args = new Bundle();
-            args.putInt("favoritesProfileId", favoritesProfileId);
+            args.putInt("historyPointProfileId", historyPointProfileId);
             args.putInt("pointPutInto", pointPutInto);
-            selectFavoriteDialogInstance.setArguments(args);
-            return selectFavoriteDialogInstance;
+            selectHistoryPointDialogInstance.setArguments(args);
+            return selectHistoryPointDialogInstance;
         }
 
         @Override public void onAttach(Context context){
             super.onAttach(context);
             accessDatabaseInstance = AccessDatabase.getInstance(context);
-            favoritesManagerInstance = FavoritesManager.getInstance(context);
+            imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            poiManagerInstance = POIManager.getInstance(context);
+    		settingsManagerInstance = SettingsManager.getInstance(context);
             if (getTargetFragment() != null
                     && getTargetFragment() instanceof ChildDialogCloseListener) {
                 childDialogCloseListener = (ChildDialogCloseListener) getTargetFragment();
             }
+            // listen for intents
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(Constants.ACTION_SHAKE_DETECTED);
+            LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
             // progress updater
             this.progressHandler = new Handler();
             this.progressUpdater = new ProgressUpdater();
@@ -728,63 +791,143 @@ public class SelectPointDialog extends DialogFragment
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
             if (savedInstanceState != null) {
-                favoritesProfileId = savedInstanceState.getInt("favoritesProfileId");
+                historyPointProfileId = savedInstanceState.getInt("historyPointProfileId");
                 pointPutInto = savedInstanceState.getInt("pointPutInto");
                 listPosition = savedInstanceState.getInt("listPosition");
+                searchTerm = savedInstanceState.getString("searchTerm");
             } else {
-                favoritesProfileId = getArguments().getInt("favoritesProfileId");
+                historyPointProfileId = getArguments().getInt("historyPointProfileId");
                 pointPutInto = getArguments().getInt("pointPutInto");
                 listPosition = 0;
+                searchTerm = "";
             }
-
 
             // custom view
             final ViewGroup nullParent = null;
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_list_view, nullParent);
+            View view = inflater.inflate(R.layout.fragment_poi, nullParent);
+
+            Button buttonSelectProfile = (Button) view.findViewById(R.id.buttonSelectProfile);
+            buttonSelectProfile.setVisibility(View.GONE);
+
+            editSearch = (AutoCompleteTextView) view.findViewById(R.id.editInput);
+            editSearch.setText(searchTerm);
+            editSearch.setHint(getResources().getString(R.string.dialogSearch));
+            editSearch.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+            editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        // cancel running request
+                        if (poiManagerInstance.historyPointProfileRequestInProgress()) {
+                            poiManagerInstance.cancelHistoryPointProfileRequest();
+                        }
+                        // add to search term history
+                        if (! TextUtils.isEmpty(searchTerm)) {
+                            settingsManagerInstance.getSearchTermHistory().addSearchTerm(searchTerm);
+                        }
+                        // reload poi profile
+                        prepareHistoryPointRequest();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            editSearch.addTextChangedListener(new TextChangedListener<AutoCompleteTextView>(editSearch) {
+                @Override public void onTextChanged(AutoCompleteTextView view, Editable s) {
+                    searchTerm = editSearch.getText().toString();
+                    if (! TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.GONE) {
+                        buttonClearSearch.setVisibility(View.VISIBLE);
+                    } else if (TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.VISIBLE) {
+                        buttonClearSearch.setVisibility(View.GONE);
+                    }
+                }
+            });
+            // add auto complete suggestions
+            ArrayAdapter<String> searchTermHistoryAdapter = new ArrayAdapter<String>(
+                    getActivity(),
+                    android.R.layout.simple_dropdown_item_1line,
+                    settingsManagerInstance.getSearchTermHistory().getSearchTermList());
+            editSearch.setAdapter(searchTermHistoryAdapter);
+            // hide keyboard
+            getActivity().getWindow().setSoftInputMode(
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+            buttonClearSearch = (ImageButton) view.findViewById(R.id.buttonClearInput);
+            buttonClearSearch.setContentDescription(getResources().getString(R.string.buttonClearSearch));
+            buttonClearSearch.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    // clear edit text
+                    editSearch.setText("");
+                    // cancel running request
+                    if (poiManagerInstance.historyPointProfileRequestInProgress()) {
+                        poiManagerInstance.cancelHistoryPointProfileRequest();
+                    }
+                    // reload poi profile
+                    prepareHistoryPointRequest();
+                }
+            });
+
+            labelHeading = (TextView) view.findViewById(R.id.labelHeading);
+            buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
+            buttonRefresh.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    if (poiManagerInstance.historyPointProfileRequestInProgress()) {
+                        poiManagerInstance.cancelHistoryPointProfileRequest();
+                    } else {
+                        prepareHistoryPointRequest();
+                    }
+                }
+            });
 
             listViewPOI = (ListView) view.findViewById(R.id.listView);
             listViewPOI.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-                    PointUtility.putNewPoint(
-                            getActivity(),
-                            (PointProfileObject) parent.getItemAtPosition(position),
-                            pointPutInto);
-                    if (childDialogCloseListener != null) {
-                        childDialogCloseListener.childDialogClosed();
-                    }
-                    dismiss();
+                    final PointProfileObject selectedPoint = (PointProfileObject) parent.getItemAtPosition(position);
+                    PopupMenu popupMore = new PopupMenu(getActivity(), view);
+                    popupMore.inflate(R.menu.menu_list_view_select_point_dialog);
+                    popupMore.getMenu().findItem(R.id.menuItemRemove).setVisible(false);
+                    popupMore.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                        @Override public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()) {
+                                case R.id.menuItemSelect:
+                                    PointUtility.putNewPoint(
+                                            getActivity(), selectedPoint, pointPutInto);
+                                    if (childDialogCloseListener != null) {
+                                        childDialogCloseListener.childDialogClosed();
+                                    }
+                                    dismiss();
+                                    return true;
+                                case R.id.menuItemShowDetails:
+                                    Intent pointDetailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
+                                    try {
+                                        pointDetailsIntent.putExtra(
+                                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
+                                                selectedPoint.toJson().toString());
+                                    } catch (JSONException e) {
+                                        pointDetailsIntent.putExtra(
+                                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
+                                                "");
+                                    }
+                                    getActivity().startActivity(pointDetailsIntent);
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
+                    });
+                    popupMore.show();
                 }
             });
-            listViewPOI.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
-                    PointProfileObject pointProfileObject = (PointProfileObject) parent.getItemAtPosition(position);
-                    Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
-                    try {
-                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointProfileObject.toJson().toString());
-                    } catch (JSONException e) {
-                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
-                    }
-                    startActivity(detailsIntent);
-                    return true;
-                }
-            });
-
-            labelListViewEmpty = (TextView) view.findViewById(R.id.labelListViewEmpty);
-            listViewPOI.setEmptyView(labelListViewEmpty);
+            labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
+            listViewPOI.setEmptyView(labelEmptyListView);
 
             // create dialog
             return new AlertDialog.Builder(getActivity())
-                .setTitle(accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId))
+                .setTitle(
+                        HistoryPointProfile.getProfileMap(getActivity()).get(historyPointProfileId))
                 .setView(view)
-                .setPositiveButton(
-                        getResources().getString(R.string.dialogUpdate),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
                 .setNegativeButton(
-                        getResources().getString(R.string.dialogClose),
+                        getResources().getString(R.string.dialogCancel),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                             }
@@ -796,14 +939,6 @@ public class SelectPointDialog extends DialogFragment
             super.onStart();
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {
-                // positive button: update
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        // update favorites
-                        requestFavoritesProfile();
-                    }
-                });
                 // negative button
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -813,76 +948,101 @@ public class SelectPointDialog extends DialogFragment
                 });
             }
             // request poi
-            requestFavoritesProfile();
+            prepareHistoryPointRequest();
         }
 
         @Override public void onSaveInstanceState(Bundle savedInstanceState) {
             super.onSaveInstanceState(savedInstanceState);
-            savedInstanceState.putInt("favoritesProfileId", favoritesProfileId);
+            savedInstanceState.putInt("historyPointProfileId", historyPointProfileId);
             savedInstanceState.putInt("pointPutInto",  pointPutInto);
             savedInstanceState.putInt("listPosition",  listPosition);
+            savedInstanceState.putString("searchTerm", searchTerm);
         }
 
         @Override public void onStop() {
             super.onStop();
-            favoritesManagerInstance.invalidateFavoritesProfileRequest((SelectFavoriteDialog) this);
+            poiManagerInstance.invalidateHistoryPointProfileRequest((SelectHistoryPointDialog) this);
             progressHandler.removeCallbacks(progressUpdater);
+        }
+
+        private void prepareHistoryPointRequest() {
+            // hide keyboard
+            editSearch.dismissDropDown();
+            imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+            // clear search button
+            if (! TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.GONE) {
+                buttonClearSearch.setVisibility(View.VISIBLE);
+            } else if (TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.VISIBLE) {
+                buttonClearSearch.setVisibility(View.GONE);
+            }
+
+            // heading
+            labelHeading.setText(
+                    getResources().getString(R.string.messagePleaseWait));
+            buttonRefresh.setContentDescription(
+                    getResources().getString(R.string.buttonCancel));
+            buttonRefresh.setImageResource(R.drawable.cancel);
             // list view
             listViewPOI.setAdapter(null);
             listViewPOI.setOnScrollListener(null);
+            labelEmptyListView.setVisibility(View.GONE);
+
+            // start history point profile update request
+            progressHandler.postDelayed(progressUpdater, 2000);
+            poiManagerInstance.requestHistoryPointProfile(
+                    (SelectHistoryPointDialog) this, historyPointProfileId);
         }
 
-        private void requestFavoritesProfile() {
-            // start or cancel search
-            if (favoritesManagerInstance.favoritesProfileRequestInProgress()) {
-                favoritesManagerInstance.cancelFavoritesProfileRequest();
-            } else {
-                // update ui
-                listViewPOI.setAdapter(null);
-                listViewPOI.setOnScrollListener(null);
-                labelListViewEmpty.setText(
-                        getResources().getString(R.string.messagePleaseWait));
-                final AlertDialog dialog = (AlertDialog)getDialog();
-                if(dialog != null) {
-                    Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                    buttonPositive.setText(getResources().getString(R.string.dialogCancel));
-                }
-                // search in background
-                favoritesManagerInstance.requestFavoritesProfile(
-                        (SelectFavoriteDialog) this, favoritesProfileId);
-                progressHandler.postDelayed(progressUpdater, 2000);
-            }
-        }
-
-    	@Override public void favoritesProfileRequestFinished(int returnCode, String returnMessage, FavoritesProfile favoritesProfile, boolean resetListPosition) {
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setText(getResources().getString(R.string.dialogUpdate));
-            }
+    	@Override public void historyPointProfileRequestFinished(int returnCode, String returnMessage, HistoryPointProfile historyPointProfile, boolean resetListPosition) {
+            POISettings poiSettings = settingsManagerInstance.getPOISettings();
+            buttonRefresh.setContentDescription(
+                    getResources().getString(R.string.buttonRefresh));
+            buttonRefresh.setImageResource(R.drawable.refresh);
             progressHandler.removeCallbacks(progressUpdater);
 
-            if (favoritesProfile != null
-                    && favoritesProfile.getPointProfileObjectList() != null) {
-                if(dialog != null) {
-                    dialog.setTitle(
-                            String.format(
-                                "%1$s: %2$s, %3$s",
-                                accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId),
-                                getResources().getQuantityString(
-                                    R.plurals.favorite, favoritesProfile.getPointProfileObjectList().size(), favoritesProfile.getPointProfileObjectList().size()),
-                                StringUtility.formatProfileSortCriteria(
-                                    getActivity(), favoritesProfile.getSortCriteria()))
-                            );
+            if (historyPointProfile != null
+                    && historyPointProfile.getPointProfileObjectList() != null) {
+                ArrayList<PointProfileObject> historyPointList = historyPointProfile.getPointProfileObjectList();
+                if (! TextUtils.isEmpty(searchTerm)) {
+                    // filter history point list by search term
+                    for (Iterator<PointProfileObject> iterator = historyPointList.iterator(); iterator.hasNext();) {
+                        PointProfileObject object = iterator.next();
+                        for (String word : searchTerm.split("\\s")) {
+                            if (! object.toString().toLowerCase().contains(word.toLowerCase())) {
+                                // object does not match
+                                iterator.remove();
+                                break;
+                            }
+                        }
+                    }
+                    Collections.sort(
+                            historyPointList, new SortByNameASC());
                 }
 
+                // header field and list view
+                if (! TextUtils.isEmpty(searchTerm)) {
+                    labelHeading.setText(
+                            String.format(
+                                getResources().getString(R.string.labelSelectHistoryPointDialogHeaderSearch),
+                                getResources().getQuantityString(
+                                    R.plurals.result, historyPointList.size(), historyPointList.size()),
+                                searchTerm,
+                                StringUtility.formatProfileSortCriteria(
+                                    getActivity(), Constants.SORT_CRITERIA.NAME_ASC))
+                            );
+                } else {
+                    labelHeading.setText(
+                            String.format(
+                                getResources().getString(R.string.labelSelectHistoryPointDialogHeaderSuccess),
+                                getResources().getQuantityString(
+                                    R.plurals.poi, historyPointList.size(), historyPointList.size()),
+                                StringUtility.formatProfileSortCriteria(
+                                    getActivity(), historyPointProfile.getSortCriteria()))
+                            );
+                }
                 listViewPOI.setAdapter(
                         new ArrayAdapter<PointProfileObject>(
-                            getActivity(),
-                            android.R.layout.simple_list_item_1,
-                            favoritesProfile.getPointProfileObjectList())
-                        );
-                labelListViewEmpty.setText("");
+                            getActivity(), android.R.layout.simple_list_item_1, historyPointList));
 
                 // list position
                 if (resetListPosition) {
@@ -900,16 +1060,7 @@ public class SelectPointDialog extends DialogFragment
                 });
 
             } else {
-                if(dialog != null) {
-                    dialog.setTitle(accessDatabaseInstance.getNameOfFavoritesProfile(favoritesProfileId));
-                }
-                labelListViewEmpty.setText(returnMessage);
-            }
-
-            // error message dialog
-            if (! (returnCode == Constants.RC.OK || returnCode == Constants.RC.CANCELLED)) {
-                SimpleMessageDialog.newInstance(returnMessage)
-                    .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                labelHeading.setText(returnMessage);
             }
         }
 
@@ -923,14 +1074,9 @@ public class SelectPointDialog extends DialogFragment
 
         private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
             @Override public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
-                    requestFavoritesProfile();
-                } else if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
+                if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
                     vibrator.vibrate(250);
-                    requestFavoritesProfile();
-                } else if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                        && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID) {
-                    requestFavoritesProfile();
+                    prepareHistoryPointRequest();
                 }
             }
         };
@@ -948,8 +1094,11 @@ public class SelectPointDialog extends DialogFragment
 
         private AccessDatabase accessDatabaseInstance;
         private ChildDialogCloseListener childDialogCloseListener;
+        private InputMethodManager imm;
         private POIManager poiManagerInstance;
+    	private SettingsManager settingsManagerInstance;
         private int poiProfileId, pointPutInto, listPosition;
+        private String searchTerm;
 
         // query in progress vibration
         private Handler progressHandler;
@@ -957,8 +1106,10 @@ public class SelectPointDialog extends DialogFragment
         private Vibrator vibrator;
 
         // ui components
+        private AutoCompleteTextView editSearch;
+        private ImageButton buttonRefresh, buttonClearSearch;
         private ListView listViewPOI;
-        private TextView labelListViewEmpty;
+        private TextView labelHeading, labelEmptyListView, labelMoreResultsFooter;
 
         public static SelectPOIDialog newInstance(int poiProfileId, int pointPutInto) {
             SelectPOIDialog selectPOIDialogInstance = new SelectPOIDialog();
@@ -972,16 +1123,16 @@ public class SelectPointDialog extends DialogFragment
         @Override public void onAttach(Context context){
             super.onAttach(context);
             accessDatabaseInstance = AccessDatabase.getInstance(context);
+            imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
             poiManagerInstance = POIManager.getInstance(context);
+    		settingsManagerInstance = SettingsManager.getInstance(context);
             if (getTargetFragment() != null
                     && getTargetFragment() instanceof ChildDialogCloseListener) {
                 childDialogCloseListener = (ChildDialogCloseListener) getTargetFragment();
             }
             // listen for intents
             IntentFilter filter = new IntentFilter();
-            filter.addAction(Constants.ACTION_NEW_LOCATION);
             filter.addAction(Constants.ACTION_SHAKE_DETECTED);
-            filter.addAction(Constants.ACTION_UPDATE_UI);
             LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
             // progress updater
             this.progressHandler = new Handler();
@@ -994,65 +1145,166 @@ public class SelectPointDialog extends DialogFragment
                 poiProfileId = savedInstanceState.getInt("poiProfileId");
                 pointPutInto = savedInstanceState.getInt("pointPutInto");
                 listPosition = savedInstanceState.getInt("listPosition");
+                searchTerm = savedInstanceState.getString("searchTerm");
             } else {
                 poiProfileId = getArguments().getInt("poiProfileId");
                 pointPutInto = getArguments().getInt("pointPutInto");
                 listPosition = 0;
+                searchTerm = accessDatabaseInstance.getSearchTermOfPOIProfile(poiProfileId);
             }
 
             // custom view
             final ViewGroup nullParent = null;
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_list_view, nullParent);
+            View view = inflater.inflate(R.layout.fragment_poi, nullParent);
+
+            Button buttonSelectProfile = (Button) view.findViewById(R.id.buttonSelectProfile);
+            buttonSelectProfile.setVisibility(View.GONE);
+
+            editSearch = (AutoCompleteTextView) view.findViewById(R.id.editInput);
+            editSearch.setHint(getResources().getString(R.string.dialogSearch));
+            editSearch.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+            editSearch.setText(searchTerm);
+            editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        // cancel running request
+                        if (poiManagerInstance.requestInProgress()) {
+                            poiManagerInstance.cancelRequest();
+                        }
+                        // update poi profile search term
+                        String searchTermFromDatabase = accessDatabaseInstance.getSearchTermOfPOIProfile(poiProfileId);
+                        if (! searchTerm.equals(searchTermFromDatabase)) {
+                            accessDatabaseInstance.updateSearchTermOfPOIProfile(poiProfileId, searchTerm);
+                            if (! TextUtils.isEmpty(searchTerm)) {
+                                settingsManagerInstance.getSearchTermHistory().addSearchTerm(searchTerm);
+                            }
+                        }
+                        // reload poi profile
+                        preparePOIRequest(POIManager.ACTION_UPDATE);
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            editSearch.addTextChangedListener(new TextChangedListener<AutoCompleteTextView>(editSearch) {
+                @Override public void onTextChanged(AutoCompleteTextView view, Editable s) {
+                    searchTerm = editSearch.getText().toString();
+                    if (! TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.GONE) {
+                        buttonClearSearch.setVisibility(View.VISIBLE);
+                    } else if (TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.VISIBLE) {
+                        buttonClearSearch.setVisibility(View.GONE);
+                    }
+                }
+            });
+            // add auto complete suggestions
+            ArrayAdapter<String> searchTermHistoryAdapter = new ArrayAdapter<String>(
+                    getActivity(),
+                    android.R.layout.simple_dropdown_item_1line,
+                    settingsManagerInstance.getSearchTermHistory().getSearchTermList());
+            editSearch.setAdapter(searchTermHistoryAdapter);
+            // hide keyboard
+            getActivity().getWindow().setSoftInputMode(
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+            buttonClearSearch = (ImageButton) view.findViewById(R.id.buttonClearInput);
+            buttonClearSearch.setContentDescription(getResources().getString(R.string.buttonClearSearch));
+            buttonClearSearch.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    // clear edit text
+                    editSearch.setText("");
+                    // cancel running request
+                    if (poiManagerInstance.requestInProgress()) {
+                        poiManagerInstance.cancelRequest();
+                    }
+                    // update poi profile search term
+                    String searchTermFromDatabase = accessDatabaseInstance.getSearchTermOfPOIProfile(poiProfileId);
+                    if (! TextUtils.isEmpty(searchTermFromDatabase)) {
+                        accessDatabaseInstance.updateSearchTermOfPOIProfile(poiProfileId, "");
+                    }
+                    // reload poi profile
+                    preparePOIRequest(POIManager.ACTION_UPDATE);
+                }
+            });
+
+            labelHeading = (TextView) view.findViewById(R.id.labelHeading);
+            buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
+            buttonRefresh.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    if (poiManagerInstance.requestInProgress()) {
+                        poiManagerInstance.cancelRequest();
+                    } else {
+                        preparePOIRequest(POIManager.ACTION_UPDATE);
+                    }
+                }
+            });
 
             listViewPOI = (ListView) view.findViewById(R.id.listView);
             listViewPOI.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-                    PointUtility.putNewPoint(
-                            getActivity(),
-                            (PointProfileObject) parent.getItemAtPosition(position),
-                            pointPutInto);
-                    if (childDialogCloseListener != null) {
-                        childDialogCloseListener.childDialogClosed();
-                    }
-                    dismiss();
-                }
-            });
-            listViewPOI.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
-                    PointProfileObject pointProfileObject = (PointProfileObject) parent.getItemAtPosition(position);
-                    Intent detailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
-                    try {
-                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, pointProfileObject.toJson().toString());
-                    } catch (JSONException e) {
-                        detailsIntent.putExtra(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "");
-                    }
-                    startActivity(detailsIntent);
-                    return true;
+                    final PointProfileObject selectedPoint = (PointProfileObject) parent.getItemAtPosition(position);
+                    PopupMenu popupMore = new PopupMenu(getActivity(), view);
+                    popupMore.inflate(R.menu.menu_list_view_select_point_dialog);
+                    popupMore.getMenu().findItem(R.id.menuItemRemove).setVisible(false);
+                    popupMore.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                        @Override public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()) {
+                                case R.id.menuItemSelect:
+                                    PointUtility.putNewPoint(
+                                            getActivity(), selectedPoint, pointPutInto);
+                                    if (childDialogCloseListener != null) {
+                                        childDialogCloseListener.childDialogClosed();
+                                    }
+                                    dismiss();
+                                    return true;
+                                case R.id.menuItemShowDetails:
+                                    Intent pointDetailsIntent = new Intent(getActivity(), PointDetailsActivity.class);
+                                    try {
+                                        pointDetailsIntent.putExtra(
+                                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
+                                                selectedPoint.toJson().toString());
+                                    } catch (JSONException e) {
+                                        pointDetailsIntent.putExtra(
+                                                Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED,
+                                                "");
+                                    }
+                                    getActivity().startActivity(pointDetailsIntent);
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
+                    });
+                    popupMore.show();
                 }
             });
 
-            labelListViewEmpty = (TextView) view.findViewById(R.id.labelListViewEmpty);
-            listViewPOI.setEmptyView(labelListViewEmpty);
+            labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
+            labelEmptyListView.setText(getResources().getString(R.string.labelMoreResults));
+            labelEmptyListView.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    // start poi profile update request
+                    preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
+                }
+            });
+            listViewPOI.setEmptyView(labelEmptyListView);
+
+            View footerView = inflater.inflate(R.layout.layout_single_text_view, null, false);
+            labelMoreResultsFooter = (TextView) footerView.findViewById(R.id.label);
+            labelMoreResultsFooter.setText(getResources().getString(R.string.labelMoreResults));
+            labelMoreResultsFooter.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    // start poi profile update request
+                    preparePOIRequest(POIManager.ACTION_MORE_RESULTS);
+                }
+            });
 
             // create dialog
             return new AlertDialog.Builder(getActivity())
                 .setTitle(accessDatabaseInstance.getNameOfPOIProfile(poiProfileId))
                 .setView(view)
-                .setPositiveButton(
-                        getResources().getString(R.string.dialogUpdate),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .setNeutralButton(
-                        getResources().getString(R.string.dialogMore),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
                 .setNegativeButton(
-                        getResources().getString(R.string.dialogClose),
+                        getResources().getString(R.string.dialogCancel),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                             }
@@ -1064,22 +1316,6 @@ public class SelectPointDialog extends DialogFragment
             super.onStart();
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {
-                // positive button: update
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        // update poi
-                        requestPOIProfile(POIManager.ACTION_UPDATE);
-                    }
-                });
-                // neutral  button: more results
-                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                buttonNeutral.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        // request more poi
-                        requestPOIProfile(POIManager.ACTION_MORE_RESULTS);
-                    }
-                });
                 // negative button
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -1089,7 +1325,7 @@ public class SelectPointDialog extends DialogFragment
                 });
             }
             // request poi
-            requestPOIProfile(POIManager.ACTION_UPDATE);
+            preparePOIRequest(POIManager.ACTION_UPDATE);
         }
 
         @Override public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -1097,78 +1333,93 @@ public class SelectPointDialog extends DialogFragment
             savedInstanceState.putInt("poiProfileId", poiProfileId);
             savedInstanceState.putInt("pointPutInto",  pointPutInto);
             savedInstanceState.putInt("listPosition",  listPosition);
+            savedInstanceState.putString("searchTerm", searchTerm);
         }
 
         @Override public void onStop() {
             super.onStop();
             poiManagerInstance.invalidateRequest((SelectPOIDialog) this);
             progressHandler.removeCallbacks(progressUpdater);
+        }
+
+        private void preparePOIRequest(int requestAction) {
+            // hide keyboard
+            editSearch.dismissDropDown();
+            imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+            // clear search button
+            if (! TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.GONE) {
+                buttonClearSearch.setVisibility(View.VISIBLE);
+            } else if (TextUtils.isEmpty(searchTerm) && buttonClearSearch.getVisibility() == View.VISIBLE) {
+                buttonClearSearch.setVisibility(View.GONE);
+            }
+
+            // heading
+            labelHeading.setText(
+                    getResources().getString(R.string.messagePleaseWait));
+            buttonRefresh.setContentDescription(
+                    getResources().getString(R.string.buttonCancel));
+            buttonRefresh.setImageResource(R.drawable.cancel);
             // list view
             listViewPOI.setAdapter(null);
             listViewPOI.setOnScrollListener(null);
-        }
-
-        private void requestPOIProfile(int requestAction) {
-            // start or cancel search
-            if (poiManagerInstance.requestInProgress()) {
-                poiManagerInstance.cancelRequest();
-            } else {
-                // update ui
-                listViewPOI.setAdapter(null);
-                listViewPOI.setOnScrollListener(null);
-                labelListViewEmpty.setText(
-                        getResources().getString(R.string.messagePleaseWait));
-                final AlertDialog dialog = (AlertDialog)getDialog();
-                if(dialog != null) {
-                    Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                    buttonPositive.setText(getResources().getString(R.string.dialogCancel));
-                    // hide more results button for the moment
-                    Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                    buttonNeutral.setVisibility(View.GONE);
-                }
-                // search in background
-                poiManagerInstance.requestPOIProfile(
-                        (SelectPOIDialog) this, poiProfileId, requestAction);
-                progressHandler.postDelayed(progressUpdater, 2000);
+            if (listViewPOI.getFooterViewsCount() > 0) {
+                listViewPOI.removeFooterView(labelMoreResultsFooter);
             }
+            labelEmptyListView.setVisibility(View.GONE);
+
+            // start poi profile update request
+            progressHandler.postDelayed(progressUpdater, 2000);
+            poiManagerInstance.requestPOIProfile(
+                    (SelectPOIDialog) this, poiProfileId, requestAction);
         }
 
         @Override public void poiProfileRequestFinished(int returnCode, String returnMessage, POIProfile poiProfile, boolean resetListPosition) {
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setText(getResources().getString(R.string.dialogUpdate));
-            }
+            POISettings poiSettings = settingsManagerInstance.getPOISettings();
+            buttonRefresh.setContentDescription(
+                    getResources().getString(R.string.buttonRefresh));
+            buttonRefresh.setImageResource(R.drawable.refresh);
             progressHandler.removeCallbacks(progressUpdater);
 
             if (poiProfile != null
                     && poiProfile.getPointProfileObjectList() != null) {
-                if(dialog != null) {
-                    dialog.setTitle(
+                ArrayList<PointProfileObject> listOfAllPOI = poiProfile.getPointProfileObjectList();
+                // header field
+                if (! TextUtils.isEmpty(poiProfile.getSearchTerm())) {
+                    labelHeading.setText(
                             String.format(
-                                "%1$s: %2$s, %3$s",
-                                accessDatabaseInstance.getNameOfPOIProfile(poiProfileId),
+                                getResources().getString(R.string.labelPOIFragmentHeaderSearch),
                                 getResources().getQuantityString(
-                                    R.plurals.poi, poiProfile.getPointProfileObjectList().size(), poiProfile.getPointProfileObjectList().size()),
+                                    R.plurals.result, listOfAllPOI.size(), listOfAllPOI.size()),
+                                poiProfile.getSearchTerm(),
+                                getResources().getQuantityString(
+                                    R.plurals.meter, poiProfile.getLookupRadius(), poiProfile.getLookupRadius()))
+                            );
+                } else {
+                    labelHeading.setText(
+                            String.format(
+                                getResources().getString(R.string.labelPOIFragmentHeaderSuccess),
+                                getResources().getQuantityString(
+                                    R.plurals.poi, listOfAllPOI.size(), listOfAllPOI.size()),
                                 getResources().getQuantityString(
                                     R.plurals.meter, poiProfile.getLookupRadius(), poiProfile.getLookupRadius()))
                             );
                 }
 
+                // fill listview
                 listViewPOI.setAdapter(
-                        new ArrayAdapter<PointProfileObject>(
-                            getActivity(),
-                            android.R.layout.simple_list_item_1,
-                            poiProfile.getPointProfileObjectList())
-                        );
-                labelListViewEmpty.setText("");
-
+                        new POIProfilePointAdapter(
+                            getActivity(), listOfAllPOI));
                 // more results
-                if(dialog != null
-                        && poiProfile.getRadius() < poiProfile.getMaximalRadius()
-                        && poiProfile.getNumberOfResults() < poiProfile.getMaximalNumberOfResults()) {
-                    Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                    buttonNeutral.setVisibility(View.VISIBLE);
+                if (listViewPOI.getAdapter().getCount() == 0) {
+                    if (poiProfile.getRadius() < poiProfile.getMaximalRadius()
+                            && poiProfile.getNumberOfResults() < poiProfile.getMaximalNumberOfResults()) {
+                        labelEmptyListView.setVisibility(View.VISIBLE);
+                            }
+                } else {
+                    if (poiProfile.getRadius() < poiProfile.getMaximalRadius()
+                            && poiProfile.getNumberOfResults() < poiProfile.getMaximalNumberOfResults()) {
+                        listViewPOI.addFooterView(labelMoreResultsFooter, null, true);
+                            }
                 }
 
                 // list position
@@ -1187,16 +1438,7 @@ public class SelectPointDialog extends DialogFragment
                 });
 
             } else {
-                if(dialog != null) {
-                    dialog.setTitle(accessDatabaseInstance.getNameOfPOIProfile(poiProfileId));
-                }
-                labelListViewEmpty.setText(returnMessage);
-            }
-
-            // error message dialog
-            if (! (returnCode == Constants.RC.OK || returnCode == Constants.RC.CANCELLED)) {
-                SimpleMessageDialog.newInstance(returnMessage)
-                    .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                labelHeading.setText(returnMessage);
             }
         }
 
@@ -1210,14 +1452,9 @@ public class SelectPointDialog extends DialogFragment
 
         private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
             @Override public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
-                    requestPOIProfile(POIManager.ACTION_UPDATE);
-                } else if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
+                if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
                     vibrator.vibrate(250);
-                    requestPOIProfile(POIManager.ACTION_UPDATE);
-                } else if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                        && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID) {
-                    requestPOIProfile(POIManager.ACTION_UPDATE);
+                    preparePOIRequest(POIManager.ACTION_UPDATE);
                 }
             }
         };

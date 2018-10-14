@@ -1,14 +1,18 @@
 package org.walkersguide.android.data.basic.wrapper;
 
+import android.content.Context;
+
+import java.util.Comparator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.segment.RouteSegment;
 import org.walkersguide.android.data.basic.segment.Segment;
 import org.walkersguide.android.util.Constants;
 
-import android.content.Context;
 
 public class SegmentWrapper {
 
@@ -64,6 +68,18 @@ public class SegmentWrapper {
         }
 		SegmentWrapper other = (SegmentWrapper) obj;
         return this.segment.equals(other.getSegment());
+    }
+
+    public static class SortByNameASC implements Comparator<SegmentWrapper > {
+        @Override public int compare(SegmentWrapper object1, SegmentWrapper object2) {
+            return object1.getSegment().getName().compareTo(object2.getSegment().getName());
+        }
+    }
+
+    public static class SortByNameDESC implements Comparator<SegmentWrapper> {
+        @Override public int compare(SegmentWrapper object1, SegmentWrapper object2) {
+            return object2.getSegment().getName().compareTo(object1.getSegment().getName());
+        }
     }
 
 }

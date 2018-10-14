@@ -1,12 +1,12 @@
 package org.walkersguide.android.helper;
 
+import android.content.Context;
+
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.RouteSettings;
 
-import android.content.Context;
 
 public class PointUtility {
 

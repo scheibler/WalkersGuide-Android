@@ -1,17 +1,21 @@
 package org.walkersguide.android.data.profile;
 
+import android.content.Context;
+
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
+
 import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.util.Constants;
 
-import android.content.Context;
 
 public class POIProfile extends PointProfile {
 
@@ -19,24 +23,33 @@ public class POIProfile extends PointProfile {
     // initial values
     public static final int INITIAL_RADIUS = 1000;
     public static final int INITIAL_SEARCH_RADIUS = 5000;
+    public static final int INITIAL_LOCAL_FAVORITES_RADIUS = 10000;
     public static final int INITIAL_NUMBER_OF_RESULTS = 100;
     // max values
     public static final int MAXIMAL_RADIUS = 20000;
     public static final int MAXIMAL_SEARCH_RADIUS = 100000;
+    public static final int MAXIMAL_LOCAL_FAVORITES_RADIUS = 1000000;
     public static final int MAXIMAL_NUMBER_OF_RESULTS = 1000;
 
-    private AccessDatabase accessDatabaseInstance;
+    private ArrayList<Integer> favoriteIdList;
     private ArrayList<POICategory> poiCategoryList;
     private int radius, numberOfResults;
     private String searchTerm;
 
-    public POIProfile(Context context, int id, String name, int radius, int numberOfResults, JSONArray jsonPOICategoryIdList,
+    public POIProfile(Context context, int id, String name, int radius, int numberOfResults,
+            JSONArray jsonFavoriteIdList, JSONArray jsonPOICategoryIdList,
             String searchTerm, JSONObject jsonCenter, int direction, JSONArray jsonPointList) throws JSONException {
         super(context, id, name, jsonCenter, direction, jsonPointList);
-        this.accessDatabaseInstance = AccessDatabase.getInstance(context);
         this.radius = radius;
         this.numberOfResults = numberOfResults;
         this.searchTerm = searchTerm;
+        // favorite profile ids
+        this.favoriteIdList = new ArrayList<Integer>();
+        for (int i=0; i<jsonFavoriteIdList.length(); i++) {
+            try {
+                this.favoriteIdList.add(jsonFavoriteIdList.getInt(i));
+            } catch (JSONException e) {}
+        }
         // poi categories
         this.poiCategoryList = new ArrayList<POICategory>();
         for (int i=0; i<jsonPOICategoryIdList.length(); i++) {
@@ -50,6 +63,10 @@ public class POIProfile extends PointProfile {
 
     public int getSortCriteria() {
         return Constants.SORT_CRITERIA.DISTANCE_ASC;
+    }
+
+    public ArrayList<Integer> getFavoriteIdList() {
+        return this.favoriteIdList;
     }
 
     public ArrayList<POICategory> getPOICategoryList() {
@@ -72,14 +89,18 @@ public class POIProfile extends PointProfile {
     }
 
     public int getInitialRadius() {
-        if (super.getId() == SearchFavoritesProfile.ID_SEARCH) {
+        if (this.poiCategoryList.isEmpty()) {
+            return POIProfile.INITIAL_LOCAL_FAVORITES_RADIUS;
+        } else if (! TextUtils.isEmpty(this.searchTerm)) {
             return POIProfile.INITIAL_SEARCH_RADIUS;
         }
         return POIProfile.INITIAL_RADIUS;
     }
 
     public int getMaximalRadius() {
-        if (super.getId() == SearchFavoritesProfile.ID_SEARCH) {
+        if (this.poiCategoryList.isEmpty()) {
+            return POIProfile.MAXIMAL_LOCAL_FAVORITES_RADIUS;
+        } else if (! TextUtils.isEmpty(this.searchTerm)) {
             return POIProfile.MAXIMAL_SEARCH_RADIUS;
         }
         return POIProfile.MAXIMAL_RADIUS;
@@ -105,29 +126,22 @@ public class POIProfile extends PointProfile {
         return POIProfile.MAXIMAL_NUMBER_OF_RESULTS;
     }
 
-    public void setRadiusAndNumberOfResults(int newRadius, int newNumberOfResults) {
-        // set radius and number of results
-        this.radius = newRadius;
-        this.numberOfResults = newNumberOfResults;
-        accessDatabaseInstance.updateRadiusAndNumberOfResultsOfPOIProfile(
-                super.getId(), this.radius, this.numberOfResults);
-    }
-
     public String getSearchTerm() {
         return this.searchTerm;
     }
 
-    public void setSearchTerm(String newSearchTerm) {
-        if (newSearchTerm != null) {
-            this.searchTerm = newSearchTerm;
-            accessDatabaseInstance.updateSearchTermOfPOIProfile(super.getId(), this.searchTerm);
-        }
-    }
-
-    @Override public void setCenterAndDirection(PointWrapper newCenter, int newDirection) {
-        super.setCenterAndDirection(newCenter, newDirection);
-        accessDatabaseInstance.updateCenterDirectionANPointListOfPOIProfile(
-                super.getId(), newCenter, newDirection, super.getPointProfileObjectList());
+    public void setRadiusNumberOfResultsCenterDirectionAndPointListAndUpdateInDatabase(
+            int newRadius, int newNumberOfResults, PointWrapper newCenter, int newDirection,
+            ArrayList<PointProfileObject> newPointProfileObjectList) {
+        this.radius = newRadius;
+        this.numberOfResults = newNumberOfResults;
+        super.setCenterDirectionAndPointList(
+                newCenter, newDirection, newPointProfileObjectList);
+        // update database
+        AccessDatabase.getInstance(super.getContext())
+            .updateRadiusNumberOfResultsCenterDirectionAndPointListOfPOIProfile(
+                    super.getId(), this.getRadius(), this.getNumberOfResults(),
+                    super.getCenter(), super.getDirection(), super.getPointProfileObjectList());
     }
 
 }

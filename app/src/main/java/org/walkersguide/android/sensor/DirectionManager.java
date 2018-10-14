@@ -1,25 +1,29 @@
 package org.walkersguide.android.sensor;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+
+import android.support.v4.content.LocalBroadcastManager;
+
+import com.google.common.primitives.Ints;
+
 import java.util.HashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.DirectionSettings;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.support.v4.content.LocalBroadcastManager;
-
-import com.google.common.primitives.Ints;
 
 public class DirectionManager implements SensorEventListener {
 

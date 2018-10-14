@@ -1,14 +1,16 @@
 package org.walkersguide.android.data.route;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 
-import android.content.Context;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.R;
+
 
 public class Route {
 
@@ -62,6 +64,9 @@ public class Route {
         return this.description;
     }
 
+    public int getCurrentRouteIndex() {
+        return this.currentIndex;
+    }
 
     public RouteObject getCurrentRouteObject() {
         try {

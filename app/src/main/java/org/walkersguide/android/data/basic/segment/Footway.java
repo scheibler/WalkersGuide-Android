@@ -1,12 +1,14 @@
 package org.walkersguide.android.data.basic.segment;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.walkersguide.android.sensor.DirectionManager;
-
 import android.content.Context;
 
 import com.google.common.primitives.Ints;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.walkersguide.android.sensor.DirectionManager;
+
 
 public class Footway extends Segment {
 

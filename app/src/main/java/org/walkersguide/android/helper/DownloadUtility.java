@@ -1,30 +1,34 @@
 package org.walkersguide.android.helper;
 
+import android.content.Context;
+
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
+import android.os.Build;
+
+import android.text.TextUtils;
+
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.OutputStream;
+
 import java.net.URL;
+
+import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.BuildConfig;
-
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import org.json.JSONArray;
-import android.os.Build;
-import java.util.ArrayList;
-import android.text.TextUtils;
 
 
 public class DownloadUtility {
@@ -125,7 +129,7 @@ public class DownloadUtility {
                         context.getResources().getString(R.string.errorServerResponseWithExtraData), additionalMessage);
             // addresses
             case Constants.RC.NO_COORDINATES_FOR_ADDRESS:
-                return context.getResources().getString(R.string.errorNoCoorDinatesForAddress);
+                return context.getResources().getString(R.string.errorNoCoordinatesForAddress);
             case Constants.RC.NO_ADDRESS_FOR_COORDINATES:
                 return context.getResources().getString(R.string.errorNoAddressForCoordinates);
             case Constants.RC.NEITHER_COORDINATES_NOR_ADDRESS:
@@ -134,22 +138,24 @@ public class DownloadUtility {
                 return context.getResources().getString(R.string.errorGoogleMapsQuotaExceeded);
             case Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED:
                 return context.getResources().getString(R.string.errorAddressProviderNotSupported);
-            // poi and favorites
-            case Constants.RC.NO_FAVORITES_PROFILE_SELECTED:
-                return context.getResources().getString(R.string.errorNoFavoritesProfileSelected);
+            // poi and history
+            case Constants.RC.DEPARTURE_LIST_EMPTY:
+                return context.getResources().getString(R.string.errorDepartureListEmpty);
+            case Constants.RC.NO_POI_PROFILE_CREATED:
+                return context.getResources().getString(R.string.errorNoPOIProfileCreated);
             case Constants.RC.NO_POI_PROFILE_SELECTED:
                 return context.getResources().getString(R.string.errorNoPOIProfileSelected);
-            case Constants.RC.NO_POI_CATEGORY_SELECTED:
-                return context.getResources().getString(R.string.errorNoPOICategorySelected);
+            case Constants.RC.POI_PROFILE_PARSING_ERROR:
+                return context.getResources().getString(R.string.errorPOIProfileParsing);
             case Constants.RC.UNSUPPORTED_POI_REQUEST_ACTION:
                 return context.getResources().getString(R.string.errorUnsupportedPOIRequestAction);
-            case Constants.RC.NO_SEARCH_TERM:
-                return context.getResources().getString(R.string.errorNoSearchTerm);
             // route
             case Constants.RC.NO_ROUTE_START_POINT:
                 return context.getResources().getString(R.string.errorNoRouteStartPoint);
             case Constants.RC.NO_ROUTE_DESTINATION_POINT:
                 return context.getResources().getString(R.string.errorNoRouteDestinationPoint);
+            case Constants.RC.NO_ROUTE_CREATED:
+                return context.getResources().getString(R.string.errorNoRouteCreated);
             case Constants.RC.NO_ROUTE_SELECTED:
                 return context.getResources().getString(R.string.errorNoRouteSelected);
             case Constants.RC.ROUTE_PARSING_ERROR:

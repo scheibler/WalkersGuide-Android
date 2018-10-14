@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menuItemSelect"
+        android:title="@string/menuItemSelect" />
+    <item
+        android:id="@+id/menuItemShowDetails"
+        android:title="@string/menuItemShowDetails" />
+    <item
+        android:id="@+id/menuItemRemove"
+        android:title="@string/menuItemRemove" />
+</menu>

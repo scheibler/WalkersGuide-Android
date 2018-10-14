@@ -4,36 +4,63 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:labelFor="@+id/editInput"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:textStyle="bold"
-        android:textColor="@color/heading"
-        android:text="@string/labelProfileName" />
+        android:orientation="vertical" >
 
-    <include
-        layout="@layout/layout_single_edit_text" />
+        <TextView
+            android:labelFor="@+id/editInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:textStyle="bold"
+            android:textColor="@color/heading"
+            android:text="@string/labelProfileName" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:focusable="true"
-        android:textStyle="bold"
-        android:textColor="@color/heading"
-        android:text="@string/labelPOIProfileCategories" />
+        <include
+            layout="@layout/layout_single_edit_text" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
-        <org.walkersguide.android.ui.view.CheckBoxGroupView
-            android:id="@+id/checkBoxGroupPOICategories"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="1" />
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelPOIProfileFavoritesAndHistory" />
+
+            <Switch
+                android:id="@+id/buttonIncludeFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/buttonPOIProfileIncludeFavorites" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:focusable="true"
+                android:textStyle="bold"
+                android:textColor="@color/heading"
+                android:text="@string/labelPOIProfileCategories" />
+
+            <org.walkersguide.android.ui.view.CheckBoxGroupView
+                android:id="@+id/checkBoxGroupPOICategories"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="1" />
+        </LinearLayout>
     </ScrollView>
 
 </LinearLayout>

@@ -7,9 +7,10 @@
 
     <EditText
         android:id="@+id/editInput"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1.0"
+        android:inputType="text"
         android:selectAllOnFocus="true" />
 
     <ImageButton
@@ -19,7 +20,8 @@
         android:minWidth="@dimen/minWidth"
         android:minHeight="@dimen/minHeight"
         android:background="@null"
-        android:src="@drawable/delete"
-        android:contentDescription="@string/buttonDelete" />
+        android:tint="@color/image"
+        android:src="@drawable/clear"
+        android:contentDescription="@string/buttonClearInput" />
 
 </LinearLayout>

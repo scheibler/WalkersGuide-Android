@@ -1,9 +1,9 @@
 package org.walkersguide.android.data.poi;
 
+import android.content.Context;
+
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
-
-import android.content.Context;
 
 
 public class POICategory {

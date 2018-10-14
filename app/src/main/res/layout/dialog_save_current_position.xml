@@ -38,7 +38,7 @@
                 android:orientation="horizontal" >
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.0"
                     android:textStyle="bold"
@@ -92,18 +92,10 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1.0"
                     android:textStyle="bold"
                     android:textColor="@color/heading"
                     android:focusable="true"
                     android:text="@string/labelCheckFavoritesProfiles" />
-
-                <Button
-                    android:id="@+id/buttonAddFavoritesProfile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/buttonAddFavoritesProfile"
-                    android:contentDescription="@string/buttonAddFavoritesProfileCD" />
             </LinearLayout>
 
             <org.walkersguide.android.ui.view.CheckBoxGroupView
@@ -113,11 +105,11 @@
                 android:columnCount="1" />
 
             <TextView
-                android:id="@+id/labelNoUserCreatedFavoritesProfiles"
+                android:id="@+id/labelNoPOIProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="true"
-                android:text="@string/labelNoUserCreatedFavoritesProfiles" />
+                android:text="@string/errorNoPOIProfileCreated" />
         </LinearLayout>
 
     </LinearLayout>

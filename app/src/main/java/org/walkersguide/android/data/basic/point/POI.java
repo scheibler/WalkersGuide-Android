@@ -1,14 +1,16 @@
 package org.walkersguide.android.data.basic.point;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 
-import android.content.Context;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.R;
+
 
 public class POI extends PointWithAddressData {
 
@@ -146,16 +148,10 @@ public class POI extends PointWithAddressData {
     @Override public String toString() {
         String description = super.toString();
         if (! this.entranceList.isEmpty()) {
-            if (this.entranceList.size() == 1) {
-                description += String.format(
-                        ", 1 %1$s",
-                        super.getContext().getResources().getString(R.string.entranceSingular));
-            } else {
-                description += String.format(
-                        ", %1$d %2$s",
-                        this.entranceList.size(),
-                        super.getContext().getResources().getString(R.string.entrancePlural));
-            }
+            description += String.format(
+                    ", %1$s",
+                    super.getContext().getResources().getQuantityString(
+                        R.plurals.entrance, this.entranceList.size(), this.entranceList.size()));
         }
         return description;
     }

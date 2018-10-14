@@ -1,12 +1,14 @@
 package org.walkersguide.android.data.basic.point;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
+
 import android.text.TextUtils;
+
 import java.util.ArrayList;
 import java.util.Locale;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public abstract class PointWithAddressData extends Point {

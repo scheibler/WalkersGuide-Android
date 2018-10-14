@@ -1,27 +1,27 @@
 package org.walkersguide.android.ui.dialog;
 
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.util.SettingsManager;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
+
 import android.os.Bundle;
+
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.View;
-import android.widget.Button;
+
+
+
+
 
 import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.data.server.OSMMap;
 import java.util.ArrayList;
 
 
@@ -49,7 +49,7 @@ public class SelectMapDialog extends DialogFragment {
                 if (! map.getDevelopment()
                         || settingsManagerInstance.getServerSettings().getLogQueriesOnServer()) {
                     this.osmMapList.add(map);
-                }
+                        }
             }
         }
     }
@@ -90,15 +90,15 @@ public class SelectMapDialog extends DialogFragment {
                         }
                     }
                     )
-            .setNegativeButton(
-                    getResources().getString(R.string.dialogCancel),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                        }
-                    }
-                    )
-            .create();
+                        .setNegativeButton(
+                                getResources().getString(R.string.dialogCancel),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dismiss();
+                                    }
+                                }
+                                )
+                        .create();
     }
 
 }

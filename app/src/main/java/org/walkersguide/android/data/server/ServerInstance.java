@@ -1,8 +1,10 @@
 package org.walkersguide.android.data.server;
 
+import java.util.ArrayList;
+
 import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.data.route.WayClass;
-import java.util.ArrayList;
+
 
 public class ServerInstance {
 

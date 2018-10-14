@@ -1,8 +1,5 @@
 package org.walkersguide.android.ui.dialog;
 
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import com.google.common.primitives.Ints;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -10,12 +7,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 
-
 import android.os.Bundle;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 
+import android.text.Editable;
+import android.text.InputType;
 
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -25,32 +23,31 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.RadioGroup;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Map;
-
-
-import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.R;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
-import java.util.Map;
-import android.widget.EditText;
-import org.walkersguide.android.util.TextChangedListener;
-import android.widget.RadioButton;
-import android.text.Editable;
 import java.util.ArrayList;
-import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.ui.view.CheckBoxGroupView;
-import android.widget.CheckBox;
+import java.util.Map;
+import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONException;
-import android.text.InputType;
+
+import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.ui.view.CheckBoxGroupView;
+import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.TextChangedListener;
+import android.widget.Switch;
+import android.widget.CompoundButton;
 
 
 public class CreateOrEditPOIProfileDialog extends DialogFragment {
@@ -58,10 +55,10 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
     // Store instance variables
     private AccessDatabase accessDatabaseInstance;
     private InputMethodManager imm;
-    private SettingsManager settingsManagerInstance;
     private ServerInstance serverInstance;
     private int poiProfileId;
     private String profileName;
+    private boolean includeFavorites;
     private ArrayList<POICategory> checkedCategoryList;
 
     // ui components
@@ -80,7 +77,6 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         super.onAttach(context);
         accessDatabaseInstance = AccessDatabase.getInstance(context);
         imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        settingsManagerInstance = SettingsManager.getInstance(context);
         serverInstance = ServerStatusManager.getInstance(context).getServerInstance();
     }
 
@@ -88,6 +84,7 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         if (savedInstanceState != null) {
             poiProfileId = savedInstanceState.getInt("poiProfileId");
             profileName = savedInstanceState.getString("profileName");
+            includeFavorites = savedInstanceState.getBoolean("includeFavorites");
             // poi categories
             checkedCategoryList = new ArrayList<POICategory>();
             JSONArray jsonCheckedCategoryIdList = null;
@@ -110,6 +107,11 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         } else {
             poiProfileId = getArguments().getInt("poiProfileId", -1);
             profileName = accessDatabaseInstance.getNameOfPOIProfile(poiProfileId);
+            if (poiProfileId == -1) {
+                includeFavorites = true;
+            } else {
+                includeFavorites = accessDatabaseInstance.getFavoriteIdListOfPOIProfile(poiProfileId).contains(poiProfileId);
+            }
             checkedCategoryList = accessDatabaseInstance.getCategoryListOfPOIProfile(poiProfileId);
         }
 
@@ -133,7 +135,7 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         editProfileName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    createOrEditPOIProfile();
+                    imm.hideSoftInputFromWindow(editProfileName.getWindowToken(), 0);
                     return true;
                 }
                 return false;
@@ -152,6 +154,14 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
                 editProfileName.setText("");
                 // show keyboard
                 imm.showSoftInput(editProfileName, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+
+        Switch buttonIncludeFavorites = (Switch) view.findViewById(R.id.buttonIncludeFavorites);
+        buttonIncludeFavorites.setChecked(includeFavorites);
+        buttonIncludeFavorites.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                includeFavorites = isChecked;
             }
         });
 
@@ -258,6 +268,7 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putInt("poiProfileId", poiProfileId);
         savedInstanceState.putString("profileName", profileName);
+        savedInstanceState.putBoolean("includeFavorites", includeFavorites);
         JSONArray jsonCheckedCategoryIdList = new JSONArray();
         for (POICategory poiCategory : getCheckedItemsOfPOICategoriesCheckBoxGroup()) {
             jsonCheckedCategoryIdList.put(poiCategory.getId());
@@ -285,39 +296,34 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
                 }
             }
         }
-        if (checkedCategoryList.isEmpty()) {
-            Toast.makeText(
-                    getActivity(),
-                    getResources().getString(R.string.errorNoPOICategorySelected),
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
         // create or edit profile
         if (! accessDatabaseInstance.getPOIProfileMap().containsKey(poiProfileId)) {
             // create new profile
-            int newProfileId = accessDatabaseInstance.addPOIProfile(profileName, checkedCategoryList);
-            if (newProfileId > -1) {
-                settingsManagerInstance.getPOIFragmentSettings().setSelectedPOIProfileId(newProfileId);
-            } else {
+            int newProfileId = accessDatabaseInstance.addPOIProfile(profileName);
+            if (newProfileId == -1) {
                 Toast.makeText(
                         getActivity(),
                         getResources().getString(R.string.messageCouldNotCreateProfile),
                         Toast.LENGTH_LONG).show();
                 return;
             }
-        } else {
-            // edit existing profile
-            boolean updateSuccessful = accessDatabaseInstance.updateNameAndCategoryListOfPOIProfile(
-                    poiProfileId, profileName, checkedCategoryList);
-            if (! updateSuccessful) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageCouldNotEditProfile),
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
+            poiProfileId = newProfileId;
         }
-        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+        // update profile fields
+        ArrayList<Integer> favorite_id_list = new ArrayList<Integer>();
+        if (includeFavorites) {
+            favorite_id_list.add(poiProfileId);
+        }
+        boolean updateSuccessful = accessDatabaseInstance.updateNameAndCategoriesOfPOIProfile(
+                poiProfileId, profileName, favorite_id_list, checkedCategoryList);
+        if (! updateSuccessful) {
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getString(R.string.messageCouldNotEditProfile),
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent intent = new Intent(Constants.ACTION_NEW_POI_PROFILE);
         LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
         dismiss();
     }
