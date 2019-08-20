@@ -1,34 +1,39 @@
 package org.walkersguide.android.ui.dialog;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+
+import android.os.AsyncTask;
+import android.os.Bundle;
+
+import android.support.v4.app.DialogFragment;
+import android.support.v4.view.ViewCompat;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import android.widget.Button;
+import android.widget.TextView;
+
 import org.json.JSONException;
-import org.walkersguide.android.R;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+
 import org.walkersguide.android.database.AccessDatabase;
-import org.walkersguide.android.server.AddressManager;
-import org.walkersguide.android.listener.AddressListener;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.server.AddressManager;
+import org.walkersguide.android.server.AddressManager.AddressListener;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.TTSWrapper;
-
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-import org.walkersguide.android.helper.StringUtility;
-import android.os.Build;
-import android.annotation.TargetApi;
-import android.support.v4.view.ViewCompat;
 
 public class RequestAddressDialog extends DialogFragment implements AddressListener {
 
@@ -139,7 +144,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
 
     private void requestAddressForCurrentLocation() {
         PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
-        if (currentLocation.equals(PositionManager.getDummyLocation(getActivity()))) {
+        if (currentLocation == null) {
             String error = String.format(
                     getResources().getString(R.string.messageAddressRequestFailed),
                     getResources().getString(R.string.errorNoLocationFound));
@@ -156,26 +161,29 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
         }
     }
 
-    @Override public void addressRequestFinished(int returnCode, String returnMessage, PointWrapper addressPoint) {
-        if (returnCode == Constants.RC.OK) {
+    @Override public void addressRequestFinished(Context context, int returnCode, PointWrapper addressPoint) {
+        final AlertDialog dialog = (AlertDialog)getDialog();
+        if (dialog == null) {
+            return;
+        }
+
+        if (returnCode == Constants.RC.OK
+                && addressPoint != null) {
             // stick to positive button
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setTag(addressPoint);
-            }
+            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            buttonPositive.setTag(addressPoint);
             // show results
             String success = String.format(
-                    getResources().getString(R.string.messageAddressRequestSuccessful),
+                    context.getResources().getString(R.string.messageAddressRequestSuccessful),
                     addressPoint.getPoint().getName(),
                     String.format(
-                        getResources().getString(R.string.labelPointDistanceAndBearing),
-                        getResources().getQuantityString(
+                        context.getResources().getString(R.string.labelPointDistanceAndBearing),
+                        context.getResources().getQuantityString(
                             R.plurals.meter,
                             addressPoint.distanceFromCurrentLocation(),
                             addressPoint.distanceFromCurrentLocation()),
                         StringUtility.formatRelativeViewingDirection(
-                            getActivity(), addressPoint.bearingFromCurrentLocation()))
+                            context, addressPoint.bearingFromCurrentLocation()))
                     );
             labelAddress.setText(success);
             // speak aloud if it was a manual request
@@ -186,21 +194,14 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
 
         } else {
             // clear positive button tag
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setTag(null);
-            }
+            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            buttonPositive.setTag(null);
             // show results
-            String error = String.format(
-                    getResources().getString(R.string.messageAddressRequestFailed),
-                    returnMessage);
-            labelAddress.setText(error);
-            // speak aloud if it was a manual request
-            if (manualRequest) {
-                //ttsWrapperInstance.speak(error, true, true);
-                manualRequest = false;
-            }
+            labelAddress.setText(
+                    String.format(
+                        context.getResources().getString(R.string.messageAddressRequestFailed),
+                        ServerUtility.getErrorMessageForReturnCode(context, returnCode))
+                    );
         }
     }
 

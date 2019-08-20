@@ -1,1 +1,5 @@
-include ':app'
+// root project
+rootProject.name = 'WalkersGuide'
+
+include ':WalkersGuide'
+project(":WalkersGuide").projectDir = file("app")

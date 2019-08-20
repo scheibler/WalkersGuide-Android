@@ -5,7 +5,6 @@ import android.content.Context;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
@@ -49,7 +48,7 @@ public class RouteObject {
         return this.segment;
     }
 
-    public PointWrapper getRoutePoint() {
+    public RoutePoint getRoutePoint() {
         return this.point;
     }
 

@@ -13,6 +13,7 @@ public class IntersectionSegment extends Footway {
 
     private String intersectionName;
     private long intersectionNodeId, nextNodeId;
+    private boolean partOfPreviousRouteSegment, partOfNextRouteSegment;
 
     public IntersectionSegment(Context context, JSONObject inputData) throws JSONException {
         super(context, inputData);
@@ -31,6 +32,17 @@ public class IntersectionSegment extends Footway {
                 this.nextNodeId = nextNodeIdValue;
             }
         } catch (JSONException e) {}
+        // part of previous or next route segment
+        try {
+            this.partOfPreviousRouteSegment = inputData.getBoolean("part_of_previous_route_segment");
+        } catch (JSONException e) {
+            this.partOfPreviousRouteSegment = false;
+        }
+        try {
+            this.partOfNextRouteSegment = inputData.getBoolean("part_of_next_route_segment");
+        } catch (JSONException e) {
+            this.partOfNextRouteSegment = false;
+        }
     }
 
     public String getIntersectionName() {
@@ -43,6 +55,14 @@ public class IntersectionSegment extends Footway {
 
     public long getNextNodeId() {
         return this.nextNodeId;
+    }
+
+    public boolean isPartOfPreviousRouteSegment() {
+        return this.partOfPreviousRouteSegment;
+    }
+
+    public boolean isPartOfNextRouteSegment() {
+        return this.partOfNextRouteSegment;
     }
 
     public JSONObject toJson() throws JSONException {
@@ -58,11 +78,21 @@ public class IntersectionSegment extends Footway {
                 jsonObject.put("next_node_id", this.nextNodeId);
             } catch (JSONException e) {}
         }
+        if (this.partOfPreviousRouteSegment) {
+            try {
+                jsonObject.put("part_of_previous_route_segment", this.partOfPreviousRouteSegment);
+            } catch (JSONException e) {}
+        }
+        if (this.partOfNextRouteSegment) {
+            try {
+                jsonObject.put("part_of_next_route_segment", this.partOfNextRouteSegment);
+            } catch (JSONException e) {}
+        }
         return jsonObject;
     }
 
     @Override public String toString() {
-        if (super.bearingFromCurrentDirection() > -1) {
+        if (super.bearingFromCurrentDirection() != null) {
             return String.format(
                     "%1$s: %2$s",
                     StringUtility.formatRelativeViewingDirection(
@@ -100,9 +130,13 @@ public class IntersectionSegment extends Footway {
             this.offsetInDegree = offsetInDegree;
         }
         @Override public int compare(IntersectionSegment object1, IntersectionSegment object2) {
-            int directionWithOffset1 = (object1.bearingFromCurrentDirection() + this.offsetInDegree) % 360;
-            int directionWithOffset2 = (object2.bearingFromCurrentDirection() + this.offsetInDegree) % 360;
-            return Integer.valueOf(directionWithOffset1).compareTo(directionWithOffset2);
+            if (object1.bearingFromCurrentDirection() != null
+                    && object2.bearingFromCurrentDirection() != null) {
+                int directionWithOffset1 = (object1.bearingFromCurrentDirection() + this.offsetInDegree) % 360;
+                int directionWithOffset2 = (object2.bearingFromCurrentDirection() + this.offsetInDegree) % 360;
+                return Integer.valueOf(directionWithOffset1).compareTo(directionWithOffset2);
+            }
+            return 0;
         }
     }
 

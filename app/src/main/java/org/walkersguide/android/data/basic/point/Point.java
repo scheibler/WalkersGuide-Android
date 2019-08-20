@@ -10,6 +10,8 @@ import com.google.common.primitives.Ints;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import org.walkersguide.android.R;
+
 
 public class Point {
 
@@ -75,8 +77,22 @@ public class Point {
         return this.location.getLatitude();
     }
 
+    public String formatLatitude() {
+        return String.format(
+                "%1$s: %2$f",
+                this.context.getResources().getString(R.string.labelGPSLatitude),
+                this.location.getLatitude());
+    }
+
     public double getLongitude() {
         return this.location.getLongitude();
+    }
+
+    public String formatLongitude() {
+        return String.format(
+                "%1$s: %2$f",
+                this.context.getResources().getString(R.string.labelGPSLongitude),
+                this.location.getLongitude());
     }
 
     public long getNodeId() {

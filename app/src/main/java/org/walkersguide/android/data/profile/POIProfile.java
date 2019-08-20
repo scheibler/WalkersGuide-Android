@@ -14,6 +14,7 @@ import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.poi.POICategory;
+import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.util.Constants;
 
 
@@ -38,8 +39,8 @@ public class POIProfile extends PointProfile {
 
     public POIProfile(Context context, int id, String name, int radius, int numberOfResults,
             JSONArray jsonFavoriteIdList, JSONArray jsonPOICategoryIdList,
-            String searchTerm, JSONObject jsonCenter, int direction, JSONArray jsonPointList) throws JSONException {
-        super(context, id, name, jsonCenter, direction, jsonPointList);
+            String searchTerm, JSONObject jsonCenter, JSONObject jsonDirection, JSONArray jsonPointList) throws JSONException {
+        super(context, id, name, jsonCenter, jsonDirection, jsonPointList);
         this.radius = radius;
         this.numberOfResults = numberOfResults;
         this.searchTerm = searchTerm;
@@ -131,7 +132,7 @@ public class POIProfile extends PointProfile {
     }
 
     public void setRadiusNumberOfResultsCenterDirectionAndPointListAndUpdateInDatabase(
-            int newRadius, int newNumberOfResults, PointWrapper newCenter, int newDirection,
+            int newRadius, int newNumberOfResults, PointWrapper newCenter, Direction newDirection,
             ArrayList<PointProfileObject> newPointProfileObjectList) {
         this.radius = newRadius;
         this.numberOfResults = newNumberOfResults;

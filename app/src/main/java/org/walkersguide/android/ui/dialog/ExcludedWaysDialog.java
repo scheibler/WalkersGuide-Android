@@ -131,13 +131,6 @@ public class ExcludedWaysDialog extends DialogFragment {
         ArrayList<SegmentWrapper> excludedWaysList = accessDatabaseInstance.getExcludedWaysList();
         Collections.sort(excludedWaysList, new SortByNameASC());
         // heading
-        System.out.println("xxx heading: " + String.format(
-                    getResources().getString(R.string.labelSelectHistoryPointDialogHeaderSuccess),
-                    getResources().getQuantityString(
-                        R.plurals.way, excludedWaysList.size(), excludedWaysList.size()),
-                    StringUtility.formatProfileSortCriteria(
-                        getActivity(), Constants.SORT_CRITERIA.NAME_ASC))
-                );
         labelHeading.setText(
                 String.format(
                     getResources().getString(R.string.labelSelectHistoryPointDialogHeaderSuccess),

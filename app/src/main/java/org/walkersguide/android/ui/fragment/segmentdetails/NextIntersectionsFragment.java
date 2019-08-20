@@ -1,7 +1,5 @@
 package org.walkersguide.android.ui.fragment.segmentdetails;
 
-import android.app.Activity;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import android.view.LayoutInflater;
@@ -38,20 +35,19 @@ import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.profile.NextIntersectionsProfile;
-import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.listener.NextIntersectionsListener;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.POIManager;
+import org.walkersguide.android.server.POIManager.NextIntersectionsListener;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
-import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
+import org.walkersguide.android.ui.dialog.SelectMapDialog;
+import org.walkersguide.android.ui.fragment.AbstractUITab;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.POISettings;
 
 
-public class NextIntersectionsFragment extends Fragment
-    implements FragmentCommunicator, NextIntersectionsListener{
+public class NextIntersectionsFragment extends AbstractUITab implements NextIntersectionsListener{
 
 	// Store instance variables
     private POIManager poiManagerInstance;
@@ -85,12 +81,6 @@ public class NextIntersectionsFragment extends Fragment
 
 	@Override public void onAttach(Context context) {
 		super.onAttach(context);
-		Activity activity;
-		if (context instanceof Activity) {
-			activity = (Activity) context;
-			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((SegmentDetailsActivity) activity).nextIntersectionsFragmentCommunicator = this;
-		}
         poiManagerInstance = POIManager.getInstance(context);
         // settings manager
 		settingsManagerInstance = SettingsManager.getInstance(context);
@@ -99,6 +89,11 @@ public class NextIntersectionsFragment extends Fragment
         this.progressUpdater = new ProgressUpdater();
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 	}
+
+
+    /**
+     * create view
+     */
 
     @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_toolbar_next_intersections_fragment, menu);
@@ -125,7 +120,7 @@ public class NextIntersectionsFragment extends Fragment
                 if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
                     poiManagerInstance.cancelNextIntersectionsRequest();
                 } else {
-                    requestNextIntersections();
+                    requestNextIntersections(getActivity());
                 }
                 break;
             case R.id.menuItemShowAllPoints:
@@ -135,13 +130,18 @@ public class NextIntersectionsFragment extends Fragment
                 if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
                     poiManagerInstance.cancelNextIntersectionsRequest();
                 }
-                requestNextIntersections();
+                requestNextIntersections(getActivity());
                 break;
             default:
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+    /**
+     * create view
+     */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
@@ -170,7 +170,7 @@ public class NextIntersectionsFragment extends Fragment
                 if (poiManagerInstance.nextIntersectionsRequestInProgress()) {
                     poiManagerInstance.cancelNextIntersectionsRequest();
                 } else {
-                    requestNextIntersections();
+                    requestNextIntersections(getActivity());
                 }
             }
         });
@@ -198,34 +198,39 @@ public class NextIntersectionsFragment extends Fragment
         savedInstanceState.putInt("listPosition",  listPosition);
     }
 
-    @Override public void onFragmentEnabled() {
+
+    /**
+     * pause and resume
+     */
+
+    @Override public void fragmentVisible() {
         // listen for device shakes
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_NEW_LOCATION);
         filter.addAction(Constants.ACTION_SHAKE_DETECTED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request next intersections
-        requestNextIntersections();
+        requestNextIntersections(getActivity());
     }
 
-	@Override public void onFragmentDisabled() {
+    @Override public void fragmentInvisible() {
         poiManagerInstance.invalidateNextIntersectionsRequest(NextIntersectionsFragment.this);
         progressHandler.removeCallbacks(progressUpdater);
         // unregister shake broadcast receiver
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
-    private void requestNextIntersections() {
+    private void requestNextIntersections(Context context) {
         // heading
         labelHeading.setText(
-                getResources().getString(R.string.messagePleaseWait));
+                context.getResources().getQuantityString(R.plurals.point, 0, 0));
         buttonRefresh.setContentDescription(
-                getResources().getString(R.string.buttonCancel));
+                context.getResources().getString(R.string.buttonCancel));
         buttonRefresh.setImageResource(R.drawable.cancel);
         // list view
         listViewNextIntersections.setAdapter(null);
         listViewNextIntersections.setOnScrollListener(null);
-        labelEmptyListView.setText("");
+        labelEmptyListView.setText(
+                context.getResources().getString(R.string.messagePleaseWait));
         // start poi profile update request
         progressHandler.postDelayed(progressUpdater, 2000);
         poiManagerInstance.requestNextIntersections(
@@ -235,17 +240,18 @@ public class NextIntersectionsFragment extends Fragment
                 intersectionSegment.getNextNodeId());
     }
 
-    @Override public void nextIntersectionsRequestFinished(int returnCode, String returnMessage, NextIntersectionsProfile nextIntersectionsProfile, boolean resetListPosition) {
+    @Override public void nextIntersectionsRequestFinished(Context context, int returnCode, NextIntersectionsProfile nextIntersectionsProfile, boolean resetListPosition) {
         POISettings poiSettings = settingsManagerInstance.getPOISettings();
         buttonRefresh.setContentDescription(
-                getResources().getString(R.string.buttonRefresh));
+                context.getResources().getString(R.string.buttonRefresh));
         buttonRefresh.setImageResource(R.drawable.refresh);
         progressHandler.removeCallbacks(progressUpdater);
 
-        if (nextIntersectionsProfile != null
+        if (returnCode == Constants.RC.OK
+                && nextIntersectionsProfile != null
                 && nextIntersectionsProfile.getPointProfileObjectList() != null) {
 
-            ArrayList<PointProfileObject> nextIntersectionsList = nextIntersectionsList = nextIntersectionsProfile.getPointProfileObjectList();
+            ArrayList<PointProfileObject> nextIntersectionsList = nextIntersectionsProfile.getPointProfileObjectList();
             int totalLength = 0;
             for (int i=1; i<nextIntersectionsList.size(); i++) {
                 totalLength += nextIntersectionsList.get(i).getPoint()
@@ -267,15 +273,16 @@ public class NextIntersectionsFragment extends Fragment
 
             labelHeading.setText(
                     String.format(
-                        getResources().getString(R.string.labelNextIntersectionsSuccess),
-                        getResources().getQuantityString(
+                        context.getResources().getString(R.string.labelNextIntersectionsSuccess),
+                        context.getResources().getQuantityString(
                             R.plurals.point, nextIntersectionsList.size(), nextIntersectionsList.size()),
-                        getResources().getQuantityString(
+                        context.getResources().getQuantityString(
                             R.plurals.meter, totalLength, totalLength))
                     );
             listViewNextIntersections.setAdapter(
                     new ArrayAdapter<PointProfileObject>(
-                        getActivity(), android.R.layout.simple_list_item_1, nextIntersectionsList));
+                        context, android.R.layout.simple_list_item_1, nextIntersectionsList));
+            labelEmptyListView.setText("");
 
             // list position
             if (resetListPosition) {
@@ -293,20 +300,27 @@ public class NextIntersectionsFragment extends Fragment
             });
 
         } else {
-            labelHeading.setText(getResources().getString(R.string.fragmentNextIntersectionsName));
-            labelEmptyListView.setText(returnMessage);
+            labelEmptyListView.setText(
+                    ServerUtility.getErrorMessageForReturnCode(context, returnCode));
+            // show select map dialog
+            if (isAdded()
+                    && (
+                           returnCode == Constants.RC.MAP_LOADING_FAILED
+                        || returnCode == Constants.RC.WRONG_MAP_SELECTED)
+                    ) {
+                SelectMapDialog.newInstance()
+                    .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
+            }
         }
     }
 
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID) {
-            } else if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
+            if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
                 // reload
                 vibrator.vibrate(250);
-                requestNextIntersections();
+                requestNextIntersections(context);
             }
         }
     };

@@ -12,6 +12,9 @@
         android:layout_marginBottom="10dp"
         android:orientation="vertical" >
 
+        <include
+            layout="@layout/layout_toolbar" />
+
         <Button
             android:id="@+id/buttonSelectProfile"
             android:layout_width="match_parent"

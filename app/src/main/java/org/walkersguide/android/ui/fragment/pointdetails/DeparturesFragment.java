@@ -1,7 +1,5 @@
 package org.walkersguide.android.ui.fragment.pointdetails;
 
-import android.app.Activity;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,10 +9,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -32,16 +32,16 @@ import org.json.JSONObject;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.station.Departure;
-import org.walkersguide.android.listener.DepartureResultListener;
-import org.walkersguide.android.listener.FragmentCommunicator;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.DepartureManager;
-import org.walkersguide.android.ui.activity.PointDetailsActivity;
+import org.walkersguide.android.server.DepartureManager.DepartureResultListener;
+import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
+import org.walkersguide.android.ui.fragment.AbstractUITab;
 import org.walkersguide.android.util.Constants;
 
 
-public class DeparturesFragment extends Fragment
-    implements FragmentCommunicator, DepartureResultListener {
+public class DeparturesFragment extends AbstractUITab implements DepartureResultListener {
 
 	// Store instance variables
     private DepartureManager departureManagerInstance;
@@ -73,12 +73,6 @@ public class DeparturesFragment extends Fragment
 
 	@Override public void onAttach(Context context) {
 		super.onAttach(context);
-		Activity activity;
-		if (context instanceof Activity) {
-			activity = (Activity) context;
-			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((PointDetailsActivity) activity).departuresFragmentCommunicator = this;
-		}
         departureManagerInstance = DepartureManager.getInstance(getActivity());
         // progress updater
         this.progressHandler = new Handler();
@@ -86,7 +80,37 @@ public class DeparturesFragment extends Fragment
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 	}
 
+    /**
+     * menu
+     */
+
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_toolbar_departures_fragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menuItemPublicTransportProvider:
+                SelectPublicTransportProviderDialog.newInstance()
+                    .show(getActivity().getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
+                return true;
+            default:
+                return false;
+        }
+    }
+
+
+    /**
+     * create view
+     */
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_heading_and_list_view_with_refresh_button, container, false);
 	}
 
@@ -112,7 +136,7 @@ public class DeparturesFragment extends Fragment
                 if (departureManagerInstance.departureRequestInProgress()) {
                     departureManagerInstance.cancelDepartureRequest();
                 } else {
-                    requestNextDepartures();
+                    requestNextDepartures(getActivity());
                 }
             }
         });
@@ -123,16 +147,21 @@ public class DeparturesFragment extends Fragment
         listViewDepartures.setEmptyView(labelEmptyListView);
     }
 
-    @Override public void onFragmentEnabled() {
+
+    /**
+     * pause and resume
+     */
+
+    @Override public void fragmentVisible() {
         // listen for device shakes
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_SHAKE_DETECTED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request next departures
-        requestNextDepartures();
+        requestNextDepartures(getActivity());
     }
 
-	@Override public void onFragmentDisabled() {
+    @Override public void fragmentInvisible() {
         departureManagerInstance.invalidateDepartureRequest(this);
         progressHandler.removeCallbacks(progressUpdater);
         // unregister shake broadcast receiver
@@ -144,38 +173,41 @@ public class DeparturesFragment extends Fragment
         savedInstanceState.putInt("listPosition",  listPosition);
     }
 
-    private void requestNextDepartures() {
+    private void requestNextDepartures(Context context) {
         // heading
         labelHeading.setText(
-                getResources().getString(R.string.messagePleaseWait));
+                context.getResources().getQuantityString(R.plurals.departure, 0, 0));
         buttonRefresh.setContentDescription(
-                getResources().getString(R.string.buttonCancel));
+                context.getResources().getString(R.string.buttonCancel));
         buttonRefresh.setImageResource(R.drawable.cancel);
         // list view
         listViewDepartures.setAdapter(null);
         listViewDepartures.setOnScrollListener(null);
-        labelEmptyListView.setText("");
+        labelEmptyListView.setText(
+                context.getResources().getString(R.string.messagePleaseWait));
         // request next departures
         progressHandler.postDelayed(progressUpdater, 2000);
         departureManagerInstance.requestDepartureList(DeparturesFragment.this, station);
     }
 
-	@Override public void departureRequestFinished(int returnCode, String returnMessage, ArrayList<Departure> departureList, boolean resetListPosition) {
+	@Override public void departureRequestFinished(Context context, int returnCode, ArrayList<Departure> departureList, boolean resetListPosition) {
         buttonRefresh.setContentDescription(
-                getResources().getString(R.string.buttonRefresh));
+                context.getResources().getString(R.string.buttonRefresh));
         buttonRefresh.setImageResource(R.drawable.refresh);
         progressHandler.removeCallbacks(progressUpdater);
 
-        if (departureList != null) {
+        if (returnCode == Constants.RC.OK
+                && departureList != null) {
             labelHeading.setText(
                     String.format(
-                        getResources().getString(R.string.labelNextDeparturesSuccess),
-                        getResources().getQuantityString(
+                        context.getResources().getString(R.string.labelNextDeparturesSuccess),
+                        context.getResources().getQuantityString(
                             R.plurals.departure, departureList.size(), departureList.size()))
                     );
             listViewDepartures.setAdapter(
                     new ArrayAdapter<Departure>(
-                        getActivity(), android.R.layout.simple_list_item_1, departureList));
+                        context, android.R.layout.simple_list_item_1, departureList));
+            labelEmptyListView.setText("");
 
             // list position
             if (resetListPosition) {
@@ -193,17 +225,24 @@ public class DeparturesFragment extends Fragment
             });
 
         } else {
-            labelHeading.setText(getResources().getString(R.string.fragmentDeparturesName));
-            labelEmptyListView.setText(returnMessage);
+            labelEmptyListView.setText(
+                    ServerUtility.getErrorMessageForReturnCode(context, returnCode));
+            // show select public transport provider dialog
+            if (isAdded()
+                    && returnCode == Constants.RC.PUBLIC_TRANSPORT_PROVIDER_LOADING_FAILED) {
+                SelectPublicTransportProviderDialog.newInstance()
+                    .show(getActivity().getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
+            }
         }
     }
+
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
                 // reload
                 vibrator.vibrate(250);
-                requestNextDepartures();
+                requestNextDepartures(context);
             }
         }
     };

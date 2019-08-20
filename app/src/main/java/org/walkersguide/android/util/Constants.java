@@ -4,9 +4,6 @@ package org.walkersguide.android.util;
 public class Constants {
 
     public interface DUMMY {
-        public static final int DIRECTION = -1;
-        public static final String LOCATION =
-            "{\"name\":\"Dummy location\", \"lat\":0.0, \"lon\":0.0, \"type\":\"gps\", \"sub_type\":\"Dummy Location\"}";
         public static final String FOOTWAY =
             "{\"name\":\"Dummy Segment\", \"bearing\":0, \"distance\":0, \"type\":\"footway\", \"sub_type\":\"Dummy Segment\"}";
     }
@@ -21,41 +18,68 @@ public class Constants {
     }
 
     public interface RC {
-        // general
+        // return codes from walkersguide server
+        //
+        // errors caused by client request
         public static final int OK = 200;
+        public static final int BAD_REQUEST = 400;
+        public static final int REQUEST_IN_PROGRESS = 429;
+        // errors caused by the server
+        public static final int INTERNAL_SERVER_ERROR = 500;
+        public static final int BAD_GATEWAY = 502;
+        public static final int SERVICE_UNAVAILABLE = 503;
+        // walkersguide specific errors
+        public static final int CANCELLED_BY_CLIENT = 550;
+        // map
+        public static final int MAP_LOADING_FAILED = 555;
+        public static final int WRONG_MAP_SELECTED = 556;
+        // poi
+        public static final int NO_POI_TAGS_SELECTED = 560;
+        public static final int PUBLIC_TRANSPORT_PROVIDER_LOADING_FAILED = 565;
+        public static final int PUBLIC_TRANSPORT_STATION_NOT_FOUND = 566;
+        // route calculation
+        public static final int START_OR_DESTINATION_MISSING = 570;
+        public static final int START_AND_DESTINATION_TOO_FAR_AWAY = 571;
+        public static final int TOO_MANY_WAY_CLASSES_IGNORED = 572;
+        public static final int NO_ROUTE_BETWEEN_START_AND_DESTINATION = 573;
+
+        // local return codes thrown by the app
+        //
+        // general
         public static final int CANCELLED = 1000;
-        public static final int NO_INTERNET_CONNECTION = 1001;
-        public static final int NO_SERVER_URL = 1002;
-        public static final int NO_LOCATION_FOUND = 1004;
-        public static final int NO_DIRECTION_FOUND = 1005;
-        public static final int NO_MAP_SELECTED = 1006;
-        public static final int USER_INPUT_ERROR = 1007;
-        // server
-        public static final int SERVER_CONNECTION_ERROR = 1010;
-        public static final int SERVER_RESPONSE_ERROR = 1011;
-        public static final int SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA = 1012;
-        public static final int API_CLIENT_OUTDATED = 1013;
-        public static final int API_SERVER_OUTDATED = 1014;
-        // address
+        public static final int NO_LOCATION_FOUND = 1001;
+        public static final int NO_DIRECTION_FOUND = 1002;
+
+        // client side server connection errors
+        public static final int CONNECTION_FAILED = 1010;
+        public static final int BAD_RESPONSE = 1011;
+        public static final int NO_SERVER_URL = 1012;
+        public static final int NO_INTERNET_CONNECTION = 1013;
+        public static final int API_CLIENT_OUTDATED = 1014;
+        public static final int API_SERVER_OUTDATED = 1015;
+        public static final int NO_MAP_LIST = 1016;
+        public static final int NO_PUBLIC_TRANSPORT_PROVIDER_LIST = 1017;
+
+        // address manager
         public static final int NO_COORDINATES_FOR_ADDRESS = 1050;
         public static final int NO_ADDRESS_FOR_COORDINATES = 1051;
         public static final int NEITHER_COORDINATES_NOR_ADDRESS = 1052;
         public static final int GOOGLE_MAPS_QUOTA_EXCEEDED = 1053;
         public static final int ADDRESS_PROVIDER_NOT_SUPPORTED = 1054;
-        // route
-        public static final int NO_ROUTE_START_POINT = 1020;
-        public static final int NO_ROUTE_DESTINATION_POINT = 1021;
-        public static final int NO_ROUTE_CREATED = 1022;
-        public static final int NO_ROUTE_SELECTED = 1023;
-        public static final int ROUTE_PARSING_ERROR = 1024;
-        // favorites and poi
-        public static final int DEPARTURE_LIST_EMPTY = 1030;
-        public static final int NO_POI_PROFILE_CREATED = 1031;
-        public static final int NO_POI_PROFILE_SELECTED = 1032;
-        public static final int POI_PROFILE_PARSING_ERROR = 1033;
-        public static final int UNSUPPORTED_POI_REQUEST_ACTION = 1034;
-        // settings
-        public static final int DATABASE_IMPORT_FAILED = 1040;
+
+        // poi manager
+        public static final int NO_POI_PROFILE_CREATED = 1060;
+        public static final int NO_POI_PROFILE_SELECTED = 1061;
+        public static final int POI_PROFILE_PARSING_ERROR = 1062;
+        public static final int UNSUPPORTED_POI_REQUEST_ACTION = 1063;
+
+        // route manager
+        public static final int NO_ROUTE_CREATED = 1070;
+        public static final int NO_ROUTE_SELECTED = 1071;
+        public static final int ROUTE_PARSING_ERROR = 1072;
+
+        // settings loader
+        public static final int DATABASE_IMPORT_FAILED = 1100;
     }
 
     public interface POINT_SELECT_FROM {
@@ -77,6 +101,7 @@ public class Constants {
     };
 
     public interface POINT_PUT_INTO {
+        public static final int NOWHERE = -1;
         public static final int START = 0;
         public static final int DESTINATION = 1;
         public static final int SIMULATION = 2;
@@ -208,12 +233,12 @@ public class Constants {
     }
 
     public final static String[] AddressProviderValueArray = {
-        ADDRESS_PROVIDER.OSM, ADDRESS_PROVIDER.GOOGLE
+        ADDRESS_PROVIDER.OSM
     };
 
 
     /**
-     * Direction manager
+     * Direction and Direction manager
      */
 
     public interface DIRECTION {
@@ -230,11 +255,21 @@ public class Constants {
     public interface DIRECTION_SOURCE {
         public static final int COMPASS = 1;
         public static final int GPS = 2;
-        public static final int SIMULATION = 3;
     }
 
     public final static int[] DirectionSourceValueArray = {
-        DIRECTION_SOURCE.COMPASS, DIRECTION_SOURCE.GPS, DIRECTION_SOURCE.SIMULATION
+        DIRECTION_SOURCE.COMPASS, DIRECTION_SOURCE.GPS
+    };
+
+    public interface DIRECTION_ACCURACY_RATING {
+        public static final int UNKNOWN = 0;
+        public static final int LOW = 1;
+        public static final int MEDIUM = 2;
+        public static final int HIGH = 3;
+    }
+
+    public final static int[] DirectionAccuracyRatingValueArray = {
+        DIRECTION_ACCURACY_RATING.LOW, DIRECTION_ACCURACY_RATING.MEDIUM, DIRECTION_ACCURACY_RATING.HIGH
     };
 
     public interface SHAKE_INTENSITY {
@@ -249,20 +284,6 @@ public class Constants {
     public final static int[] ShakeIntensityValueArray = {
         SHAKE_INTENSITY.VERY_WEAK, SHAKE_INTENSITY.WEAK, SHAKE_INTENSITY.MEDIUM,
         SHAKE_INTENSITY.STRONG, SHAKE_INTENSITY.VERY_STRONG, SHAKE_INTENSITY.DISABLED
-    };
-
-
-    /**
-     * position manager
-     */
-
-    public interface LOCATION_SOURCE {
-        public static final int GPS = 0;
-        public static final int SIMULATION = 1;
-    }
-
-    public final static int[] LocationSourceValueArray = {
-        LOCATION_SOURCE.GPS, LOCATION_SOURCE.SIMULATION
     };
 
 
@@ -301,8 +322,9 @@ public class Constants {
      */
 
     public interface PUBLIC_TRANSPORT_PROVIDER {
-        public static final String DB = "db";
-        public static final String VBB = "vbb";
+        public static final String DB = "DB";
+        public static final String RT = "RT";
+        public static final String VVO = "VVO";
     }
 
 
@@ -310,7 +332,7 @@ public class Constants {
      * route
      */
 
-    public interface ROUTING_WAY_CLASS {
+    public interface ROUTING_WAY_CLASS_ID {
         public static final String BIG_STREETS = "big_streets";
         public static final String SMALL_STREETS = "small_streets";
         public static final String PAVED_WAYS = "paved_ways";
@@ -318,6 +340,30 @@ public class Constants {
         public static final String STEPS = "steps";
         public static final String UNCLASSIFIED_WAYS = "unclassified_ways";
     }
+
+    public final static String[] RoutingWayClassIdValueArray = {
+        ROUTING_WAY_CLASS_ID.BIG_STREETS, ROUTING_WAY_CLASS_ID.SMALL_STREETS,
+        ROUTING_WAY_CLASS_ID.PAVED_WAYS, ROUTING_WAY_CLASS_ID.UNPAVED_WAYS,
+        ROUTING_WAY_CLASS_ID.STEPS, ROUTING_WAY_CLASS_ID.UNCLASSIFIED_WAYS
+    };
+
+    public interface ROUTING_WAY_CLASS_WEIGHT {
+        public static final double VERY_PREFERABLE = 0.25;
+        public static final double PREFERABLE = 0.5;
+        public static final double SLIGHTLY_PREFERABLE= 0.75;
+        public static final double NEUTRAL = 1.0;
+        public static final double SLIGHTLY_NEGLIGIBLE = 1.33;
+        public static final double NEGLIGIBLE = 2.0;
+        public static final double VERY_NEGLIGIBLE = 4.0;
+        public static final double IGNORE = -1.0;
+    }
+
+    public final static double[] RoutingWayClassWeightValueArray = {
+        ROUTING_WAY_CLASS_WEIGHT.VERY_PREFERABLE, ROUTING_WAY_CLASS_WEIGHT.PREFERABLE,
+        ROUTING_WAY_CLASS_WEIGHT.SLIGHTLY_PREFERABLE, ROUTING_WAY_CLASS_WEIGHT.NEUTRAL,
+        ROUTING_WAY_CLASS_WEIGHT.SLIGHTLY_NEGLIGIBLE, ROUTING_WAY_CLASS_WEIGHT.NEGLIGIBLE,
+        ROUTING_WAY_CLASS_WEIGHT.VERY_NEGLIGIBLE, ROUTING_WAY_CLASS_WEIGHT.IGNORE
+    };
 
 
     /**
@@ -328,9 +374,16 @@ public class Constants {
 
     public static final String ACTION_UPDATE_UI = "update_ui";
 
-    /** new poi profile selected **/
+    /** history point profile changes **/
 
-    public static final String ACTION_NEW_POI_PROFILE = "new_poi_profile";
+    public static final String ACTION_HISTORY_POINT_PROFILE_SELECTED = "history_point_profile_selected";
+
+    /** poi profile changes **/
+
+    public static final String ACTION_POI_PROFILE_CREATED = "poi_profile_created";
+    public static final String ACTION_POI_PROFILE_MODIFIED = "poi_profile_modified";
+    public static final String ACTION_POI_PROFILE_REMOVED = "poi_profile_removed";
+    public static final String ACTION_POI_PROFILE_SELECTED = "poi_profile_selected";
 
     /** server status **/
 
@@ -345,28 +398,16 @@ public class Constants {
     /** direction **/
 
     public static final String ACTION_NEW_DIRECTION = "new_direction";
-    public interface ACTION_NEW_DIRECTION_ATTR {
-        public static final String INT_DIRECTION_IN_DEGREE = "direction_in_degree";
-        // direction source: compass, GPS or fixed geographic direction
-        public static final String INT_SOURCE = "direction_source";
-        // direction threshold id (see DirectionManager.THRESHOLDX interfaces
-        public static final String INT_THRESHOLD_ID = "direction_threshold_id";
-    }
+    public static final String ACTION_NEW_DIRECTION_ATTRIBUTES = "new_direction_attributes_in_json_format";
 
     public static final String ACTION_NEW_COMPASS_DIRECTION = "new_compass_direction";
-    public interface ACTION_NEW_COMPASS_DIRECTION_ATTR {
-        public static final String INT_DIRECTION_IN_DEGREE = "direction_in_degree";
-    }
+    public static final String ACTION_NEW_COMPASS_DIRECTION_OBJECT = "new_compass_direction_object_in_json_format";
 
     public static final String ACTION_NEW_GPS_DIRECTION = "new_gps_direction";
-    public interface ACTION_NEW_GPS_DIRECTION_ATTR {
-        public static final String INT_DIRECTION_IN_DEGREE = "direction_in_degree";
-    }
+    public static final String ACTION_NEW_GPS_DIRECTION_OBJECT = "new_gps_direction_object_in_json_format";
 
     public static final String ACTION_NEW_SIMULATED_DIRECTION = "new_simulated_direction";
-    public interface ACTION_NEW_SIMULATED_DIRECTION_ATTR {
-        public static final String INT_DIRECTION_IN_DEGREE = "direction_in_degree";
-    }
+    public static final String ACTION_NEW_SIMULATED_DIRECTION_OBJECT = "new_simulated_direction_object_in_json_format";
 
     /** location **/
 
@@ -375,25 +416,13 @@ public class Constants {
     public static final String ACTION_LOCATION_PERMISSION_DENIED = "location_permission_denied";
 
     public static final String ACTION_NEW_LOCATION = "new_location";
-    public interface ACTION_NEW_LOCATION_ATTR {
-        public static final String STRING_POINT_SERIALIZED = "jsonPointSerialized";
-        // location source: GPS or simulation
-        public static final String INT_SOURCE = "location_source";
-        // location threshold id (see PositionManager.THRESHOLDX interfaces
-        public static final String INT_THRESHOLD_ID = "location_threshold_id";
-        // traveling at high speed
-        public static final String BOOL_AT_HIGH_SPEED = "at_high_speed";
-    }
+    public static final String ACTION_NEW_LOCATION_ATTRIBUTES = "new_location_attributes_in_json_format";
 
     public static final String ACTION_NEW_GPS_LOCATION = "new_gps_location";
-    public interface ACTION_NEW_GPS_LOCATION_ATTR {
-        public static final String STRING_POINT_SERIALIZED = "jsonPointSerialized";
-    }
+    public static final String ACTION_NEW_GPS_LOCATION_OBJECT = "new_gps_location_object_in_json_format";
 
     public static final String ACTION_NEW_SIMULATED_LOCATION = "new_simulated_location";
-    public interface ACTION_NEW_SIMULATED_LOCATION_ATTR {
-        public static final String STRING_POINT_SERIALIZED = "jsonPointSerialized";
-    }
+    public static final String ACTION_NEW_SIMULATED_LOCATION_OBJECT = "new_simulated_location_object_in_json_format";
 
     /** shake detection **/
 

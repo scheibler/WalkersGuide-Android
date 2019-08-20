@@ -12,11 +12,12 @@ import org.json.JSONObject;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByDistanceFromCenterASC;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByDistanceFromCenterDESC;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameASC;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameDESC;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByOrderASC;
 import org.walkersguide.android.data.basic.wrapper.PointProfileObject.SortByOrderDESC;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameASC;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByNameDESC;
+import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.util.Constants;
 
 
@@ -26,18 +27,24 @@ public abstract class PointProfile {
     private int id;
     private String name;
     private PointWrapper center;
-    private int direction;
+    private Direction direction;
     private ArrayList<PointProfileObject> pointProfileObjectList;
 
     public PointProfile(Context context, int id, String name, JSONObject jsonCenter,
-            int direction, JSONArray jsonPointList) throws JSONException {
+            JSONObject jsonDirection, JSONArray jsonPointList) throws JSONException {
         this.context = context;
         this.id = id;
         this.name = name;
 
         // center and direction
-        this.center = new PointWrapper(context, jsonCenter);
-        this.direction = direction;
+        this.center = null;
+        if (jsonCenter != null) {
+            this.center = new PointWrapper(context, jsonCenter);
+        }
+        this.direction = null;
+        if (jsonDirection != null) {
+            this.direction = new Direction(context, jsonDirection);
+        }
 
         // point list
         this.pointProfileObjectList = new ArrayList<PointProfileObject>();
@@ -73,7 +80,7 @@ public abstract class PointProfile {
         return this.center;
     }
 
-    public int getDirection() {
+    public Direction getDirection() {
         return this.direction;
     }
 
@@ -81,7 +88,7 @@ public abstract class PointProfile {
         return this.pointProfileObjectList;
     }
 
-    public void setCenterDirectionAndPointList(PointWrapper newCenter, int newDirection,
+    public void setCenterDirectionAndPointList(PointWrapper newCenter, Direction newDirection,
             ArrayList<PointProfileObject> newPointProfileObjectList) {
         this.center = newCenter;
         this.direction = newDirection;

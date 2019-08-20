@@ -6,14 +6,8 @@
     -->
 
     <!-- toolbar menu -->
-    <string name="menuItemNextRoutePoint">Next route point</string>
     <string name="menuItemDirection">Direction</string>
     <string name="menuItemLocation">Location</string>
-
-    <!-- menu_menu_item_next_route_point -->
-    <string name="menuItemJumpToRouterTab">Open router view</string>
-    <string name="menuItemShowNextRoutePointDetails">Details of next route point</string>
-    <string name="menuItemShowNextRouteSegmentDetails">Details of next route segment</string>
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
@@ -28,9 +22,7 @@
     <string name="directionSourceCompass">Compass</string>
     <string name="directionSourceGPS">GPS</string>
     <string name="directionSourceSimulated">Simulation</string>
-    <string name="formattedDirectionValue">%1$s: %2$d° (%3$s)</string>
     <string name="buttonEnableDirectionSimulation">Enable direction simulation</string>
-    <string name="labelNoDirectionAvailable">No direction available</string>
     <!-- enter direction value dialog -->
     <string name="enterDirectionValueDialogTitle">Enter direction value</string>
     <string name="editHintDirectionInDegree">Direction in degree between 0 and 359.</string>
@@ -71,7 +63,6 @@
     <string name="buttonSwapRouteCD">Swap start and destination</string>
     <string name="labelRouteOptions">Router options:</string>
     <string name="buttonExcludedWays">Excluded ways</string>
-    <string name="buttonIndirectionFactor">Indirection factor</string>
     <string name="buttonRoutingWayClasses">Way classes</string>
     <string name="buttonGetRoute">Get route</string>
 
@@ -84,7 +75,7 @@
     <string name="pointSelectFromEnterAddress">Enter address</string>
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromHistoryPoints">Point history</string>
-    <string name="pointSelectFromPOI">POI profile</string>
+    <string name="pointSelectFromPOI">Select from POI</string>
     <!-- menu_list_view_select_point_dialog -->
     <string name="menuItemSelect">Select</string>
     <string name="menuItemShowDetails">Show details</string>
@@ -92,7 +83,8 @@
 
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Enter Address:</string>
-    <string name="editHintAddress">city, street and house number</string>
+    <string name="editHintAddress">street and house number, city is optional</string>
+    <string name="buttonNearbyCurrentLocation">Search only near the current location</string>
     <string name="messageAddressMissing">Please enter an address.</string>
 
     <!-- enter coordinates dialog -->
@@ -103,19 +95,11 @@
     <string name="messageLongitudeMissing">Missing or invalid longitude value.</string>
     <string name="messageCantCreatePointFromCoordinates">Could not create address or point from coordinates.</string>
 
-    <!-- select history point dialog -->
-    <string name="labelSelectHistoryPointDialogHeaderSuccess">%1$s\nSorted by %2$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSearch">%1$s\nFor: %2$s\nSorted by %3$s</string>
-
     <!-- ExcludedWaysDialog -->
     <string name="excludedWaysDialogTitle">These ways have been excluded from routing:</string>
 
-    <!-- SelectIndirectionFactorDialog -->
-    <string name="selectIndirectionFactorDialogTitle">Select indirection Factor for routing:</string>
-
     <!-- SelectRoutingWayClassesDialog -->
-    <string name="selectRoutingWayClassesDialogTitle">Select way classes allowed for routing:</string>
-    <string name="messageNoAllowedWayClassSelected">No way classes selected.</string>
+    <string name="selectRoutingWayClassesDialogTitle">Prioritize way classes:</string>
 
     <!-- request address dialog -->
     <string name="requestAddressDialogName">Where am I?</string>
@@ -127,8 +111,6 @@
     <string name="saveCurrentPositionDialogName">Save current position</string>
     <string name="labelPointNameToSave">Point name:</string>
     <string name="editHintSaveCurrentPointName">Name</string>
-    <string name="labelLocationData">Location data:</string>
-    <string name="buttonRefreshLocation">Refresh location</string>
     <string name="labelCheckFavoritesProfiles">Select POI profiles:</string>
     <string name="buttonAddPOIProfile">Add</string>
 
@@ -152,10 +134,14 @@
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
     <string name="buttonNextRouteObject">Next</string>
     <string name="buttonNextRouteObjectCD">Next route point</string>
+    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s</string>
+    <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
+    <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
     <string name="menuItemRouteHistory">Route history</string>
+    <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
 
     <!-- route commands dialog -->
     <string name="routeCommandsDialogTitle">Route details</string>
@@ -172,23 +158,35 @@
     <string name="buttonSelectProfileNone">Profile: None selected</string>
     <string name="buttonSelectProfileCD">Profile: %1$s.\nSelected Categories: %2$s</string>
     <string name="buttonClearSearch">Clear search</string>
+    <!-- toolbar menu -->
+    <string name="menuItemJumpToTop">Jump to top of list</string>
+    <string name="menuItemFilterResult">Filter by viewing direction</string>
+    <!-- dialog titles -->
+    <string name="poiFragmentHistoryPointProfileDialogTitle">Select from point history:</string>
+    <string name="poiFragmentPOIProfileDialogTitle">Select from POI:</string>
+    <!-- ContentType HISTORY_POINTS-->
+    <string name="labelSelectHistoryPointDialogHeaderSuccess">%1$s\nSorted by %2$s</string>
+    <string name="labelSelectHistoryPointDialogHeaderSuccessFiltered">Filtered: %1$s\nSorted by %2$s</string>
+    <string name="labelSelectHistoryPointDialogHeaderSearch">%1$s\nFor: %2$s\nSorted by %3$s</string>
+    <string name="labelSelectHistoryPointDialogHeaderSearchFiltered">Filtered: %1$s\nFor: %2$s\nSorted by %3$s</string>
+    <!-- ContentType POI-->
     <string name="labelPOIFragmentHeaderSuccess">%1$s\nRadius: %2$s</string>
     <string name="labelPOIFragmentHeaderSuccessFiltered">Filtered: %1$s\nRadius: %2$s</string>
     <string name="labelPOIFragmentHeaderSearch">%1$s\nFor: %2$s\nRadius: %3$s</string>
     <string name="labelPOIFragmentHeaderSearchFiltered">Filtered: %1$s\nFor: %2$s\nRadius: %3$s</string>
     <string name="labelMoreResults">Get more POI</string>
-    <!-- toolbar menu -->
-    <string name="menuItemJumpToTop">Jump to top of list</string>
-    <string name="menuItemFilterResult">Filter by viewing direction</string>
 
-    <!-- POIProfilePointAdapter -->
-    <string name="imagePointIsFavorite">Favorite</string>
+    <!-- select history point profile dialog -->
+    <string name="selectHistoryPointProfileDialogTitle">Select history point profile:</string>
 
     <!-- select poi profile dialog -->
     <string name="selectPOIProfileDialogTitle">Select POI profile:</string>
     <string name="buttonActionForPOIProfile">Actions for</string>
     <string name="menuItemEditProfile">Edit profile</string>
     <string name="menuItemRemoveProfile">Remove profile</string>
+
+    <!-- POIProfilePointAdapter -->
+    <string name="imagePointIsFavorite">Favorite</string>
 
     <!-- new / edit poi profile dialog -->
     <string name="newProfileDialogTitle">Create profile</string>
@@ -227,6 +225,7 @@
 
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Departures</string>
+    <string name="menuItemPublicTransportProvider">Public transport provider</string>
     <string name="labelNextDeparturesSuccess">%1$s found</string>
 
     <!-- EntrancesFragment -->
@@ -235,7 +234,9 @@
 
     <!-- IntersectionWaysFragment -->
     <string name="fragmentIntersectionWaysName">Ways</string>
-    <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$s\nDirection: %2$s</string>
+    <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$s\nViewing direction: %2$s</string>
+    <string name="labelPartOfPreviousRouteSegment">Previous route segment</string>
+    <string name="labelPartOfNextRouteSegment">Next route segment</string>
     <!-- toolbar menu: menu_toolbar_intersection_ways_fragment -->
     <string name="menuItemRefresh">Refresh</string>
     <string name="menuItemCancel">Cancel</string>
@@ -350,14 +351,10 @@
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
-    <string name="labelDevelopmentSettingsHeader">Development:</string>
-    <string name="buttonShowDevelopmentMaps">Show developer maps</string>
-    <string name="buttonLogQueriesOnServer">Enable server communication logging (for debugging purposes only)</string>
 
     <!-- new server dialog -->
     <string name="newServerDialogTitle">New server:</string>
     <string name="editHintServerURL">Server URL</string>
-    <string name="messageServerURLMissing">Please enter a server URL.</string>
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Select map:</string>
@@ -486,10 +483,6 @@
          route management
     -->
 
-    <!-- route manager -->
-    <string name="messageAlreadyFirstObject">Already at the first route object.</string>
-    <string name="messageAlreadyLastObject">Already at the last route object.</string>
-
     <!-- route object -->
     <string name="routeObjectToString">%1$d.\n%2$s\n%3$s</string>
     <string name="proceedToFirstRoutePoint">Proceed to first route point</string>
@@ -501,13 +494,23 @@
     <!-- route segment -->
     <string name="routeSegmentToString">%1$s at %2$s</string>
 
-    <!-- way class -->
+    <!-- way class names -->
     <string name="routingWayClassBigStreets">Big streets</string>
     <string name="routingWayClassSmallStreets">Small streets</string>
     <string name="routingWayClassPavedWays">Paved ways</string>
     <string name="routingWayClassUnpavedWays">Unpaved ways</string>
     <string name="routingWayClassSteps">Steps</string>
     <string name="routingWayClassUnclassifiedWays">Ways of unknown type</string>
+
+    <!-- way class weights -->
+    <string name="wayClassWeightVeryPreferable">Strongly preferable</string>
+    <string name="wayClassWeightPreferable">Preferable</string>
+    <string name="wayClassWeightSlightlyPreferable">Slightly preferable</string>
+    <string name="wayClassWeightNeutral">Neutral</string>
+    <string name="wayClassWeightSlightlyNegligible">Slightly negligible</string>
+    <string name="wayClassWeightNegligible">Negligible</string>
+    <string name="wayClassWeightVeryNegligible">Strongly negligible</string>
+    <string name="wayClassWeightIgnore">Ignore</string>
 
 
     <!--
@@ -516,7 +519,8 @@
 
     <!-- public transport provider -->
     <string name="publicTransportProviderDB">Deutsche Bahn</string>
-    <string name="publicTransportProviderVBB">Verkehrsverbund Berlin-Brandenburg</string>
+    <string name="publicTransportProviderRT">Railteam (Europe)</string>
+    <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
 
 
     <!--
@@ -551,19 +555,33 @@
     <string name="sidewalkBoth">On both sides</string>
 
     <!-- return code errors -->
+    <!-- walkersguide server errors -->
+    <string name="errorBadRequest">The server request can\'t be processed.</string>
+    <string name="errorRequestInProgress">A prior request is still running. Please retry later.</string>
+    <string name="errorInternalServerError">Internal server error.</string>
+    <string name="errorBadGateway">The public transport query server is not accessible.</string>
+    <string name="errorServiceUnavailableOrBusy">The server is busy. Please retry later.</string>
+    <string name="errorNoPOITagsSelected">No POI categories selected.</string>
+    <string name="errorPublicTransportProviderLoadingFailed">Invalid public transport provider.</string>
+    <string name="errorPublicTransportStationNotFound">The public transport query server can\'t find the requested station.</string>
+    <string name="errorMapLoadingFailed">The selected map is either not available on the server or outdated.</string>
+    <string name="errorWrongMapSelected">The given location lays outside of the selected map.</string>
+    <string name="errorStartOrDestinationMissing">Start or destination point is missing.</string>
+    <string name="errorStartAndDestinationTooFarAway">The distance between start and destination points is too big. Please include at least one via point.</string>
+    <string name="errorTooManyWayClassesIgnored">You\'ve excluded too many way classes from routing.</string>
+    <string name="errorNoRouteBetweenStartAndDestination">The server can\'t find a route between the given start and destination.</string>
+    <!-- app errors -->
     <string name="errorCancelled">Cancelled</string>
-    <string name="errorNoInternetConnection">No internet connection available.</string>
+    <string name="errorNoLocationFound">No location available.</string>
+    <string name="errorNoDirectionFound">No direction available.</string>
+    <string name="errorConnectionFailed">The server is not accessible.</string>
+    <string name="errorBadResponse">The server response can\'t be processed.</string>
     <string name="errorNoServerURL">Empty or invalid server URL.</string>
+    <string name="errorNoInternetConnection">No internet connection available.</string>
     <string name="errorAPIClientOutdated">The API version of this app is too old for the selected server. Please check for app updates on walkersguide.org or in the Google play store.</string>
     <string name="errorAPIServerOutdated">The API version of the selected map server is not longer supported by this app.</string>
-    <string name="errorNoLocationFound">No location found.</string>
-    <string name="errorNoDirectionFound">No direction found.</string>
-    <string name="errorNoMapSelected">No map selected.</string>
-    <string name="errorUserInput">User Input error</string>
-    <!-- server -->
-    <string name="errorServerConnection">Can\'t connect to server.</string>
-    <string name="errorServerResponse">Invalid server response.</string>
-    <string name="errorServerResponseWithExtraData">Error from server: %1$s</string>
+    <string name="errorNoMapList">The server doesn\'t offer any maps.</string>
+    <string name="errorNoPublicTransportProviderList">The server doesn\'t offer any public transport providers.</string>
     <!-- address lookup -->
     <string name="errorNoCoordinatesForAddress">No coordinates for this address found.</string>
     <string name="errorNoAddressForCoordinates">No address for this coordinates found.</string>
@@ -571,20 +589,18 @@
     <string name="errorNeitherCoordinatesNorAddress">Got neither coordinates nor an address to look up</string>
     <string name="errorAddressProviderNotSupported">Address provider not supported</string>
     <!-- history and poi -->
-    <string name="errorDepartureListEmpty">No departures found.</string>
     <string name="errorNoPOIProfileCreated">Please create at least one POI profile.</string>
     <string name="errorNoPOIProfileSelected">No POI profile selected.</string>
     <string name="errorPOIProfileParsing">POI profile parsing error.</string>
     <string name="errorUnsupportedPOIRequestAction">Unsupported POI request action</string>
     <!-- route -->
-    <string name="errorNoRouteStartPoint">No start point selected.</string>
-    <string name="errorNoRouteDestinationPoint">No destination point selected.</string>
     <string name="errorNoRouteCreated">No route created.</string>
     <string name="errorNoRouteSelected">No route selected.</string>
     <string name="errorRouteParsing">Route parsing error.</string>
     <!-- settings import -->
     <string name="errorDatabaseImportFailed">Database import failed</string>
     <!-- others -->
+    <string name="errorDirectionOutOfRange">The direction value must lay between 0° and 359°</string>
     <string name="messageErrorPointDataLoadingFailed">Selected point could not be loaded.</string>
     <string name="messageNameMissing">Please enter a name.</string>
     <string name="messageUnknownError">Unknown error: %1$d</string>
@@ -618,6 +634,14 @@
     <string name="directionSouthWest">Southwest</string>
     <string name="directionWest">West</string>
     <string name="directionNorthWest">Northwest</string>
+
+    <!-- direction accuracy -->
+    <string name="directionAccuracyLabel">Accuracy</string>
+    <string name="directionAccuracyCalibrationRequired">Calibration required</string>
+    <string name="directionAccuracyOutdated">Value is outdated</string>
+    <string name="directionAccuracyLow">Low</string>
+    <string name="directionAccuracyMedium">Medium</string>
+    <string name="directionAccuracyHigh">High</string>
 
     <!-- Class: ShakeIntensity -->
     <string name="shakeIntensityDisabled">Disabled</string>
@@ -656,12 +680,6 @@
         name="entrance">
         <item quantity="one">1 entrance</item>
         <item quantity="other">%d entrances</item>
-    </plurals>
-
-    <plurals
-        name="lastVisitedPoint">
-        <item quantity="one">Last visited point</item>
-        <item quantity="other">%d last visited points</item>
     </plurals>
 
     <plurals

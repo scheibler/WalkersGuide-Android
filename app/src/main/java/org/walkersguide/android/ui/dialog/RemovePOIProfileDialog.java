@@ -48,7 +48,7 @@ public class RemovePOIProfileDialog extends DialogFragment {
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             accessDatabaseInstance.removePOIProfile(poiProfileId);
-                            Intent intent = new Intent(Constants.ACTION_NEW_POI_PROFILE);
+                            Intent intent = new Intent(Constants.ACTION_POI_PROFILE_REMOVED);
                             LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                             dismiss();
                         }

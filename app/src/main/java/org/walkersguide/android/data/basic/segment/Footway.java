@@ -7,6 +7,7 @@ import com.google.common.primitives.Ints;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.sensor.DirectionManager;
 
 
@@ -227,15 +228,22 @@ public class Footway extends Segment {
      * helper functions
      */
 
-    public int bearingFromCurrentDirection() {
-        int absoluteDirection = this.bearing;
-        // take the current viewing direction into account
-        int relativeDirection = absoluteDirection
-            - DirectionManager.getInstance(super.getContext()).getCurrentDirection();
-        if (relativeDirection < 0) {
-            relativeDirection += 360;
+    public Integer bearingFromCurrentDirection() {
+        return bearingFromCurrentDirection(
+                DirectionManager.getInstance(super.getContext()).getCurrentDirection());
+    }
+
+    public Integer bearingFromCurrentDirection(Direction currentDirection) {
+        if (currentDirection != null) {
+            int absoluteDirection = this.bearing;
+            // take the current viewing direction into account
+            int relativeDirection = absoluteDirection - currentDirection.getBearing();
+            if (relativeDirection < 0) {
+                relativeDirection += 360;
+            }
+            return relativeDirection;
         }
-        return relativeDirection;
+        return null;
     }
 
     public JSONObject toJson() throws JSONException {

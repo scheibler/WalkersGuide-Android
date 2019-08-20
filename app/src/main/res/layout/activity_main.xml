@@ -5,7 +5,6 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activityMargin"
     android:fitsSystemWindows="true" >
 
     <LinearLayout
@@ -16,10 +15,29 @@
         <include
             layout="@layout/layout_toolbar" />
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/pager"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <android.support.design.widget.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                app:tabTextAppearance="@style/SmallTabText"
+                app:tabIndicatorColor="@color/heading"
+                app:tabMode="fixed"
+                app:tabGravity="fill" />
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="@dimen/activityMargin"
+                android:layout_marginRight="@dimen/activityMargin"
+                android:layout_above="@id/tabLayout" />
+        </RelativeLayout>
     </LinearLayout>
 
     <android.support.design.widget.NavigationView

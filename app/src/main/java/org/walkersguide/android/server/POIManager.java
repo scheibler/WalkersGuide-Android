@@ -1,21 +1,15 @@
 package org.walkersguide.android.server;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 
 import android.os.AsyncTask;
 import android.os.Handler;
-
-import android.support.v4.content.LocalBroadcastManager;
 
 import android.text.TextUtils;
 
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -30,17 +24,15 @@ import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.data.profile.HistoryPointProfile;
 import org.walkersguide.android.data.profile.NextIntersectionsProfile;
 import org.walkersguide.android.data.profile.POIProfile;
+import org.walkersguide.android.data.sensor.Direction;
+import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.helper.DownloadUtility;
-import org.walkersguide.android.listener.HistoryPointProfileListener;
-import org.walkersguide.android.listener.NextIntersectionsListener;
-import org.walkersguide.android.listener.POIProfileListener;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
@@ -54,7 +46,6 @@ public class POIManager {
     private Context context;
     private static POIManager poiManagerInstance;
     private SettingsManager settingsManagerInstance;
-    private RequestPOI requestPOI;
 
     public static POIManager getInstance(Context context) {
         if(poiManagerInstance == null){
@@ -66,17 +57,17 @@ public class POIManager {
     private POIManager(Context context) {
         this.context = context;
         this.settingsManagerInstance = SettingsManager.getInstance(context);
-        this.requestPOI = null;
-        // listen for new locations
-        LocalBroadcastManager.getInstance(context).registerReceiver(
-                newLocationReceiver,
-                new IntentFilter(Constants.ACTION_NEW_LOCATION));
     }
 
 
     /**
      * get poi profiles
      */
+    public interface POIProfileListener {
+	    public void poiProfileRequestFinished(Context context, int returnCode, POIProfile poiProfile, boolean resetListPosition);
+    }
+
+    private RequestPOI requestPOI = null;
 
     public void requestPOIProfile(
             POIProfileListener profileListener, int profileId, int requestAction) {
@@ -121,11 +112,9 @@ public class POIManager {
         private ArrayList<POIProfileListener> poiProfileListenerList;
         private int poiProfileIdToRequest, requestAction, returnCode;
         private boolean resetListPosition;
-        private String additionalMessage;
         private HttpsURLConnection connection;
         private Handler cancelConnectionHandler;
         private CancelConnection cancelConnection;
-        private long t1;
 
         public RequestPOI(POIProfileListener poiProfileListener, int poiProfileId, int requestAction) {
             this.poiProfileListenerList = new ArrayList<POIProfileListener>();
@@ -136,7 +125,6 @@ public class POIManager {
             this.requestAction = requestAction;
             this.resetListPosition = false;
             this.returnCode = Constants.RC.OK;
-            this.additionalMessage = "";
             this.connection = null;
             this.cancelConnectionHandler = new Handler();
             this.cancelConnection = new CancelConnection();
@@ -167,15 +155,15 @@ public class POIManager {
             // get current location
             PositionManager positionManagerInstance = PositionManager.getInstance(context);
             PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
-            if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
+            if (currentLocation == null) {
                 this.returnCode = Constants.RC.NO_LOCATION_FOUND;
                 return null;
             }
 
             // get current direction
             DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
-            int currentDirection = directionManagerInstance.getCurrentDirection();
-            if (currentDirection == Constants.DUMMY.DIRECTION) {
+            Direction currentDirection = directionManagerInstance.getCurrentDirection();
+            if (currentDirection == null) {
                 this.returnCode = Constants.RC.NO_DIRECTION_FOUND;
                 return null;
             }
@@ -186,7 +174,7 @@ public class POIManager {
                    poiProfile.getCenter() == null
                 || currentLocation.distanceTo(poiProfile.getCenter()) > (poiProfile.getLookupRadius() / 2);
             if (this.requestAction == ACTION_UPDATE
-                    && currentLocation.distanceTo(poiProfile.getCenter()) > PositionManager.THRESHOLD4.DISTANCE) {
+                    && currentLocation.distanceTo(poiProfile.getCenter()) > DistanceThreshold.ONE_HUNDRED_METERS.getDistanceThresholdInMeters()) {
                 this.resetListPosition = true;
             }
 
@@ -236,79 +224,63 @@ public class POIManager {
                         || this.requestAction == ACTION_MORE_RESULTS)
                     ) {
 
-                // internet connection and server instance
-                // check for internet connection
-                if (! DownloadUtility.isInternetAvailable(context)) {
-                    this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
-                    return null;
-                }
-                // get server instance
+                // server instance
                 ServerInstance serverInstance = null;
                 try {
-                    serverInstance = ServerStatusManager.getInstance(context)
-                        .getServerInstanceForURL(serverSettings.getServerURL());
+                    serverInstance = ServerUtility.getServerInstance(
+                            context, serverSettings.getServerURL());
                 } catch (ServerCommunicationException e) {
                     this.returnCode = e.getReturnCode();
-                    return null;
+                } finally {
+                    if (returnCode != Constants.RC.OK) {
+                        return null;
+                    }
                 }
 
-                // check selected map
-                if (serverSettings.getSelectedMap() == null) {
-                    this.returnCode = Constants.RC.NO_MAP_SELECTED;
-                    return null;
+                // create server param list
+                JSONObject jsonServerParams = null;
+                try {
+                    jsonServerParams = ServerUtility.createServerParamList(context);
+                    jsonServerParams.put("lat", currentLocation.getPoint().getLatitude());
+                    jsonServerParams.put("lon", currentLocation.getPoint().getLongitude());
+                    jsonServerParams.put("radius", radius);
+                    jsonServerParams.put("number_of_results", numberOfResults);
+                    jsonServerParams.put("search", poiProfile.getSearchTerm());
+                    // tags
+                    JSONArray jsonPOICategoryTagList = new JSONArray();
+                    for (POICategory poiCategory : poiProfile.getPOICategoryList()) {
+                        jsonPOICategoryTagList.put(poiCategory.getId());
+                    } 
+                    jsonServerParams.put("tags", jsonPOICategoryTagList);
+                } catch (JSONException e) {
+                    jsonServerParams = new JSONObject();
                 }
 
-                // poi category tags
-                JSONArray jsonPOICategoryTagList = new JSONArray();
-                for (POICategory poiCategory : poiProfile.getPOICategoryList()) {
-                    jsonPOICategoryTagList.put(poiCategory.getId());
-                } 
-
-                // request poi from server
+                // start request
                 JSONArray jsonPOIList = null;
                 try {
-                    // create parameter list
-                    JSONObject requestJson = new JSONObject();
-                    requestJson.put("lat", currentLocation.getPoint().getLatitude());
-                    requestJson.put("lon", currentLocation.getPoint().getLongitude());
-                    requestJson.put("radius", radius);
-                    requestJson.put("number_of_results", numberOfResults);
-                    requestJson.put("tags", jsonPOICategoryTagList);
-                    requestJson.put("search", poiProfile.getSearchTerm());
-                    requestJson.put("language", Locale.getDefault().getLanguage());
-                    requestJson.put("logging_allowed", serverSettings.getLogQueriesOnServer());
-                    requestJson.put("map_id", serverSettings.getSelectedMap().getId());
-                    requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
-                    System.out.println("xxx poi request: " + requestJson.toString());
-                    // create connection
-                    connection = DownloadUtility.getHttpsURLConnectionObject(
+                    connection = ServerUtility.getHttpsURLConnectionObject(
                             context,
-                            DownloadUtility.generateServerCommand(
-                                serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_POI),
-                            requestJson);
+                            String.format(
+                                "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_POI),
+                            jsonServerParams);
                     cancelConnectionHandler.postDelayed(cancelConnection, 100);
                     connection.connect();
-                    int responseCode = connection.getResponseCode();
+                    returnCode = connection.getResponseCode();
                     cancelConnectionHandler.removeCallbacks(cancelConnection);
                     if (isCancelled()) {
                         this.returnCode = Constants.RC.CANCELLED;
-                    } else if (responseCode != Constants.RC.OK) {
-                        this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
-                    } else {
-                        JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
-                        if (jsonServerResponse.has("error")
-                                && ! jsonServerResponse.getString("error").equals("")) {
-                            this.additionalMessage = jsonServerResponse.getString("error");
-                            this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA;
-                        } else {
-                            // get poi list
-                            jsonPOIList = jsonServerResponse.getJSONArray("poi");
-                        }
+                    } else if (returnCode == Constants.RC.OK) {
+                        JSONObject jsonServerResponse = ServerUtility.processServerResponseAsJSONObject(connection);
+                        // get poi list
+                        jsonPOIList = jsonServerResponse.getJSONArray("poi");
                     }
                 } catch (IOException e) {
-                    this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
+                    this.returnCode = Constants.RC.CONNECTION_FAILED;
                 } catch (JSONException e) {
-                    this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
+                    this.returnCode = Constants.RC.BAD_RESPONSE;
+                } catch (ServerCommunicationException e) {
+                    this.returnCode = e.getReturnCode();
                 } finally {
                     if (connection != null) {
                         connection.disconnect();
@@ -374,24 +346,16 @@ public class POIManager {
         }
 
         @Override protected void onPostExecute(POIProfile poiProfile) {
-            System.out.println("xxx poiManager: " + this.returnCode + "     resetListPosition: " + resetListPosition + "    id: "  + this.poiProfileIdToRequest + "     listener: " + this.poiProfileListenerList);
             for (POIProfileListener poiProfileListener : this.poiProfileListenerList) {
                 poiProfileListener.poiProfileRequestFinished(
-                        this.returnCode,
-                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, this.additionalMessage),
-                        poiProfile,
-                        this.resetListPosition);
+                        context, returnCode, poiProfile, resetListPosition);
             }
         }
 
         @Override protected void onCancelled(POIProfile poiProfile) {
-            System.out.println("xxx cancel - poiManager: " + this.returnCode + "     resetListPosition: " + resetListPosition + "    id: "  + this.poiProfileIdToRequest);
             for (POIProfileListener poiProfileListener : this.poiProfileListenerList) {
                 poiProfileListener.poiProfileRequestFinished(
-                        Constants.RC.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        poiProfile,
-                        false);
+                        context, Constants.RC.CANCELLED, null, false);
             }
         }
 
@@ -442,7 +406,11 @@ public class POIManager {
     /**
      * historyPoint  profiles
      */
-    private RequestHistoryPointProfile requestHistoryPointProfile;
+    public interface HistoryPointProfileListener {
+	    public void historyPointProfileRequestFinished(Context context, int returnCode, HistoryPointProfile historyPointProfile, boolean resetListPosition);
+    }
+
+    private RequestHistoryPointProfile requestHistoryPointProfile = null;
 
     public void requestHistoryPointProfile(HistoryPointProfileListener profileListener, int profileId) {
         if (historyPointProfileRequestInProgress()) {
@@ -517,15 +485,15 @@ public class POIManager {
             // get current location
             PositionManager positionManagerInstance = PositionManager.getInstance(context);
             PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
-            if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
+            if (currentLocation == null) {
                 this.returnCode = Constants.RC.NO_LOCATION_FOUND;
                 return null;
             }
 
             // get current direction
             DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
-            int currentDirection = directionManagerInstance.getCurrentDirection();
-            if (currentDirection == Constants.DUMMY.DIRECTION) {
+            Direction currentDirection = directionManagerInstance.getCurrentDirection();
+            if (currentDirection == null) {
                 this.returnCode = Constants.RC.NO_DIRECTION_FOUND;
                 return null;
             }
@@ -537,23 +505,16 @@ public class POIManager {
         }
 
         @Override protected void onPostExecute(HistoryPointProfile historyPointProfile) {
-            System.out.println("xxx poiManager HistoryProfile: " + this.returnCode + "     resetListPosition: " + resetListPosition + "    id: "  + this.historyPointProfileIdToRequest);
             for (HistoryPointProfileListener historyPointProfileListener : this.historyPointProfileListenerList) {
                 historyPointProfileListener.historyPointProfileRequestFinished(
-                        this.returnCode,
-                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, ""),
-                        historyPointProfile,
-                        this.resetListPosition);
+                        context, returnCode, historyPointProfile, resetListPosition);
             }
         }
 
         @Override protected void onCancelled(HistoryPointProfile historyPointProfile) {
             for (HistoryPointProfileListener historyPointProfileListener : this.historyPointProfileListenerList) {
                 historyPointProfileListener.historyPointProfileRequestFinished(
-                        Constants.RC.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        historyPointProfile,
-                        false);
+                        context, Constants.RC.CANCELLED, null, false);
             }
         }
 
@@ -584,8 +545,12 @@ public class POIManager {
     /**
      * next intersections
      */
-    private RequestNextIntersections requestNextIntersections;
-    private NextIntersectionsProfile lastNextIntersectionsProfile;
+    public interface NextIntersectionsListener {
+	    public void nextIntersectionsRequestFinished(Context context, int returnCode, NextIntersectionsProfile nextIntersectionsProfile, boolean resetListPosition);
+    }
+
+    private RequestNextIntersections requestNextIntersections = null;
+    private NextIntersectionsProfile cachedNextIntersectionsProfile = null;
 
     public void requestNextIntersections(
             NextIntersectionsListener profileListener, long nodeId, long wayId, long nextNodeId) {
@@ -626,11 +591,6 @@ public class POIManager {
         this.requestNextIntersections = null;
     }
 
-    public void destroyNextIntersectionsInstance() {
-        this.cancelNextIntersectionsRequest();
-        this.lastNextIntersectionsProfile = null;
-    }
-
 
     private class RequestNextIntersections extends AsyncTask<Void, Void, NextIntersectionsProfile> {
 
@@ -638,11 +598,9 @@ public class POIManager {
         private long nodeId, wayId, nextNodeId;
         private int returnCode;
         private boolean resetListPosition;
-        private String additionalMessage;
         private HttpsURLConnection connection;
         private Handler cancelConnectionHandler;
         private CancelConnection cancelConnection;
-        private long t1;
 
         public RequestNextIntersections(NextIntersectionsListener nextIntersectionsListener,
                 long nodeId, long wayId, long nextNodeId) {
@@ -655,7 +613,6 @@ public class POIManager {
             this.nextNodeId = nextNodeId;
             this.resetListPosition = false;
             this.returnCode = Constants.RC.OK;
-            this.additionalMessage = "";
             this.connection = null;
             this.cancelConnectionHandler = new Handler();
             this.cancelConnection = new CancelConnection();
@@ -680,95 +637,80 @@ public class POIManager {
             // get current location
             PositionManager positionManagerInstance = PositionManager.getInstance(context);
             PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
-            if (currentLocation.equals(PositionManager.getDummyLocation(context))) {
+            if (currentLocation == null) {
                 this.returnCode = Constants.RC.NO_LOCATION_FOUND;
                 return null;
             }
 
             // get current direction
             DirectionManager directionManagerInstance = DirectionManager.getInstance(context);
-            int currentDirection = directionManagerInstance.getCurrentDirection();
-            if (currentDirection == Constants.DUMMY.DIRECTION) {
+            Direction currentDirection = directionManagerInstance.getCurrentDirection();
+            if (currentDirection == null) {
                 this.returnCode = Constants.RC.NO_DIRECTION_FOUND;
                 return null;
             }
 
             ArrayList<PointProfileObject> nextIntersectionsPointList = null;
-            if (lastNextIntersectionsProfile != null
-                    && lastNextIntersectionsProfile.getNodeId() == this.nodeId
-                    && lastNextIntersectionsProfile.getWayId() == this.wayId
-                    && lastNextIntersectionsProfile.getNextNodeId() == this.nextNodeId) {
+            if (cachedNextIntersectionsProfile != null
+                    && cachedNextIntersectionsProfile.getNodeId() == this.nodeId
+                    && cachedNextIntersectionsProfile.getWayId() == this.wayId
+                    && cachedNextIntersectionsProfile.getNextNodeId() == this.nextNodeId) {
                 // load data from cache
-                nextIntersectionsPointList = lastNextIntersectionsProfile.getPointProfileObjectList();
+                nextIntersectionsPointList = cachedNextIntersectionsProfile.getPointProfileObjectList();
 
             } else {
                 // request next intersections from server
                 this.resetListPosition = true;
 
-                // check selected map
-                if (serverSettings.getSelectedMap() == null) {
-                    this.returnCode = Constants.RC.NO_MAP_SELECTED;
-                    return null;
-                }
-
-                // internet connection and server instance
-                // check for internet connection
-                if (! DownloadUtility.isInternetAvailable(context)) {
-                    this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
-                    return null;
-                }
-                // get server instance
+                // server instance
                 ServerInstance serverInstance = null;
                 try {
-                    serverInstance = ServerStatusManager.getInstance(context)
-                        .getServerInstanceForURL(serverSettings.getServerURL());
+                    serverInstance = ServerUtility.getServerInstance(
+                            context, serverSettings.getServerURL());
                 } catch (ServerCommunicationException e) {
                     this.returnCode = e.getReturnCode();
-                    return null;
+                } finally {
+                    if (returnCode != Constants.RC.OK) {
+                        return null;
+                    }
+                }
+
+                // create server param list
+                JSONObject jsonServerParams = null;
+                try {
+                    jsonServerParams = ServerUtility.createServerParamList(context);
+                    jsonServerParams.put("node_id", this.nodeId);
+                    jsonServerParams.put("way_id", this.wayId);
+                    jsonServerParams.put("next_node_id", this.nextNodeId);
+                } catch (JSONException e) {
+                    jsonServerParams = new JSONObject();
                 }
 
                 // start request
                 JSONArray jsonPointList = null;
                 try {
-                    // create parameter list
-                    JSONObject requestJson = new JSONObject();
-                    requestJson.put("node_id", this.nodeId);
-                    requestJson.put("way_id", this.wayId);
-                    requestJson.put("next_node_id", this.nextNodeId);
-                    requestJson.put("logging_allowed", serverSettings.getLogQueriesOnServer());
-                    requestJson.put("language", Locale.getDefault().getLanguage());
-                    requestJson.put("map_id", serverSettings.getSelectedMap().getId());
-                    requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
-                    System.out.println("xxx next intersections request: " + requestJson.toString());
-                    // create connection
-                    connection = DownloadUtility.getHttpsURLConnectionObject(
+                    connection = ServerUtility.getHttpsURLConnectionObject(
                             context,
-                            DownloadUtility.generateServerCommand(
-                                serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_NEXT_INTERSECTIONS_FOR_WAY),
-                            requestJson);
+                            String.format(
+                                "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_NEXT_INTERSECTIONS_FOR_WAY),
+                            jsonServerParams);
                     cancelConnectionHandler.postDelayed(cancelConnection, 100);
                     connection.connect();
-                    int responseCode = connection.getResponseCode();
+                    returnCode = connection.getResponseCode();
                     cancelConnectionHandler.removeCallbacks(cancelConnection);
                     if (isCancelled()) {
                         this.returnCode = Constants.RC.CANCELLED;
-                    } else if (responseCode != Constants.RC.OK) {
-                        this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
-                    } else {
-                        JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
-                        if (jsonServerResponse.has("error")
-                                && ! jsonServerResponse.getString("error").equals("")) {
-                            this.additionalMessage = jsonServerResponse.getString("error");
-                            this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA;
-                        } else {
-                            // get poi list
-                            jsonPointList = jsonServerResponse.getJSONArray("next_intersections");
-                        }
+                    } else if (returnCode == Constants.RC.OK) {
+                        JSONObject jsonServerResponse = ServerUtility.processServerResponseAsJSONObject(connection);
+                        // get poi list
+                        jsonPointList = jsonServerResponse.getJSONArray("next_intersections");
                     }
                 } catch (IOException e) {
-                    this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
+                    this.returnCode = Constants.RC.CONNECTION_FAILED;
                 } catch (JSONException e) {
-                    this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
+                    this.returnCode = Constants.RC.BAD_RESPONSE;
+                } catch (ServerCommunicationException e) {
+                    this.returnCode = e.getReturnCode();
                 } finally {
                     if (connection != null) {
                         connection.disconnect();
@@ -796,27 +738,19 @@ public class POIManager {
         }
 
         @Override protected void onPostExecute(NextIntersectionsProfile nextIntersectionsProfile) {
-            System.out.println("xxx next intersections: " + this.returnCode + "     resetListPosition: " + resetListPosition);
             if (this.returnCode == Constants.RC.OK) {
-                lastNextIntersectionsProfile = nextIntersectionsProfile;
+                cachedNextIntersectionsProfile = nextIntersectionsProfile;
             }
             for (NextIntersectionsListener nextIntersectionsListener : this.nextIntersectionsListenerList) {
                 nextIntersectionsListener.nextIntersectionsRequestFinished(
-                        this.returnCode,
-                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, this.additionalMessage),
-                        nextIntersectionsProfile,
-                        this.resetListPosition);
+                        context, returnCode, nextIntersectionsProfile, resetListPosition);
             }
         }
 
         @Override protected void onCancelled(NextIntersectionsProfile nextIntersectionsProfile) {
-            System.out.println("xxx next intersections: cancelled     resetListPosition: " + resetListPosition);
             for (NextIntersectionsListener nextIntersectionsListener : this.nextIntersectionsListenerList) {
                 nextIntersectionsListener.nextIntersectionsRequestFinished(
-                        Constants.RC.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        nextIntersectionsProfile,
-                        false);
+                        context, Constants.RC.CANCELLED, null, false);
             }
         }
 
@@ -866,19 +800,5 @@ public class POIManager {
             }
         }
     }
-
-
-    private BroadcastReceiver newLocationReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID
-                    && ! intent.getBooleanExtra(Constants.ACTION_NEW_LOCATION_ATTR.BOOL_AT_HIGH_SPEED, false)
-                    && ! requestInProgress()) {
-                System.out.println("xxx request poi profile with threshold3: " + settingsManagerInstance.getPOISettings().getSelectedPOIProfileId());
-                requestPOIProfile(
-                        null, settingsManagerInstance.getPOISettings().getSelectedPOIProfileId(), ACTION_UPDATE);
-            }
-        }
-    };
 
 }

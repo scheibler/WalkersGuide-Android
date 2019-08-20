@@ -9,7 +9,6 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -21,16 +20,21 @@ import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.data.station.Departure;
 import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.helper.DownloadUtility;
-import org.walkersguide.android.listener.DepartureResultListener;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
+import timber.log.Timber;
+
 
 public class DepartureManager {
+
+    public interface DepartureResultListener {
+        public void departureRequestFinished(Context context, int returnCode, ArrayList<Departure> departureList, boolean resetListPosition);
+    }
+
 
     private Context context;
     private static DepartureManager departureManagerInstance;
@@ -49,9 +53,7 @@ public class DepartureManager {
     private DepartureManager(Context context) {
         this.context = context;
         this.requestDepartures = null;
-        this.lastDepartureList = new ArrayList<Departure>();
-        this.lastStation = null;
-        this.lastRefreshed = 0l;
+        cleanDepartureCache();
     }
 
     public void requestDepartureList(DepartureResultListener departureResultListener, Station station) {
@@ -89,13 +91,18 @@ public class DepartureManager {
         }
     }
 
+    public void cleanDepartureCache() {
+        this.lastDepartureList = new ArrayList<Departure>();
+        this.lastStation = null;
+        this.lastRefreshed = 0l;
+    }
+
 
     private class RequestDepartures extends AsyncTask<Void, Void, ArrayList<Departure>> {
 
         private ArrayList<DepartureResultListener> departureResultListenerList;
         private Station station;
         private int returnCode;
-        private String additionalMessage;
         private HttpsURLConnection connection;
         private Handler cancelConnectionHandler;
         private CancelConnection cancelConnection;
@@ -108,7 +115,6 @@ public class DepartureManager {
             }
             this.station = station;
             this.returnCode = Constants.RC.OK;
-            this.additionalMessage = "";
             this.connection = null;
             this.cancelConnectionHandler = new Handler();
             this.cancelConnection = new CancelConnection();
@@ -122,6 +128,7 @@ public class DepartureManager {
             if (! lastDepartureList.isEmpty()
                     && this.station.equals(lastStation)
                     && System.currentTimeMillis()-lastRefreshed < 30*60*1000) {
+                Timber.d("cached departures");
                 // cleanup already passed departures
                 for (Iterator<Departure> iterator = lastDepartureList.iterator(); iterator.hasNext();) {
                     Departure departure = iterator.next();
@@ -134,80 +141,69 @@ public class DepartureManager {
 
             } else {
                 this.resetListPosition = true;
-                // internet connection and server instance
-                // check for internet connection
-                if (! DownloadUtility.isInternetAvailable(context)) {
-                    this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
-                    return null;
-                }
-                // get server instance
+                Timber.d("querydepartures");
+
+                // server instance
                 ServerInstance serverInstance = null;
                 try {
-                    serverInstance = ServerStatusManager.getInstance(context)
-                        .getServerInstanceForURL(serverSettings.getServerURL());
+                    serverInstance = ServerUtility.getServerInstance(
+                            context, serverSettings.getServerURL());
                 } catch (ServerCommunicationException e) {
                     this.returnCode = e.getReturnCode();
-                    return null;
+                } finally {
+                    if (returnCode != Constants.RC.OK) {
+                        return null;
+                    } else if (serverInstance.getSupportedPublicTransportProviderList().isEmpty()) {
+                        this.returnCode = Constants.RC.NO_PUBLIC_TRANSPORT_PROVIDER_LIST;
+                        return null;
+                    }
                 }
 
-                // check selected map
-                if (serverSettings.getSelectedMap() == null) {
-                    this.returnCode = Constants.RC.NO_MAP_SELECTED;
-                    return null;
-                }
-
-                // start request
-                JSONArray jsonDepartureList = null;
+                // create server param list
+                JSONObject jsonServerParams = null;
                 try {
-                    // create parameter list
-                    JSONObject requestJson = new JSONObject();
-                    requestJson.put("lat", station.getLatitude());
-                    requestJson.put("lon", station.getLongitude());
+                    jsonServerParams = ServerUtility.createServerParamList(context);
+                    jsonServerParams.put("lat", station.getLatitude());
+                    jsonServerParams.put("lon", station.getLongitude());
                     // vehicles
                     JSONArray jsonVehicleList = new JSONArray();
                     for (String vehicle : station.getVehicleList()) {
                         jsonVehicleList.put(vehicle);
                     } 
-                    requestJson.put("vehicles", jsonVehicleList);
+                    jsonServerParams.put("vehicles", jsonVehicleList);
                     // provider
                     if (serverSettings.getSelectedPublicTransportProvider() != null) {
-                        requestJson.put("public_transport_provider", serverSettings.getSelectedPublicTransportProvider().getId());
+                        jsonServerParams.put("public_transport_provider", serverSettings.getSelectedPublicTransportProvider().getId());
                     }
-                    // lang, map and uid
-                    requestJson.put("language", Locale.getDefault().getLanguage());
-                    requestJson.put("logging_allowed", serverSettings.getLogQueriesOnServer());
-                    requestJson.put("map_id", serverSettings.getSelectedMap().getId());
-                    requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
-                    System.out.println("xxx departure request: " + requestJson.toString());
-                    // create connection
-                    connection = DownloadUtility.getHttpsURLConnectionObject(
+                } catch (JSONException e) {
+                    jsonServerParams = new JSONObject();
+                }
+
+                // start request
+                JSONArray jsonDepartureList = null;
+                try {
+                    connection = ServerUtility.getHttpsURLConnectionObject(
                             context,
-                            DownloadUtility.generateServerCommand(
-                                serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_DEPARTURES),
-                            requestJson);
+                            String.format(
+                                "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_DEPARTURES),
+                            jsonServerParams);
                     cancelConnectionHandler.postDelayed(cancelConnection, 100);
                     connection.connect();
-                    int responseCode = connection.getResponseCode();
+                    returnCode = connection.getResponseCode();
                     cancelConnectionHandler.removeCallbacks(cancelConnection);
                     if (isCancelled()) {
                         this.returnCode = Constants.RC.CANCELLED;
-                    } else if (responseCode != Constants.RC.OK) {
-                        this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
-                    } else {
-                        JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
-                        if (jsonServerResponse.has("error")
-                                && ! jsonServerResponse.getString("error").equals("")) {
-                            this.additionalMessage = jsonServerResponse.getString("error");
-                            this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA;
-                        } else {
-                            // get departure list
-                            jsonDepartureList = jsonServerResponse.getJSONArray("departures");
-                        }
+                    } else if (returnCode == Constants.RC.OK) {
+                        JSONObject jsonServerResponse = ServerUtility.processServerResponseAsJSONObject(connection);
+                        // get departure list
+                        jsonDepartureList = jsonServerResponse.getJSONArray("departures");
                     }
                 } catch (IOException e) {
-                    this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
+                    this.returnCode = Constants.RC.CONNECTION_FAILED;
                 } catch (JSONException e) {
-                    this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
+                    this.returnCode = Constants.RC.BAD_RESPONSE;
+                } catch (ServerCommunicationException e) {
+                    this.returnCode = e.getReturnCode();
                 } finally {
                     if (connection != null) {
                         connection.disconnect();
@@ -234,30 +230,20 @@ public class DepartureManager {
                 lastRefreshed = System.currentTimeMillis();
             }
 
-            if (departureList.isEmpty()) {
-                this.returnCode = Constants.RC.DEPARTURE_LIST_EMPTY;
-                return null;
-            }
             return departureList;
         }
 
         @Override protected void onPostExecute(ArrayList<Departure> departureList) {
             for (DepartureResultListener departureResultListener : this.departureResultListenerList) {
                 departureResultListener.departureRequestFinished(
-                        this.returnCode,
-                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, this.additionalMessage),
-                        departureList,
-                        this.resetListPosition);
+                        context, returnCode, departureList, resetListPosition);
             }
         }
 
         @Override protected void onCancelled(ArrayList<Departure> departureList) {
             for (DepartureResultListener departureResultListener : this.departureResultListenerList) {
                 departureResultListener.departureRequestFinished(
-                        Constants.RC.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        departureList,
-                        false);
+                        context, Constants.RC.CANCELLED, null, false);
             }
         }
 

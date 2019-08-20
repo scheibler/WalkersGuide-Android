@@ -28,19 +28,19 @@ android {
         resConfigs "en", "de"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 9
-        versionName '0.4.0'
+        versionCode 12
+        versionName '1.0.0'
         // personal data
-        buildConfigField 'String', 'CONTACT_EMAIL', '"support@walkersguide.org"'
-        buildConfigField 'String', 'CONTACT_WEBSITE', '"http://walkersguide.org"'
+        buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
+        buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
         // internal
         // database
         buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
         buildConfigField 'Integer', 'DATABASE_VERSION', '9'
         // server
-        buildConfigField 'String', 'SERVER_URL', '"https://scheibler-dresden.homelinux.org/walkersguide/prod/"'
-        buildConfigField 'Integer', 'SUPPORTED_API_VERSION', '1'
-        buildConfigField 'boolean', 'DEFAULT_SHOW_DEVELOPMENT_MAPS', 'false'
+        buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
+        buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
+        buildConfigField 'Integer', 'MINIMAL_API_VERSION', '1'
     }
 
     signingConfigs {
@@ -53,15 +53,17 @@ android {
     }
 
     buildTypes {
-        debug {
-            debuggable true
-            minifyEnabled false
-            buildConfigField 'boolean', 'DEFAULT_SHOW_DEVELOPMENT_MAPS', 'true'
-        }
         release {
-            debuggable false
             signingConfig signingConfigs.release
             minifyEnabled false
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            if (outputFile != null && outputFileName.endsWith('.apk')) {
+                outputFileName = "${archivesBaseName}-${variant.versionName}.apk"
+            }
         }
     }
 
@@ -72,25 +74,10 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:design:27.0.2'
-    // guava: google java library
-    compile 'com.google.guava:guava:20.0'
-    // simple gesture library dependency
-	compile 'in.championswimmer:SimpleFingerGestures_Android_Library:1.2'
-}
-
-// REQUIRED: Google's new Maven repo is required for the latest
-// support library that is compatible with Android 8.0
-repositories {
-    // gradle version >= 4.1
-    // google()
-    //
-    // If you're using a version of Gradle lower than 4.1, you must instead use:
-    maven {
-        url 'https://maven.google.com'
-    }
-    // simple gesture library repository
-    maven {
-        url 'https://jitpack.io'
-    }
+    // android support library
+    implementation 'com.android.support:design:27.1.1'
+    // google java helper library
+    implementation 'com.google.guava:guava:27.0.1-android'
+    // logging
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }

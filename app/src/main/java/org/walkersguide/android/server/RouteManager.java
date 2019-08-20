@@ -8,7 +8,6 @@ import android.os.Handler;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -25,16 +24,14 @@ import org.walkersguide.android.data.route.RouteObject;
 import org.walkersguide.android.data.route.WayClass;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.helper.DownloadUtility;
-import org.walkersguide.android.listener.RouteListener;
-import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.RouteSettings;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import org.walkersguide.android.util.TTSWrapper;
+
+import timber.log.Timber;
 
 
 public class RouteManager {
@@ -44,8 +41,6 @@ public class RouteManager {
     private AccessDatabase accessDatabaseInstance;
     private SettingsManager settingsManagerInstance;
     private TTSWrapper ttsWrapperInstance;
-    private CalculateRoute calculateRoute;
-    private RequestRoute requestRoute;
 
     public static RouteManager getInstance(Context context) {
         if(routeManagerInstance == null){
@@ -59,15 +54,23 @@ public class RouteManager {
         this.accessDatabaseInstance = AccessDatabase.getInstance(context);
         this.settingsManagerInstance = SettingsManager.getInstance(context);
         ttsWrapperInstance = TTSWrapper.getInstance(context);
-        this.calculateRoute = null;
-        this.requestRoute = null;
     }
 
-    public void calculateRoute(RouteListener routeListener) {
+
+    /**
+     * route calculation request
+     */
+    public interface RouteCalculationListener {
+        public void routeCalculationFinished(Context context, int returnCode, int routeId);
+    }
+
+    private CalculateRoute calculateRoute = null;
+
+    public void calculateRoute(RouteCalculationListener routeCalculationListener) {
         if (routeCalculationInProgress()) {
             cancelRouteCalculation();
         }
-        this.calculateRoute = new CalculateRoute(routeListener);
+        this.calculateRoute = new CalculateRoute(routeCalculationListener);
         this.calculateRoute.execute();
     }
 
@@ -88,17 +91,15 @@ public class RouteManager {
 
     private class CalculateRoute extends AsyncTask<Void, Void, Integer> {
 
-        private RouteListener routeListener;
+        private RouteCalculationListener routeCalculationListener;
         private int returnCode;
-        private String additionalMessage;
         private HttpsURLConnection connection;
         private Handler cancelConnectionHandler;
         private CancelConnection cancelConnection;
 
-        public CalculateRoute(RouteListener routeListener) {
-            this.routeListener = routeListener;
+        public CalculateRoute(RouteCalculationListener routeCalculationListener) {
+            this.routeCalculationListener = routeCalculationListener;
             this.returnCode = Constants.RC.OK;
-            this.additionalMessage = "";
             this.connection = null;
             this.cancelConnectionHandler = new Handler();
             this.cancelConnection = new CancelConnection();
@@ -107,52 +108,43 @@ public class RouteManager {
         @Override protected Integer doInBackground(Void... params) {
             RouteSettings routeSettings = SettingsManager.getInstance(context).getRouteSettings();
             ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
-            // start and destination
-            PointWrapper startPoint = routeSettings.getStartPoint();
-            if (startPoint.equals(PositionManager.getDummyLocation(context))) {
-                this.returnCode = Constants.RC.NO_ROUTE_START_POINT;
-                return -1;
-            }
-            PointWrapper destinationPoint = routeSettings.getDestinationPoint();
-            if (destinationPoint.equals(PositionManager.getDummyLocation(context))) {
-                this.returnCode = Constants.RC.NO_ROUTE_DESTINATION_POINT;
-                return -1;
-            }
 
-            // internet connection and server instance
-            // check for internet connection
-            if (! DownloadUtility.isInternetAvailable(context)) {
-                this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
-                return -1;
-            }
-            // get server instance
+            // server instance
             ServerInstance serverInstance = null;
             try {
-                serverInstance = ServerStatusManager.getInstance(context)
-                    .getServerInstanceForURL(serverSettings.getServerURL());
+                serverInstance = ServerUtility.getServerInstance(
+                        context, serverSettings.getServerURL());
             } catch (ServerCommunicationException e) {
                 this.returnCode = e.getReturnCode();
-                return -1;
+            } finally {
+                if (returnCode != Constants.RC.OK) {
+                    return -1;
+                }
             }
 
-            // check selected map
-            if (serverSettings.getSelectedMap() == null) {
-                this.returnCode = Constants.RC.NO_MAP_SELECTED;
-                return null;
-            }
-
-            String description = null;
-            JSONArray jsonRouteObjectList = null;
+            // create server param list
+            JSONObject jsonServerParams = null;
             try {
-                // start and destination
+                jsonServerParams = ServerUtility.createServerParamList(context);
+
+                // start, via and destination points
                 JSONArray jsonSourcePoints = new JSONArray();
-                jsonSourcePoints.put(startPoint.toJson());
+                PointWrapper startPoint = routeSettings.getStartPoint();
+                if (startPoint != null) {
+                    jsonSourcePoints.put(startPoint.toJson());
+                }
                 for (PointWrapper viaPoint : routeSettings.getViaPointList()) {
-                    if (! viaPoint.equals(PositionManager.getDummyLocation(context))) {
+                    if (viaPoint != null) {
                         jsonSourcePoints.put(viaPoint.toJson());
                     }
                 }
-                jsonSourcePoints.put(destinationPoint.toJson());
+                PointWrapper destinationPoint = routeSettings.getDestinationPoint();
+                if (destinationPoint != null) {
+                    jsonSourcePoints.put(destinationPoint.toJson());
+                }
+                jsonServerParams.put("source_points", jsonSourcePoints);
+
+                // other params
                 // excluded ways
                 JSONArray jsonExcludedWays = new JSONArray();
                 for (SegmentWrapper segmentWrapper : accessDatabaseInstance.getExcludedWaysList()) {
@@ -161,52 +153,44 @@ public class RouteManager {
                                 ((Footway) segmentWrapper.getSegment()).getWayId());
                     }
                 }
+                jsonServerParams.put("blocked_ways", jsonExcludedWays);
                 // allowed way classes
-                JSONArray jsonAllowedWayClassList = new JSONArray();
+                JSONObject jsonWayClassIdAndWeights = new JSONObject();
                 for (WayClass wayClass : routeSettings.getWayClassList()) {
-                    jsonAllowedWayClassList.put(wayClass.getId());
+                    jsonWayClassIdAndWeights.put(wayClass.getId(), wayClass.getWeight());
                 }
-                // create parameter list
-                JSONObject requestJson = new JSONObject();
-                requestJson.put("source_points", jsonSourcePoints);
-                requestJson.put("blocked_ways", jsonExcludedWays);
-                requestJson.put("allowed_way_classes", jsonAllowedWayClassList);
-                requestJson.put("indirection_factor", routeSettings.getIndirectionFactor());
-                requestJson.put("language", Locale.getDefault().getLanguage());
-                requestJson.put("logging_allowed", serverSettings.getLogQueriesOnServer());
-                requestJson.put("map_id", serverSettings.getSelectedMap().getId());
-                requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
-                System.out.println("xxx route request: " + requestJson.toString());
-                // create connection
-                connection = DownloadUtility.getHttpsURLConnectionObject(
+                jsonServerParams.put("allowed_way_classes", jsonWayClassIdAndWeights);
+            } catch (JSONException e) {
+                jsonServerParams = new JSONObject();
+            }
+
+            // start request
+            String description = null;
+            JSONArray jsonRouteObjectList = null;
+            try {
+                connection = ServerUtility.getHttpsURLConnectionObject(
                         context,
-                        DownloadUtility.generateServerCommand(
-                            serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_ROUTE),
-                        requestJson);
+                        String.format(
+                            "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_ROUTE),
+                        jsonServerParams);
                 cancelConnectionHandler.postDelayed(cancelConnection, 100);
                 connection.connect();
-                int responseCode = connection.getResponseCode();
+                returnCode = connection.getResponseCode();
                 cancelConnectionHandler.removeCallbacks(cancelConnection);
                 if (isCancelled()) {
                     this.returnCode = Constants.RC.CANCELLED;
-                } else if (responseCode != Constants.RC.OK) {
-                    this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
-                } else {
-                    JSONObject jsonServerResponse = DownloadUtility.processServerResponseAsJSONObject(connection);
-                    if (jsonServerResponse.has("error")
-                            && ! jsonServerResponse.getString("error").equals("")) {
-                        this.additionalMessage = jsonServerResponse.getString("error");
-                        this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR_WITH_EXTRA_DATA;
-                    } else {
-                        // get route list
-                        description= jsonServerResponse.getString("description");
-                        jsonRouteObjectList = jsonServerResponse.getJSONArray("route");
-                    }
+                } else if (returnCode == Constants.RC.OK) {
+                    JSONObject jsonServerResponse = ServerUtility.processServerResponseAsJSONObject(connection);
+                    // get route list
+                    description= jsonServerResponse.getString("description");
+                    jsonRouteObjectList = jsonServerResponse.getJSONArray("route");
                 }
             } catch (IOException e) {
-                this.returnCode = Constants.RC.SERVER_CONNECTION_ERROR;
+                this.returnCode = Constants.RC.CONNECTION_FAILED;
             } catch (JSONException e) {
-                this.returnCode = Constants.RC.SERVER_RESPONSE_ERROR;
+                this.returnCode = Constants.RC.BAD_RESPONSE;
+            } catch (ServerCommunicationException e) {
+                this.returnCode = e.getReturnCode();
             } finally {
                 if (connection != null) {
                     connection.disconnect();
@@ -220,7 +204,9 @@ public class RouteManager {
             ArrayList<RouteObject> routeObjectList = new ArrayList<RouteObject>();
             try {
                 // parse route
+                Timber.d("route length: %1$d", jsonRouteObjectList.length());
                 for (int i=0; i<jsonRouteObjectList.length(); i+=2) {
+                    Timber.d("r_object: %1$s", jsonRouteObjectList.getJSONObject(i).toString());
                     if (i == 0) {
                         // start object
                         routeObjectList.add(
@@ -241,34 +227,31 @@ public class RouteManager {
                                 );
                     }
                 }
+                if (routeObjectList.isEmpty()) {
+                    throw new JSONException("empty route object list");
+                }
                 // add to database
                 routeId = AccessDatabase.getInstance(context).addRoute(
-                            startPoint, destinationPoint,
-                            SettingsManager.getInstance(context).getRouteSettings().getViaPointList(),
-                            description, routeObjectList);
+                        routeSettings.getStartPoint(), routeSettings.getDestinationPoint(),
+                        routeSettings.getViaPointList(), description, routeObjectList);
             } catch (JSONException e) {
+                Timber.e("r_parsing: %1$s", e.getMessage());
                 this.returnCode = Constants.RC.ROUTE_PARSING_ERROR;
             }
             return routeId;
         }
 
         @Override protected void onPostExecute(Integer routeId) {
-            System.out.println("xxx add route: rc: " + returnCode + "   routeId" + routeId);
-            if (this.routeListener != null) {
-                this.routeListener.routeCalculationFinished(
-                        returnCode,
-                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, ""),
-                        routeId);
+            if (this.routeCalculationListener != null) {
+                this.routeCalculationListener.routeCalculationFinished(
+                        context, returnCode, routeId);
             }
         }
 
         @Override protected void onCancelled(Integer routeId) {
-            System.out.println("xxx add route: cancelled");
-            if (this.routeListener != null) {
-                this.routeListener.routeCalculationFinished(
-                        Constants.RC.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        routeId);
+            if (this.routeCalculationListener != null) {
+                this.routeCalculationListener.routeCalculationFinished(
+                        context, Constants.RC.CANCELLED, -1);
             }
         }
 
@@ -279,7 +262,6 @@ public class RouteManager {
         private class CancelConnection implements Runnable {
             public void run() {
                 if (isCancelled()) {
-                    System.out.println("xxx add Route: cancel connection in runnable");
                     if (connection != null) {
                         try {
                             connection.disconnect();
@@ -298,25 +280,30 @@ public class RouteManager {
     /**
      * request route from database
      */
+    public interface RouteRequestListener {
+        public void routeRequestFinished(Context context, int returnCode, Route route);
+    }
 
-    public void requestRoute(RouteListener routeListener, int routeId) {
+    private RequestRoute requestRoute = null;
+
+    public void requestRoute(RouteRequestListener routeRequestListener, int routeId) {
         if (routeRequestInProgress()) {
-            if (routeListener == null) {
+            if (routeRequestListener == null) {
                 return;
             } else if (this.requestRoute.getRouteId() == routeId) {
-                this.requestRoute.addListener(routeListener);
+                this.requestRoute.addListener(routeRequestListener);
                 return;
             } else {
                 cancelRouteRequest();
             }
         }
-        this.requestRoute = new RequestRoute(routeListener, routeId);
+        this.requestRoute = new RequestRoute(routeRequestListener, routeId);
         this.requestRoute.execute();
     }
 
-    public void invalidateRouteRequest(RouteListener routeListener) {
+    public void invalidateRouteRequest(RouteRequestListener routeRequestListener) {
         if (routeRequestInProgress()) {
-            this.requestRoute.removeListener(routeListener);
+            this.requestRoute.removeListener(routeRequestListener);
         }
     }
 
@@ -334,60 +321,54 @@ public class RouteManager {
         }
     }
 
-    public void skipToPreviousRouteObject(RouteListener routeListener, int routeId) {
+    public void skipToPreviousRouteObject(RouteRequestListener routeRequestListener, int routeId) {
         int currentObjectIndex = accessDatabaseInstance.getCurrentObjectIndexOfRoute(routeId);
         if (currentObjectIndex != -1) {
             boolean success = accessDatabaseInstance.updateCurrentObjectIndexOfRoute(
                     routeId, currentObjectIndex-1);
-            if (! success) {
-                ttsWrapperInstance.speak(
-                        context.getResources().getString(R.string.messageAlreadyFirstObject), true, true);
-            } else if (routeListener != null) {
+            if (success && routeRequestListener != null) {
                 if (routeRequestInProgress()) {
                     cancelRouteRequest();
                 }
-                requestRoute(routeListener, routeId);
+                requestRoute(routeRequestListener, routeId);
             }
         }
     }
 
-    public void skipToNextRouteObject(RouteListener routeListener, int routeId) {
+    public void skipToNextRouteObject(RouteRequestListener routeRequestListener, int routeId) {
         int currentObjectIndex = accessDatabaseInstance.getCurrentObjectIndexOfRoute(routeId);
         if (currentObjectIndex != -1) {
             boolean success = accessDatabaseInstance.updateCurrentObjectIndexOfRoute(
                     routeId, currentObjectIndex+1);
-            if (! success) {
-                ttsWrapperInstance.speak(
-                        context.getResources().getString(R.string.messageAlreadyLastObject), true, true);
-            } else if (routeListener != null) {
+            if (success && routeRequestListener != null) {
                 if (routeRequestInProgress()) {
                     cancelRouteRequest();
                 }
-                requestRoute(routeListener, routeId);
+                requestRoute(routeRequestListener, routeId);
             }
         }
     }
 
-    public void jumpToRouteObjectAtIndex(RouteListener routeListener, int routeId, int objectIndex) {
+    public void jumpToRouteObjectAtIndex(RouteRequestListener routeRequestListener, int routeId, int objectIndex) {
         accessDatabaseInstance.updateCurrentObjectIndexOfRoute(routeId, objectIndex);
-        if (routeListener != null) {
+        if (routeRequestListener != null) {
             if (routeRequestInProgress()) {
                 cancelRouteRequest();
             }
-            requestRoute(routeListener, routeId);
+            requestRoute(routeRequestListener, routeId);
         }
     }
 
 
     private class RequestRoute extends AsyncTask<Void, Void, Route> {
 
-        private ArrayList<RouteListener> routeListenerList;
+        private ArrayList<RouteRequestListener> routeRequestListenerList;
         private int routeIdToRequest, returnCode;
 
-        public RequestRoute(RouteListener routeListener, int routeId) {
-            this.routeListenerList = new ArrayList<RouteListener>();
-            if (routeListener != null) {
-                this.routeListenerList.add(routeListener);
+        public RequestRoute(RouteRequestListener routeRequestListener, int routeId) {
+            this.routeRequestListenerList = new ArrayList<RouteRequestListener>();
+            if (routeRequestListener != null) {
+                this.routeRequestListenerList.add(routeRequestListener);
             }
             this.routeIdToRequest = routeId;
             this.returnCode = Constants.RC.OK;
@@ -415,20 +396,16 @@ public class RouteManager {
         }
 
         @Override protected void onPostExecute(Route route) {
-            for (RouteListener routeListener : this.routeListenerList) {
-                routeListener.routeRequestFinished(
-                        returnCode,
-                        DownloadUtility.getErrorMessageForReturnCode(context, this.returnCode, ""),
-                        route);
+            for (RouteRequestListener routeRequestListener : this.routeRequestListenerList) {
+                routeRequestListener.routeRequestFinished(
+                        context, returnCode, route);
             }
         }
 
         @Override protected void onCancelled(Route route) {
-            for (RouteListener routeListener : this.routeListenerList) {
-                routeListener.routeRequestFinished(
-                        Constants.RC.CANCELLED,
-                        DownloadUtility.getErrorMessageForReturnCode(context, Constants.RC.CANCELLED, ""),
-                        route);
+            for (RouteRequestListener routeRequestListener : this.routeRequestListenerList) {
+                routeRequestListener.routeRequestFinished(
+                        context, Constants.RC.CANCELLED, null);
             }
         }
 
@@ -436,17 +413,17 @@ public class RouteManager {
             return this.routeIdToRequest;
         }
 
-        public void addListener(RouteListener newRouteListener) {
-            if (newRouteListener != null
-                    && ! this.routeListenerList.contains(newRouteListener)) {
-                this.routeListenerList.add(newRouteListener);
+        public void addListener(RouteRequestListener newRouteRequestListener) {
+            if (newRouteRequestListener != null
+                    && ! this.routeRequestListenerList.contains(newRouteRequestListener)) {
+                this.routeRequestListenerList.add(newRouteRequestListener);
             }
         }
 
-        public void removeListener(RouteListener newRouteListener) {
-            if (newRouteListener != null
-                    && this.routeListenerList.contains(newRouteListener)) {
-                this.routeListenerList.remove(newRouteListener);
+        public void removeListener(RouteRequestListener newRouteRequestListener) {
+            if (newRouteRequestListener != null
+                    && this.routeRequestListenerList.contains(newRouteRequestListener)) {
+                this.routeRequestListenerList.remove(newRouteRequestListener);
             }
         }
 

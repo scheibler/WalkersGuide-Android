@@ -68,9 +68,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
                 android:text="@string/buttonPreviousRouteObject"
+                android:textSize="@dimen/bigTextSize"
                 android:contentDescription="@string/buttonPreviousRouteObjectCD" />
 
             <Button
@@ -78,9 +79,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
                 android:text="@string/buttonNextRouteObject"
+                android:textSize="@dimen/bigTextSize"
                 android:contentDescription="@string/buttonNextRouteObjectCD" />
         </LinearLayout>
     </LinearLayout>
@@ -111,6 +113,7 @@
                 android:id="@+id/labelRouteSegmentDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
                 android:focusable="true" />
@@ -119,6 +122,7 @@
                 android:id="@+id/labelRoutePointDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
                 android:focusable="true" />

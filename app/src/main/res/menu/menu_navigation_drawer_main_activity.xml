@@ -4,12 +4,6 @@
         android:id="@+id/menuItemPlanRoute"
         android:title="@string/menuItemPlanRoute" />
     <item
-        android:id="@+id/menuItemRouterFragment"
-        android:title="@string/fragmentRouterName" />
-    <item
-        android:id="@+id/menuItemPOIFragment"
-        android:title="@string/fragmentPOIName" />
-    <item
         android:id="@+id/menuItemLastVisitedPoints"
         android:title="@string/menuItemLastVisitedPoints" />
     <item

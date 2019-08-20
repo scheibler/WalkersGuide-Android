@@ -10,24 +10,19 @@ public class OSMMap {
 
     private String id, name, description;
     private long created;
-    private boolean development;
 
-    public OSMMap(String id, String name, String description, long created, boolean development) {
+    public OSMMap(String id, String name, String description, long created) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.created = created;
-        this.development = development;
     }
 
     public OSMMap(JSONObject inputData) throws JSONException {
-        // id, name and description
         this.id = inputData.getString("id");
         this.name = inputData.getString("name");
         this.description = inputData.getString("description");
-        // created and development
         this.created = inputData.getLong("created");
-        this.development = inputData.getBoolean("development");
     }
 
     public String getId() {
@@ -46,19 +41,12 @@ public class OSMMap {
         return this.created;
     }
 
-    public boolean getDevelopment() {
-        return this.development;
-    }
-
     public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = new JSONObject();
-        // id, name and description
         jsonObject.put("id", this.id);
         jsonObject.put("name", this.name);
         jsonObject.put("description", this.description);
-        // created and development
         jsonObject.put("created", this.created);
-        jsonObject.put("development", this.development);
         return jsonObject;
     }
 

@@ -1,7 +1,5 @@
 package org.walkersguide.android.ui.fragment.pointdetails;
 
-import android.app.Activity;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +8,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Vibrator;
 
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import android.view.LayoutInflater;
@@ -31,14 +28,14 @@ import org.json.JSONObject;
 import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByDistanceFromCurrentPosition;
-import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
 import org.walkersguide.android.ui.adapter.PointWrapperAdapter;
+import org.walkersguide.android.ui.fragment.AbstractUITab;
 import org.walkersguide.android.util.Constants;
 
 
-public class EntrancesFragment extends Fragment implements FragmentCommunicator {
+public class EntrancesFragment extends AbstractUITab {
 
 	// Store instance variables
     private ArrayList<PointWrapper> entranceList;
@@ -64,14 +61,13 @@ public class EntrancesFragment extends Fragment implements FragmentCommunicator 
 
 	@Override public void onAttach(Context context) {
 		super.onAttach(context);
-		Activity activity;
-		if (context instanceof Activity) {
-			activity = (Activity) context;
-			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((PointDetailsActivity) activity).entrancesFragmentCommunicator = this;
-		}
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 	}
+
+
+    /**
+     * create view
+     */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.layout_heading_and_list_view_with_refresh_button, container, false);
@@ -117,7 +113,12 @@ public class EntrancesFragment extends Fragment implements FragmentCommunicator 
         listViewEntrances.setEmptyView(labelEmptyListView);
     }
 
-    @Override public void onFragmentEnabled() {
+
+    /**
+     * pause and resume
+     */
+
+    @Override public void fragmentVisible() {
         // listen for device shakes
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_SHAKE_DETECTED);
@@ -126,7 +127,7 @@ public class EntrancesFragment extends Fragment implements FragmentCommunicator 
         updateUI();
     }
 
-	@Override public void onFragmentDisabled() {
+    @Override public void fragmentInvisible() {
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 

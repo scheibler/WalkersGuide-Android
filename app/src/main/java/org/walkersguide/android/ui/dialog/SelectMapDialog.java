@@ -12,25 +12,28 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 
+import android.view.View;
 
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
+import java.util.ArrayList;
 
-
+import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.data.server.OSMMap;
-import java.util.ArrayList;
 
 
-public class SelectMapDialog extends DialogFragment {
+public class SelectMapDialog extends DialogFragment implements ServerStatusListener {
 
     // Store instance variables
     private ServerStatusManager serverStatusManagerInstance;
     private SettingsManager settingsManagerInstance;
-    private ArrayList<OSMMap> osmMapList;
 
     public static SelectMapDialog newInstance() {
         SelectMapDialog selectMapDialogInstance = new SelectMapDialog();
@@ -41,52 +44,15 @@ public class SelectMapDialog extends DialogFragment {
         super.onAttach(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
         serverStatusManagerInstance = ServerStatusManager.getInstance(context);
-        // get selectable maps
-        this.osmMapList = new ArrayList<OSMMap>();
-        ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
-        if (serverInstance != null) {
-            for (OSMMap map : serverInstance.getAvailableMapList()) {
-                if (! map.getDevelopment()
-                        || settingsManagerInstance.getServerSettings().getLogQueriesOnServer()) {
-                    this.osmMapList.add(map);
-                        }
-            }
-        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String[] formattedMapNameArray = new String[this.osmMapList.size()];
-        int indexOfSelectedMap = -1;
-        int index = 0;
-        for (OSMMap map : this.osmMapList) {
-            formattedMapNameArray[index] = map.toString();
-            if (map.equals(settingsManagerInstance.getServerSettings().getSelectedMap())) {
-                indexOfSelectedMap = index;
-            }
-            index += 1;
-        }
-
-        // create dialog
         return new AlertDialog.Builder(getActivity())
             .setTitle(getResources().getString(R.string.selectMapDialogTitle))
-            .setSingleChoiceItems(
-                    formattedMapNameArray,
-                    indexOfSelectedMap,
+            .setItems(
+                    new String[]{getResources().getString(R.string.messagePleaseWait)},
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            OSMMap selectedMap = null;
-                            try {
-                                selectedMap = osmMapList.get(which);
-                            } catch (IndexOutOfBoundsException e) {
-                                selectedMap = null;
-                            } finally {
-                                if (selectedMap != null) {
-                                    settingsManagerInstance.getServerSettings().setSelectedMap(selectedMap);
-                                    Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                                    LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-                                }
-                            }
-                            dismiss();
                         }
                     }
                     )
@@ -99,6 +65,52 @@ public class SelectMapDialog extends DialogFragment {
                                 }
                                 )
                         .create();
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        serverStatusManagerInstance.invalidateServerStatusRequest(this);
+    }
+
+    @Override public void onStart() {
+        super.onStart();
+        serverStatusManagerInstance.requestServerStatus(
+                (SelectMapDialog) this, settingsManagerInstance.getServerSettings().getServerURL());
+    }
+
+    @Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
+        AlertDialog dialog = (AlertDialog) getDialog();
+        if (returnCode == Constants.RC.OK
+                && dialog != null
+                && serverInstance != null) {
+            ListView listViewItems = (ListView) dialog.getListView();
+            listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+                    OSMMap selectedMap = (OSMMap) parent.getItemAtPosition(position);
+                    if (selectedMap != null) {
+                        settingsManagerInstance.getServerSettings().setSelectedMap(selectedMap);
+                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                    }
+                    dismiss();
+                }
+            });
+            // fill listview
+            ArrayList<OSMMap> osmMapList = new ArrayList<OSMMap>();
+            for (OSMMap map : serverInstance.getAvailableMapList()) {
+                osmMapList.add(map);
+            }
+            listViewItems.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+            listViewItems.setAdapter(
+                    new ArrayAdapter<OSMMap>(
+                        context, android.R.layout.select_dialog_singlechoice, osmMapList));
+            // select list item
+            OSMMap selectedMap = settingsManagerInstance.getServerSettings().getSelectedMap();
+            if (selectedMap != null) {
+                listViewItems.setItemChecked(
+                        osmMapList.indexOf(selectedMap), true);
+            }
+        }
     }
 
 }

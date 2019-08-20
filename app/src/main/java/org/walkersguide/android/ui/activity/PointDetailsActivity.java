@@ -10,14 +10,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import android.os.Bundle;
-import android.os.Handler;
 
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
@@ -38,8 +36,6 @@ import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.lang.ref.WeakReference;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeSet;
@@ -53,15 +49,18 @@ import org.walkersguide.android.data.basic.point.Intersection;
 import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
+import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
+import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
+import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.ChildDialogCloseListener;
-import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.ui.fragment.pointdetails.DeparturesFragment;
 import org.walkersguide.android.ui.fragment.pointdetails.EntrancesFragment;
 import org.walkersguide.android.ui.fragment.pointdetails.IntersectionWaysFragment;
@@ -80,31 +79,13 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
     private PointWrapper pointWrapper;
 
     // activity ui components
-	private ViewPager mViewPager;
+	private ViewPager viewPager;
+    private FragmentPagerAdapter selectedTabAdapter;
     private TabLayout tabLayout;
     private int recentFragment;
+
     private TextView labelPointDistanceAndBearing;
     private Switch buttonPointSimulateLocation;
-
-    // point, address, entrance, gps,
-	private PointPagerAdapter pointPagerAdapter;
-	public FragmentCommunicator pointDetailsFragmentCommunicator;
-
-	// intersection
-	private IntersectionPagerAdapter intersectionPagerAdapter;
-	public FragmentCommunicator intersectionWaysFragmentCommunicator;
-	public FragmentCommunicator pedestrianCrossingsFragmentCommunicator;
-
-    // poi
-	private POIPagerAdapter poiPagerAdapter;
-	public FragmentCommunicator entrancesFragmentCommunicator;
-
-    // station
-	private StationPagerAdapter stationPagerAdapter;
-	public FragmentCommunicator departuresFragmentCommunicator;
-
-	// fragment handler
-	private Handler onFragmentEnabledHandler;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -165,15 +146,13 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             buttonPointSimulateLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                     boolean isSimulated = 
-                           positionManagerInstance.getLocationSource() == Constants.LOCATION_SOURCE.SIMULATION
+                           positionManagerInstance.getSimulationEnabled()
                         && pointWrapper.equals(positionManagerInstance.getCurrentLocation());
                     if (isChecked && ! isSimulated) {
                         positionManagerInstance.setSimulatedLocation(pointWrapper);
-                        positionManagerInstance.setLocationSource(
-                                Constants.LOCATION_SOURCE.SIMULATION);
+                        positionManagerInstance.setSimulationEnabled(true);
                     } else if (! isChecked && isSimulated) {
-                        positionManagerInstance.setLocationSource(
-                                Constants.LOCATION_SOURCE.GPS);
+                        positionManagerInstance.setSimulationEnabled(false);
                     }
                 }
             });
@@ -212,52 +191,62 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             });
 
             // ViewPager and TabLayout
-            mViewPager = (ViewPager) findViewById(R.id.pager);
-            mViewPager.addOnPageChangeListener(new TabLayoutOnPageChangeListenerBugFree(tabLayout));
+    		viewPager = (ViewPager) findViewById(R.id.pager);
+            viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+                @Override public void onPageSelected(int position) {
+                    if (recentFragment != position) {
+                        setToolbarTitle(position);
+                        recentFragment = position;
+                    }
+                }
+            });
             tabLayout = (TabLayout) findViewById(R.id.tab_layout);
 
             int defaultRecentFragment;
             if (pointWrapper.getPoint() instanceof Station) {
                 // set fragments for station
-                stationPagerAdapter = new StationPagerAdapter(this);
-                mViewPager.setAdapter(stationPagerAdapter);
-                tabLayout.setupWithViewPager(mViewPager);
+                StationPagerAdapter stationPagerAdapter = new StationPagerAdapter(this);
+                viewPager.setAdapter(stationPagerAdapter);
+                selectedTabAdapter = stationPagerAdapter;
+                tabLayout.setupWithViewPager(viewPager);
                 tabLayout.setVisibility(View.VISIBLE);
                 // default station fragment
                 defaultRecentFragment = Constants.STATION_FRAGMENT.DETAILS;
             } else if (pointWrapper.getPoint() instanceof POI) {
                 // set fragments for poi
-                poiPagerAdapter = new POIPagerAdapter(this);
-                mViewPager.setAdapter(poiPagerAdapter);
-                tabLayout.setupWithViewPager(mViewPager);
+                POIPagerAdapter poiPagerAdapter = new POIPagerAdapter(this);
+                viewPager.setAdapter(poiPagerAdapter);
+                selectedTabAdapter = poiPagerAdapter;
+                tabLayout.setupWithViewPager(viewPager);
                 tabLayout.setVisibility(View.VISIBLE);
                 // default poi fragment
                 defaultRecentFragment = Constants.POI_FRAGMENT.DETAILS;
             } else if (pointWrapper.getPoint() instanceof Intersection) {
                 // set fragments for intersection
-                intersectionPagerAdapter = new IntersectionPagerAdapter(this);
-                mViewPager.setAdapter(intersectionPagerAdapter);
-                tabLayout.setupWithViewPager(mViewPager);
+                IntersectionPagerAdapter intersectionPagerAdapter = new IntersectionPagerAdapter(this);
+                viewPager.setAdapter(intersectionPagerAdapter);
+                selectedTabAdapter = intersectionPagerAdapter;
+                tabLayout.setupWithViewPager(viewPager);
                 tabLayout.setVisibility(View.VISIBLE);
                 // default intersection fragment
                 defaultRecentFragment = Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS;
             } else {
-                // set fragments for other point types
-                pointPagerAdapter = new PointPagerAdapter(this);
-                mViewPager.setAdapter(pointPagerAdapter);
+                // set fragments for other point types (point, address, entrance, gps)
+                PointPagerAdapter pointPagerAdapter = new PointPagerAdapter(this);
+                viewPager.setAdapter(pointPagerAdapter);
+                selectedTabAdapter = pointPagerAdapter;
                 tabLayout.setVisibility(View.GONE);
                 // default point fragment
                 defaultRecentFragment = Constants.POINT_FRAGMENT.DETAILS;
             }
 
-	    	// initialize handler for enabling fragment and open recent one
-    		onFragmentEnabledHandler = new Handler();
             if (savedInstanceState != null) {
             	recentFragment = savedInstanceState.getInt("recentFragment", defaultRecentFragment);
             } else {
                 recentFragment = defaultRecentFragment;
             }
-            mViewPager.setCurrentItem(recentFragment);
+            setToolbarTitle(recentFragment);
+            viewPager.setCurrentItem(recentFragment);
         }
     }
 
@@ -287,7 +276,6 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
         super.onPause();
         if (pointWrapper != null) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(newLocationAndDirectionReceiver);
-	    	leaveActiveFragment();
         }
     }
 
@@ -298,12 +286,15 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             filter.addAction(Constants.ACTION_NEW_LOCATION);
             filter.addAction(Constants.ACTION_NEW_DIRECTION);
             LocalBroadcastManager.getInstance(this).registerReceiver(newLocationAndDirectionReceiver, filter);
-
             // request current location and direction values
             directionManagerInstance.requestCurrentDirection();
             positionManagerInstance.requestCurrentLocation();
-            enterActiveFragment();
         }
+    }
+
+    private void setToolbarTitle(int tabIndex) {
+        getSupportActionBar().setTitle(
+                selectedTabAdapter.getPageTitle(tabIndex).toString());
     }
 
 
@@ -313,31 +304,40 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (
-                    (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                            && labelPointDistanceAndBearing.getText().toString().trim().equals(""))
-                    || (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                        && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD1.ID)
-                    || (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
-                        && intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD1.ID)
-                    ) {
-                // update distance and bearing label
+            boolean updateDistanceAndBearingLabel = false;
+            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
+                NewLocationAttributes newLocationAttributes = NewLocationAttributes.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_LOCATION_ATTRIBUTES));
+                if (newLocationAttributes != null
+                        && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.ZERO_METERS)) {
+                    updateDistanceAndBearingLabel= true;
+                }
+                // point simulation switch
+                if (pointWrapper != null
+                        && buttonPointSimulateLocation != null) {
+                    buttonPointSimulateLocation.setChecked(
+                               positionManagerInstance.getSimulationEnabled()
+                            && pointWrapper.equals(positionManagerInstance.getCurrentLocation()));
+                }
+            } else if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
+                NewDirectionAttributes newDirectionAttributes = NewDirectionAttributes.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_DIRECTION_ATTRIBUTES));
+                if (newDirectionAttributes != null
+                        && newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TEN_DEGREES)) {
+                    updateDistanceAndBearingLabel= true;
+                }
+            }
+            if (pointWrapper != null && updateDistanceAndBearingLabel) {
                 labelPointDistanceAndBearing.setText(
                         String.format(
                             context.getResources().getString(R.string.labelPointDistanceAndBearing),
-                            getResources().getQuantityString(
+                            context.getResources().getQuantityString(
                                 R.plurals.meter,
                                 pointWrapper.distanceFromCurrentLocation(),
                                 pointWrapper.distanceFromCurrentLocation()),
                             StringUtility.formatRelativeViewingDirection(
                                 context, pointWrapper.bearingFromCurrentLocation()))
                         );
-                if (pointWrapper != null
-                        && buttonPointSimulateLocation != null) {
-                    buttonPointSimulateLocation.setChecked(
-                               positionManagerInstance.getLocationSource() == Constants.LOCATION_SOURCE.SIMULATION
-                            && pointWrapper.equals(positionManagerInstance.getCurrentLocation()));
-                }
             }
         }
     };
@@ -376,7 +376,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
                 selectedPoint = new PointWrapper(
                         getActivity(), new JSONObject(getArguments().getString(Constants.POINT_DETAILS_ACTIVITY_EXTRA.JSON_POINT_SERIALIZED, "")));
             } catch (JSONException e) {
-                selectedPoint = PositionManager.getDummyLocation(getActivity());
+                selectedPoint = null;
             }
 
             // custom view
@@ -385,7 +385,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
             View view = inflater.inflate(R.layout.layout_single_check_box_group, nullParent);
 
             checkBoxGroupPOIProfiles = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
-            if (selectedPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+            if (selectedPoint == null) {
                 SimpleMessageDialog dialog = SimpleMessageDialog.newInstance(
                         getResources().getString(R.string.messageErrorPointDataLoadingFailed));
                 dialog.setTargetFragment(SelectPOIProfilesForPointDialog.this, 1);
@@ -548,181 +548,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
      * fragment management
      */
 
-    private void leaveActiveFragment() {
-        if (intersectionPagerAdapter != null) {
-            switch (recentFragment) {
-                case Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS:
-                    if (intersectionWaysFragmentCommunicator != null) {
-                        intersectionWaysFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                case Constants.INTERSECTION_FRAGMENT.DETAILS:
-                    if (pointDetailsFragmentCommunicator != null) {
-                        pointDetailsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                case Constants.INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS:
-                    if (pedestrianCrossingsFragmentCommunicator != null) {
-                        pedestrianCrossingsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } else if (pointPagerAdapter != null) {
-            switch (recentFragment) {
-                case Constants.POINT_FRAGMENT.DETAILS:
-                    if (pointDetailsFragmentCommunicator != null) {
-                        pointDetailsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } else if (poiPagerAdapter != null) {
-            switch (recentFragment) {
-                case Constants.POI_FRAGMENT.DETAILS:
-                    if (pointDetailsFragmentCommunicator != null) {
-                        pointDetailsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                case Constants.POI_FRAGMENT.ENTRANCES:
-                    if (entrancesFragmentCommunicator != null) {
-                        entrancesFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } else if (stationPagerAdapter != null) {
-            switch (recentFragment) {
-                case Constants.STATION_FRAGMENT.DEPARTURES:
-                    if (departuresFragmentCommunicator != null) {
-                        departuresFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                case Constants.STATION_FRAGMENT.DETAILS:
-                    if (pointDetailsFragmentCommunicator != null) {
-                        pointDetailsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                case Constants.STATION_FRAGMENT.ENTRANCES:
-                    if (entrancesFragmentCommunicator != null) {
-                        entrancesFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-	private void enterActiveFragment() {
-		onFragmentEnabledHandler.postDelayed(new OnFragmentEnabledUpdater(recentFragment), 0);
-	}
-
-	private class OnFragmentEnabledUpdater implements Runnable {
-		private static final int NUMBER_OF_RETRIES = 5;
-		private int counter;
-		private int currentFragment;
-
-		public OnFragmentEnabledUpdater(int currentFragment) {
-			this.counter = 0;
-			this.currentFragment = currentFragment;
-		}
-
-        @Override public void run() {
-            if (intersectionPagerAdapter != null) {
-                switch (currentFragment) {
-                    case Constants.INTERSECTION_FRAGMENT.INTERSECTION_WAYS:
-                        if (intersectionWaysFragmentCommunicator != null) {
-                            intersectionWaysFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    case Constants.INTERSECTION_FRAGMENT.DETAILS:
-                        if (pointDetailsFragmentCommunicator != null) {
-                            pointDetailsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    case Constants.INTERSECTION_FRAGMENT.PEDESTRIAN_CROSSINGS:
-                        if (pedestrianCrossingsFragmentCommunicator != null) {
-                            pedestrianCrossingsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-            } else if (pointPagerAdapter != null) {
-                switch (currentFragment) {
-                    case Constants.POINT_FRAGMENT.DETAILS:
-                        if (pointDetailsFragmentCommunicator != null) {
-                            pointDetailsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-            } else if (poiPagerAdapter != null) {
-                switch (recentFragment) {
-                    case Constants.POI_FRAGMENT.DETAILS:
-                        if (pointDetailsFragmentCommunicator != null) {
-                            pointDetailsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    case Constants.POI_FRAGMENT.ENTRANCES:
-                        if (entrancesFragmentCommunicator != null) {
-                            entrancesFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            } else if (stationPagerAdapter != null) {
-                switch (recentFragment) {
-                    case Constants.STATION_FRAGMENT.DEPARTURES:
-                        if (departuresFragmentCommunicator != null) {
-                            departuresFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    case Constants.STATION_FRAGMENT.DETAILS:
-                        if (pointDetailsFragmentCommunicator != null) {
-                            pointDetailsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    case Constants.STATION_FRAGMENT.ENTRANCES:
-                        if (entrancesFragmentCommunicator != null) {
-                            entrancesFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                return;
-            }
-            if (counter < NUMBER_OF_RETRIES) {
-                counter += 1;
-                onFragmentEnabledHandler.postDelayed(this, 100);
-            }
-        }
-    }
-
-
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the primary sections of the app.
-	 */
-
-	public class PointPagerAdapter extends FragmentStatePagerAdapter {
+	public class PointPagerAdapter extends FragmentPagerAdapter {
 
 		public PointPagerAdapter(FragmentActivity activity) {
 			super(activity.getSupportFragmentManager());
@@ -752,7 +578,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 	}
 
 
-	public class IntersectionPagerAdapter extends FragmentStatePagerAdapter {
+	public class IntersectionPagerAdapter extends FragmentPagerAdapter {
 
 		public IntersectionPagerAdapter(FragmentActivity activity) {
 			super(activity.getSupportFragmentManager());
@@ -790,7 +616,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 	}
 
 
-	public class POIPagerAdapter extends FragmentStatePagerAdapter {
+	public class POIPagerAdapter extends FragmentPagerAdapter {
 
 		public POIPagerAdapter(FragmentActivity activity) {
 			super(activity.getSupportFragmentManager());
@@ -823,7 +649,7 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 		}
 	}
 
-	public class StationPagerAdapter extends FragmentStatePagerAdapter {
+	public class StationPagerAdapter extends FragmentPagerAdapter {
 
 		public StationPagerAdapter(FragmentActivity activity) {
 			super(activity.getSupportFragmentManager());
@@ -859,49 +685,5 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
 			return Constants.StationFragmentValueArray.length;
 		}
 	}
-
-
-    /**
-     * A custom Page Change Listener which fixes the bug described here:
-     * https://code.google.com/p/android/issues/detail?id=183123
-     **/
-
-    private class TabLayoutOnPageChangeListenerBugFree implements ViewPager.OnPageChangeListener {
-
-        private final WeakReference<TabLayout> mTabLayoutRef;
-        private int mPreviousScrollState;
-        private int mScrollState;
-
-        public TabLayoutOnPageChangeListenerBugFree(TabLayout tabLayout) {
-            mTabLayoutRef = new WeakReference<TabLayout>(tabLayout);
-        }
-
-        @Override public void onPageScrollStateChanged(int state) {
-            mPreviousScrollState = mScrollState;
-            mScrollState = state;
-        }
-
-        @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            final TabLayout tabLayout = mTabLayoutRef.get();
-            if (tabLayout != null) {
-                final boolean updateText = (mScrollState == ViewPager.SCROLL_STATE_DRAGGING)
-                    || (mScrollState == ViewPager.SCROLL_STATE_SETTLING
-                            && mPreviousScrollState == ViewPager.SCROLL_STATE_DRAGGING);
-                tabLayout.setScrollPosition(position, positionOffset, updateText);
-            }
-        }
-
-        @Override public void onPageSelected(int position) {
-            if (recentFragment != position) {
-                leaveActiveFragment();
-                final TabLayout tabLayout = mTabLayoutRef.get();
-                if (tabLayout != null) {
-                    tabLayout.getTabAt(position).select();
-                }
-                recentFragment = position;
-                enterActiveFragment();
-            }
-        }
-    }
 
 }

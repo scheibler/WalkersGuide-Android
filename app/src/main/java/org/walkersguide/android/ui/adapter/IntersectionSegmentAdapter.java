@@ -14,16 +14,19 @@ import java.util.Collections;
 
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.segment.IntersectionSegment.SortByBearingFromCurrentDirection;
+import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.R;
 
 
 public class IntersectionSegmentAdapter extends ArrayAdapter<IntersectionSegment> {
 
+    private Context context;
     private LayoutInflater m_inflater;
     private ArrayList<IntersectionSegment> intersectionSegmentList;
 
     public IntersectionSegmentAdapter(Context context, ArrayList<IntersectionSegment> intersectionSegmentList) {
         super(context, R.layout.layout_single_text_view);
+        this.context = context;
         m_inflater = LayoutInflater.from(context);
         this.intersectionSegmentList = intersectionSegmentList;
         notifyDataSetChanged();
@@ -40,8 +43,30 @@ public class IntersectionSegmentAdapter extends ArrayAdapter<IntersectionSegment
         } else {
             holder = (EntryHolder) convertView.getTag();
         }
-        // fill label
-        holder.label.setText(getItem(position).toString());
+
+        IntersectionSegment segment = getItem(position);
+        if (holder.label != null) {
+            if (segment.isPartOfPreviousRouteSegment()) {
+                holder.label.setText(segment.toString());
+                holder.label.setContentDescription(
+                        String.format(
+                            "%1$s,\n%2$s",
+                            segment.toString(),
+                            context.getResources().getString(R.string.labelPartOfPreviousRouteSegment))
+                        );
+            } else if (segment.isPartOfNextRouteSegment()) {
+                holder.label.setText(StringUtility.boldAndRed(segment.toString()));
+                holder.label.setContentDescription(
+                        String.format(
+                            "%1$s,\n%2$s",
+                            segment.toString(),
+                            context.getResources().getString(R.string.labelPartOfNextRouteSegment))
+                        );
+            } else {
+                holder.label.setText(segment.toString());
+                holder.label.setContentDescription(segment.toString());
+            }
+        }
         return convertView;
     }
 

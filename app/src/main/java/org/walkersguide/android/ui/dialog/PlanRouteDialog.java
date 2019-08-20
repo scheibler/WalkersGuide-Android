@@ -24,7 +24,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.Toast;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -35,28 +36,25 @@ import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.profile.HistoryPointProfile;
-import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.WayClass;
-import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.helper.PointUtility;
-import org.walkersguide.android.listener.AddressListener;
-import org.walkersguide.android.listener.ChildDialogCloseListener;
-import org.walkersguide.android.listener.RouteListener;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.AddressManager;
+import org.walkersguide.android.server.AddressManager.AddressListener;
 import org.walkersguide.android.server.RouteManager;
-import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.server.RouteManager.RouteCalculationListener;
 import org.walkersguide.android.ui.activity.MainActivity;
-import org.walkersguide.android.ui.view.CheckBoxGroupView;
+import org.walkersguide.android.ui.adapter.WayClassAdapter;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.RouteSettings;
-import android.widget.CheckBox;
 
 
 public class PlanRouteDialog extends DialogFragment
-    implements AddressListener, ChildDialogCloseListener, RouteListener {
+    implements AddressListener, ChildDialogCloseListener, RouteCalculationListener {
 
     private AccessDatabase accessDatabaseInstance;
     private PositionManager positionManagerInstance;
@@ -70,7 +68,7 @@ public class PlanRouteDialog extends DialogFragment
     private Vibrator vibrator;
 
     // ui components
-    private Button buttonStartPoint, buttonDestinationPoint, buttonIndirectionFactor;
+    private Button buttonStartPoint, buttonDestinationPoint;
     private LinearLayout layoutViaPointList;
 
     public static PlanRouteDialog newInstance() {
@@ -125,9 +123,9 @@ public class PlanRouteDialog extends DialogFragment
         buttonNewRoute.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
-                routeSettings.setStartPoint(PositionManager.getDummyLocation(getActivity()));
+                routeSettings.setStartPoint(null);
                 routeSettings.clearViaPointList();
-                routeSettings.setDestinationPoint(PositionManager.getDummyLocation(getActivity()));
+                routeSettings.setDestinationPoint(null);
                 positionManagerInstance.requestCurrentLocation();
             }
         });
@@ -160,14 +158,6 @@ public class PlanRouteDialog extends DialogFragment
             public void onClick(View view) {
                 ExcludedWaysDialog.newInstance().show(
                         getActivity().getSupportFragmentManager(), "ExcludedWaysDialog");
-            }
-        });
-
-        buttonIndirectionFactor = (Button) view.findViewById(R.id.buttonIndirectionFactor);
-        buttonIndirectionFactor.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                SelectIndirectionFactorDialog.newInstance().show(
-                        getActivity().getSupportFragmentManager(), "SelectIndirectionFactorDialog");
             }
         });
 
@@ -231,20 +221,14 @@ public class PlanRouteDialog extends DialogFragment
                     dialog.dismiss();
                 }
             });
-            // set indirection factor
-            buttonIndirectionFactor.setText(
-                    String.format(
-                        "%1$s: %2$.1f",
-                        getResources().getString(R.string.buttonIndirectionFactor),
-                        settingsManagerInstance.getRouteSettings().getIndirectionFactor())
-                    );
         }
     }
 
-    @Override public void addressRequestFinished(int returnCode, String returnMessage, PointWrapper addressPoint) {
-        if (returnCode == Constants.RC.OK) {
+    @Override public void addressRequestFinished(Context context, int returnCode, PointWrapper addressPoint) {
+        if (returnCode == Constants.RC.OK
+                && addressPoint != null) {
             PointUtility.putNewPoint(
-                    getActivity(), addressPoint, addressManagerRequest.getPointPutIntoVariable());
+                    context, addressPoint, addressManagerRequest.getPointPutIntoVariable());
             // request gps location again to refresh
             positionManagerInstance.requestCurrentLocation();
         }
@@ -255,27 +239,28 @@ public class PlanRouteDialog extends DialogFragment
         positionManagerInstance.requestCurrentLocation();
     }
 
-	@Override public void routeCalculationFinished(int returnCode, String returnMessage, int routeId) {
+	@Override public void routeCalculationFinished(Context context, int returnCode, int routeId) {
         progressHandler.removeCallbacks(progressUpdater);
-        if (returnCode == Constants.RC.OK) {
+        if (returnCode == Constants.RC.OK
+                && routeId != -1) {
             RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
             routeSettings.setSelectedRouteId(routeId);
             // add start and destination to route points history point profile
             PointWrapper startPoint = routeSettings.getStartPoint();
-            if (! startPoint.equals(PositionManager.getDummyLocation(getActivity()))
+            if (startPoint != null
                     && ! GPS.class.isInstance(startPoint.getPoint())) {
                 accessDatabaseInstance.addFavoritePointToProfile(startPoint, HistoryPointProfile.ID_ROUTE_POINTS);
             }
             PointWrapper destinationPoint = routeSettings.getDestinationPoint();
-            if (! destinationPoint.equals(PositionManager.getDummyLocation(getActivity()))
+            if (destinationPoint != null
                     && ! GPS.class.isInstance(destinationPoint.getPoint())) {
                 accessDatabaseInstance.addFavoritePointToProfile(destinationPoint, HistoryPointProfile.ID_ROUTE_POINTS);
             }
             // show router fragment of main activity
     		settingsManagerInstance.getGeneralSettings().setRecentOpenTab(Constants.MAIN_FRAGMENT.ROUTER);
-            Intent mainActivityIntent = new Intent(getActivity(), MainActivity.class);
+            Intent mainActivityIntent = new Intent(context, MainActivity.class);
             mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(mainActivityIntent);
+            context.startActivity(mainActivityIntent);
             vibrator.vibrate(250);
             dismiss();
         } else {
@@ -283,15 +268,21 @@ public class PlanRouteDialog extends DialogFragment
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {
                 Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setText(getResources().getString(R.string.buttonGetRoute));
+                buttonPositive.setText(context.getResources().getString(R.string.buttonGetRoute));
             }
             // error dialog
-            SimpleMessageDialog.newInstance(returnMessage)
-                .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+            if (isAdded()) {
+                if (returnCode == Constants.RC.MAP_LOADING_FAILED
+                        || returnCode == Constants.RC.WRONG_MAP_SELECTED) {
+                    SelectMapDialog.newInstance()
+                        .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
+                } else {
+                    SimpleMessageDialog.newInstance(
+                            ServerUtility.getErrorMessageForReturnCode(context, returnCode))
+                        .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                }
+            }
         }
-    }
-
-	@Override public void routeRequestFinished(int returnCode, String returnMessage, Route route) {
     }
 
     @Override public void onDismiss(final DialogInterface dialog) {
@@ -310,7 +301,7 @@ public class PlanRouteDialog extends DialogFragment
             if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
                 // start point button
                 PointWrapper startPoint = routeSettings.getStartPoint();
-                if (startPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                if (startPoint == null) {
                     buttonStartPoint.setText(
                             String.format(
                                 "%1$s:\n%2$s",
@@ -331,10 +322,9 @@ public class PlanRouteDialog extends DialogFragment
                                 || addressManagerRequest.getStatus() == AsyncTask.Status.FINISHED)
                             ) {
                         addressManagerRequest = new AddressManager(
-                                getActivity(),
-                                PlanRouteDialog.this,
-                            startPoint.getPoint().getLatitude(),
-                            startPoint.getPoint().getLongitude());
+                                context, PlanRouteDialog.this,
+                                startPoint.getPoint().getLatitude(),
+                                startPoint.getPoint().getLongitude());
                         addressManagerRequest.setPointPutIntoVariable(Constants.POINT_PUT_INTO.START);
                         addressManagerRequest.execute();
                     }
@@ -350,9 +340,9 @@ public class PlanRouteDialog extends DialogFragment
                 for (PointWrapper viaPoint : viaPointList) {
                     Button buttonViaPoint = (Button) layoutViaPointList.findViewById(viaPointId);
                     if (buttonViaPoint == null) {
-                        buttonViaPoint = createViaPointButton(viaPointId);
+                        buttonViaPoint = createViaPointButton(context, viaPointId);
                     }
-                    if (viaPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                    if (viaPoint == null) {
                         buttonViaPoint.setText(
                                 String.format(
                                     "%1$s %2$d:\n%3$s",
@@ -377,7 +367,7 @@ public class PlanRouteDialog extends DialogFragment
 
                 // destination point button
                 PointWrapper destinationPoint = routeSettings.getDestinationPoint();
-                if (destinationPoint.equals(PositionManager.getDummyLocation(getActivity()))) {
+                if (destinationPoint == null) {
                     buttonDestinationPoint.setText(
                             String.format(
                                 "%1$s:\n%2$s",
@@ -398,10 +388,9 @@ public class PlanRouteDialog extends DialogFragment
                                 || addressManagerRequest.getStatus() == AsyncTask.Status.FINISHED)
                             ) {
                         addressManagerRequest = new AddressManager(
-                                getActivity(),
-                                PlanRouteDialog.this,
-                            destinationPoint.getPoint().getLatitude(),
-                            destinationPoint.getPoint().getLongitude());
+                                context, PlanRouteDialog.this,
+                                destinationPoint.getPoint().getLatitude(),
+                                destinationPoint.getPoint().getLongitude());
                         addressManagerRequest.setPointPutIntoVariable(Constants.POINT_PUT_INTO.DESTINATION);
                         addressManagerRequest.execute();
                     }
@@ -413,8 +402,8 @@ public class PlanRouteDialog extends DialogFragment
         }
     };
 
-    private Button createViaPointButton(int id) {
-        Button button = new Button(getActivity());
+    private Button createViaPointButton(Context context, int id) {
+        Button button = new Button(context);
         button.setId(id);
         // layout params
         LayoutParams lp = new LayoutParams(
@@ -434,7 +423,6 @@ public class PlanRouteDialog extends DialogFragment
         return button;
     }
 
-
     private class ProgressUpdater implements Runnable {
         public void run() {
             vibrator.vibrate(50);
@@ -443,87 +431,12 @@ public class PlanRouteDialog extends DialogFragment
     }
 
 
-    public static class SelectIndirectionFactorDialog extends DialogFragment {
-
-        // Store instance variables
-        private SettingsManager settingsManagerInstance;
-        private ServerStatusManager serverStatusManagerInstance;
-
-        public static SelectIndirectionFactorDialog newInstance() {
-            SelectIndirectionFactorDialog selectIndirectionFactorDialog = new SelectIndirectionFactorDialog();
-            return selectIndirectionFactorDialog;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
-            serverStatusManagerInstance = ServerStatusManager.getInstance(context);
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
-            String[] formattedIndirectionFactorArray = new String[0];
-            if (serverInstance != null) {
-                formattedIndirectionFactorArray = new String[serverInstance.getSupportedIndirectionFactorList().size()];
-            }
-            int indexOfSelectedIndirectionFactor = -1;
-            int index = 0;
-            if (serverInstance != null) {
-                for (Double indirectionFactor : serverInstance.getSupportedIndirectionFactorList()) {
-                    formattedIndirectionFactorArray[index] = String.format("%1$.1f", indirectionFactor);
-                    if (indirectionFactor == settingsManagerInstance.getRouteSettings().getIndirectionFactor()) {
-                        indexOfSelectedIndirectionFactor = index;
-                    }
-                    index += 1;
-                }
-            }
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.selectIndirectionFactorDialogTitle))
-                .setSingleChoiceItems(
-                        formattedIndirectionFactorArray,
-                        indexOfSelectedIndirectionFactor,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                double newIndirectionFactor = -1.0;
-                                try {
-                                    newIndirectionFactor = serverStatusManagerInstance.getServerInstance().getSupportedIndirectionFactorList().get(which);
-                                } catch (IndexOutOfBoundsException e) {
-                                    newIndirectionFactor = -1.0;
-                                } finally {
-                                    if (newIndirectionFactor != -1.0) {
-                                        settingsManagerInstance.getRouteSettings().setIndirectionFactor(newIndirectionFactor);
-                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-                                    }
-                                }
-                                dismiss();
-                            }
-                        }
-                        )
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dismiss();
-                            }
-                        }
-                        )
-                .create();
-        }
-    }
-
-
     public static class SelectRoutingWayClassesDialog extends DialogFragment {
 
-        // Store instance variables
         private SettingsManager settingsManagerInstance;
-        private ServerInstance serverInstance;
-        private ArrayList<WayClass> checkedWayClassList;
 
-        // ui components
-        private CheckBoxGroupView checkBoxGroupRoutingWayClasses;
+        private ListView listViewWayClasses;
+        private TextView labelListViewEmpty;
 
         public static SelectRoutingWayClassesDialog newInstance() {
             SelectRoutingWayClassesDialog selectRoutingWayClassesDialog = new SelectRoutingWayClassesDialog();
@@ -533,58 +446,44 @@ public class PlanRouteDialog extends DialogFragment
         @Override public void onAttach(Context context){
             super.onAttach(context);
             settingsManagerInstance = SettingsManager.getInstance(context);
-            serverInstance = ServerStatusManager.getInstance(context).getServerInstance();
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ArrayList<WayClass> wayClassList = new ArrayList<WayClass>();
             if (savedInstanceState != null) {
-                checkedWayClassList = new ArrayList<WayClass>();
-                JSONArray jsonCheckedWayClassIdList = null;
+                JSONArray jsonWayClassList = null;
                 try {
-                    jsonCheckedWayClassIdList = new JSONArray(
-                            savedInstanceState.getString("jsonCheckedWayClassIdList"));
+                    jsonWayClassList = new JSONArray(
+                            savedInstanceState.getString("jsonWayClassList"));
                 } catch (JSONException e) {
-                    jsonCheckedWayClassIdList = null;
+                    jsonWayClassList = null;
                 } finally {
-                    if (jsonCheckedWayClassIdList != null) {
-                        for (int i=0; i<jsonCheckedWayClassIdList.length(); i++) {
+                    if (jsonWayClassList != null) {
+                        for (int i=0; i<jsonWayClassList.length(); i++) {
                             try {
-                                checkedWayClassList.add(
+                                wayClassList.add(
                                         new WayClass(
-                                            getActivity(), jsonCheckedWayClassIdList.getString(i)));
+                                            jsonWayClassList.getJSONObject(i)));
                             } catch (JSONException e) {}
                         }
                     }
                 }
             } else {
-                checkedWayClassList = settingsManagerInstance.getRouteSettings().getWayClassList();
+                wayClassList = settingsManagerInstance.getRouteSettings().getWayClassList();
             }
 
             // custom view
             final ViewGroup nullParent = null;
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_check_box_group, nullParent);
+            View view = inflater.inflate(R.layout.layout_single_list_view, nullParent);
 
-            checkBoxGroupRoutingWayClasses = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
-            if (serverInstance != null) {
-                for (WayClass wayClass : serverInstance.getSupportedWayClassList()) {
-                    CheckBox checkBox = new CheckBox(getActivity());
-                    checkBox.setTag(wayClass.getId());
-                    checkBox.setLayoutParams(
-                            new LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT)
-                            );
-                    checkBox.setText(wayClass.getName());
-                    checkBox.setOnClickListener(new View.OnClickListener() {
-                        @Override public void onClick(View view) {
-                            checkedWayClassList = getCheckedItemsOfWayClassCheckBoxGroup();
-                            onStart();
-                        }
-                    });
-                    checkBoxGroupRoutingWayClasses.put(checkBox);
-                }
-            }
+            listViewWayClasses = (ListView) view.findViewById(R.id.listView);
+            listViewWayClasses.setAdapter(
+                    new WayClassAdapter(getActivity(), wayClassList));
+
+            labelListViewEmpty    = (TextView) view.findViewById(R.id.labelListViewEmpty);
+            labelListViewEmpty.setVisibility(View.GONE);
+            listViewWayClasses.setEmptyView(labelListViewEmpty);
 
             // create dialog
             return new AlertDialog.Builder(getActivity())
@@ -598,70 +497,45 @@ public class PlanRouteDialog extends DialogFragment
                         }
                         )
                 .setNeutralButton(
-                        getResources().getString(R.string.dialogClear),
+                        getResources().getString(R.string.dialogDefault),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                             }
-                        }
-                        )
+                        })
                 .setNegativeButton(
                         getResources().getString(R.string.dialogCancel),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                             }
-                        }
-                        )
+                        })
                 .create();
         }
 
         @Override public void onStart() {
             super.onStart();
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                // check boxes
-                for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckBoxList()) {
-                    checkBox.setChecked(
-                            checkedWayClassList.contains(
-                                new WayClass(getActivity(), (String) checkBox.getTag())));
-                }
-
+            final AlertDialog dialog = (AlertDialog) getDialog();
+            if (dialog != null) {
                 // positive button
                 Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 buttonPositive.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        if (checkedWayClassList.isEmpty()) {
-                            Toast.makeText(
-                                    getActivity(),
-                                    getResources().getString(R.string.messageNoAllowedWayClassSelected),
-                                    Toast.LENGTH_LONG).show();
-                        } else {
-                            settingsManagerInstance.getRouteSettings().setWayClassList(checkedWayClassList);
+                        WayClassAdapter adapter = (WayClassAdapter) listViewWayClasses.getAdapter();
+                        if (adapter != null) {
+                            settingsManagerInstance.getRouteSettings().setWayClassList(adapter.getWayClassList());
                             dialog.dismiss();
                         }
                     }
                 });
-
                 // neutral button
                 Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                if (checkBoxGroupRoutingWayClasses.nothingChecked()) {
-                    buttonNeutral.setText(
-                            getResources().getString(R.string.dialogAll));
-                } else {
-                    buttonNeutral.setText(
-                            getResources().getString(R.string.dialogClear));
-                }
                 buttonNeutral.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        if (checkBoxGroupRoutingWayClasses.nothingChecked()
-                                && serverInstance != null) {
-                            checkedWayClassList = serverInstance.getSupportedWayClassList();
-                        } else {
-                            checkedWayClassList = new ArrayList<WayClass>();
+                        WayClassAdapter adapter = (WayClassAdapter) listViewWayClasses.getAdapter();
+                        if (adapter != null) {
+                            adapter.resetToDefaults();
                         }
-                        onStart();
                     }
                 });
-
                 // negative button
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -674,22 +548,17 @@ public class PlanRouteDialog extends DialogFragment
 
         @Override public void onSaveInstanceState(Bundle savedInstanceState) {
             super.onSaveInstanceState(savedInstanceState);
-            JSONArray jsonCheckedWayClassIdList = new JSONArray();
-            for (WayClass wayClass : getCheckedItemsOfWayClassCheckBoxGroup()) {
-                jsonCheckedWayClassIdList.put(wayClass.getId());
+            WayClassAdapter adapter = (WayClassAdapter) listViewWayClasses.getAdapter();
+            if (adapter != null) {
+                JSONArray jsonWayClassList = new JSONArray();
+                for (WayClass wayClass : adapter.getWayClassList()) {
+                    try {
+                        jsonWayClassList.put(wayClass.toJson());
+                    } catch (JSONException e) {}
+                }
+                savedInstanceState.putString("jsonWayClassList", jsonWayClassList.toString());
             }
-            savedInstanceState.putString("jsonCheckedWayClassIdList", jsonCheckedWayClassIdList.toString());
         }
-
-        private ArrayList<WayClass> getCheckedItemsOfWayClassCheckBoxGroup() {
-            ArrayList<WayClass> wayClassList = new ArrayList<WayClass>();
-            for (CheckBox checkBox : checkBoxGroupRoutingWayClasses.getCheckedCheckBoxList()) {
-                wayClassList.add(
-                        new WayClass(getActivity(), (String) checkBox.getTag()));
-            }
-            return wayClassList;
-        }
-
     }
 
 }

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
@@ -11,7 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1.0"
         android:inputType="text"
-        android:selectAllOnFocus="true" />
+        android:selectAllOnFocus="true"
+        tools:ignore="LabelFor" />
 
     <ImageButton
         android:id="@+id/buttonDelete"

@@ -2,16 +2,20 @@ package org.walkersguide.android.database;
 
 import android.content.Context;
 
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.data.profile.HistoryPointProfile;
-import android.database.Cursor;
 import java.util.Map;
+import java.util.TreeMap;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.util.TreeMap;
+
+import org.walkersguide.android.BuildConfig;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
+
+import timber.log.Timber;
 
 
 public class SQLiteHelper extends SQLiteOpenHelper {
@@ -78,7 +82,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         + POI_PROFILE_CATEGORY_ID_LIST + " text not null, "
         + POI_PROFILE_SEARCH_TERM + " text, "
         + POI_PROFILE_CENTER + " text, "
-        + POI_PROFILE_DIRECTION + " integer, "
+        + POI_PROFILE_DIRECTION + " text, "
         + POI_PROFILE_POINT_LIST + " text);";
     public static final String DROP_POI_PROFILE_TABLE =
         "DROP TABLE IF EXISTS " + TABLE_POI_PROFILE + ";";
@@ -145,7 +149,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
-        System.out.println("xxx onUpgrade: " + oldVersion + " / " + newVersion);
+        Timber.d("onUpgrade: %1$d -> %2$d", oldVersion, newVersion);
 
         if (oldVersion <= 2) {
             // create excluded ways table

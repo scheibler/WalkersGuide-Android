@@ -10,12 +10,10 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper.SortByDistanceFromCurrentPosition;
-import org.walkersguide.android.R;
 import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.R;
 
 
 public class RouteIdAdapter extends ArrayAdapter<Integer> {

@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
 
 
@@ -19,8 +18,8 @@ public class NextIntersectionsProfile extends PointProfile {
                 context,
                 -2,
                 context.getResources().getString(R.string.fpNameNextIntersections),
-                PositionManager.getDummyLocation(context).toJson(),
-                Constants.DUMMY.DIRECTION,
+                null,
+                null,
                 new JSONArray());
         // node and way ids
         this.nodeId = nodeId;

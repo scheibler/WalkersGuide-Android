@@ -15,6 +15,7 @@ import org.walkersguide.android.data.basic.point.POI;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.point.StreetAddress;
+import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.helper.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
@@ -23,6 +24,16 @@ import org.walkersguide.android.util.Constants;
 
 
 public class PointWrapper {
+
+    public static PointWrapper fromString(Context context, String locationDataString) {
+        try {
+            return new PointWrapper(
+                    context, new JSONObject(locationDataString));
+        } catch (JSONException | NullPointerException e) {
+            return null;
+        }
+    }
+
 
     private Context context;
     private Point point;
@@ -90,27 +101,31 @@ public class PointWrapper {
         return -1;
     }
 
-    public int distanceFromCurrentLocation() {
+    public Integer distanceFromCurrentLocation() {
         PointWrapper currentLocation = PositionManager.getInstance(context).getCurrentLocation();
         if (currentLocation != null) {
             return currentLocation.distanceTo(this);
         }
-        return -1;
+        return null;
     }
 
-    public int bearingFromCurrentLocation() {
+    public Integer bearingFromCurrentLocation() {
+        return bearingFromCurrentLocation(
+                DirectionManager.getInstance(context).getCurrentDirection());
+    }
+
+    public Integer bearingFromCurrentLocation(Direction currentDirection) {
         PointWrapper currentLocation = PositionManager.getInstance(context).getCurrentLocation();
-        if (currentLocation != null) {
+        if (currentLocation != null && currentDirection != null) {
             int absoluteDirection = currentLocation.bearingTo(this);
             // take the current viewing direction into account
-            int relativeDirection = absoluteDirection
-                - DirectionManager.getInstance(context).getCurrentDirection();
+            int relativeDirection = absoluteDirection - currentDirection.getBearing();
             if (relativeDirection < 0) {
                 relativeDirection += 360;
             }
             return relativeDirection;
         }
-        return -1;
+        return null;
     }
 
     public JSONObject toJson() throws JSONException {
@@ -134,9 +149,9 @@ public class PointWrapper {
     }
 
     @Override public String toString() {
-        int distanceFromCurrentLocation = distanceFromCurrentLocation();
-        int bearingFromCurrentLocation = bearingFromCurrentLocation();
-        if (distanceFromCurrentLocation > -1 && bearingFromCurrentLocation > -1) {
+        Integer distanceFromCurrentLocation = distanceFromCurrentLocation();
+        Integer bearingFromCurrentLocation = bearingFromCurrentLocation();
+        if (distanceFromCurrentLocation !=null && bearingFromCurrentLocation != null) {
             return String.format(
                     context.getResources().getString(R.string.pointListObjectDescription),
                     this.pointToString(),
@@ -165,11 +180,13 @@ public class PointWrapper {
         return this.point.equals(other.getPoint());
     }
 
+
     public static class SortByNameASC implements Comparator<PointWrapper > {
         @Override public int compare(PointWrapper object1, PointWrapper object2) {
             return object1.getPoint().getName().compareTo(object2.getPoint().getName());
         }
     }
+
 
     public static class SortByNameDESC implements Comparator<PointWrapper> {
         @Override public int compare(PointWrapper object1, PointWrapper object2) {
@@ -177,19 +194,30 @@ public class PointWrapper {
         }
     }
 
+
     public static class SortByDistanceFromCurrentPosition implements Comparator<PointWrapper> {
         @Override public int compare(PointWrapper object1, PointWrapper object2) {
-            if (object1.distanceFromCurrentLocation() < object2.distanceFromCurrentLocation()) {
-                return -1;
-            } else if (object1.distanceFromCurrentLocation() > object2.distanceFromCurrentLocation())  {
-                return 1;
-            } else if (object1.bearingFromCurrentLocation() < object2.bearingFromCurrentLocation()) {
-                return -1;
-            } else if (object1.bearingFromCurrentLocation() > object2.bearingFromCurrentLocation()) {
-                return 1;
-            } else {
-                return object1.point.getName().compareTo(object2.getPoint().getName());
+            Integer distanceObject1 = object1.distanceFromCurrentLocation();
+            Integer distanceObject2 = object2.distanceFromCurrentLocation();
+            if (distanceObject1 != null && distanceObject2 != null) {
+                if (distanceObject1 < distanceObject2) {
+                    return -1;
+                } else if (distanceObject1 > distanceObject2)  {
+                    return 1;
+                }
             }
+
+            Integer bearingObject1 = object1.bearingFromCurrentLocation();
+            Integer bearingObject2 = object1.bearingFromCurrentLocation();
+            if (bearingObject1 != null && bearingObject2 != null) {
+                if (bearingObject1 < bearingObject2) {
+                    return -1;
+                } else if (bearingObject1 > bearingObject2) {
+                    return 1;
+                }
+            }
+
+            return object1.point.getName().compareTo(object2.getPoint().getName());
         }
     }
 

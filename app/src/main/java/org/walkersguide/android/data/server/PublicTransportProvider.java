@@ -15,8 +15,10 @@ public class PublicTransportProvider {
         // determine name from id
         if (id.equals(Constants.PUBLIC_TRANSPORT_PROVIDER.DB)) {
             this.name = context.getResources().getString(R.string.publicTransportProviderDB);
-        } else if (id.equals(Constants.PUBLIC_TRANSPORT_PROVIDER.VBB)) {
-            this.name = context.getResources().getString(R.string.publicTransportProviderVBB);
+        } else if (id.equals(Constants.PUBLIC_TRANSPORT_PROVIDER.RT)) {
+            this.name = context.getResources().getString(R.string.publicTransportProviderRT);
+        } else if (id.equals(Constants.PUBLIC_TRANSPORT_PROVIDER.VVO)) {
+            this.name = context.getResources().getString(R.string.publicTransportProviderVVO);
         } else {
             this.name = id;
         }

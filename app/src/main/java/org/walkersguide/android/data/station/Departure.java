@@ -1,7 +1,8 @@
 package org.walkersguide.android.data.station;
 
-import org.walkersguide.android.helper.StringUtility;
 import java.lang.Math;
+
+import org.walkersguide.android.helper.StringUtility;
 
 
 public class Departure {

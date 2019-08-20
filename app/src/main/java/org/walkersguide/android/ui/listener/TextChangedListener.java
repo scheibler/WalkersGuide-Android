@@ -1,4 +1,4 @@
-package org.walkersguide.android.util;
+package org.walkersguide.android.ui.listener;
 
 import android.text.Editable;
 import android.text.TextWatcher;

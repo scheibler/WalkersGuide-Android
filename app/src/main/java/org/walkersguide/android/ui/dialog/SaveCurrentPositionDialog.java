@@ -15,8 +15,6 @@ import android.os.Vibrator;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 
-import android.text.format.DateFormat;
-
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
@@ -34,7 +32,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -46,9 +43,9 @@ import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.profile.HistoryPointProfile;
-import org.walkersguide.android.listener.ChildDialogCloseListener;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
@@ -88,9 +85,10 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
 		positionManagerInstance = PositionManager.getInstance(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        currentLocation = null;
         // listen for intents
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_NEW_LOCATION);
+        filter.addAction(Constants.ACTION_NEW_GPS_LOCATION);
         filter.addAction(Constants.ACTION_SHAKE_DETECTED);
         LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
     }
@@ -159,12 +157,6 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
         labelGPSProvider = (TextView) view.findViewById(R.id.labelGPSProvider);
         labelGPSAccuracy = (TextView) view.findViewById(R.id.labelGPSAccuracy);
         labelGPSTime = (TextView) view.findViewById(R.id.labelGPSTime);
-        ImageButton buttonRefreshLocation = (ImageButton) view.findViewById(R.id.buttonRefreshLocation);
-        buttonRefreshLocation.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                updateLocationData();
-            }
-        });
 
         // poi profiles sublayout
         checkBoxGroupPOIProfiles = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroup);
@@ -267,7 +259,7 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
             labelNoPOIProfile.setVisibility(View.GONE);
         }
         // update current location data
-        updateLocationData();
+        positionManagerInstance.requestGPSLocation();
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -289,68 +281,6 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
         dismiss();
     }
 
-    private void updateLocationData() {
-        // clean up
-        labelGPSProvider.setText(getResources().getString(R.string.labelGPSProvider));
-        labelGPSAccuracy.setText(getResources().getString(R.string.labelGPSAccuracy));
-        labelGPSTime.setText(getResources().getString(R.string.labelGPSTime));
-        // new data
-        currentLocation = positionManagerInstance.getCurrentLocation();
-        if (! currentLocation.equals(PositionManager.getDummyLocation(getActivity()))) {
-            GPS gpsLocation = (GPS) currentLocation.getPoint();
-            if (gpsLocation.getNumberOfSatellites() >= 0) {
-                labelGPSProvider.setText(
-                        String.format(
-                            "%1$s: %2$s, %3$s",
-                            getResources().getString(R.string.labelGPSProvider),
-                            gpsLocation.getProvider(),
-                            getResources().getQuantityString(
-                                R.plurals.satellite, gpsLocation.getNumberOfSatellites(), gpsLocation.getNumberOfSatellites()))
-                        );
-            } else {
-                labelGPSProvider.setText(
-                        String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.labelGPSProvider),
-                            gpsLocation.getProvider())
-                        );
-            }
-            if (gpsLocation.getAccuracy() >= 0.0) {
-                labelGPSAccuracy.setText(
-                        String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.labelGPSAccuracy),
-                            getResources().getQuantityString(
-                                R.plurals.meter,
-                                Math.round(gpsLocation.getAccuracy()),
-                                Math.round(gpsLocation.getAccuracy())))
-                        );
-            }
-            if (gpsLocation.getTime() >= 0) {
-                String formattedTime = DateFormat.getTimeFormat(getActivity()).format(
-                        new Date(gpsLocation.getTime()));
-                String formattedDate = DateFormat.getDateFormat(getActivity()).format(
-                        new Date(gpsLocation.getTime()));
-                if (formattedDate.equals(DateFormat.getDateFormat(getActivity()).format(new Date()))) {
-                    labelGPSTime.setText(
-                            String.format(
-                                "%1$s: %2$s",
-                                getResources().getString(R.string.labelGPSTime),
-                                formattedTime)
-                            );
-                } else {
-                    labelGPSTime.setText(
-                            String.format(
-                                "%1$s: %2$s, %3$s",
-                                getResources().getString(R.string.labelGPSTime),
-                                formattedDate,
-                                formattedTime)
-                            );
-                }
-            }
-        }
-    }
-
     private void tryToSaveCurrentPosition() {
         // hide keyboard
         editName.dismissDropDown();
@@ -362,7 +292,7 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
                     getActivity(),
                     getResources().getString(R.string.messageNameMissing),
                     Toast.LENGTH_LONG).show();
-        } else if (currentLocation.equals(PositionManager.getDummyLocation(getActivity()))) {
+        } else if (currentLocation == null) {
             Toast.makeText(
                     getActivity(),
                     getResources().getString(R.string.errorNoLocationFound),
@@ -405,12 +335,22 @@ public class SaveCurrentPositionDialog extends DialogFragment implements ChildDi
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
-                vibrator.vibrate(250);
-                updateLocationData();
-            } else if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                    && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD3.ID) {
-                updateLocationData();
+            if (intent.getAction().equals(Constants.ACTION_NEW_GPS_LOCATION)) {
+                // clear fields
+                labelGPSProvider.setText(context.getResources().getString(R.string.labelGPSProvider));
+                labelGPSAccuracy.setText(context.getResources().getString(R.string.labelGPSAccuracy));
+                labelGPSTime.setText(context.getResources().getString(R.string.labelGPSTime));
+                // get gps location
+                currentLocation = PointWrapper.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_GPS_LOCATION_OBJECT));
+                if (currentLocation != null
+                        && currentLocation.getPoint() instanceof GPS) {
+                    GPS gpsLocation = (GPS) currentLocation.getPoint();
+                    // fill labels
+                    labelGPSProvider.setText(gpsLocation.formatProviderAndNumberOfSatellites());
+                    labelGPSAccuracy.setText(gpsLocation.formatAccuracyInMeters());
+                    labelGPSTime.setText(gpsLocation.formatTimestamp());
+                }
             }
         }
     };

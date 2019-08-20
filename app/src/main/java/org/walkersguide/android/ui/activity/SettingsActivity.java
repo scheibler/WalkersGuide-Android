@@ -9,7 +9,6 @@ import android.content.Intent;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -31,33 +30,32 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.data.server.AddressProvider;
-import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.data.server.ServerInstance;
-import org.walkersguide.android.listener.ChildDialogCloseListener;
-import org.walkersguide.android.listener.ServerStatusListener;
-import org.walkersguide.android.listener.SettingsImportListener;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
 import org.walkersguide.android.ui.dialog.SelectMapDialog;
+import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsImport;
+import org.walkersguide.android.util.SettingsImport.SettingsImportListener;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 
-public class SettingsActivity extends AbstractActivity {
+public class SettingsActivity extends AbstractActivity implements ServerStatusListener {
 
     private Button buttonServerURL, buttonServerMap, buttonServerPublicTransportProvider;
-    private Button buttonAddressProvider;
-    private Button buttonShakeIntensity;
-    private Switch buttonEnableTextInputHistory, buttonLogQueriesOnServer, buttonShowDevelopmentMaps;
+    private Button buttonAddressProvider, buttonShakeIntensity;
+    private Switch buttonEnableTextInputHistory;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -125,15 +123,6 @@ public class SettingsActivity extends AbstractActivity {
             }
         });
 
-        buttonLogQueriesOnServer = (Switch) findViewById(R.id.buttonLogQueriesOnServer);
-        buttonLogQueriesOnServer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked != settingsManagerInstance.getServerSettings().getLogQueriesOnServer()) {
-                    settingsManagerInstance.getServerSettings().setLogQueriesOnServer(isChecked);
-                }
-            }
-        });
-
         // import and export settings
 		Button buttonImportSettings = (Button) findViewById(R.id.buttonImportSettings);
 		buttonImportSettings.setOnClickListener(new View.OnClickListener() {
@@ -142,24 +131,18 @@ public class SettingsActivity extends AbstractActivity {
                     .show(getSupportFragmentManager(), "ImportSettingsDialog");
             }
         });
-
-        // development settings
-        buttonShowDevelopmentMaps = (Switch) findViewById(R.id.buttonShowDevelopmentMaps);
-        buttonShowDevelopmentMaps.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked != settingsManagerInstance.getGeneralSettings().getShowDevelopmentMaps()) {
-                    settingsManagerInstance.getGeneralSettings().setShowDevelopmentMaps(isChecked);
-                }
-            }
-        });
     }
 
     @Override public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.menuItemNextRoutePoint).setVisible(false);
         menu.findItem(R.id.menuItemDirection).setVisible(false);
         menu.findItem(R.id.menuItemLocation).setVisible(false);
         return true;
+    }
+
+    @Override public void onPause() {
+        super.onPause();
+        ServerStatusManager.getInstance(this).invalidateServerStatusRequest(this);
     }
 
 	@Override public void onResume() {
@@ -169,42 +152,33 @@ public class SettingsActivity extends AbstractActivity {
 
     private void updateUI() {
         ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
+
+        // server url, map and public transport provider
         buttonServerURL.setText(
                 String.format(
                     getResources().getString(R.string.buttonServerURL),
                     serverSettings.getServerURL())
                 );
-        if (serverSettings.getSelectedMap() != null) {
-            buttonServerMap.setText(
-                    String.format(
-                        getResources().getString(R.string.buttonServerMap),
-                        serverSettings.getSelectedMap().getName())
-                    );
-        } else {
-            buttonServerMap.setText(
-                    getResources().getString(R.string.buttonServerMapNoSelection));
-        }
-        if (serverSettings.getSelectedPublicTransportProvider() != null) {
-            buttonServerPublicTransportProvider.setText(
-                    String.format(
-                        getResources().getString(R.string.buttonServerPublicTransportProvider),
-                        serverSettings.getSelectedPublicTransportProvider().getName())
-                    );
-        } else {
-            buttonServerPublicTransportProvider.setText(
-                    getResources().getString(R.string.buttonServerPublicTransportProviderNoSelection));
-        }
+        buttonServerMap.setText(
+                getResources().getString(R.string.buttonServerMapNoSelection));
+        buttonServerPublicTransportProvider.setText(
+                getResources().getString(R.string.buttonServerPublicTransportProviderNoSelection));
 
         // address provider
-        if (serverSettings.getSelectedAddressProvider() != null) {
-            buttonAddressProvider.setText(
-                    String.format(
-                        getResources().getString(R.string.buttonAddressProvider),
-                        serverSettings.getSelectedAddressProvider().getName())
-                    );
+        if (Constants.AddressProviderValueArray.length > 1) {
+            if (serverSettings.getSelectedAddressProvider() != null) {
+                buttonAddressProvider.setText(
+                        String.format(
+                            getResources().getString(R.string.buttonAddressProvider),
+                            serverSettings.getSelectedAddressProvider().getName())
+                        );
+            } else {
+                buttonAddressProvider.setText(
+                        getResources().getString(R.string.buttonAddressProviderNoSelection));
+            }
+            buttonAddressProvider.setVisibility(View.VISIBLE);
         } else {
-            buttonAddressProvider.setText(
-                    getResources().getString(R.string.buttonAddressProviderNoSelection));
+            buttonAddressProvider.setVisibility(View.GONE);
         }
 
         // shake intensity button
@@ -241,8 +215,35 @@ public class SettingsActivity extends AbstractActivity {
 
         // privacy and development settings
         buttonEnableTextInputHistory.setChecked(settingsManagerInstance.getGeneralSettings().getEnableTextInputHistory());
-        buttonLogQueriesOnServer.setChecked(settingsManagerInstance.getServerSettings().getLogQueriesOnServer());
-        buttonShowDevelopmentMaps.setChecked(settingsManagerInstance.getGeneralSettings().getShowDevelopmentMaps());
+
+        // request server status instance
+        ServerStatusManager.getInstance(this).requestServerStatus(
+                (SettingsActivity) this, serverSettings.getServerURL());
+    }
+
+	@Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
+        if (returnCode == Constants.RC.OK
+                && serverInstance != null) {
+            ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
+            if (serverSettings.getSelectedMap() != null) {
+                buttonServerMap.setText(
+                        String.format(
+                            context.getResources().getString(R.string.buttonServerMap),
+                            serverSettings.getSelectedMap().getName())
+                        );
+            }
+            if (serverSettings.getSelectedPublicTransportProvider() != null) {
+                buttonServerPublicTransportProvider.setText(
+                        String.format(
+                            context.getResources().getString(R.string.buttonServerPublicTransportProvider),
+                            serverSettings.getSelectedPublicTransportProvider().getName())
+                        );
+            }
+        } else {
+            SimpleMessageDialog.newInstance(
+                    ServerUtility.getErrorMessageForReturnCode(context, returnCode))
+                .show(getSupportFragmentManager(), "SimpleMessageDialog");
+        }
     }
 
 
@@ -341,6 +342,12 @@ public class SettingsActivity extends AbstractActivity {
                         editServerURL.setText(BuildConfig.SERVER_URL);
                     }
                 });
+                buttonNeutral.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override public boolean onLongClick(View v) {
+                        editServerURL.setText(BuildConfig.SERVER_URL_DEV);
+                        return true;
+                    }
+                });
                 // negative button
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -349,13 +356,6 @@ public class SettingsActivity extends AbstractActivity {
                     }
                 });
             }
-            // show keyboard
-            new Handler().postDelayed(
-                    new Runnable() {
-                        @Override public void run() {
-                            imm.showSoftInput(editServerURL, InputMethodManager.SHOW_IMPLICIT);
-                        }
-                    }, 50);
         }
 
         @Override public void onStop() {
@@ -364,103 +364,30 @@ public class SettingsActivity extends AbstractActivity {
         }
 
         private void tryToContactServer() {
-            String serverURL = editServerURL.getText().toString().trim();
-            if (serverURL.equals("")) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageServerURLMissing),
-                        Toast.LENGTH_LONG).show();
-            } else {
-                serverStatusManagerInstance.requestServerStatus(
-                        (NewServerDialog) this, serverURL);
-            }
+            // hide keyboard
+            imm.hideSoftInputFromWindow(editServerURL.getWindowToken(), 0);
+            // 
+            serverStatusManagerInstance.requestServerStatus(
+                    (NewServerDialog) this, editServerURL.getText().toString().trim());
         }
 
-        @Override public void serverStatusRequestFinished(int returnCode, String returnMessage, ServerInstance serverInstance) {
-            if (returnCode == Constants.RC.OK) {
-                if (settingsManagerInstance.getServerSettings().getSelectedMap() == null) {
+    	@Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
+            if (returnCode == Constants.RC.OK
+                    && serverInstance != null) {
+                if (isAdded() && settingsManagerInstance.getServerSettings().getSelectedMap() == null) {
                     SelectMapDialog.newInstance()
                         .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
                 }
                 Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                 dismiss();
             } else {
-                SimpleMessageDialog.newInstance(returnMessage)
-                    .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
-            }
-        }
-    }
-
-
-    public static class SelectPublicTransportProviderDialog extends DialogFragment {
-
-        // Store instance variables
-        private SettingsManager settingsManagerInstance;
-        private ServerStatusManager serverStatusManagerInstance;
-
-        public static SelectPublicTransportProviderDialog newInstance() {
-            SelectPublicTransportProviderDialog selectPublicTransportProviderDialogInstance = new SelectPublicTransportProviderDialog();
-            return selectPublicTransportProviderDialogInstance;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
-            serverStatusManagerInstance = ServerStatusManager.getInstance(context);
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            ServerInstance serverInstance = serverStatusManagerInstance.getServerInstance();
-            String[] formattedPublicTransportProviderNameArray = new String[0];
-            if (serverInstance != null) {
-                formattedPublicTransportProviderNameArray = new String[serverInstance.getSupportedPublicTransportProviderList().size()];
-            }
-            int indexOfSelectedPublicTransportProvider = -1;
-            int index = 0;
-            if (serverInstance != null) {
-                for (PublicTransportProvider provider : serverInstance.getSupportedPublicTransportProviderList()) {
-                    formattedPublicTransportProviderNameArray[index] = provider.toString();
-                    if (provider.equals(settingsManagerInstance.getServerSettings().getSelectedPublicTransportProvider())) {
-                        indexOfSelectedPublicTransportProvider = index;
-                    }
-                    index += 1;
+                if (isAdded()) {
+                    SimpleMessageDialog.newInstance(
+                            ServerUtility.getErrorMessageForReturnCode(context, returnCode))
+                        .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
                 }
             }
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.selectPublicTransportProviderDialogTitle))
-                .setSingleChoiceItems(
-                        formattedPublicTransportProviderNameArray,
-                        indexOfSelectedPublicTransportProvider,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                PublicTransportProvider selectedProvider = null;
-                                try {
-                                    selectedProvider = serverStatusManagerInstance.getServerInstance().getSupportedPublicTransportProviderList().get(which);
-                                } catch (IndexOutOfBoundsException e) {
-                                    selectedProvider = null;
-                                } finally {
-                                    if (selectedProvider != null) {
-                                        settingsManagerInstance.getServerSettings().setSelectedPublicTransportProvider(selectedProvider);
-                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-                                    }
-                                }
-                                dismiss();
-                            }
-                        }
-                        )
-                            .setNegativeButton(
-                                    getResources().getString(R.string.dialogCancel),
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dismiss();
-                                        }
-                                    }
-                                    )
-                            .create();
         }
     }
 
@@ -613,10 +540,9 @@ public class SettingsActivity extends AbstractActivity {
     public static class ImportSettingsDialog extends DialogFragment implements SettingsImportListener, ChildDialogCloseListener {
         private static final String DATABASE_FILE_TO_IMPORT = "walkersguide.db";
 
-        // Store instance variables
         private SettingsManager settingsManagerInstance;
         private SettingsImport settingsImportRequest;
-        private ServerStatusManager serverStatusManagerInstance;
+
         private TextView labelDatabaseImport;
 
         public static ImportSettingsDialog newInstance() {
@@ -627,7 +553,6 @@ public class SettingsActivity extends AbstractActivity {
         @Override public void onAttach(Context context){
             super.onAttach(context);
             settingsManagerInstance = SettingsManager.getInstance(context);
-            serverStatusManagerInstance = ServerStatusManager.getInstance(context);
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -722,8 +647,7 @@ public class SettingsActivity extends AbstractActivity {
             simpleMessageDialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
             // re-query server information (maps, public transport providers, ...)
             if (returnCode == Constants.RC.OK) {
-                serverStatusManagerInstance.requestServerStatus(
-                        null, settingsManagerInstance.getServerSettings().getServerURL());
+                ServerStatusManager.getInstance(getActivity()).setCachedServerInstance(null);
             }
         }
 

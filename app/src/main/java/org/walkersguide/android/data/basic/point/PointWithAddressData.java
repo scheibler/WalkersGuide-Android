@@ -143,10 +143,10 @@ public abstract class PointWithAddressData extends Point {
             // residential, suburb or  city district
             if (! TextUtils.isEmpty(this.residential)) {
                 addressComponentList.add(this.residential);
-            } else if (! TextUtils.isEmpty(this.suburb)) {
-                addressComponentList.add(this.suburb);
             } else if (! TextUtils.isEmpty(this.cityDistrict)) {
                 addressComponentList.add(this.cityDistrict);
+            } else if (! TextUtils.isEmpty(this.suburb)) {
+                addressComponentList.add(this.suburb);
             }
             // postcode, city and country
             if (! TextUtils.isEmpty(this.postcode)) {

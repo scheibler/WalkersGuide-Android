@@ -17,7 +17,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
@@ -39,8 +38,6 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.lang.ref.WeakReference;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,8 +45,10 @@ import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
+import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
+import org.walkersguide.android.data.sensor.Direction;
+import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
 import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.ui.fragment.segmentdetails.NextIntersectionsFragment;
@@ -64,22 +63,13 @@ public class SegmentDetailsActivity extends AbstractActivity {
     private SegmentWrapper segmentWrapper;
 
     // activity ui components
-	private ViewPager mViewPager;
+	private ViewPager viewPager;
+    private FragmentPagerAdapter selectedTabAdapter;
     private TabLayout tabLayout;
     private int recentFragment;
+
     private TextView labelSegmentDirection;
     private Switch buttonSegmentExcludeFromRouting, buttonSegmentSimulateDirection;
-
-    // footway and transport segments
-	private SegmentPagerAdapter segmentPagerAdapter;
-	public FragmentCommunicator segmentDetailsFragmentCommunicator;
-
-	// intersection segment
-	private IntersectionSegmentPagerAdapter intersectionSegmentPagerAdapter;
-	public FragmentCommunicator nextIntersectionsFragmentCommunicator;
-
-	// fragment handler
-	private Handler onFragmentEnabledHandler;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -110,9 +100,6 @@ public class SegmentDetailsActivity extends AbstractActivity {
         layoutFootwaySpecific.setVisibility(View.GONE);
 
         if (segmentWrapper != null) {
-            getSupportActionBar().setTitle(
-                    StringUtility.formatSegmentType(
-                        SegmentDetailsActivity.this, segmentWrapper.getSegment().getType()));
             // name and subtype
     		TextView labelSegmentName = (TextView) findViewById(R.id.labelSegmentName);
             labelSegmentName.setText(
@@ -128,8 +115,15 @@ public class SegmentDetailsActivity extends AbstractActivity {
                     );
 
             // ViewPager and TabLayout
-            mViewPager = (ViewPager) findViewById(R.id.pager);
-            mViewPager.addOnPageChangeListener(new TabLayoutOnPageChangeListenerBugFree(tabLayout));
+    		viewPager = (ViewPager) findViewById(R.id.pager);
+            viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+                @Override public void onPageSelected(int position) {
+                    if (recentFragment != position) {
+                        setToolbarTitle(position);
+                        recentFragment = position;
+                    }
+                }
+            });
             tabLayout = (TabLayout) findViewById(R.id.tab_layout);
 
             // load or hide bearing labels and switches
@@ -157,16 +151,17 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 buttonSegmentSimulateDirection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                         boolean isSimulated =
-                               directionManagerInstance.getDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION
-                            && directionManagerInstance.getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing();
+                               directionManagerInstance.getSimulationEnabled()
+                            && directionManagerInstance.getCurrentDirection() != null
+                            && directionManagerInstance.getCurrentDirection().getBearing() == ((Footway) segmentWrapper.getSegment()).getBearing();
                         if (isChecked && ! isSimulated) {
                             directionManagerInstance.setSimulatedDirection(
-                                    ((Footway) segmentWrapper.getSegment()).getBearing());
-                            directionManagerInstance.setDirectionSource(
-                                    Constants.DIRECTION_SOURCE.SIMULATION);
+                                    new Direction.Builder(
+                                        SegmentDetailsActivity.this, ((Footway) segmentWrapper.getSegment()).getBearing())
+                                    .build());
+                            directionManagerInstance.setSimulationEnabled(true);
                         } else if (! isChecked && isSimulated) {
-                            directionManagerInstance.setDirectionSource(
-                                    directionManagerInstance.getPreviousDirectionSource());
+                            directionManagerInstance.setSimulationEnabled(false);
                         }
                     }
                 });
@@ -175,29 +170,30 @@ public class SegmentDetailsActivity extends AbstractActivity {
             int defaultRecentFragment;
             if (segmentWrapper.getSegment() instanceof IntersectionSegment) {
                 // set fragments for intersection segment
-                intersectionSegmentPagerAdapter = new IntersectionSegmentPagerAdapter(this);
-                mViewPager.setAdapter(intersectionSegmentPagerAdapter);
-                tabLayout.setupWithViewPager(mViewPager);
+                IntersectionSegmentPagerAdapter intersectionSegmentPagerAdapter = new IntersectionSegmentPagerAdapter(this);
+                viewPager.setAdapter(intersectionSegmentPagerAdapter);
+                selectedTabAdapter = intersectionSegmentPagerAdapter;
+                tabLayout.setupWithViewPager(viewPager);
                 tabLayout.setVisibility(View.VISIBLE);
                 // default intersection segment fragment
                 defaultRecentFragment = Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS;
             } else {
                 // set fragments for other segment types
-                segmentPagerAdapter = new SegmentPagerAdapter(this);
-                mViewPager.setAdapter(segmentPagerAdapter);
+                SegmentPagerAdapter segmentPagerAdapter = new SegmentPagerAdapter(this);
+                viewPager.setAdapter(segmentPagerAdapter);
+                selectedTabAdapter = segmentPagerAdapter;
                 tabLayout.setVisibility(View.GONE);
                 // default fragment for other segments
                 defaultRecentFragment = Constants.SEGMENT_FRAGMENT.DETAILS;
             }
 
-	    	// initialize handler for enabling fragment and open recent one
-    		onFragmentEnabledHandler = new Handler();
             if (savedInstanceState != null) {
             	recentFragment = savedInstanceState.getInt("recentFragment", defaultRecentFragment);
             } else {
                 recentFragment = defaultRecentFragment;
             }
-            mViewPager.setCurrentItem(recentFragment);
+            setToolbarTitle(recentFragment);
+            viewPager.setCurrentItem(recentFragment);
         }
     }
 
@@ -221,7 +217,6 @@ public class SegmentDetailsActivity extends AbstractActivity {
             if (segmentWrapper.getSegment() instanceof Footway) {
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(newLocationAndDirectionReceiver);
             }
-	    	leaveActiveFragment();
         }
     }
 
@@ -239,8 +234,12 @@ public class SegmentDetailsActivity extends AbstractActivity {
                 // request current direction
                 directionManagerInstance.requestCurrentDirection();
             }
-            enterActiveFragment();
         }
+    }
+
+    private void setToolbarTitle(int tabIndex) {
+        getSupportActionBar().setTitle(
+                selectedTabAdapter.getPageTitle(tabIndex).toString());
     }
 
 
@@ -250,223 +249,33 @@ public class SegmentDetailsActivity extends AbstractActivity {
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
-                    && (
-                           labelSegmentDirection.getText().toString().trim().equals("")
-                        || intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD1.ID)
-                    ) {
-                // update direction label
-                int direction = ((Footway) segmentWrapper.getSegment()).bearingFromCurrentDirection();
-                labelSegmentDirection.setText(
-                        String.format(
-                            getResources().getString(R.string.labelSegmentDirection),
-                            StringUtility.formatRelativeViewingDirection(
-                                context, direction))
-                        );
-                if (segmentWrapper != null
-                        && buttonSegmentSimulateDirection != null) {
-                    buttonSegmentSimulateDirection.setChecked(
-                               DirectionManager.getInstance(context).getDirectionSource() == Constants.DIRECTION_SOURCE.SIMULATION
-                            && DirectionManager.getInstance(context).getCurrentDirection() == ((Footway) segmentWrapper.getSegment()).getBearing());
+            if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
+                NewDirectionAttributes newDirectionAttributes = NewDirectionAttributes.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_DIRECTION_ATTRIBUTES));
+                if (newDirectionAttributes != null
+                        && (
+                               labelSegmentDirection.getText().toString().trim().equals("")
+                            || newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TEN_DEGREES))
+                        ) {
+                    // update direction label
+                    labelSegmentDirection.setText(
+                            String.format(
+                                context.getResources().getString(R.string.labelSegmentDirection),
+                                StringUtility.formatRelativeViewingDirection(
+                                    context, ((Footway) segmentWrapper.getSegment()).bearingFromCurrentDirection()))
+                            );
+                    if (segmentWrapper != null
+                            && buttonSegmentSimulateDirection != null) {
+                        buttonSegmentSimulateDirection.setChecked(
+                                   directionManagerInstance.getSimulationEnabled()
+                                && directionManagerInstance.getCurrentDirection() != null
+                                && directionManagerInstance.getCurrentDirection().getBearing() == ((Footway) segmentWrapper.getSegment()).getBearing());
+                    }
                 }
             }
         }
     };
 
-
-    /**
-     * fragment management
-     */
-
-    private void leaveActiveFragment() {
-        if (intersectionSegmentPagerAdapter != null) {
-            switch (recentFragment) {
-                case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
-                    if (segmentDetailsFragmentCommunicator != null) {
-                        segmentDetailsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
-                    if (nextIntersectionsFragmentCommunicator != null) {
-                        nextIntersectionsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } else if (segmentPagerAdapter != null) {
-            switch (recentFragment) {
-                case Constants.SEGMENT_FRAGMENT.DETAILS:
-                    if (segmentDetailsFragmentCommunicator != null) {
-                        segmentDetailsFragmentCommunicator.onFragmentDisabled();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-	private void enterActiveFragment() {
-		onFragmentEnabledHandler.postDelayed(new OnFragmentEnabledUpdater(recentFragment), 0);
-	}
-
-	private class OnFragmentEnabledUpdater implements Runnable {
-		private static final int NUMBER_OF_RETRIES = 5;
-		private int counter;
-		private int currentFragment;
-
-		public OnFragmentEnabledUpdater(int currentFragment) {
-			this.counter = 0;
-			this.currentFragment = currentFragment;
-		}
-
-        @Override public void run() {
-            if (intersectionSegmentPagerAdapter != null) {
-                switch (currentFragment) {
-                    case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
-                        if (segmentDetailsFragmentCommunicator != null) {
-                            segmentDetailsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
-                        if (nextIntersectionsFragmentCommunicator != null) {
-                            nextIntersectionsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-            } else if (segmentPagerAdapter != null) {
-                switch (currentFragment) {
-                    case Constants.SEGMENT_FRAGMENT.DETAILS:
-                        if (segmentDetailsFragmentCommunicator != null) {
-                            segmentDetailsFragmentCommunicator.onFragmentEnabled();
-                            return;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-            } else {
-                return;
-            }
-            if (counter < NUMBER_OF_RETRIES) {
-                counter += 1;
-                onFragmentEnabledHandler.postDelayed(this, 100);
-            }
-        }
-    }
-
-
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the primary sections of the app.
-	 */
-
-	public class SegmentPagerAdapter extends FragmentStatePagerAdapter {
-
-		public SegmentPagerAdapter(FragmentActivity activity) {
-			super(activity.getSupportFragmentManager());
-		}
-
-        @Override public Fragment getItem(int position) {
-            switch (position) {
-                case Constants.SEGMENT_FRAGMENT.DETAILS:
-                    return SegmentDetailsFragment.newInstance(segmentWrapper);
-                default:
-                    return null;
-            }
-        }
-
-		@Override public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case Constants.SEGMENT_FRAGMENT.DETAILS:
-    				return getResources().getString(R.string.fragmentSegmentDetailsName);
-                default:
-                    return "";
-            }
-		}
-
-		@Override public int getCount() {
-			return Constants.SegmentFragmentValueArray.length;
-		}
-	}
-
-
-	public class IntersectionSegmentPagerAdapter extends FragmentStatePagerAdapter {
-
-		public IntersectionSegmentPagerAdapter(FragmentActivity activity) {
-			super(activity.getSupportFragmentManager());
-		}
-
-        @Override public Fragment getItem(int position) {
-            switch (position) {
-                case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
-                    return SegmentDetailsFragment.newInstance(segmentWrapper);
-                case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
-                    return NextIntersectionsFragment.newInstance(segmentWrapper);
-                default:
-                    return null;
-            }
-        }
-
-		@Override public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
-    				return getResources().getString(R.string.fragmentSegmentDetailsName);
-                case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
-    				return getResources().getString(R.string.fragmentNextIntersectionsName);
-                default:
-                    return "";
-            }
-		}
-
-		@Override public int getCount() {
-			return Constants.IntersectionSegmentFragmentValueArray.length;
-		}
-	}
-
-
-    private class TabLayoutOnPageChangeListenerBugFree implements ViewPager.OnPageChangeListener {
-
-        private final WeakReference<TabLayout> mTabLayoutRef;
-        private int mPreviousScrollState;
-        private int mScrollState;
-
-        public TabLayoutOnPageChangeListenerBugFree(TabLayout tabLayout) {
-            mTabLayoutRef = new WeakReference<TabLayout>(tabLayout);
-        }
-
-        @Override public void onPageScrollStateChanged(int state) {
-            mPreviousScrollState = mScrollState;
-            mScrollState = state;
-        }
-
-        @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            final TabLayout tabLayout = mTabLayoutRef.get();
-            if (tabLayout != null) {
-                final boolean updateText = (mScrollState == ViewPager.SCROLL_STATE_DRAGGING)
-                    || (mScrollState == ViewPager.SCROLL_STATE_SETTLING
-                            && mPreviousScrollState == ViewPager.SCROLL_STATE_DRAGGING);
-                tabLayout.setScrollPosition(position, positionOffset, updateText);
-            }
-        }
-
-        @Override public void onPageSelected(int position) {
-            if (recentFragment != position) {
-                leaveActiveFragment();
-                final TabLayout tabLayout = mTabLayoutRef.get();
-                if (tabLayout != null) {
-                    tabLayout.getTabAt(position).select();
-                }
-                recentFragment = position;
-                enterActiveFragment();
-            }
-        }
-    }
 
     public static class SetNameForExcludedWayDialog extends DialogFragment {
 
@@ -620,5 +429,73 @@ public class SegmentDetailsActivity extends AbstractActivity {
             dismiss();
         }
     }
+
+
+    /**
+     * fragment management
+     */
+
+	public class SegmentPagerAdapter extends FragmentPagerAdapter {
+
+		public SegmentPagerAdapter(FragmentActivity activity) {
+			super(activity.getSupportFragmentManager());
+		}
+
+        @Override public Fragment getItem(int position) {
+            switch (position) {
+                case Constants.SEGMENT_FRAGMENT.DETAILS:
+                    return SegmentDetailsFragment.newInstance(segmentWrapper);
+                default:
+                    return null;
+            }
+        }
+
+		@Override public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case Constants.SEGMENT_FRAGMENT.DETAILS:
+    				return getResources().getString(R.string.fragmentSegmentDetailsName);
+                default:
+                    return "";
+            }
+		}
+
+		@Override public int getCount() {
+			return Constants.SegmentFragmentValueArray.length;
+		}
+	}
+
+
+	public class IntersectionSegmentPagerAdapter extends FragmentPagerAdapter {
+
+		public IntersectionSegmentPagerAdapter(FragmentActivity activity) {
+			super(activity.getSupportFragmentManager());
+		}
+
+        @Override public Fragment getItem(int position) {
+            switch (position) {
+                case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
+                    return SegmentDetailsFragment.newInstance(segmentWrapper);
+                case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
+                    return NextIntersectionsFragment.newInstance(segmentWrapper);
+                default:
+                    return null;
+            }
+        }
+
+		@Override public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case Constants.INTERSECTION_SEGMENT_FRAGMENT.DETAILS:
+    				return getResources().getString(R.string.fragmentSegmentDetailsName);
+                case Constants.INTERSECTION_SEGMENT_FRAGMENT.NEXT_INTERSECTIONS:
+    				return getResources().getString(R.string.fragmentNextIntersectionsName);
+                default:
+                    return "";
+            }
+		}
+
+		@Override public int getCount() {
+			return Constants.IntersectionSegmentFragmentValueArray.length;
+		}
+	}
 
 }

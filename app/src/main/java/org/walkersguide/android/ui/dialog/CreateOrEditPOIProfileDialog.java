@@ -24,10 +24,12 @@ import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,21 +43,25 @@ import org.json.JSONException;
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.server.ServerStatusManager;
+import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
+import org.walkersguide.android.ui.listener.TextChangedListener;
 import org.walkersguide.android.ui.view.CheckBoxGroupView;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.TextChangedListener;
-import android.widget.Switch;
-import android.widget.CompoundButton;
+import org.walkersguide.android.util.SettingsManager;
 
 
-public class CreateOrEditPOIProfileDialog extends DialogFragment {
+public class CreateOrEditPOIProfileDialog extends DialogFragment implements ServerStatusListener {
 
     // Store instance variables
     private AccessDatabase accessDatabaseInstance;
     private InputMethodManager imm;
-    private ServerInstance serverInstance;
+    private ServerStatusManager serverStatusManagerInstance;
+    private SettingsManager settingsManagerInstance;
+
     private int poiProfileId;
     private String profileName;
     private boolean includeFavorites;
@@ -64,6 +70,7 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
     // ui components
     private EditText editProfileName;
     private CheckBoxGroupView checkBoxGroupPOICategories;
+    private TextView labelCheckBoxGroupViewEmpty;
 
     public static CreateOrEditPOIProfileDialog newInstance(int poiProfileId) {
         CreateOrEditPOIProfileDialog createOrEditPOIProfileDialogInstance = new CreateOrEditPOIProfileDialog();
@@ -77,7 +84,8 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         super.onAttach(context);
         accessDatabaseInstance = AccessDatabase.getInstance(context);
         imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        serverInstance = ServerStatusManager.getInstance(context).getServerInstance();
+        serverStatusManagerInstance = ServerStatusManager.getInstance(context);
+        settingsManagerInstance = SettingsManager.getInstance(context);
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -166,25 +174,7 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
         });
 
         checkBoxGroupPOICategories = (CheckBoxGroupView) view.findViewById(R.id.checkBoxGroupPOICategories);
-        if (serverInstance != null) {
-            for (POICategory category : serverInstance.getSupportedPOICCategoryList()) {
-                CheckBox checkBox = new CheckBox(getActivity());
-                checkBox.setTag(category.getId());
-                checkBox.setLayoutParams(
-                        new LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT)
-                        );
-                checkBox.setText(category.getName());
-                checkBox.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        checkedCategoryList = getCheckedItemsOfPOICategoriesCheckBoxGroup();
-                        onStart();
-                    }
-                });
-                checkBoxGroupPOICategories.put(checkBox);
-            }
-        }
+        labelCheckBoxGroupViewEmpty = (TextView) view.findViewById(R.id.labelCheckBoxGroupViewEmpty);
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -214,43 +204,74 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
             .create();
     }
 
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putInt("poiProfileId", poiProfileId);
+        savedInstanceState.putString("profileName", profileName);
+        savedInstanceState.putBoolean("includeFavorites", includeFavorites);
+        JSONArray jsonCheckedCategoryIdList = new JSONArray();
+        for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckBoxList()) {
+            jsonCheckedCategoryIdList.put((String) checkBox.getTag());
+        }
+        savedInstanceState.putString("jsonCheckedCategoryIdList", jsonCheckedCategoryIdList.toString());
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        serverStatusManagerInstance.invalidateServerStatusRequest(this);
+    }
+
     @Override public void onStart() {
         super.onStart();
-        final AlertDialog dialog = (AlertDialog)getDialog();
-        if(dialog != null) {
-            // check boxes
-            for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckBoxList()) {
+        labelCheckBoxGroupViewEmpty.setText(
+                getResources().getString(R.string.messagePleaseWait));
+        labelCheckBoxGroupViewEmpty.setVisibility(View.VISIBLE);
+        serverStatusManagerInstance.requestServerStatus(
+                (CreateOrEditPOIProfileDialog) this, settingsManagerInstance.getServerSettings().getServerURL());
+    }
+
+    @Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
+        final AlertDialog dialog = (AlertDialog) getDialog();
+        if (returnCode == Constants.RC.OK
+                && dialog != null
+                && serverInstance != null) {
+
+            for (POICategory category : serverInstance.getSupportedPOICategoryList()) {
+                CheckBox checkBox = new CheckBox(context);
+                checkBox.setTag(category.getId());
+                checkBox.setLayoutParams(
+                        new LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT)
+                        );
+                checkBox.setText(category.getName());
                 checkBox.setChecked(
-                        checkedCategoryList.contains(
-                            new POICategory(getActivity(), (String) checkBox.getTag())));
+                        checkedCategoryList.contains(category));
+                checkBox.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        updateNeutralButtonLabel(view.getContext());
+                    }
+                });
+                checkBoxGroupPOICategories.put(checkBox);
             }
 
             // positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    createOrEditPOIProfile();
+                    createOrEditPOIProfile(view.getContext());
                 }
             });
 
             // neutral button
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-            if (checkBoxGroupPOICategories.nothingChecked()) {
-                buttonNeutral.setText(
-                        getResources().getString(R.string.dialogAll));
-            } else {
-                buttonNeutral.setText(
-                        getResources().getString(R.string.dialogClear));
-            }
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    if (checkBoxGroupPOICategories.nothingChecked()
-                            && serverInstance != null) {
-                        checkedCategoryList = serverInstance.getSupportedPOICCategoryList();
-                    } else {
-                        checkedCategoryList = new ArrayList<POICategory>();
+                    boolean checkCheckbox = checkBoxGroupPOICategories.nothingChecked() ? true : false;
+                    for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckBoxList()) {
+                        checkBox.setChecked(checkCheckbox);
                     }
-                    onStart();
+                    updateNeutralButtonLabel(view.getContext());
                 }
             });
 
@@ -261,27 +282,22 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
                     dialog.dismiss();
                 }
             });
+
+            updateNeutralButtonLabel(context);
+            labelCheckBoxGroupViewEmpty.setText("");
+            labelCheckBoxGroupViewEmpty.setVisibility(View.GONE);
+        } else {
+            labelCheckBoxGroupViewEmpty.setText(
+                    ServerUtility.getErrorMessageForReturnCode(context, returnCode));
         }
     }
 
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt("poiProfileId", poiProfileId);
-        savedInstanceState.putString("profileName", profileName);
-        savedInstanceState.putBoolean("includeFavorites", includeFavorites);
-        JSONArray jsonCheckedCategoryIdList = new JSONArray();
-        for (POICategory poiCategory : getCheckedItemsOfPOICategoriesCheckBoxGroup()) {
-            jsonCheckedCategoryIdList.put(poiCategory.getId());
-        }
-        savedInstanceState.putString("jsonCheckedCategoryIdList", jsonCheckedCategoryIdList.toString());
-    }
-
-    private void createOrEditPOIProfile() {
+    private void createOrEditPOIProfile(Context context) {
         // profile name
         if (profileName.equals("")) {
             Toast.makeText(
-                    getActivity(),
-                    getResources().getString(R.string.messageProfileNameMissing),
+                    context,
+                    context.getResources().getString(R.string.messageProfileNameMissing),
                     Toast.LENGTH_LONG).show();
             return;
         } else {
@@ -289,52 +305,71 @@ public class CreateOrEditPOIProfileDialog extends DialogFragment {
                 if (poiProfileId != profile.getKey()
                         && profileName.equals(profile.getValue())) {
                     Toast.makeText(
-                            getActivity(),
-                            String.format(getResources().getString(R.string.messageProfileExists), profileName),
+                            context,
+                            String.format(context.getResources().getString(R.string.messageProfileExists), profileName),
                             Toast.LENGTH_LONG).show();
                     return;
                 }
             }
         }
+
         // create or edit profile
+        String action = Constants.ACTION_POI_PROFILE_MODIFIED;
         if (! accessDatabaseInstance.getPOIProfileMap().containsKey(poiProfileId)) {
             // create new profile
             int newProfileId = accessDatabaseInstance.addPOIProfile(profileName);
             if (newProfileId == -1) {
                 Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageCouldNotCreateProfile),
+                        context,
+                        context.getResources().getString(R.string.messageCouldNotCreateProfile),
                         Toast.LENGTH_LONG).show();
                 return;
             }
             poiProfileId = newProfileId;
+            action = Constants.ACTION_POI_PROFILE_CREATED;
         }
+
         // update profile fields
+        // local favorites
         ArrayList<Integer> favorite_id_list = new ArrayList<Integer>();
         if (includeFavorites) {
             favorite_id_list.add(poiProfileId);
         }
-        boolean updateSuccessful = accessDatabaseInstance.updateNameAndCategoriesOfPOIProfile(
-                poiProfileId, profileName, favorite_id_list, checkedCategoryList);
-        if (! updateSuccessful) {
-            Toast.makeText(
-                    getActivity(),
-                    getResources().getString(R.string.messageCouldNotEditProfile),
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-        Intent intent = new Intent(Constants.ACTION_NEW_POI_PROFILE);
-        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-        dismiss();
-    }
-
-    private ArrayList<POICategory> getCheckedItemsOfPOICategoriesCheckBoxGroup() {
+        // server-side poi categories
         ArrayList<POICategory> poiCategoryList = new ArrayList<POICategory>();
         for (CheckBox checkBox : checkBoxGroupPOICategories.getCheckedCheckBoxList()) {
             poiCategoryList.add(
-                    new POICategory(getActivity(), (String) checkBox.getTag()));
+                    new POICategory(
+                        context, (String) checkBox.getTag()));
         }
-        return poiCategoryList;
+        boolean updateSuccessful = accessDatabaseInstance.updateNameAndCategoriesOfPOIProfile(
+                poiProfileId, profileName, favorite_id_list, poiCategoryList);
+        if (! updateSuccessful) {
+            Toast.makeText(
+                    context,
+                    context.getResources().getString(R.string.messageCouldNotEditProfile),
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // send profile created or modified action
+        Intent intent = new Intent(action);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        dismiss();
+    }
+
+    private void updateNeutralButtonLabel(Context context) {
+        final AlertDialog dialog = (AlertDialog) getDialog();
+        if (dialog != null) {
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (checkBoxGroupPOICategories.nothingChecked()) {
+                buttonNeutral.setText(
+                        context.getResources().getString(R.string.dialogAll));
+            } else {
+                buttonNeutral.setText(
+                        context.getResources().getString(R.string.dialogClear));
+            }
+        }
     }
 
 }

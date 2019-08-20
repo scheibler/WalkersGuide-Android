@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.activity;
 
+import android.content.Context;
+
 import android.os.Bundle;
 
 import android.support.v7.widget.Toolbar;
@@ -17,19 +19,18 @@ import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.util.SettingsManager.GeneralSettings;
+import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
+import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 
-public class InfoActivity extends AbstractActivity {
+public class InfoActivity extends AbstractActivity implements ServerStatusListener {
 
     private TextView labelServerName, labelServerVersion, labelSelectedMapName, labelSelectedMapCreated;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_info);
-        GeneralSettings generalSettings = settingsManagerInstance.getGeneralSettings();
-        ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
 
         // toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -68,62 +69,73 @@ public class InfoActivity extends AbstractActivity {
         labelSelectedMapCreated= (TextView) findViewById(R.id.labelSelectedMapCreated);
     }
 
+    @Override public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.menuItemDirection).setVisible(false);
+        menu.findItem(R.id.menuItemLocation).setVisible(false);
+        return true;
+    }
+
+    @Override public void onPause() {
+        super.onPause();
+        ServerStatusManager.getInstance(this).invalidateServerStatusRequest(this);
+    }
+
     @Override public void onResume() {
         super.onResume();
+        ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
 
-        ServerInstance serverInstance = ServerStatusManager.getInstance(this).getServerInstance();
-        if (serverInstance != null) {
+        labelServerName.setText(
+                getResources().getString(R.string.labelServerName));
+        labelServerVersion.setText(
+                getResources().getString(R.string.labelServerVersion));
+        labelSelectedMapName.setText(
+                getResources().getString(R.string.labelSelectedMapName));
+        labelSelectedMapCreated.setText(
+                getResources().getString(R.string.labelSelectedMapCreated));
+
+        ServerStatusManager.getInstance(this).requestServerStatus(
+                (InfoActivity) this, serverSettings.getServerURL());
+    }
+
+	@Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
+        if (returnCode == Constants.RC.OK
+                && serverInstance != null) {
+            // server name and version
 	    	labelServerName.setText(
                     String.format(
                         "%1$s: %2$s",
-    			    	getResources().getString(R.string.labelServerName),
+    			    	context.getResources().getString(R.string.labelServerName),
                         serverInstance.getServerName())
                     );
 	    	labelServerVersion.setText(
                     String.format(
                         "%1$s: %2$s",
-    			    	getResources().getString(R.string.labelServerVersion),
+    			    	context.getResources().getString(R.string.labelServerVersion),
                         serverInstance.getServerVersion())
                     );
-        } else {
-	    	labelServerName.setText(
-    			    getResources().getString(R.string.labelServerName));
-	    	labelServerVersion.setText(
-    			    getResources().getString(R.string.labelServerVersion));
-        }
 
-        OSMMap selectedMap = settingsManagerInstance.getServerSettings().getSelectedMap();
-        if (selectedMap != null) {
-            // map name
-	    	labelSelectedMapName.setText(
-                    String.format(
-                        "%1$s: %2$s",
-    			    	getResources().getString(R.string.labelSelectedMapName),
-	    			    selectedMap.getName())
-                    );
-            // map creation date
-            String formattedDate = DateFormat.getDateFormat(this).format(
-                    new Date(selectedMap.getCreated()));
-	    	labelSelectedMapCreated.setText(
-                    String.format(
-                        "%1$s: %2$s",
-    				    getResources().getString(R.string.labelSelectedMapCreated),
-    	    		    formattedDate)
-                    );
-        } else {
-	    	labelSelectedMapName.setText(
-    			    getResources().getString(R.string.labelSelectedMapName));
-	    	labelSelectedMapCreated.setText(
-    			    getResources().getString(R.string.labelSelectedMapCreated));
+            // selected map data
+            OSMMap selectedMap = settingsManagerInstance.getServerSettings().getSelectedMap();
+            if (selectedMap != null) {
+                // map name
+                labelSelectedMapName.setText(
+                        String.format(
+                            "%1$s: %2$s",
+                            context.getResources().getString(R.string.labelSelectedMapName),
+                            selectedMap.getName())
+                        );
+                // map creation date
+                String formattedDate = DateFormat.getDateFormat(context).format(
+                        new Date(selectedMap.getCreated()));
+                labelSelectedMapCreated.setText(
+                        String.format(
+                            "%1$s: %2$s",
+                            context.getResources().getString(R.string.labelSelectedMapCreated),
+                            formattedDate)
+                        );
+            }
         }
-    }
-
-    @Override public boolean onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.menuItemNextRoutePoint).setVisible(false);
-        menu.findItem(R.id.menuItemDirection).setVisible(false);
-        menu.findItem(R.id.menuItemLocation).setVisible(false);
-        return true;
     }
 
 }

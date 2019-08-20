@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -27,8 +26,8 @@ import org.walkersguide.android.data.profile.HistoryPointProfile;
 import org.walkersguide.android.data.profile.POIProfile;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.RouteObject;
+import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.R;
-import org.walkersguide.android.util.Constants;
 
 
 public class AccessDatabase {
@@ -69,8 +68,6 @@ public class AccessDatabase {
                     SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST,
                     SQLiteHelper.POI_PROFILE_SEARCH_TERM, SQLiteHelper.POI_PROFILE_CENTER,
                     SQLiteHelper.POI_PROFILE_DIRECTION, SQLiteHelper.POI_PROFILE_POINT_LIST);
-            JSONArray jsonEmptyArray = new JSONArray();
-            String emptySearchString = "";
             // add search poi profile
             database.execSQL(
                     sqlInsertPOIProfileQuery,
@@ -79,11 +76,11 @@ public class AccessDatabase {
                         context.getResources().getString(R.string.ppNameSearch),
                         String.valueOf(POIProfile.INITIAL_SEARCH_RADIUS),
                         String.valueOf(POIProfile.INITIAL_NUMBER_OF_RESULTS),
-                        jsonEmptyArray.toString(),
-                        emptySearchString,
-                        Constants.DUMMY.LOCATION,
-                        String.valueOf(Constants.DUMMY.DIRECTION),
-                        jsonEmptyArray.toString() });
+                        (new JSONArray()).toString(),
+                        new String(),
+                        null,
+                        null,
+                        (new JSONArray()).toString() });
         }
         */
     }
@@ -240,6 +237,20 @@ public class AccessDatabase {
         POIProfile poiProfile = null;
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
+            // json objects for center and direction may be null
+            JSONObject jsonCenter = null;
+            try {
+                jsonCenter = new JSONObject(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CENTER)));
+            } catch (JSONException | NullPointerException e) {}
+            JSONObject jsonDirection = null;
+            try {
+                jsonDirection = new JSONObject(
+                        cursor.getString(
+                            cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_DIRECTION)));
+            } catch (JSONException | NullPointerException e) {}
+            // create poi profile object
             try {
                 poiProfile = new POIProfile(
                         this.context,
@@ -259,11 +270,8 @@ public class AccessDatabase {
                                 cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST))),
                         cursor.getString(
                             cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_SEARCH_TERM)),
-                        new JSONObject(
-                            cursor.getString(
-                                cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_CENTER))),
-                        cursor.getInt(
-                            cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_DIRECTION)),
+                        jsonCenter,
+                        jsonDirection,
                         new JSONArray(
                             cursor.getString(
                                 cursor.getColumnIndex(SQLiteHelper.POI_PROFILE_POINT_LIST))));
@@ -363,8 +371,8 @@ public class AccessDatabase {
         values.put(SQLiteHelper.POI_PROFILE_FAVORITE_ID_LIST, (new JSONArray()).toString());
         values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, (new JSONArray()).toString());
         values.put(SQLiteHelper.POI_PROFILE_SEARCH_TERM, "");
-        values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
-        values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
+        values.putNull(SQLiteHelper.POI_PROFILE_CENTER);
+        values.putNull(SQLiteHelper.POI_PROFILE_DIRECTION);
         values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
         return (int) database.insertWithOnConflict(
                 SQLiteHelper.TABLE_POI_PROFILE,
@@ -415,8 +423,8 @@ public class AccessDatabase {
         }
         values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, jsonPOICategoryIdList.toString());
         values.put(SQLiteHelper.POI_PROFILE_SEARCH_TERM, newSearchTerm);
-        values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
-        values.put(SQLiteHelper.POI_PROFILE_DIRECTION, Constants.DUMMY.DIRECTION);
+        values.putNull(SQLiteHelper.POI_PROFILE_CENTER);
+        values.putNull(SQLiteHelper.POI_PROFILE_DIRECTION);
         values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
         int numberOfRowsAffected = database.updateWithOnConflict(
                 SQLiteHelper.TABLE_POI_PROFILE,
@@ -428,16 +436,20 @@ public class AccessDatabase {
 
     public boolean updateRadiusNumberOfResultsCenterDirectionAndPointListOfPOIProfile(
             int id, int newRadius, int newNumberOfResults,
-            PointWrapper newCenter, int newDirection, ArrayList<PointProfileObject> newPointList) {
+            PointWrapper newCenter, Direction newDirection, ArrayList<PointProfileObject> newPointList) {
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.POI_PROFILE_RADIUS, newRadius);
         values.put(SQLiteHelper.POI_PROFILE_NUMBER_OF_RESULTS, newNumberOfResults);
         try {
             values.put(SQLiteHelper.POI_PROFILE_CENTER, newCenter.toJson().toString());
         } catch (JSONException | NullPointerException e) {
-            values.put(SQLiteHelper.POI_PROFILE_CENTER, Constants.DUMMY.LOCATION);
+            values.putNull(SQLiteHelper.POI_PROFILE_CENTER);
         }
-        values.put(SQLiteHelper.POI_PROFILE_DIRECTION, newDirection);
+        try {
+            values.put(SQLiteHelper.POI_PROFILE_DIRECTION, newDirection.toJson().toString());
+        } catch (JSONException | NullPointerException e) {
+            values.putNull(SQLiteHelper.POI_PROFILE_DIRECTION);
+        }
         if (newPointList == null) {
             values.put(SQLiteHelper.POI_PROFILE_POINT_LIST, (new JSONArray()).toString());
         } else {

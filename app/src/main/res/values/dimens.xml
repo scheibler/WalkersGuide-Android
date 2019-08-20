@@ -19,7 +19,8 @@
     <dimen name="smallPadding">5dp</dimen>
 
     <!-- text size -->
-    <dimen name="globalTextSize">20sp</dimen>
-    <dimen name="bigTextSize">26sp</dimen>
+    <dimen name="smallTextSize">14sp</dimen>
+    <dimen name="normalTextSize">18sp</dimen>
+    <dimen name="bigTextSize">22sp</dimen>
 
 </resources>

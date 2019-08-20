@@ -3,7 +3,6 @@ package org.walkersguide.android.data.server;
 import java.util.ArrayList;
 
 import org.walkersguide.android.data.poi.POICategory;
-import org.walkersguide.android.data.route.WayClass;
 
 
 public class ServerInstance {
@@ -11,23 +10,18 @@ public class ServerInstance {
     private String serverName, serverURL, serverVersion;
     private ArrayList<OSMMap> availableMapList;
     private ArrayList<PublicTransportProvider> supportedPublicTransportProviderList;
-    private ArrayList<POICategory> supportedPOICCategoryList;
-    private ArrayList<WayClass> supportedWayClassList;
-    private ArrayList<Double> supportedIndirectionFactorList;
+    private ArrayList<POICategory> supportedPOICategoryList;
     private ArrayList<Integer> supportedAPIVersionList;
 
     public ServerInstance(String serverName, String serverURL, String serverVersion,
             ArrayList<OSMMap> mapList, ArrayList<PublicTransportProvider> publicTransportProviderList,
-            ArrayList<POICategory> poiCategoryList, ArrayList<WayClass> wayClassList,
-            ArrayList<Double> indirectionFactorList, ArrayList<Integer> apiVersionList) {
+            ArrayList<POICategory> poiCategoryList, ArrayList<Integer> apiVersionList) {
         this.serverName = serverName;
         this.serverURL = serverURL;
         this.serverVersion = serverVersion;
         this.availableMapList = mapList;
         this.supportedPublicTransportProviderList = publicTransportProviderList;
-        this.supportedPOICCategoryList = poiCategoryList;
-        this.supportedWayClassList = wayClassList;
-        this.supportedIndirectionFactorList = indirectionFactorList;
+        this.supportedPOICategoryList = poiCategoryList;
         this.supportedAPIVersionList = apiVersionList;
     }
 
@@ -51,16 +45,8 @@ public class ServerInstance {
         return this.supportedPublicTransportProviderList;
     }
 
-    public ArrayList<POICategory> getSupportedPOICCategoryList() {
-        return this.supportedPOICCategoryList;
-    }
-
-    public ArrayList<WayClass> getSupportedWayClassList() {
-        return this.supportedWayClassList;
-    }
-
-    public ArrayList<Double> getSupportedIndirectionFactorList() {
-        return this.supportedIndirectionFactorList;
+    public ArrayList<POICategory> getSupportedPOICategoryList() {
+        return this.supportedPOICategoryList;
     }
 
     public ArrayList<Integer> getSupportedAPIVersionList() {

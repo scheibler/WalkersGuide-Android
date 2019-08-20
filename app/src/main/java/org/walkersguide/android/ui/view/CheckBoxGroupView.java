@@ -18,21 +18,9 @@ public class CheckBoxGroupView extends GridLayout {
         super(context, attrs);
     }
 
-    @Override protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        for(CheckBox c : checkBoxList) {
-            addView(c);
-        }
-        invalidate();
-        requestLayout();
-    }
-
-    @Override protected void onFinishInflate() {
-        super.onFinishInflate();
-    }
-
     public void put(CheckBox checkBox) {
         checkBoxList.add( checkBox);
+        addView(checkBox);
         invalidate();
         requestLayout();
     }

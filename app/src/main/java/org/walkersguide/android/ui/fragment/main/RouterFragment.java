@@ -1,9 +1,5 @@
 package org.walkersguide.android.ui.fragment.main;
 
-import android.os.Vibrator;
-import org.walkersguide.android.ui.adapter.RouteIdAdapter;
-import org.walkersguide.android.ui.adapter.RouteObjectAdapter;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -14,77 +10,81 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import android.os.Bundle;
+import android.os.Vibrator;
 
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
-import android.text.InputType;
+import android.text.Editable;
+import android.text.TextUtils;
 
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Iterator;
 
 import org.json.JSONException;
 
 import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.database.SQLiteHelper;
+import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.RouteObject;
+import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
+import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
+import org.walkersguide.android.data.sensor.Direction;
+import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
+import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.FragmentCommunicator;
-import org.walkersguide.android.listener.RouteListener;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.RouteManager;
-import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.server.RouteManager.RouteRequestListener;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
 import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
+import org.walkersguide.android.ui.adapter.RouteIdAdapter;
+import org.walkersguide.android.ui.adapter.RouteObjectAdapter;
 import org.walkersguide.android.ui.dialog.ExcludedWaysDialog;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.fragment.AbstractUITab;
+import org.walkersguide.android.ui.listener.TextChangedListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.RouteSettings;
-import android.widget.AbsListView;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.widget.AutoCompleteTextView;
-import android.text.TextUtils;
-import org.walkersguide.android.util.TextChangedListener;
-import android.view.WindowManager;
-import java.util.Iterator;
-import android.text.Editable;
-import org.walkersguide.android.database.SQLiteHelper;
+import org.walkersguide.android.util.TTSWrapper;
 
 
-public class RouterFragment extends Fragment implements FragmentCommunicator, RouteListener {
+public class RouterFragment extends AbstractUITab implements RouteRequestListener {
 
 	// Store instance variables
     private AccessDatabase accessDatabaseInstance;
+    private RouteBroadcastReceiver routeBroadcastReceiver;
     private RouteManager routeManagerInstance;
 	private SettingsManager settingsManagerInstance;
-    private Vibrator vibrator;
 
 	// ui components
     private TextView labelRouteStartPoint, labelRouteDestinationPoint;
@@ -99,17 +99,16 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
 
 	@Override public void onAttach(Context context) {
 		super.onAttach(context);
-		Activity activity;
-		if (context instanceof Activity) {
-			activity = (Activity) context;
-			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((MainActivity) activity).routerFragmentCommunicator = this;
-		}
         accessDatabaseInstance = AccessDatabase.getInstance(context);
+        routeBroadcastReceiver = new RouteBroadcastReceiver(context);
         routeManagerInstance = RouteManager.getInstance(context);
 		settingsManagerInstance = SettingsManager.getInstance(context);
-        this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 	}
+
+
+    /**
+     * menu
+     */
 
     @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_toolbar_router_fragment, menu);
@@ -118,14 +117,19 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
 
     @Override public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.menuItemNextRoutePoint).setVisible(false);
+        // check or uncheck filter result menu item
+        MenuItem menuItemAutoSkipToNextRoutePoint = menu.findItem(R.id.menuItemAutoSkipToNextRoutePoint);
+        if (menuItemAutoSkipToNextRoutePoint != null) {
+            menuItemAutoSkipToNextRoutePoint.setChecked(
+                    settingsManagerInstance.getRouteSettings().getAutoSkipToNextRoutePoint());
+        }
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
+        RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
         switch (item.getItemId()) {
             case R.id.menuItemRecalculate:
             case R.id.menuItemRecalculateWithCurrentPosition:
-                RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
                 int selectedRouteId = routeSettings.getSelectedRouteId();
                 if (accessDatabaseInstance.getRouteIdList(null).contains(selectedRouteId)) {
                     if (item.getItemId() == R.id.menuItemRecalculateWithCurrentPosition) {
@@ -154,10 +158,18 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
                 ExcludedWaysDialog.newInstance().show(
                         getActivity().getSupportFragmentManager(), "ExcludedWaysDialog");
                 return true;
+            case R.id.menuItemAutoSkipToNextRoutePoint:
+                routeSettings.setAutoSkipToNextRoutePoint(! routeSettings.getAutoSkipToNextRoutePoint());
+                return true;
             default:
                 return false;
         }
     }
+
+
+    /**
+     * create view
+     */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
@@ -242,8 +254,8 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
             }
         });
 
-		// bottom layout
-		labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
+        // bottom layout
+        labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
         Button buttonPreviousRouteObject = (Button) view.findViewById(R.id.buttonPreviousRouteObject);
         buttonPreviousRouteObject.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -262,7 +274,12 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
         });
     }
 
-    @Override public void onFragmentEnabled() {
+
+    /**
+     * pause and resume
+     */
+
+    @Override public void fragmentVisible() {
         labelHeading.setText(
                 getResources().getString(R.string.messagePleaseWait));
         labelRouteStartPoint.setVisibility(View.GONE);
@@ -270,28 +287,157 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
         labelRouteSegmentDescription.setVisibility(View.GONE);
         labelRoutePointDescription.setVisibility(View.GONE);
         labelDistanceAndBearing.setVisibility(View.GONE);
+        // broadcast filter
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.ACTION_NEW_LOCATION);
+        filter.addAction(Constants.ACTION_NEW_DIRECTION);
+        filter.addAction(Constants.ACTION_NEW_GPS_DIRECTION);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(routeBroadcastReceiver, filter);
         // request route
         routeManagerInstance.requestRoute(
                 RouterFragment.this,
                 settingsManagerInstance.getRouteSettings().getSelectedRouteId());
     }
 
-	@Override public void onFragmentDisabled() {
+    @Override public void fragmentInvisible() {
         routeManagerInstance.invalidateRouteRequest((RouterFragment) this);
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(newLocationAndDirectionReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(routeBroadcastReceiver);
     }
 
-	@Override public void routeCalculationFinished(int returnCode, String returnMessage, int routeId) {
+    private class RouteBroadcastReceiver extends BroadcastReceiver {
+        private RouteObject lastRouteObject;
+        private long lastAutoJumpToNextRoutePoint;
+        private Vibrator vibrator;
+
+        public RouteBroadcastReceiver(Context context) {
+            this.lastRouteObject = null;
+            this.lastAutoJumpToNextRoutePoint = System.currentTimeMillis();
+            this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        }
+
+        @Override public void onReceive(Context context, Intent intent) {
+            boolean updateDistanceAndBearingLabel = false;
+            RouteObject currentRouteObject = AccessDatabase.getInstance(context).getCurrentObjectDataOfRoute(
+                    SettingsManager.getInstance(context).getRouteSettings().getSelectedRouteId());
+
+            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
+                NewLocationAttributes newLocationAttributes = NewLocationAttributes.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_LOCATION_ATTRIBUTES));
+                if (newLocationAttributes != null
+                        && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.ZERO_METERS)) {
+                    updateDistanceAndBearingLabel= true;
+                    // announce new position
+                    if (currentRouteObject != null
+                            && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.TWENTY_METERS)
+                            && newLocationAttributes.getImmediateDistanceThreshold().isAtMost(DistanceThreshold.TEN_METERS)) {
+                        TTSWrapper.getInstance(context).speak(
+                                String.format(
+                                    context.getResources().getString(R.string.labelPointDistanceAndBearing),
+                                    context.getResources().getQuantityString(
+                                        R.plurals.meter,
+                                        currentRouteObject.getRoutePoint().distanceFromCurrentLocation(),
+                                        currentRouteObject.getRoutePoint().distanceFromCurrentLocation()),
+                                StringUtility.formatRelativeViewingDirection(
+                                            context, currentRouteObject.getRoutePoint().bearingFromCurrentLocation())),
+                                true, false);
+                    }
+                }
+
+            } else if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
+                NewDirectionAttributes newDirectionAttributes = NewDirectionAttributes.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_DIRECTION_ATTRIBUTES));
+                if (newDirectionAttributes != null
+                        && newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TEN_DEGREES)) {
+                    updateDistanceAndBearingLabel= true;
+                }
+
+            } else if (intent.getAction().equals(Constants.ACTION_NEW_GPS_DIRECTION)) {
+                Direction gpsDirection = Direction.fromString(
+                        context, intent.getStringExtra(Constants.ACTION_NEW_GPS_DIRECTION_OBJECT));
+                if (gpsDirection != null
+                        && currentRouteObject != null) {
+                    boolean threshold1 = currentRouteObject.getRoutePoint().distanceFromCurrentLocation() < 25
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) > 80
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) < 280;
+                    boolean threshold2 = currentRouteObject.getRoutePoint().distanceFromCurrentLocation() < 20
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) > 65
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) < 295;
+                    boolean threshold3 = currentRouteObject.getRoutePoint().distanceFromCurrentLocation() < 15
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) > 50
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) < 310;
+                    boolean threshold4 = currentRouteObject.getRoutePoint().distanceFromCurrentLocation() < 10
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) > 35
+                        && currentRouteObject.getRoutePoint().bearingFromCurrentLocation(gpsDirection) < 325;
+                    boolean threshold5 = currentRouteObject.getRoutePoint().distanceFromCurrentLocation() < 5;
+                    if (
+                               ! currentRouteObject.equals(lastRouteObject)
+                            && (System.currentTimeMillis() - lastAutoJumpToNextRoutePoint) > 5000
+                            && (threshold1 || threshold2 || threshold3 || threshold4 || threshold5)
+                            && (
+                                   currentRouteObject.getRouteSegment().equals(RouteObject.getDummyRouteSegment(context))
+                                || ! (currentRouteObject.getRouteSegment().getSegment() instanceof Footway)
+                                || ((Footway) currentRouteObject.getRouteSegment().getSegment()).bearingFromCurrentDirection(gpsDirection) < 23
+                                || ((Footway) currentRouteObject.getRouteSegment().getSegment()).bearingFromCurrentDirection(gpsDirection) > 338)
+                            ) {
+                        lastRouteObject = currentRouteObject;
+                        lastAutoJumpToNextRoutePoint = System.currentTimeMillis();
+                        vibrator.vibrate(250);
+                        // speak
+                        String routePointFoundMessage = null;
+                        if (currentRouteObject.getRoutePoint().getTurn() == -1) {
+                            if (currentRouteObject.getIndex() == 0) {
+                                routePointFoundMessage = context.getResources().getString(R.string.messageArrivedAtRouteStart);
+                            } else {
+                                routePointFoundMessage = context.getResources().getString(R.string.messageArrivedAtRouteDestination);
+                            }
+                        } else {
+                            routePointFoundMessage = String.format(
+                                    context.getResources().getString(R.string.messageArrivedAtRoutePoint),
+                                    currentRouteObject.getIndex()+1,
+                                    StringUtility.formatInstructionDirection(
+                                        context, currentRouteObject.getRoutePoint().getTurn()));
+                        }
+                        TTSWrapper.getInstance(context).speak(routePointFoundMessage, true, true);
+                        // auto jump to next route point
+                        if (settingsManagerInstance.getRouteSettings().getAutoSkipToNextRoutePoint()) {
+                            routeManagerInstance.skipToNextRouteObject(
+                                    RouterFragment.this,
+                                    settingsManagerInstance.getRouteSettings().getSelectedRouteId());
+                        }
+                    }
+                }
+            }
+
+            if (currentRouteObject != null && updateDistanceAndBearingLabel) {
+                // update distance and bearing label
+                labelDistanceAndBearing.setText(
+                        String.format(
+                            "%1$s, %2$s",
+                            context.getResources().getQuantityString(
+                                R.plurals.meter,
+                                currentRouteObject.getRoutePoint().distanceFromCurrentLocation(),
+                                currentRouteObject.getRoutePoint().distanceFromCurrentLocation()),
+                            StringUtility.formatRelativeViewingDirection(
+                                context, currentRouteObject.getRoutePoint().bearingFromCurrentLocation()))
+                        );
+            }
+        }
     }
 
-	@Override public void routeRequestFinished(int returnCode, String returnMessage, Route route) {
-        if (route != null) {
+
+    /**
+     * route request
+     */
+
+	@Override public void routeRequestFinished(Context context, int returnCode, Route route) {
+        if (returnCode == Constants.RC.OK
+                && route != null) {
             RouteObject currentRouteObject = route.getCurrentRouteObject();
             // heading
             labelRouteStartPoint.setText(
                     String.format(
                         "%1$s: %2$s",
-                        getResources().getString(R.string.buttonStartPoint),
+                        context.getResources().getString(R.string.buttonStartPoint),
                         route.getStartPoint().getPoint().getName())
                     );
             labelRouteStartPoint.setTag(route.getStartPoint());
@@ -299,7 +445,7 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
             labelRouteDestinationPoint.setText(
                     String.format(
                         "%1$s: %2$s",
-                        getResources().getString(R.string.buttonDestinationPoint),
+                        context.getResources().getString(R.string.buttonDestinationPoint),
                         route.getDestinationPoint().getPoint().getName())
                     );
             labelRouteDestinationPoint.setTag(route.getDestinationPoint());
@@ -307,91 +453,41 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
             // instructions label
             labelHeading.setText(
                     String.format(
-                        getResources().getString(R.string.labelRoutePosition),
+                        context.getResources().getString(R.string.labelRoutePosition),
                         route.getRouteObjectList().indexOf(currentRouteObject)+1,
                         route.getRouteObjectList().size())
                     );
             // segment
             if (route.getRouteObjectList().indexOf(currentRouteObject) == 0) {
                 labelRouteSegmentDescription.setText(
-                        getResources().getString(R.string.proceedToFirstRoutePoint));
+                        context.getResources().getString(R.string.proceedToFirstRoutePoint));
                 labelRouteSegmentDescription.setTag(null);
                 labelRouteSegmentDescription.setVisibility(View.VISIBLE);
-            } else if (! currentRouteObject.getRouteSegment().equals(RouteObject.getDummyRouteSegment(getActivity()))) {
+            } else if (! currentRouteObject.getRouteSegment().equals(RouteObject.getDummyRouteSegment(context))) {
                 labelRouteSegmentDescription.setText(
                         currentRouteObject.getRouteSegment().toString());
                 labelRouteSegmentDescription.setTag(currentRouteObject.getRouteSegment());
                 labelRouteSegmentDescription.setVisibility(View.VISIBLE);
             }
             // point
-            if (! currentRouteObject.getRoutePoint().equals(PositionManager.getDummyLocation(getActivity()))) {
-                labelRoutePointDescription.setText(
-                        currentRouteObject.getRoutePoint().toString());
-                labelRoutePointDescription.setTag(currentRouteObject.getRoutePoint());
-                labelRoutePointDescription.setVisibility(View.VISIBLE);
-            }
+            labelRoutePointDescription.setText(
+                    currentRouteObject.getRoutePoint().toString());
+            labelRoutePointDescription.setTag(currentRouteObject.getRoutePoint());
+            labelRoutePointDescription.setVisibility(View.VISIBLE);
             // distance
             labelDistanceAndBearing.setText("");
-            labelDistanceAndBearing.setContentDescription("");
             labelDistanceAndBearing.setVisibility(View.VISIBLE);
             // request current location and direction for labelDistanceAndBearing field
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(Constants.ACTION_NEW_LOCATION);
-            filter.addAction(Constants.ACTION_NEW_DIRECTION);
-            filter.addAction(Constants.ACTION_SHAKE_DETECTED);
-            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(newLocationAndDirectionReceiver, filter);
-            PositionManager.getInstance(getActivity()).requestCurrentLocation();
+            PositionManager.getInstance(context).requestCurrentLocation();
         } else {
             // error message
-            labelHeading.setText(returnMessage);
+            labelHeading.setText(
+                    ServerUtility.getErrorMessageForReturnCode(context, returnCode));
         }
     }
 
-    private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (
-                    (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)
-                        && intent.getIntExtra(Constants.ACTION_NEW_LOCATION_ATTR.INT_THRESHOLD_ID, -1) >= PositionManager.THRESHOLD0.ID)
-                    || (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)
-                        && intent.getIntExtra(Constants.ACTION_NEW_DIRECTION_ATTR.INT_THRESHOLD_ID, -1) >= DirectionManager.THRESHOLD2.ID)
-                    ) {
-                RouteObject currentRouteObject = AccessDatabase.getInstance(context).getCurrentObjectDataOfRoute(
-                        SettingsManager.getInstance(context).getRouteSettings().getSelectedRouteId());
-                if (currentRouteObject != null) {
-                    // update distance and bearing label
-                    labelDistanceAndBearing.setText(
-                            String.format(
-                                "%1$s, %2$s",
-                                getResources().getQuantityString(
-                                    R.plurals.meter,
-                                    currentRouteObject.getRoutePoint().distanceFromCurrentLocation(),
-                                    currentRouteObject.getRoutePoint().distanceFromCurrentLocation()),
-                                StringUtility.formatRelativeViewingDirection(
-                                    context, currentRouteObject.getRoutePoint().bearingFromCurrentLocation()))
-                        );
-                    labelDistanceAndBearing.setContentDescription(
-                            String.format(
-                                context.getResources().getString(R.string.labelPointDistanceAndBearing),
-                                getResources().getQuantityString(
-                                    R.plurals.meter,
-                                    currentRouteObject.getRoutePoint().distanceFromCurrentLocation(),
-                                    currentRouteObject.getRoutePoint().distanceFromCurrentLocation()),
-                                StringUtility.formatRelativeViewingDirection(
-                                    context, currentRouteObject.getRoutePoint().bearingFromCurrentLocation()))
-                        );
-                }
-            } else if (intent.getAction().equals(Constants.ACTION_SHAKE_DETECTED)) {
-                // reload
-                vibrator.vibrate(250);
-                RouteManager.getInstance(context).skipToNextRouteObject(
-                        RouterFragment.this,
-                        SettingsManager.getInstance(context).getRouteSettings().getSelectedRouteId());
-            }
-        }
-    };
 
-
-    public static class RouteCommandsDialog extends DialogFragment implements RouteListener {
+    public static class RouteCommandsDialog extends DialogFragment implements RouteRequestListener {
 
         // Store instance variables
         private AccessDatabase accessDatabaseInstance;
@@ -527,28 +623,30 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
         }
 
         private void prepareRouteRequest() {
-            labelHeading.setText(
-                    getResources().getString(R.string.messagePleaseWait));
+            labelHeading.setText("");
+            labelHeading.setVisibility(View.GONE);
             listViewRouteObjects.setAdapter(null);
             listViewRouteObjects.setOnScrollListener(null);
-            labelEmptyListView.setVisibility(View.GONE);
+            labelEmptyListView.setText(
+                    getResources().getString(R.string.messagePleaseWait));
             routeManagerInstance.requestRoute(
                     (RouteCommandsDialog) this, routeId);
         }
 
-    	@Override public void routeCalculationFinished(int returnCode, String returnMessage, int routeId) {
-        }
-
-        @Override public void routeRequestFinished(int returnCode, String returnMessage, Route route) {
-            if (route != null) {
+    	@Override public void routeRequestFinished(Context context, int returnCode, Route route) {
+            if (returnCode == Constants.RC.OK
+                    && route != null) {
                 // heading and list view
                 labelHeading.setText(route.getDescription());
+                labelHeading.setVisibility(View.VISIBLE);
                 listViewRouteObjects.setAdapter(
                         new RouteObjectAdapter(
-                            getActivity(),
+                            context,
                             route.getRouteObjectList(),
                             route.getCurrentRouteObject())
                         );
+                labelEmptyListView.setText("");
+
                 // list position
                 if (listPosition == -1) {
                     listViewRouteObjects.setSelection(
@@ -565,11 +663,14 @@ public class RouterFragment extends Fragment implements FragmentCommunicator, Ro
                         }
                     }
                 });
+
             } else {
-                labelHeading.setText(returnMessage);
+                labelEmptyListView.setText(
+                        ServerUtility.getErrorMessageForReturnCode(context, returnCode));
             }
         }
     }
+
 
     public static class RouteHistoryDialog extends DialogFragment {
 

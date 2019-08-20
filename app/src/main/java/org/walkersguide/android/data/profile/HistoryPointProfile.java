@@ -8,7 +8,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
 
 
@@ -42,8 +41,8 @@ public class HistoryPointProfile extends PointProfile {
                 context,
                 id,
                 getProfileMap(context).get(id),
-                PositionManager.getDummyLocation(context).toJson(),
-                Constants.DUMMY.DIRECTION,
+                null,
+                null,
                 jsonPointList);
     }
 

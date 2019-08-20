@@ -15,13 +15,17 @@ import java.io.OutputStream;
 
 import org.walkersguide.android.database.AccessDatabase;
 import org.walkersguide.android.database.SQLiteHelper;
-import org.walkersguide.android.helper.DownloadUtility;
-import org.walkersguide.android.listener.SettingsImportListener;
+import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 
 
 public class SettingsImport extends AsyncTask<Void, Void, Integer> {
+
+    public interface SettingsImportListener {
+	    public void settingsImportFinished(int returnCode, String returnMessage);
+    }
+
 
     private Context context;
     private SettingsImportListener settingsImportListener;
@@ -61,7 +65,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
             while ((length = in.read(buffer)) > 0) {
                 out.write(buffer, 0, length);
                 if (isCancelled()) {
-                    returnCode = Constants.RC.NO_INTERNET_CONNECTION;
+                    returnCode = Constants.RC.CANCELLED;
                     break;
                 }
             }
@@ -105,10 +109,9 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
     }
 
     @Override protected void onPostExecute(Integer returnCode) {
-        System.out.println("xxx settings imported: " + returnCode);
         String returnMessage = context.getResources().getString(R.string.labelImportDatabaseSuccessful);
         if (returnCode != Constants.RC.OK) {
-            returnMessage = DownloadUtility.getErrorMessageForReturnCode(this.context, returnCode, "");
+            returnMessage = ServerUtility.getErrorMessageForReturnCode(this.context, returnCode);
         }
         if (settingsImportListener != null) {
         	settingsImportListener.settingsImportFinished(returnCode, returnMessage);
@@ -117,7 +120,7 @@ public class SettingsImport extends AsyncTask<Void, Void, Integer> {
 
     @Override protected void onCancelled(Integer empty) {
         int returnCode = Constants.RC.CANCELLED;
-        String returnMessage = DownloadUtility.getErrorMessageForReturnCode(this.context, returnCode, "");
+        String returnMessage = ServerUtility.getErrorMessageForReturnCode(this.context, returnCode);
         if (settingsImportListener != null) {
         	settingsImportListener.settingsImportFinished(returnCode, returnMessage);
         }

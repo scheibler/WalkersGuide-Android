@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" >
     <item
         android:id="@+id/menuItemDirection"
         android:icon="@drawable/my_direction"
         android:title="@string/menuItemDirection"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
     <item
         android:id="@+id/menuItemLocation"
         android:icon="@drawable/my_location"
         android:title="@string/menuItemLocation"
-        app:showAsAction="always" />
-    <item
-        android:id="@+id/menuItemNextRoutePoint"
-        android:icon="@drawable/next_route_point"
-        android:title="@string/menuItemNextRoutePoint"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
 </menu>

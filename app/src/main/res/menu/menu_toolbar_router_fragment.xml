@@ -14,4 +14,8 @@
     <item
         android:id="@+id/menuItemExcludedWays"
         android:title="@string/buttonExcludedWays" />
+    <item
+        android:id="@+id/menuItemAutoSkipToNextRoutePoint"
+        android:title="@string/menuItemAutoSkipToNextRoutePoint"
+        android:checkable="true" />
 </menu>

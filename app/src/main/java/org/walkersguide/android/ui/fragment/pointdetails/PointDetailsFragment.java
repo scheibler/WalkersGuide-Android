@@ -1,15 +1,11 @@
 package org.walkersguide.android.ui.fragment.pointdetails;
 
-import android.app.Activity;
-
 import android.content.Context;
 import android.content.Intent;
 
 import android.net.Uri;
 
 import android.os.Bundle;
-
-import android.support.v4.app.Fragment;
 
 import android.text.format.DateFormat;
 import android.text.TextUtils;
@@ -27,7 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -45,17 +40,14 @@ import org.walkersguide.android.data.basic.point.Station;
 import org.walkersguide.android.data.basic.point.StreetAddress;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.station.Line;
-import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
-import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.ui.fragment.AbstractUITab;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
 
 
-public class PointDetailsFragment extends Fragment implements FragmentCommunicator {
+public class PointDetailsFragment extends AbstractUITab {
     private static final String OSM_NODE_URL = "https://www.openstreetmap.org/node/%1$d/";
 
     // constants
@@ -84,13 +76,12 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
 
 	@Override public void onAttach(Context context) {
 		super.onAttach(context);
-		Activity activity;
-		if (context instanceof Activity) {
-			activity = (Activity) context;
-			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((PointDetailsActivity) activity).pointDetailsFragmentCommunicator = this;
-		}
 	}
+
+
+    /**
+     * menu
+     */
 
     @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_toolbar_point_details_fragment, menu);
@@ -128,6 +119,11 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
         return super.onOptionsItemSelected(item);
     }
 
+
+    /**
+     * create view
+     */
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
@@ -146,7 +142,12 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
 		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
     }
 
-    @Override public void onFragmentEnabled() {
+
+    /**
+     * pause and resume
+     */
+
+    @Override public void fragmentVisible() {
         layoutAttributes.removeAllViews();
 
         if (pointWrapper != null
@@ -667,7 +668,7 @@ public class PointDetailsFragment extends Fragment implements FragmentCommunicat
         }
     }
 
-	@Override public void onFragmentDisabled() {
+    @Override public void fragmentInvisible() {
     }
 
     private void addTextView(int id, String text, boolean isHeading, int autoLink) {

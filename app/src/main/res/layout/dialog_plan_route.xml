@@ -80,12 +80,6 @@
             android:text="@string/buttonExcludedWays" />
 
         <Button
-            android:id="@+id/buttonIndirectionFactor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/buttonIndirectionFactor" />
-
-        <Button
             android:id="@+id/buttonRoutingWayClasses"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

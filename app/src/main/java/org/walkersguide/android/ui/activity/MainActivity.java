@@ -3,13 +3,12 @@ package org.walkersguide.android.ui.activity;
 import android.content.Intent;
 
 import android.os.Bundle;
-import android.os.Handler;
 
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -20,9 +19,7 @@ import android.view.MenuItem;
 
 import java.util.TreeSet;
 
-import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.dialog.LastVisitedPointsDialog;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.RequestAddressDialog;
 import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
@@ -30,97 +27,26 @@ import org.walkersguide.android.ui.fragment.main.POIFragment;
 import org.walkersguide.android.ui.fragment.main.RouterFragment;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
-import org.walkersguide.android.util.TTSWrapper;
 
 
 public class MainActivity extends AbstractActivity {
-
-	// communicate with attached fragments
-	public FragmentCommunicator routerFragmentCommunicator;
-	public FragmentCommunicator poiFragmentCommunicator;
 
 	// navigation drawer
 	private DrawerLayout drawerLayout;
     private NavigationView navigationView;
 
-	/**
-	 * The {@link android.support.v4.view.PagerAdapter} that will provide
-	 * fragments for each of the three primary sections of the app. We use a
-	 * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
-	 * will keep every loaded fragment in memory. If this becomes too memory
-	 * intensive, it may be best to switch to a
-	 * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-	 */
-	private AppSectionsPagerAdapter mAppSectionsPagerAdapter;
-
-	/**
-	 * The {@link ViewPager} that will display the three primary sections of the
-	 * app, one at a time.
-	 */
-	private ViewPager mViewPager;
-
-	// fragment handler
-	private Handler onFragmentDisabledHandler;
-	private Handler onFragmentEnabledHandler;
-
-    // tts
-    private TTSWrapper ttsWrapperInstance;
-    private boolean switchFragmentGestureDetected;
+	private ViewPager viewPager;
+    private TabAdapter tabAdapter;
+    private TabLayout tabLayout;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-        // ttsWrapper instance
-        ttsWrapperInstance = TTSWrapper.getInstance(this);
-
-		// Create the adapter that will return a fragment for each of the
-		// primary sections
-		// of the app.
-		mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(this);
-
         // navigation drawer
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         navigationView = (NavigationView) findViewById(R.id.navigationView);
         navigationView.setItemIconTintList(null);
-
-        // toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(
-        		mAppSectionsPagerAdapter.getPageTitle(
-                    settingsManagerInstance.getGeneralSettings().getRecentOpenTab())
-                .toString());
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(
-                this, drawerLayout, toolbar, R.string.openNavigationDrawer, R.string.closeNavigationDrawer);
-        drawerLayout.setDrawerListener(drawerToggle);
-        drawerToggle.syncState();
-
-		// Set up the ViewPager, attaching the adapter and setting up a listener
-		// for when the
-		// user swipes between sections.
-		mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mAppSectionsPagerAdapter);
-        mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override public void onPageSelected(int position) {
-                GeneralSettings generalSettings = settingsManagerInstance.getGeneralSettings();
-    			if (generalSettings.getRecentOpenTab() != position) {
-                    leaveActiveFragment();
-                    // set toolbar title
-        			String activeTabName = mAppSectionsPagerAdapter.getPageTitle(position).toString();
-                    getSupportActionBar().setTitle(activeTabName);
-                    // announce if switched by gesture
-                    if (switchFragmentGestureDetected) {
-                        ttsWrapperInstance.speak(
-                                mAppSectionsPagerAdapter.getPageTitle(position).toString(), true, true);
-                    }
-                    switchFragmentGestureDetected = true;
-                    // switch fragment
-    				generalSettings.setRecentOpenTab(position);
-                    enterActiveFragment();
-                }
-            }
-        });
 
         // Setup click events on the Navigation View Items.
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -128,28 +54,22 @@ public class MainActivity extends AbstractActivity {
                 drawerLayout.closeDrawers();
                 switch (menuItem.getItemId()) {
                     case R.id.menuItemPlanRoute:
-                        PlanRouteDialog.newInstance().show(
-                                getSupportFragmentManager(), "PlanRouteDialog");
-                        break;
-                    case R.id.menuItemRouterFragment:
-                        switchFragmentGestureDetected = false;
-                        mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.ROUTER);
-                        break;
-                    case R.id.menuItemPOIFragment:
-                        switchFragmentGestureDetected = false;
-                        mViewPager.setCurrentItem(Constants.MAIN_FRAGMENT.POI);
+                        PlanRouteDialog.newInstance()
+                            .show(getSupportFragmentManager(), "PlanRouteDialog");
                         break;
                     case R.id.menuItemLastVisitedPoints:
-                        LastVisitedPointsDialog.newInstance().show(
-                                getSupportFragmentManager(), "LastVisitedPointsDialog");
+                        POIFragment.newInstance(
+                                POIFragment.ContentType.HISTORY_POINTS, Constants.POINT_PUT_INTO.NOWHERE)
+                            .show(getSupportFragmentManager(), "LastVisitedPointsDialog");
                         break;
                     case R.id.menuItemSaveCurrentPosition:
-                        SaveCurrentPositionDialog.newInstance(new TreeSet<Integer>()).show(
-                                getSupportFragmentManager(), "SaveCurrentPositionDialog");
+                        SaveCurrentPositionDialog.newInstance(
+                                new TreeSet<Integer>())
+                            .show(getSupportFragmentManager(), "SaveCurrentPositionDialog");
                         break;
                     case R.id.menuItemRequestAddress:
-                        RequestAddressDialog.newInstance().show(
-                                getSupportFragmentManager(), "RequestAddressDialog");
+                        RequestAddressDialog.newInstance()
+                            .show(getSupportFragmentManager(), "RequestAddressDialog");
                         break;
                     case R.id.menuItemSettings:
                         Intent intentStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
@@ -166,24 +86,36 @@ public class MainActivity extends AbstractActivity {
             }
         });
 
-		// initialize handlers for disabling and enabling fragments
-		onFragmentDisabledHandler = new Handler();
-		onFragmentEnabledHandler = new Handler();
+        // toolbar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.openNavigationDrawer, R.string.closeNavigationDrawer);
+        drawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.syncState();
+
+		viewPager = (ViewPager) findViewById(R.id.pager);
+        tabAdapter = new TabAdapter(this);
+        viewPager.setAdapter(tabAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override public void onPageSelected(int position) {
+                GeneralSettings generalSettings = settingsManagerInstance.getGeneralSettings();
+    			if (generalSettings.getRecentOpenTab() != position) {
+                    // set toolbar title
+                    setToolbarTitle(position);
+                    // save active fragment
+    				generalSettings.setRecentOpenTab(position);
+                }
+            }
+        });
+
+		tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        tabLayout.setupWithViewPager(viewPager);
 
         // open the recent tab
-        switchFragmentGestureDetected = true;
-        mViewPager.setCurrentItem(
-                settingsManagerInstance.getGeneralSettings().getRecentOpenTab());
-    }
-
-	@Override public void onPause() {
-		super.onPause();
-		leaveActiveFragment();
-	}
-
-    @Override public void onResume() {
-        super.onResume();
-        enterActiveFragment();
+        int tabIndex = settingsManagerInstance.getGeneralSettings().getRecentOpenTab();
+        setToolbarTitle(tabIndex);
+        viewPager.setCurrentItem(tabIndex);
     }
 
     @Override public void onBackPressed() {
@@ -194,98 +126,15 @@ public class MainActivity extends AbstractActivity {
         }
     }
 
-
-    /**
-     * fragment management
-     */
-
-	private void leaveActiveFragment() {
-		onFragmentDisabledHandler.postDelayed(new OnFragmentDisabledUpdater(
-				settingsManagerInstance.getGeneralSettings().getRecentOpenTab()), 0);
-	}
-
-	private class OnFragmentDisabledUpdater implements Runnable {
-		private static final int NUMBER_OF_RETRIES = 5;
-		private int counter;
-		private int currentFragment;
-
-		public OnFragmentDisabledUpdater(int currentFragment) {
-			this.counter = 0;
-			this.currentFragment = currentFragment;
-		}
-
-        @Override public void run() {
-            switch (currentFragment) {
-                case Constants.MAIN_FRAGMENT.ROUTER:
-                    if (routerFragmentCommunicator != null) {
-                        routerFragmentCommunicator.onFragmentDisabled();
-                        return;
-                    }
-                    break;
-                case Constants.MAIN_FRAGMENT.POI:
-                    if (poiFragmentCommunicator != null) {
-                        poiFragmentCommunicator.onFragmentDisabled();
-                        return;
-                    }
-                    break;
-                default:
-                    return;
-            }
-            if (counter < NUMBER_OF_RETRIES) {
-                counter += 1;
-                onFragmentDisabledHandler.postDelayed(this, 100);
-            }
-        }
-    }
-
-	private void enterActiveFragment() {
-		onFragmentEnabledHandler.postDelayed(new OnFragmentEnabledUpdater(
-				settingsManagerInstance.getGeneralSettings().getRecentOpenTab()), 0);
-	}
-
-	private class OnFragmentEnabledUpdater implements Runnable {
-		private static final int NUMBER_OF_RETRIES = 5;
-		private int counter;
-		private int currentFragment;
-
-		public OnFragmentEnabledUpdater(int currentFragment) {
-			this.counter = 0;
-			this.currentFragment = currentFragment;
-		}
-
-        @Override public void run() {
-            switch (currentFragment) {
-                case Constants.MAIN_FRAGMENT.ROUTER:
-                    if (routerFragmentCommunicator != null) {
-                        routerFragmentCommunicator.onFragmentEnabled();
-                        return;
-                    }
-                    break;
-                case Constants.MAIN_FRAGMENT.POI:
-                    if (poiFragmentCommunicator != null) {
-                        poiFragmentCommunicator.onFragmentEnabled();
-                        return;
-                    }
-                    break;
-                default:
-                    return;
-            }
-            if (counter < NUMBER_OF_RETRIES) {
-                counter += 1;
-                onFragmentEnabledHandler.postDelayed(this, 100);
-            }
-        }
+    private void setToolbarTitle(int tabIndex) {
+        getSupportActionBar().setTitle(
+                tabAdapter.getPageTitle(tabIndex).toString());
     }
 
 
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the primary sections of the app.
-	 */
+	public class TabAdapter extends FragmentPagerAdapter {
 
-	public class AppSectionsPagerAdapter extends FragmentStatePagerAdapter {
-
-		public AppSectionsPagerAdapter(FragmentActivity activity) {
+		public TabAdapter(FragmentActivity activity) {
 			super(activity.getSupportFragmentManager());
 		}
 
@@ -294,7 +143,8 @@ public class MainActivity extends AbstractActivity {
                 case Constants.MAIN_FRAGMENT.ROUTER:
                     return RouterFragment.newInstance();
                 case Constants.MAIN_FRAGMENT.POI:
-                    return POIFragment.newInstance();
+                    return POIFragment.newInstance(
+                            POIFragment.ContentType.POI, Constants.POINT_PUT_INTO.NOWHERE);
                 default:
                     return null;
             }

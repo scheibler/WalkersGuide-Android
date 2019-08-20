@@ -1,15 +1,11 @@
 package org.walkersguide.android.ui.fragment.segmentdetails;
 
-import android.app.Activity;
-
 import android.content.Context;
 import android.content.Intent;
 
 import android.net.Uri;
 
 import android.os.Bundle;
-
-import android.support.v4.app.Fragment;
 
 import android.text.TextUtils;
 
@@ -36,13 +32,12 @@ import org.walkersguide.android.data.basic.segment.RouteSegment;
 import org.walkersguide.android.data.basic.segment.Segment;
 import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.helper.StringUtility;
-import org.walkersguide.android.listener.FragmentCommunicator;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.activity.SegmentDetailsActivity;
+import org.walkersguide.android.ui.fragment.AbstractUITab;
 import org.walkersguide.android.util.Constants;
 
 
-public class SegmentDetailsFragment extends Fragment implements FragmentCommunicator {
+public class SegmentDetailsFragment extends AbstractUITab {
     private static final String OSM_WAY_URL = "https://www.openstreetmap.org/way/%1$d/";
 
     // constants
@@ -70,13 +65,12 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
 
 	@Override public void onAttach(Context context) {
 		super.onAttach(context);
-		Activity activity;
-		if (context instanceof Activity) {
-			activity = (Activity) context;
-			// instanciate FragmentCommunicator interface to get data from MainActivity
-			((SegmentDetailsActivity) activity).segmentDetailsFragmentCommunicator = this;
-		}
 	}
+
+
+    /**
+     * create view
+     */
 
     @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_toolbar_segment_details_fragment, menu);
@@ -116,6 +110,12 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
         return super.onOptionsItemSelected(item);
     }
 
+
+    /**
+     * create view
+     */
+
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
@@ -134,7 +134,12 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
 		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
     }
 
-    @Override public void onFragmentEnabled() {
+
+    /**
+     * pause and resume
+     */
+
+    @Override public void fragmentVisible() {
         layoutAttributes.removeAllViews();
 
         if (segmentWrapper != null
@@ -386,7 +391,7 @@ public class SegmentDetailsFragment extends Fragment implements FragmentCommunic
                 }
     }
 
-	@Override public void onFragmentDisabled() {
+    @Override public void fragmentInvisible() {
     }
 
     private void addTextView(int id, String text, boolean isHeading, int autoLink) {
