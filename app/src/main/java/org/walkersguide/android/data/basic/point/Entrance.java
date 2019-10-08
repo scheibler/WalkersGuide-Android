@@ -25,7 +25,8 @@ public class Entrance extends PointWithAddressData {
     }
 
     @Override public String getName() {
-        return super.createPrintableAddress();
+        return String.format(
+                "%1$s, %2$s", super.formatAddressMediumLength(), this.label);
     }
 
     @Override public JSONObject toJson() throws JSONException {
@@ -39,11 +40,7 @@ public class Entrance extends PointWithAddressData {
     }
 
     @Override public String toString() {
-        if (super.getSubType().equals("")
-                || this.createPrintableAddress().equals(super.getSubType())) {
-            return this.createPrintableAddress();
-        }
-        return String.format("%1$s (%2$s)", super.createPrintableAddress(), super.getSubType());
+        return String.format("%1$s (%2$s)", this.getName(), super.getSubType());
     }
 
 }

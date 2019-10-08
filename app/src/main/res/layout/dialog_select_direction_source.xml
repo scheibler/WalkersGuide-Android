@@ -20,12 +20,26 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/directionSourceCompass" />
 
+            <TextView
+                android:id="@+id/labelCompassDirectionDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/minHeight"
+                android:focusable="true" />
+
             <RadioButton
                 android:id="@+id/radioGPSDirection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/directionSourceGPS" />
+
+            <TextView
+                android:id="@+id/labelGPSDirectionDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/minHeight"
+                android:focusable="true" />
         </LinearLayout>
 
         <LinearLayout

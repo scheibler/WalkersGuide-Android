@@ -87,6 +87,17 @@ public abstract class PointWithAddressData extends Point {
         return this.road;
     }
 
+    public String formatRoadAndHouseNumber() {
+        if (! TextUtils.isEmpty(this.road)
+                && ! TextUtils.isEmpty(this.houseNumber)) {
+            if (Locale.getDefault().getLanguage().equals(Locale.GERMAN.getLanguage())) {
+                return String.format("%1$s %2$s", this.road, this.houseNumber);
+            }
+            return String.format("%1$s %2$s", this.houseNumber, this.road);
+        }
+        return this.road;
+    }
+
     public String getResidential() {
         return this.residential;
     }
@@ -119,23 +130,62 @@ public abstract class PointWithAddressData extends Point {
         return this.countryCode;
     }
 
-    public String createPrintableAddress() {
-        if (! TextUtils.isEmpty(this.road)
-                && ! TextUtils.isEmpty(this.city)) {
+    public boolean hasAddress() {
+        if (! TextUtils.isEmpty(this.city)
+                && (
+                       ! TextUtils.isEmpty(this.extraName)
+                    || ! TextUtils.isEmpty(this.road))
+                ) {
+            return true;
+        }
+        return false;
+    }
+
+    public String formatAddressShortLength() {
+        if (this.hasAddress()) {
+            ArrayList<String> addressComponentList = new ArrayList<String>();
+            if (! TextUtils.isEmpty(this.extraName)) {
+                addressComponentList.add(this.extraName);
+            } else {
+                addressComponentList.add(this.formatRoadAndHouseNumber());
+            }
+            addressComponentList.add(this.city);
+            return TextUtils.join(", ", addressComponentList);
+        }
+        return super.getName();
+    }
+
+    public String formatAddressMediumLength() {
+        if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
             // street and house number
-            if (! TextUtils.isEmpty(this.road)
-                    && ! TextUtils.isEmpty(this.houseNumber)) {
-                if (Locale.getDefault().getLanguage().equals(Locale.GERMAN.getLanguage())) {
-                    addressComponentList.add(
-                            String.format("%1$s %2$s", this.road, this.houseNumber));
-                } else {
-                    addressComponentList.add(this.houseNumber);
-                    addressComponentList.add(this.road);
+            addressComponentList.add(this.formatRoadAndHouseNumber());
+            // extra name, residential or  city district
+            if (! TextUtils.isEmpty(this.extraName)
+                    && ! TextUtils.join(", ", addressComponentList).toLowerCase().contains(this.extraName.toLowerCase())) {
+                addressComponentList.add(0, this.extraName);
+            } else if (TextUtils.isEmpty(this.houseNumber)) {
+                if (! TextUtils.isEmpty(this.residential)) {
+                    addressComponentList.add(this.residential);
+                } else if (! TextUtils.isEmpty(this.cityDistrict)) {
+                    addressComponentList.add(this.cityDistrict);
+                } else if (! TextUtils.isEmpty(this.suburb)) {
+                    addressComponentList.add(this.suburb);
                 }
-            } else if (! TextUtils.isEmpty(this.road)) {
-                addressComponentList.add(this.road);
             }
+            // city
+            addressComponentList.add(this.city);
+            return TextUtils.join(", ", addressComponentList);
+        }
+        return super.getName();
+    }
+
+    public String formatAddressLongLength() {
+        if (this.hasAddress()) {
+            ArrayList<String> addressComponentList = new ArrayList<String>();
+            // street and house number
+            addressComponentList.add(this.formatRoadAndHouseNumber());
+            // extra name, residential or  city district
             if (! TextUtils.isEmpty(this.extraName)
                     && ! TextUtils.join(", ", addressComponentList).toLowerCase().contains(this.extraName.toLowerCase())) {
                 addressComponentList.add(0, this.extraName);
@@ -152,8 +202,9 @@ public abstract class PointWithAddressData extends Point {
             if (! TextUtils.isEmpty(this.postcode)) {
                 addressComponentList.add(this.postcode);
             }
-            if (! TextUtils.isEmpty(this.city)) {
-                addressComponentList.add(this.city);
+            addressComponentList.add(this.city);
+            if (! TextUtils.isEmpty(this.country)) {
+                addressComponentList.add(this.country);
             }
             return TextUtils.join(", ", addressComponentList);
         } else if (! TextUtils.isEmpty(this.displayName)) {

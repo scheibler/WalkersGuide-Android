@@ -2,7 +2,7 @@ package org.walkersguide.android.data.profile;
 
 import android.content.Context;
 
-import java.util.TreeMap;
+import java.util.LinkedHashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,8 +20,8 @@ public class HistoryPointProfile extends PointProfile {
     public static final int ID_SIMULATED_POINTS = -130;
     public static final int ID_USER_CREATED_POINTS = -140;
 
-    public static TreeMap<Integer,String> getProfileMap(Context context) {
-        TreeMap<Integer,String> profileMap = new TreeMap<Integer,String>();
+    public static LinkedHashMap<Integer,String> getProfileMap(Context context) {
+        LinkedHashMap<Integer,String> profileMap = new LinkedHashMap<Integer,String>();
         profileMap.put(
                 ID_ALL_POINTS, context.getResources().getString(R.string.fpNameAllPoints));
         profileMap.put(

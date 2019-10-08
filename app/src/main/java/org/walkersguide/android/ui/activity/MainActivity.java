@@ -27,6 +27,7 @@ import org.walkersguide.android.ui.fragment.main.POIFragment;
 import org.walkersguide.android.ui.fragment.main.RouterFragment;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
 
 
 public class MainActivity extends AbstractActivity {
@@ -54,10 +55,14 @@ public class MainActivity extends AbstractActivity {
                 drawerLayout.closeDrawers();
                 switch (menuItem.getItemId()) {
                     case R.id.menuItemPlanRoute:
-                        PlanRouteDialog.newInstance()
+                        PlanRouteDialog.newInstance(false)
                             .show(getSupportFragmentManager(), "PlanRouteDialog");
                         break;
                     case R.id.menuItemLastVisitedPoints:
+                        // reset to all points category
+                        settingsManagerInstance.getPOISettings()
+                            .setSelectedHistoryPointProfileId(HistoryPointProfile.ID_ALL_POINTS);
+                        // open dialog
                         POIFragment.newInstance(
                                 POIFragment.ContentType.HISTORY_POINTS, Constants.POINT_PUT_INTO.NOWHERE)
                             .show(getSupportFragmentManager(), "LastVisitedPointsDialog");

@@ -29,7 +29,6 @@ import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.RouteSettings;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
-import org.walkersguide.android.util.TTSWrapper;
 
 import timber.log.Timber;
 
@@ -40,7 +39,6 @@ public class RouteManager {
     private static RouteManager routeManagerInstance;
     private AccessDatabase accessDatabaseInstance;
     private SettingsManager settingsManagerInstance;
-    private TTSWrapper ttsWrapperInstance;
 
     public static RouteManager getInstance(Context context) {
         if(routeManagerInstance == null){
@@ -53,7 +51,6 @@ public class RouteManager {
         this.context = context;
         this.accessDatabaseInstance = AccessDatabase.getInstance(context);
         this.settingsManagerInstance = SettingsManager.getInstance(context);
-        ttsWrapperInstance = TTSWrapper.getInstance(context);
     }
 
 
@@ -143,6 +140,7 @@ public class RouteManager {
                     jsonSourcePoints.put(destinationPoint.toJson());
                 }
                 jsonServerParams.put("source_points", jsonSourcePoints);
+                Timber.d("jsonServerParams: %1$s", jsonServerParams.toString());
 
                 // other params
                 // excluded ways
@@ -349,13 +347,17 @@ public class RouteManager {
         }
     }
 
-    public void jumpToRouteObjectAtIndex(RouteRequestListener routeRequestListener, int routeId, int objectIndex) {
-        accessDatabaseInstance.updateCurrentObjectIndexOfRoute(routeId, objectIndex);
-        if (routeRequestListener != null) {
-            if (routeRequestInProgress()) {
-                cancelRouteRequest();
+    public void jumpToRouteObjectAtIndex(RouteRequestListener routeRequestListener, int routeId, int newObjectIndex) {
+        int currentObjectIndex = accessDatabaseInstance.getCurrentObjectIndexOfRoute(routeId);
+        if (currentObjectIndex != -1) {
+            boolean success = accessDatabaseInstance.updateCurrentObjectIndexOfRoute(
+                    routeId, newObjectIndex);
+            if (success && routeRequestListener != null) {
+                if (routeRequestInProgress()) {
+                    cancelRouteRequest();
+                }
+                requestRoute(routeRequestListener, routeId);
             }
-            requestRoute(routeRequestListener, routeId);
         }
     }
 

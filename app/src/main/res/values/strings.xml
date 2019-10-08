@@ -5,9 +5,9 @@
          abstract activity and app wide menu
     -->
 
-    <!-- toolbar menu -->
-    <string name="menuItemDirection">Direction</string>
-    <string name="menuItemLocation">Location</string>
+    <!-- AbstractActivity -->
+    <string name="toolbarSensorDataOutdated">outdated</string>
+    <string name="toolbarCompassCalibrationRequired">calibrate</string>
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
@@ -20,7 +20,7 @@
     <!-- select direction source dialog -->
     <string name="selectDirectionSourceDialogName">Direction details</string>
     <string name="directionSourceCompass">Compass</string>
-    <string name="directionSourceGPS">GPS</string>
+    <string name="directionSourceGPS">Satellite</string>
     <string name="directionSourceSimulated">Simulation</string>
     <string name="buttonEnableDirectionSimulation">Enable direction simulation</string>
     <!-- enter direction value dialog -->
@@ -29,17 +29,15 @@
 
     <!-- select location source dialog -->
     <string name="selectLocationSourceDialogName">Location details</string>
-    <string name="locationSourceGPS">GPS</string>
+    <string name="locationSourceGPS">Position</string>
     <string name="locationSourceSimulatedPoint">Simulation</string>
     <string name="buttonGPSAddress">Where am I?</string>
     <string name="buttonGPSSave">Save position</string>
-    <string name="labelGPSSignal">GPS signal:</string>
     <string name="buttonGPSDetails">Show more details</string>
     <string name="buttonEnableLocationSimulation">Enable location simulation</string>
-    <string name="labelNoSimulatedPointSelected">No point selected</string>
 
     <!-- gps details dialog -->
-    <string name="gpsDetailsDialogName">GPS details</string>
+    <string name="gpsDetailsDialogName">Position details</string>
     <string name="labelGPSLatitude">Latitude</string>
     <string name="labelGPSLongitude">Longitude</string>
     <string name="labelGPSProvider">Provider</string>
@@ -54,6 +52,7 @@
     <string name="buttonStartPoint">Start</string>
     <string name="buttonViaPoint">Via</string>
     <string name="buttonDestinationPoint">Destination</string>
+    <string name="labelNoPointSelected">No point selected</string>
     <string name="buttonSimulationPoint">Simulation</string>
     <string name="buttonNewRoute">New</string>
     <string name="buttonNewRouteCD">New route</string>
@@ -67,11 +66,15 @@
     <string name="buttonGetRoute">Get route</string>
 
     <!-- select point dialog -->
-    <string name="selectPointDialogNameStart">Select start point:</string>
-    <string name="selectPointDialogNameDestination">Select destination point:</string>
-    <string name="selectPointDialogNameVia">Select via point %1$d:</string>
-    <string name="selectPointDialogNameSimulation">Select point to simulate:</string>
-    <string name="pointSelectFromCurrentLocation">Use current location</string>
+    <string name="pointInputDialogNameStart">Select start point:</string>
+    <string name="pointInputDialogNameDestination">Select destination point:</string>
+    <string name="pointInputDialogNameVia">Select via point %1$d:</string>
+    <string name="pointInputDialogNameSimulation">Select point to simulate:</string>
+    <string name="labelSelectedPointHeading">Current:</string>
+    <string name="buttonSelectedPointDetails">Details</string>
+    <string name="buttonSelectedPointRemove">Remove</string>
+    <string name="labelInputCategoryHeading">Categories:</string>
+    <string name="pointSelectFromCurrentLocation">Current location</string>
     <string name="pointSelectFromEnterAddress">Enter address</string>
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromHistoryPoints">Point history</string>
@@ -81,11 +84,17 @@
     <string name="menuItemShowDetails">Show details</string>
     <string name="menuItemRemove">Remove</string>
 
+    <!-- get current position dialog -->
+    <string name="radioGPSCoordinates">Exact location</string>
+    <string name="editGPSCoordinatesNearestAddress">Near %1$s</string>
+    <string name="radioNearestAddress">Nearest address</string>
+
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Enter Address:</string>
     <string name="editHintAddress">street and house number, city is optional</string>
     <string name="buttonNearbyCurrentLocation">Search only near the current location</string>
     <string name="messageAddressMissing">Please enter an address.</string>
+    <string name="selectAddressPointFromListDialogTitle">Select address:</string>
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Enter Coordinates:</string>
@@ -134,13 +143,16 @@
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
     <string name="buttonNextRouteObject">Next</string>
     <string name="buttonNextRouteObjectCD">Next route point</string>
+    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s</string>
     <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s</string>
     <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
     <!-- more options menu -->
+    <string name="menuItemRouteHistory">Route history</string>
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
-    <string name="menuItemRouteHistory">Route history</string>
+    <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
+    <string name="menuItemSkipToFirstRoutePoint">Back to first point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
 
     <!-- route commands dialog -->
@@ -637,7 +649,6 @@
 
     <!-- direction accuracy -->
     <string name="directionAccuracyLabel">Accuracy</string>
-    <string name="directionAccuracyCalibrationRequired">Calibration required</string>
     <string name="directionAccuracyOutdated">Value is outdated</string>
     <string name="directionAccuracyLow">Low</string>
     <string name="directionAccuracyMedium">Medium</string>

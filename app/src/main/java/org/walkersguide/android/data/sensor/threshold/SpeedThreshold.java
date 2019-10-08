@@ -6,8 +6,8 @@ import java.util.Map;
 
 public enum SpeedThreshold {
     ZERO_KMH(0),
-    FOUR_KMH(4),
-    SEVEN_KMH(7);
+    FIVE_KMH(5),
+    TEN_KMH(10);
 
     private int speedThresholdInKMH;
     private static final Map<Integer,SpeedThreshold> valuesBySpeedThreshold;

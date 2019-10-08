@@ -3,17 +3,20 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/menuItemRouteHistory"
+        android:title="@string/menuItemRouteHistory" />
+    <item
         android:id="@+id/menuItemRecalculate"
         android:title="@string/menuItemRecalculate" />
     <item
         android:id="@+id/menuItemRecalculateWithCurrentPosition"
         android:title="@string/menuItemRecalculateWithCurrentPosition" />
     <item
-        android:id="@+id/menuItemRouteHistory"
-        android:title="@string/menuItemRouteHistory" />
+        android:id="@+id/menuItemRecalculateReturnRoute"
+        android:title="@string/menuItemRecalculateReturnRoute" />
     <item
-        android:id="@+id/menuItemExcludedWays"
-        android:title="@string/buttonExcludedWays" />
+        android:id="@+id/menuItemSkipToFirstRoutePoint"
+        android:title="@string/menuItemSkipToFirstRoutePoint" />
     <item
         android:id="@+id/menuItemAutoSkipToNextRoutePoint"
         android:title="@string/menuItemAutoSkipToNextRoutePoint"

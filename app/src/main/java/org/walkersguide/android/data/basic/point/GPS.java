@@ -12,9 +12,12 @@ import org.json.JSONObject;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
+import java.lang.StringBuilder;
 
 
 public class GPS extends Point {
+    // location outdated
+    public static final int LOCATION_OUTDATED_AFTER_IN_MS = 300000;
 
     public static class Builder {
         // variables
@@ -26,19 +29,19 @@ public class GPS extends Point {
             this.context = context;
             this.jsonNewLocation = new JSONObject();
             try {
-                jsonNewLocation.put("name", context.getResources().getString(R.string.currentLocationName));
+                jsonNewLocation.put("lat", latitude);
+            } catch (JSONException e) {}
+            try {
+                jsonNewLocation.put("lon", longitude);
+            } catch (JSONException e) {}
+            try {
+                jsonNewLocation.put("name", String.format("%1$f, %2$f", latitude, longitude));
             } catch (JSONException e) {}
             try {
                 jsonNewLocation.put("type", Constants.POINT.GPS);
             } catch (JSONException e) {}
             try {
                 jsonNewLocation.put("sub_type", context.getResources().getString(R.string.currentLocationName));
-            } catch (JSONException e) {}
-            try {
-                jsonNewLocation.put("lat", latitude);
-            } catch (JSONException e) {}
-            try {
-                jsonNewLocation.put("lon", longitude);
             } catch (JSONException e) {}
             try {
                 jsonNewLocation.put("time", time);
@@ -259,6 +262,14 @@ public class GPS extends Point {
         return super.getContext().getResources().getString(R.string.labelGPSTime);
     }
 
+    public boolean isOutdated() {
+        if (this.time > -1l
+                && (System.currentTimeMillis() - this.time) > LOCATION_OUTDATED_AFTER_IN_MS) {
+            return true;
+        }
+        return false;
+    }
+
     public Direction getDirection() {
         return this.direction;
     }
@@ -271,6 +282,16 @@ public class GPS extends Point {
                     this.direction.toString());
         }
         return super.getContext().getResources().getString(R.string.labelGPSBearing);
+    }
+
+    public String getShortStatusMessage() {
+        StringBuilder locationDescriptionBuilder = new StringBuilder();
+        locationDescriptionBuilder.append(this.formatAccuracyInMeters());
+        if (this.isOutdated()) {
+            locationDescriptionBuilder.append(
+                    String.format(", %1$s", super.getContext().getResources().getString(R.string.toolbarSensorDataOutdated)));
+        }
+        return locationDescriptionBuilder.toString();
     }
 
     @Override public JSONObject toJson() throws JSONException {

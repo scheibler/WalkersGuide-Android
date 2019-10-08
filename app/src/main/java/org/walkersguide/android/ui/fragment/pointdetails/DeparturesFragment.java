@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.pointdetails;
 
+import android.support.v4.view.ViewCompat;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -175,14 +176,19 @@ public class DeparturesFragment extends AbstractUITab implements DepartureResult
 
     private void requestNextDepartures(Context context) {
         // heading
+        ViewCompat.setAccessibilityLiveRegion(
+                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelHeading.setText(
                 context.getResources().getQuantityString(R.plurals.departure, 0, 0));
         buttonRefresh.setContentDescription(
                 context.getResources().getString(R.string.buttonCancel));
         buttonRefresh.setImageResource(R.drawable.cancel);
+
         // list view
         listViewDepartures.setAdapter(null);
         listViewDepartures.setOnScrollListener(null);
+        ViewCompat.setAccessibilityLiveRegion(
+                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelEmptyListView.setText(
                 context.getResources().getString(R.string.messagePleaseWait));
         // request next departures
@@ -198,6 +204,9 @@ public class DeparturesFragment extends AbstractUITab implements DepartureResult
 
         if (returnCode == Constants.RC.OK
                 && departureList != null) {
+
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
             labelHeading.setText(
                     String.format(
                         context.getResources().getString(R.string.labelNextDeparturesSuccess),
@@ -225,6 +234,8 @@ public class DeparturesFragment extends AbstractUITab implements DepartureResult
             });
 
         } else {
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
             labelEmptyListView.setText(
                     ServerUtility.getErrorMessageForReturnCode(context, returnCode));
             // show select public transport provider dialog

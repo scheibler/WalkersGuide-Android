@@ -253,8 +253,8 @@ public class PointDetailsActivity extends AbstractActivity implements OnMenuItem
     @Override public boolean onMenuItemClick(MenuItem item) {
         PointUtility.putNewPoint(
                 PointDetailsActivity.this, pointWrapper, item.getItemId());
-        PlanRouteDialog.newInstance().show(
-                getSupportFragmentManager(), "PlanRouteDialog");
+        PlanRouteDialog.newInstance(false)
+            .show(getSupportFragmentManager(), "PlanRouteDialog");
         return true;
     }
 

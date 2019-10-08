@@ -358,6 +358,11 @@ public class SettingsManager {
             return this.gpsLocation;
         }
 
+        public void removeGPSLocation() {
+            this.gpsLocation = null;
+            storeLocationSettings();
+        }
+
         public void setGPSLocation(PointWrapper newLocation) {
             if (newLocation != null) {
                 this.gpsLocation = newLocation;
@@ -367,6 +372,11 @@ public class SettingsManager {
 
         public PointWrapper getSimulatedLocation() {
             return this.simulatedLocation;
+        }
+
+        public void removeSimulatedLocation() {
+            this.simulatedLocation = null;
+            storeLocationSettings();
         }
 
         public void setSimulatedLocation(PointWrapper newLocation) {
@@ -411,7 +421,7 @@ public class SettingsManager {
 
         public POISettings(JSONObject jsonObject) {
             // selected history point profile id
-            this.selectedHistoryPointProfileId = -1;
+            this.selectedHistoryPointProfileId = HistoryPointProfile.ID_ALL_POINTS;
             try {
                 this.selectedHistoryPointProfileId = jsonObject.getInt("selectedHistoryPointProfileId");
             } catch (JSONException e) {}
@@ -599,6 +609,11 @@ public class SettingsManager {
             return this.start;
         }
 
+        public void removeStartPoint() {
+            this.start = null;
+            storeRouteSettings();
+        }
+
         public void setStartPoint(PointWrapper newLocation) {
             if (newLocation != null) {
                 this.start = newLocation;
@@ -608,6 +623,11 @@ public class SettingsManager {
 
         public PointWrapper getDestinationPoint() {
             return this.destination;
+        }
+
+        public void removeDestinationPoint() {
+            this.destination = null;
+            storeRouteSettings();
         }
 
         public void setDestinationPoint(PointWrapper newLocation) {
@@ -628,15 +648,11 @@ public class SettingsManager {
             }
         }
 
-        public void appendEmptyViaPoint() {
-            this.viaPointList.add(null);
-            storeRouteSettings();
-        }
-
         public void replaceViaPointAtIndex(int index, PointWrapper viaPointToReplace) {
             try {
                 this.viaPointList.set(index, viaPointToReplace);
             } catch (IndexOutOfBoundsException e) {
+                this.viaPointList.add(index, viaPointToReplace);
             } finally {
                 storeRouteSettings();
             }

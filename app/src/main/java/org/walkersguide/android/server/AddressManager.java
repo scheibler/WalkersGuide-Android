@@ -38,10 +38,10 @@ import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 
 
-public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
+public class AddressManager extends AsyncTask<Void, Void, ArrayList<PointWrapper>> {
 
     public interface AddressListener {
-        public void addressRequestFinished(Context context, int returnCode, PointWrapper addressPoint);
+        public void addressRequestFinished(Context context, int returnCode, ArrayList<PointWrapper> addressPointList);
     }
 
     // address providers
@@ -57,7 +57,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
     private boolean nearbyCurrentLocation;
     private double latitude, longitude;
     private HttpsURLConnection connection;
-    private int returnCode, pointPutInto;
+    private int returnCode;
     private Handler cancelConnectionHandler;
     private CancelConnection cancelConnection;
 
@@ -88,42 +88,44 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         this.cancelConnection = new CancelConnection();
     }
 
-    @Override protected PointWrapper doInBackground(Void... params) {
-        AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
-
-        // first look into local database
-        HistoryPointProfile historyPointProfile = null;
-        try {
-            historyPointProfile = new HistoryPointProfile(
-                    context,
-                    HistoryPointProfile.ID_ADDRESS_POINTS,
-                    accessDatabaseInstance.getJSONFavoritePointListOfProfile(HistoryPointProfile.ID_ADDRESS_POINTS));
-        } catch (JSONException e) {
-            historyPointProfile = null;
-        } finally {
-            if (historyPointProfile != null) {
-                TreeMap<Float,PointWrapper> distancesToFavoritesMap = new TreeMap<Float,PointWrapper>();
-                for (PointWrapper address : historyPointProfile.getPointProfileObjectList()) {
-                    float[] results = new float[1];
-                    Location.distanceBetween(
-                            latitude, longitude,
-                            address.getPoint().getLatitude(), address.getPoint().getLongitude(),
-                            results);
-                    distancesToFavoritesMap.put(results[0], address);
-                }
-                Map.Entry<Float,PointWrapper> closestAddress = distancesToFavoritesMap.firstEntry();
-                if (closestAddress != null
-                        && closestAddress.getKey() < DistanceThreshold.TWENTY_METERS.getDistanceThresholdInMeters()) {
-                    return closestAddress.getValue();
-                }
-            }
-        }
-
-        // otherwise query address provider
-        JSONObject jsonStreetAddress = null;
+    @Override protected ArrayList<PointWrapper> doInBackground(Void... params) {
+        JSONArray jsonStreetAddressList = new JSONArray();
 
         // got coordinates, require address
         if (latitude != 0.0 && longitude != 0.0) {
+            // first look into local database
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(context);
+            HistoryPointProfile historyPointProfile = null;
+            try {
+                historyPointProfile = new HistoryPointProfile(
+                        context,
+                        HistoryPointProfile.ID_ADDRESS_POINTS,
+                        accessDatabaseInstance.getJSONFavoritePointListOfProfile(HistoryPointProfile.ID_ADDRESS_POINTS));
+            } catch (JSONException e) {
+                historyPointProfile = null;
+            } finally {
+                if (historyPointProfile != null) {
+                    TreeMap<Float,PointWrapper> distancesToFavoritesMap = new TreeMap<Float,PointWrapper>();
+                    for (PointWrapper address : historyPointProfile.getPointProfileObjectList()) {
+                        float[] results = new float[1];
+                        Location.distanceBetween(
+                                latitude, longitude,
+                                address.getPoint().getLatitude(), address.getPoint().getLongitude(),
+                                results);
+                        distancesToFavoritesMap.put(results[0], address);
+                    }
+                    Map.Entry<Float,PointWrapper> closestAddress = distancesToFavoritesMap.firstEntry();
+                    if (closestAddress != null
+                            && closestAddress.getKey() < DistanceThreshold.TWENTY_METERS.getDistanceThresholdInMeters()) {
+                        ArrayList<PointWrapper> pointsFromDatabase = new ArrayList<PointWrapper>();
+                        pointsFromDatabase.add(closestAddress.getValue());
+                        return pointsFromDatabase;
+                    }
+                }
+            }
+
+            // otherwise query address provider
+            JSONObject jsonStreetAddress = null;
             try {
                 if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.OSM)) {
                     jsonStreetAddress = requestAddressFromOpenStreetMap(
@@ -162,7 +164,9 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                 float[] results = new float[1];
                 Location.distanceBetween(
                         latitude, longitude, jsonStreetAddress.getDouble("lat"), jsonStreetAddress.getDouble("lon"), results);
-                if (results[0] > DistanceThreshold.ONE_HUNDRED_METERS.getDistanceThresholdInMeters()) {
+                if (results[0] < DistanceThreshold.ONE_HUNDRED_METERS.getDistanceThresholdInMeters()) {
+                    jsonStreetAddressList.put(jsonStreetAddress);
+                } else {
                     // if the address differs for more than 100 meters, don't take it
                     this.returnCode = Constants.RC.NO_ADDRESS_FOR_COORDINATES;
                 }
@@ -181,7 +185,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                 if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.OSM)) {
                     queryCoordinatesURL = String.format(
                             Locale.ROOT,
-                            "%1$s/search?format=jsonv2&q=%2$s&accept-language=%3$s&addressdetails=1&limit=1",
+                            "%1$s/search?format=jsonv2&q=%2$s&accept-language=%3$s&addressdetails=1&limit=10",
                             OSM_URL,
                             URLEncoder.encode(address, "UTF-8"),
                             Locale.getDefault().getLanguage());
@@ -201,7 +205,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                                 currentLocation.getPoint().getLongitude() + 0.1,
                                 currentLocation.getPoint().getLatitude() + 0.1);
                     }
-                    jsonStreetAddress = requestCoordinatesFromOpenStreetMap(context, queryCoordinatesURL);
+                    jsonStreetAddressList = requestCoordinatesFromOpenStreetMap(context, queryCoordinatesURL);
                 } else if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.GOOGLE)) {
                     queryCoordinatesURL = String.format(
                             Locale.ROOT,
@@ -209,7 +213,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                             GOOGLE_MAPS_URL,
                             URLEncoder.encode(address, "UTF-8"),
                             Locale.getDefault().getLanguage());
-                    jsonStreetAddress = requestCoordinatesFromGoogle(context, queryCoordinatesURL);
+                    jsonStreetAddressList = requestCoordinatesFromGoogle(context, queryCoordinatesURL);
                 } else {
                     this.returnCode = Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED;
                 }
@@ -229,41 +233,37 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
             return null;
         }
 
-        PointWrapper addressPoint = null;
+        ArrayList<PointWrapper> addressPointList = new ArrayList<PointWrapper>();
         try {
-            addressPoint = new PointWrapper(context, jsonStreetAddress);
+            for (int i=0; i<jsonStreetAddressList.length(); i++) {
+                addressPointList.add(
+                        new PointWrapper(
+                            context, jsonStreetAddressList.getJSONObject(i)));
+            }
         } catch (JSONException | NullPointerException e) {
-            addressPoint = null;
-            returnCode = Constants.RC.BAD_RESPONSE;
+            addressPointList = null;
         } finally {
-            if (addressPoint != null) {
-                // add to database
-                accessDatabaseInstance.addFavoritePointToProfile(addressPoint, HistoryPointProfile.ID_ADDRESS_POINTS);
+            if (addressPointList == null
+                    || addressPointList.isEmpty()) {
+                returnCode = Constants.RC.BAD_RESPONSE;
+                return null;
             }
         }
-        return addressPoint;
+        return addressPointList;
     }
 
-    @Override protected void onPostExecute(PointWrapper addressPoint) {
+    @Override protected void onPostExecute(ArrayList<PointWrapper> addressPointList) {
         if (addressListener != null) {
             addressListener.addressRequestFinished(
-                    context, returnCode, addressPoint);
+                    context, returnCode, addressPointList);
         }
     }
 
-    @Override protected void onCancelled(PointWrapper addressPoint) {
+    @Override protected void onCancelled(ArrayList<PointWrapper> addressPointList) {
         if (addressListener != null) {
             addressListener.addressRequestFinished(
-                    context, Constants.RC.CANCELLED, addressPoint);
+                    context, Constants.RC.CANCELLED, addressPointList);
         }
-    }
-
-    public int getPointPutIntoVariable() {
-        return this.pointPutInto;
-    }
-
-    public void setPointPutIntoVariable(int newPointPutInto) {
-        this.pointPutInto = newPointPutInto;
     }
 
     public void cancel() {
@@ -339,8 +339,8 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         return jsonStreetAddress;
     }
 
-    private JSONObject requestCoordinatesFromGoogle(Context context, String query) throws ServerCommunicationException {
-        JSONObject jsonStreetAddress = null;
+    private JSONArray requestCoordinatesFromGoogle(Context context, String query) throws ServerCommunicationException {
+        JSONArray jsonStreetAddressList = new JSONArray();
         int returnCode = Constants.RC.OK;
         try {
             // create connection
@@ -361,12 +361,17 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                     } else {
                         returnCode = Constants.RC.BAD_RESPONSE;
                     }
-                } else if (jsonServerResponse.getJSONArray("results").length() == 0) {
-                    // no coordinates found
-                    returnCode = Constants.RC.NO_COORDINATES_FOR_ADDRESS;
                 } else {
-                    jsonStreetAddress = createJsonStreetAddressFromGoogle(
-                            context, jsonServerResponse.getJSONArray("results").getJSONObject(0));
+                    JSONArray jsonServerResponseResults = jsonServerResponse.getJSONArray("results");
+                    for (int i=0; i<jsonServerResponseResults.length(); i++) {
+                        // create street address in json format
+                        jsonStreetAddressList.put(
+                                createJsonStreetAddressFromGoogle(
+                                    context, jsonServerResponseResults.getJSONObject(i)));
+                    }
+                    if (jsonStreetAddressList.length() == 0) {
+                        returnCode = Constants.RC.NO_COORDINATES_FOR_ADDRESS;
+                    }
                 }
             }
         } catch (IOException e) {
@@ -383,7 +388,7 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
                 throw new ServerCommunicationException(context, returnCode);
             }
         }
-        return jsonStreetAddress;
+        return jsonStreetAddressList;
     }
 
     private JSONObject createJsonStreetAddressFromGoogle(
@@ -496,149 +501,6 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
     }
 
 
-    private JSONObject requestCoordinatesFromOpenStreetMap(Context context, String queryURL) throws ServerCommunicationException {
-        JSONObject jsonStreetAddress = null;
-        int returnCode = Constants.RC.OK;
-        try {
-            // create connection
-            connection = ServerUtility.getHttpsURLConnectionObject(
-                    context, queryURL, null);
-            cancelConnectionHandler.postDelayed(cancelConnection, 100);
-            connection.connect();
-            returnCode = connection.getResponseCode();
-            cancelConnectionHandler.removeCallbacks(cancelConnection);
-            if (isCancelled()) {
-                returnCode = Constants.RC.CANCELLED;
-            } else if (returnCode == Constants.RC.OK) {
-                JSONArray jsonServerResponse = ServerUtility.processServerResponseAsJSONArray(connection);
-                if (jsonServerResponse.length() == 0) {
-                    // no coordinates
-                    returnCode = Constants.RC.NO_COORDINATES_FOR_ADDRESS;
-                } else {
-                    // create street address in json format
-                    jsonStreetAddress = createJsonStreetAddressFromOSM(context, jsonServerResponse.getJSONObject(0));
-                }
-            }
-        } catch (IOException e) {
-            returnCode = Constants.RC.CONNECTION_FAILED;
-        } catch (JSONException e) {
-            returnCode = Constants.RC.BAD_RESPONSE;
-        } catch (ServerCommunicationException e) {
-            returnCode = e.getReturnCode();
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-            if (returnCode != Constants.RC.OK) {
-                throw new ServerCommunicationException(context, returnCode);
-            }
-        }
-        return jsonStreetAddress;
-    }
-
-    private JSONObject createJsonStreetAddressFromOSM(
-            Context context, JSONObject jsonAddressData) throws JSONException {
-        // create street address in json format
-        JSONObject jsonStreetAddress = new JSONObject();
-        // name
-        jsonStreetAddress.put("name", jsonAddressData.getString("display_name"));
-        jsonStreetAddress.put("display_name", jsonAddressData.getString("display_name"));
-        // type and subtype
-        jsonStreetAddress.put("type", Constants.POINT.STREET_ADDRESS);
-        jsonStreetAddress.put("sub_type", StringUtility.formatPointType(context, Constants.POINT.STREET_ADDRESS));
-        // coordinates
-        jsonStreetAddress.put("lat", jsonAddressData.getDouble("lat"));
-        jsonStreetAddress.put("lon", jsonAddressData.getDouble("lon"));
-        // address sub object
-        JSONObject jsonAddressComponentList = jsonAddressData.getJSONObject("address");
-        Iterator<String> keysIterator = jsonAddressComponentList.keys();
-        while (keysIterator.hasNext()) {
-            String type = (String)keysIterator.next();
-            if (type.equals("house_number")) {
-                jsonStreetAddress.put("house_number", jsonAddressComponentList.getString(type));
-            } else if (type.equals("road")) {
-                jsonStreetAddress.put("road", jsonAddressComponentList.getString(type));
-            } else if (type.equals("residential")) {
-                jsonStreetAddress.put("residential", jsonAddressComponentList.getString(type));
-            } else if (type.equals("suburb")) {
-                jsonStreetAddress.put("suburb", jsonAddressComponentList.getString(type));
-            } else if (type.equals("city_district")) {
-                jsonStreetAddress.put("city_district", jsonAddressComponentList.getString(type));
-            } else if (type.equals("postcode")) {
-                jsonStreetAddress.put("postcode", jsonAddressComponentList.getString(type));
-            } else if (type.equals("city")) {
-                jsonStreetAddress.put("city", jsonAddressComponentList.getString(type));
-            } else if (type.equals("state")) {
-                jsonStreetAddress.put("state", jsonAddressComponentList.getString(type));
-            } else if (type.equals("country")) {
-                jsonStreetAddress.put("country", jsonAddressComponentList.getString(type));
-            } else if (type.equals("country_code")) {
-                jsonStreetAddress.put("country_code", jsonAddressComponentList.getString(type));
-            }
-        }
-        // extra name, not always there
-        if (jsonAddressData.has("name")) {
-            String extraName = jsonAddressData.getString("name");
-            if (! TextUtils.isEmpty(extraName)
-                    && ! extraName.equals("null")) {
-                jsonStreetAddress.put("extra_name", extraName);
-                    }
-        }
-        return jsonStreetAddress;
-    }
-
-}
-
-/*
-
-        // got address, require coordinates
-        } else if (! TextUtils.isEmpty(address)) {
-            String queryCoordinatesURL = null;
-            int boundaryBoxExpansionFactor = 0;
-            final int MAX_BOUNDARY_BOX_EXPANSION_FACTOR = 3;
-            while (this.returnCode == Constants.RC.OK) {
-                boundaryBoxExpansionFactor++;
-                try {
-                    if (settingsManagerInstance.getServerSettings().getSelectedAddressProvider().getId().equals(Constants.ADDRESS_PROVIDER.OSM)) {
-                        queryCoordinatesURL = String.format(
-                                Locale.ROOT,
-                                "%1$s/search?format=jsonv2&q=%2$s&accept-language=%3$s&addressdetails=1&limit=1",
-                                OSM_URL,
-                                URLEncoder.encode(address, "UTF-8"),
-                                Locale.getDefault().getLanguage());
-                        // get current location
-                        if (nearbyCurrentLocation) {
-                            PositionManager positionManagerInstance = PositionManager.getInstance(context);
-                            PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
-                            if (currentLocation == null) {
-                                this.returnCode = Constants.RC.NO_LOCATION_FOUND;
-                                return null;
-                            }
-                            queryCoordinatesURL += String.format(
-                                    Locale.ROOT,
-                                    "&viewboxlbrt=%1$f,%2$f,%3$f,%4$f&bounded=1",
-                                    currentLocation.getPoint().getLongitude() - 0.05*boundaryBoxExpansionFactor,
-                                    currentLocation.getPoint().getLatitude() - 0.05*boundaryBoxExpansionFactor,
-                                    currentLocation.getPoint().getLongitude() + 0.05*boundaryBoxExpansionFactor,
-                                    currentLocation.getPoint().getLatitude() + 0.05*boundaryBoxExpansionFactor);
-                        }
-                        jsonStreetAddress = requestCoordinatesFromOpenStreetMap(context, queryCoordinatesURL);
-                        break;
-                    } else {
-                        this.returnCode = Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED;
-                    }
-                } catch (ServerCommunicationException e) {
-                    if (nearbyCurrentLocation
-                            && boundaryBoxExpansionFactor < MAX_BOUNDARY_BOX_EXPANSION_FACTOR
-                            && e.getReturnCode() == Constants.RC.NO_COORDINATES_FOR_ADDRESS) {
-                        continue;
-                    }
-                    this.returnCode = e.getReturnCode();
-                } catch (UnsupportedEncodingException e) {
-                    this.returnCode = Constants.RC.NO_COORDINATES_FOR_ADDRESS;
-                }
-            }
-
     private JSONArray requestCoordinatesFromOpenStreetMap(Context context, String queryURL) throws ServerCommunicationException {
         JSONArray jsonStreetAddressList = new JSONArray();
         int returnCode = Constants.RC.OK;
@@ -681,4 +543,53 @@ public class AddressManager extends AsyncTask<Void, Void, PointWrapper> {
         return jsonStreetAddressList;
     }
 
-*/
+    private JSONObject createJsonStreetAddressFromOSM(
+            Context context, JSONObject jsonAddressData) throws JSONException {
+        // create street address in json format
+        JSONObject jsonStreetAddress = new JSONObject();
+        // name
+        jsonStreetAddress.put("name", jsonAddressData.getString("display_name"));
+        jsonStreetAddress.put("display_name", jsonAddressData.getString("display_name"));
+        // type and subtype
+        jsonStreetAddress.put("type", Constants.POINT.STREET_ADDRESS);
+        jsonStreetAddress.put("sub_type", StringUtility.formatPointType(context, Constants.POINT.STREET_ADDRESS));
+        // coordinates
+        jsonStreetAddress.put("lat", jsonAddressData.getDouble("lat"));
+        jsonStreetAddress.put("lon", jsonAddressData.getDouble("lon"));
+        // address sub object
+        JSONObject jsonAddressComponentList = jsonAddressData.getJSONObject("address");
+        Iterator<String> keysIterator = jsonAddressComponentList.keys();
+        while (keysIterator.hasNext()) {
+            String type = (String)keysIterator.next();
+            if (type.equals("house_number")) {
+                jsonStreetAddress.put("house_number", jsonAddressComponentList.getString(type));
+            } else if (type.equals("pedestrian")) {
+                jsonStreetAddress.put("road", jsonAddressComponentList.getString(type));
+            } else if (type.equals("road")) {
+                jsonStreetAddress.put("road", jsonAddressComponentList.getString(type));
+            } else if (type.equals("residential")) {
+                jsonStreetAddress.put("residential", jsonAddressComponentList.getString(type));
+            } else if (type.equals("suburb")) {
+                jsonStreetAddress.put("suburb", jsonAddressComponentList.getString(type));
+            } else if (type.equals("city_district")) {
+                jsonStreetAddress.put("city_district", jsonAddressComponentList.getString(type));
+            } else if (type.equals("postcode")) {
+                jsonStreetAddress.put("postcode", jsonAddressComponentList.getString(type));
+            } else if (type.equals("village")) {
+                jsonStreetAddress.put("city", jsonAddressComponentList.getString(type));
+            } else if (type.equals("city")) {
+                jsonStreetAddress.put("city", jsonAddressComponentList.getString(type));
+            } else if (type.equals("state")) {
+                jsonStreetAddress.put("state", jsonAddressComponentList.getString(type));
+            } else if (type.equals("country")) {
+                jsonStreetAddress.put("country", jsonAddressComponentList.getString(type));
+            } else if (type.equals("country_code")) {
+                jsonStreetAddress.put("country_code", jsonAddressComponentList.getString(type));
+            } else if (type.equals(jsonAddressData.getString("type"))) {
+                jsonStreetAddress.put("extra_name", jsonAddressComponentList.getString(type));
+            }
+        }
+        return jsonStreetAddress;
+    }
+
+}

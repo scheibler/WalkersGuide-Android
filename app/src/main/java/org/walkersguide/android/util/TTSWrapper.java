@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import android.media.AudioAttributes;
+import android.accessibilityservice.AccessibilityServiceInfo;
 
 
 public class TTSWrapper extends UtteranceProgressListener {
@@ -66,19 +68,29 @@ public class TTSWrapper extends UtteranceProgressListener {
         return false;
     }
 
-    public void speak(String message, boolean talkbackOnly, boolean interrupt) {
-        if (interrupt) {
-            stop();
+    public boolean isScreenReaderEnabled() {
+        return accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN).size() > 0;
+    }
+
+    public void announceToScreenReader(String message) {
+        if (isScreenReaderEnabled()) {
+            announce(message, false);
         }
-        // set language
-        if (tts != null) {
-            if (! talkbackOnly
-                    || (accessibilityManager.isEnabled() && accessibilityManager.isTouchExplorationEnabled())) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    ttsGreater21(message);
-                } else {
-                    ttsUnder20(message);
-                }
+    }
+
+    public void announceToEveryone(String message) {
+        announce(message, true);
+    }
+
+    private void announce(String message, boolean interrupt) {
+        if (isInitialized()) {
+            if (interrupt) {
+                tts.stop();
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ttsGreater21(message);
+            } else {
+                ttsUnder20(message);
             }
         }
     }
@@ -94,16 +106,21 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void ttsGreater21(String text) {
+        // set audio attributes
+        AudioAttributes.Builder audioAttributesBuilder = new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+        if (isScreenReaderEnabled()) {
+            audioAttributesBuilder.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY);
+        } else {
+            audioAttributesBuilder.setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE);
+        }
+        tts.setAudioAttributes(audioAttributesBuilder.build());
+        // speak
         for (String part : splitText(text)) {
             tts.speak(part, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
         }
     }
 
-    public void stop() {
-        if (tts != null) {
-            tts.stop();
-        }
-    }
 
     /**
      * split text which is longer than MAX_TEXT_LENGTH by DELIMITER

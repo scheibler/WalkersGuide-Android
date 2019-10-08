@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/activityMargin"
@@ -27,7 +28,9 @@
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelAppInformationHeader" />
+                android:text="@string/labelAppInformationHeader"
+                android:accessibilityHeading="true"
+                tools:ignore="UnusedAttribute" />
 
             <TextView
                 android:id="@+id/labelProgramVersion"
@@ -46,7 +49,9 @@
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelContactDataHeader" />
+                android:text="@string/labelContactDataHeader"
+                android:accessibilityHeading="true"
+                tools:ignore="UnusedAttribute" />
 
             <TextView
                 android:id="@+id/labelInfoEMail"
@@ -74,7 +79,9 @@
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelServerHeader" />
+                android:text="@string/labelServerHeader"
+                android:accessibilityHeading="true"
+                tools:ignore="UnusedAttribute" />
 
             <TextView
                 android:id="@+id/labelServerName"

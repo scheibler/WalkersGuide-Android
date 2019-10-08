@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.segmentdetails;
 
+import android.support.v4.view.ViewCompat;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -221,14 +222,19 @@ public class NextIntersectionsFragment extends AbstractUITab implements NextInte
 
     private void requestNextIntersections(Context context) {
         // heading
+        ViewCompat.setAccessibilityLiveRegion(
+                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelHeading.setText(
                 context.getResources().getQuantityString(R.plurals.point, 0, 0));
         buttonRefresh.setContentDescription(
                 context.getResources().getString(R.string.buttonCancel));
         buttonRefresh.setImageResource(R.drawable.cancel);
+
         // list view
         listViewNextIntersections.setAdapter(null);
         listViewNextIntersections.setOnScrollListener(null);
+        ViewCompat.setAccessibilityLiveRegion(
+                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelEmptyListView.setText(
                 context.getResources().getString(R.string.messagePleaseWait));
         // start poi profile update request
@@ -271,6 +277,8 @@ public class NextIntersectionsFragment extends AbstractUITab implements NextInte
                 }
             }
 
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
             labelHeading.setText(
                     String.format(
                         context.getResources().getString(R.string.labelNextIntersectionsSuccess),
@@ -300,6 +308,8 @@ public class NextIntersectionsFragment extends AbstractUITab implements NextInte
             });
 
         } else {
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
             labelEmptyListView.setText(
                     ServerUtility.getErrorMessageForReturnCode(context, returnCode));
             // show select map dialog

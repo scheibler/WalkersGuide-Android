@@ -2,6 +2,17 @@ Change Log
 ==========
 
 
+v1.0.1: 2019-10-05
+------------------
+
+TTS uses the accessibility audio channel and volume, if Talkback is enabled
+Auto-skip to next route point rules improved
+GetCurrentPosition and EnterAddress dialogs reworked
+Smaller bug fixes and UI changes
+Upgraded to gradle wrapper 5.6.1, android gradle plugin 3.5 and android sdk version 29 (10.0)
+
+
+
 v1.0.0: 2019-08-20
 ------------------
 

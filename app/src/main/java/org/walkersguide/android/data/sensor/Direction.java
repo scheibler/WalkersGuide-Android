@@ -2,12 +2,9 @@ package org.walkersguide.android.data.sensor;
 
 import android.content.Context;
 
-import android.os.Build;
-
 import com.google.common.primitives.Ints;
 
 import java.lang.NullPointerException;
-import java.lang.StringBuilder;
 import java.lang.System;
 
 import org.json.JSONException;
@@ -117,36 +114,12 @@ public class Direction {
         return this.accuracyRating;
     }
 
-    public String getDetailedDescription() {
-        StringBuilder stringBuilder = new StringBuilder();
-        // add bearing and formatted direction
-        stringBuilder.append(toString());
-        // append formatted accuracy
-        if (this.accuracyRating != Constants.DIRECTION_ACCURACY_RATING.UNKNOWN) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                stringBuilder.append(System.lineSeparator());
-            } else {
-                stringBuilder.append("\n");
-            }
-            stringBuilder.append(
-                    String.format(
-                        "%1$s: %2$s",
-                        context.getResources().getString(R.string.directionAccuracyLabel),
-                        Direction.formatAccuracyRating(this.context, this.accuracyRating))
-                    );
-        }
-        // append direction outdated message
+    public boolean isOutdated() {
         if (this.time > -1l
                 && (System.currentTimeMillis() - this.time) > DIRECTION_OUTDATED_AFTER_IN_MS) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                stringBuilder.append(System.lineSeparator());
-            } else {
-                stringBuilder.append("\n");
-            }
-            stringBuilder.append(
-                    context.getResources().getString(R.string.directionAccuracyOutdated));
+            return true;
         }
-        return stringBuilder.toString();
+        return false;
     }
 
     public JSONObject toJson() throws JSONException {

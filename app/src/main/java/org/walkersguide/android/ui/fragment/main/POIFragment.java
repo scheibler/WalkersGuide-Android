@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.main;
 
+import android.support.v4.view.ViewCompat;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -411,6 +412,7 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
         // content layout
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
+
         buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
         buttonRefresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -641,6 +643,8 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
         }
 
         // heading
+        ViewCompat.setAccessibilityLiveRegion(
+                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         if (! TextUtils.isEmpty(searchTerm)) {
             labelHeading.setText(
                     context.getResources().getQuantityString(R.plurals.result, 0, 0));
@@ -651,12 +655,15 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
         buttonRefresh.setContentDescription(
                 context.getResources().getString(R.string.buttonCancel));
         buttonRefresh.setImageResource(R.drawable.cancel);
+
         // list view
         listViewPOI.setAdapter(null);
         listViewPOI.setOnScrollListener(null);
         if (listViewPOI.getFooterViewsCount() > 0) {
             listViewPOI.removeFooterView(labelMoreResultsFooter);
         }
+        ViewCompat.setAccessibilityLiveRegion(
+                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelEmptyListView.setClickable(false);
         labelEmptyListView.setText(
                 context.getResources().getString(R.string.messagePleaseWait));
@@ -679,6 +686,8 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
                 && historyPointProfile.getPointProfileObjectList() != null) {
 
             // header and listview
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
             if (poiSettings.filterPointListByDirection()) {
                 ArrayList<PointProfileObject> listOfVDFilteredPoints = filterPointProfileObjectListByViewingDirection(
                         historyPointProfile.getPointProfileObjectList());
@@ -769,6 +778,8 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
             });
 
         } else {
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
             labelEmptyListView.setText(
                     ServerUtility.getErrorMessageForReturnCode(context, returnCode));
         }
@@ -886,6 +897,8 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
         }
 
         // heading
+        ViewCompat.setAccessibilityLiveRegion(
+                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         if (! TextUtils.isEmpty(searchTerm)) {
             labelHeading.setText(
                     context.getResources().getQuantityString(R.plurals.result, 0, 0));
@@ -896,12 +909,15 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
         buttonRefresh.setContentDescription(
                 context.getResources().getString(R.string.buttonCancel));
         buttonRefresh.setImageResource(R.drawable.cancel);
+
         // list view
         listViewPOI.setAdapter(null);
         listViewPOI.setOnScrollListener(null);
         if (listViewPOI.getFooterViewsCount() > 0) {
             listViewPOI.removeFooterView(labelMoreResultsFooter);
         }
+        ViewCompat.setAccessibilityLiveRegion(
+                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelEmptyListView.setClickable(false);
         labelEmptyListView.setText(
                 context.getResources().getString(R.string.messagePleaseWait));
@@ -924,6 +940,8 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
                 && poiProfile.getPointProfileObjectList() != null) {
 
             // fill listview
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
             if (poiSettings.filterPointListByDirection()) {
                 // filter by viewing direction
                 ArrayList<PointProfileObject> listOfFilteredPOI = filterPointProfileObjectListByViewingDirection(
@@ -1019,6 +1037,8 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
             });
 
         } else {
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
             labelEmptyListView.setText(
                     ServerUtility.getErrorMessageForReturnCode(context, returnCode));
             // show select map dialog

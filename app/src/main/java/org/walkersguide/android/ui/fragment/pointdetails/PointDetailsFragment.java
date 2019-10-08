@@ -270,7 +270,7 @@ public class PointDetailsFragment extends AbstractUITab {
                             }
 
                     // contact attributes
-                    if (! TextUtils.isEmpty(poi.createPrintableAddress())
+                    if (poi.hasAddress()
                             || ! TextUtils.isEmpty(poi.getEmail())
                             || ! TextUtils.isEmpty(poi.getPhone())
                             || ! TextUtils.isEmpty(poi.getWebsite())
@@ -281,13 +281,13 @@ public class PointDetailsFragment extends AbstractUITab {
                                 getResources().getString(R.string.labelPointPOIContactHeading),
                                 true, TEXTVIEW_NO_AUTO_LINK);
                         // post address
-                        if (! TextUtils.isEmpty(poi.createPrintableAddress())) {
+                        if (poi.hasAddress()) {
                             addTextView(
                                     TEXTVIEW_NO_ID,
                                     String.format(
                                         "%1$s: %2$s",
                                         getResources().getString(R.string.labelPointPOIContactPostAddress),
-                                        poi.createPrintableAddress()),
+                                        poi.formatAddressLongLength()),
                                     false, Linkify.MAP_ADDRESSES);
                         }
                         // email

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
+import timber.log.Timber;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -41,8 +42,6 @@ import org.walkersguide.android.helper.PointUtility;
 import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.AddressManager;
-import org.walkersguide.android.server.AddressManager.AddressListener;
 import org.walkersguide.android.server.RouteManager;
 import org.walkersguide.android.server.RouteManager.RouteCalculationListener;
 import org.walkersguide.android.ui.activity.MainActivity;
@@ -54,13 +53,13 @@ import org.walkersguide.android.util.SettingsManager.RouteSettings;
 
 
 public class PlanRouteDialog extends DialogFragment
-    implements AddressListener, ChildDialogCloseListener, RouteCalculationListener {
+    implements ChildDialogCloseListener, RouteCalculationListener {
 
     private AccessDatabase accessDatabaseInstance;
     private PositionManager positionManagerInstance;
     private RouteManager routeManagerInstance;
     private SettingsManager settingsManagerInstance;
-    private AddressManager addressManagerRequest;
+    private boolean showGetCurrentLocationDialog;
 
     // query in progress vibration
     private Handler progressHandler;
@@ -71,8 +70,11 @@ public class PlanRouteDialog extends DialogFragment
     private Button buttonStartPoint, buttonDestinationPoint;
     private LinearLayout layoutViaPointList;
 
-    public static PlanRouteDialog newInstance() {
+    public static PlanRouteDialog newInstance(boolean showGetCurrentLocationDialog) {
         PlanRouteDialog planRouteDialogInstance = new PlanRouteDialog();
+        Bundle args = new Bundle();
+        args.putBoolean("showGetCurrentLocationDialog", showGetCurrentLocationDialog);
+        planRouteDialogInstance.setArguments(args);
         return planRouteDialogInstance;
     }
 
@@ -86,7 +88,6 @@ public class PlanRouteDialog extends DialogFragment
         filter.addAction(Constants.ACTION_NEW_LOCATION);
         filter.addAction(Constants.ACTION_UPDATE_UI);
         LocalBroadcastManager.getInstance(context).registerReceiver(mMessageReceiver, filter);
-        addressManagerRequest = null;
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
@@ -94,6 +95,12 @@ public class PlanRouteDialog extends DialogFragment
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            showGetCurrentLocationDialog = savedInstanceState.getBoolean("showGetCurrentLocationDialog");
+        } else {
+            showGetCurrentLocationDialog = getArguments().getBoolean("showGetCurrentLocationDialog");
+        }
+
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -102,9 +109,9 @@ public class PlanRouteDialog extends DialogFragment
         buttonStartPoint = (Button) view.findViewById(R.id.buttonStartPoint);
         buttonStartPoint.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(Constants.POINT_PUT_INTO.START);
-                selectPointDialog.setTargetFragment(PlanRouteDialog.this, 1);
-                selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+                PointInputDialog pointInputDialog = PointInputDialog.newInstance(Constants.POINT_PUT_INTO.START);
+                pointInputDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                pointInputDialog.show(getActivity().getSupportFragmentManager(), "PointInputDialog");
             }
         });
 
@@ -113,9 +120,9 @@ public class PlanRouteDialog extends DialogFragment
         buttonDestinationPoint = (Button) view.findViewById(R.id.buttonDestinationPoint);
         buttonDestinationPoint.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(Constants.POINT_PUT_INTO.DESTINATION);
-                selectPointDialog.setTargetFragment(PlanRouteDialog.this, 1);
-                selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+                PointInputDialog pointInputDialog = PointInputDialog.newInstance(Constants.POINT_PUT_INTO.DESTINATION);
+                pointInputDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                pointInputDialog.show(getActivity().getSupportFragmentManager(), "PointInputDialog");
             }
         });
 
@@ -123,9 +130,9 @@ public class PlanRouteDialog extends DialogFragment
         buttonNewRoute.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
-                routeSettings.setStartPoint(null);
+                routeSettings.removeStartPoint();
                 routeSettings.clearViaPointList();
-                routeSettings.setDestinationPoint(null);
+                routeSettings.removeDestinationPoint();
                 positionManagerInstance.requestCurrentLocation();
             }
         });
@@ -134,11 +141,10 @@ public class PlanRouteDialog extends DialogFragment
         buttonAddViaPoint.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 RouteSettings routeSettings = settingsManagerInstance.getRouteSettings();
-                routeSettings.appendEmptyViaPoint();
-                SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(
-                        Constants.POINT_PUT_INTO.VIA + routeSettings.getViaPointList().size() - 1);
-                selectPointDialog.setTargetFragment(PlanRouteDialog.this, 1);
-                selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+                PointInputDialog pointInputDialog = PointInputDialog.newInstance(
+                        Constants.POINT_PUT_INTO.VIA + routeSettings.getViaPointList().size());
+                pointInputDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                pointInputDialog.show(getActivity().getSupportFragmentManager(), "PointInputDialog");
             }
         });
 
@@ -221,17 +227,20 @@ public class PlanRouteDialog extends DialogFragment
                     dialog.dismiss();
                 }
             });
+            // show GetCurrentPositionDialog once on startup
+            if (showGetCurrentLocationDialog) {
+                GetCurrentPositionDialog getCurrentPositionDialog = GetCurrentPositionDialog.newInstance(Constants.POINT_PUT_INTO.START);
+                getCurrentPositionDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                getCurrentPositionDialog.show(
+                        getActivity().getSupportFragmentManager(), "GetCurrentPositionDialog");
+                showGetCurrentLocationDialog = false;
+            }
         }
     }
 
-    @Override public void addressRequestFinished(Context context, int returnCode, PointWrapper addressPoint) {
-        if (returnCode == Constants.RC.OK
-                && addressPoint != null) {
-            PointUtility.putNewPoint(
-                    context, addressPoint, addressManagerRequest.getPointPutIntoVariable());
-            // request gps location again to refresh
-            positionManagerInstance.requestCurrentLocation();
-        }
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean("showGetCurrentLocationDialog", showGetCurrentLocationDialog);
     }
 
     @Override public void childDialogClosed() {
@@ -287,10 +296,6 @@ public class PlanRouteDialog extends DialogFragment
 
     @Override public void onDismiss(final DialogInterface dialog) {
         super.onDismiss(dialog);
-        if (addressManagerRequest != null
-                && addressManagerRequest.getStatus() != AsyncTask.Status.FINISHED) {
-            addressManagerRequest.cancel();
-        }
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
         progressHandler.removeCallbacks(progressUpdater);
     }
@@ -306,7 +311,7 @@ public class PlanRouteDialog extends DialogFragment
                             String.format(
                                 "%1$s:\n%2$s",
                                 context.getResources().getString(R.string.buttonStartPoint),
-                                context.getResources().getString(R.string.labelNoSimulatedPointSelected))
+                                context.getResources().getString(R.string.labelNoPointSelected))
                             );
                 } else {
                     buttonStartPoint.setText(
@@ -315,23 +320,11 @@ public class PlanRouteDialog extends DialogFragment
                                 context.getResources().getString(R.string.buttonStartPoint),
                                 startPoint.toString())
                             );
-                    if (startPoint.getPoint() instanceof GPS
-                            && startPoint.getPoint().getName().equals(context.getResources().getString(R.string.currentLocationName))
-                            && (
-                                   addressManagerRequest == null
-                                || addressManagerRequest.getStatus() == AsyncTask.Status.FINISHED)
-                            ) {
-                        addressManagerRequest = new AddressManager(
-                                context, PlanRouteDialog.this,
-                                startPoint.getPoint().getLatitude(),
-                                startPoint.getPoint().getLongitude());
-                        addressManagerRequest.setPointPutIntoVariable(Constants.POINT_PUT_INTO.START);
-                        addressManagerRequest.execute();
-                    }
                 }
 
                 // via points
                 ArrayList<PointWrapper> viaPointList = routeSettings.getViaPointList();
+                Timber.d("viaPointListSize: %1$d", viaPointList.size());
                 if (layoutViaPointList.getChildCount() > viaPointList.size()) {
                     layoutViaPointList.removeViews(
                             viaPointList.size(), layoutViaPointList.getChildCount()-viaPointList.size());
@@ -348,7 +341,7 @@ public class PlanRouteDialog extends DialogFragment
                                     "%1$s %2$d:\n%3$s",
                                     context.getResources().getString(R.string.buttonViaPoint),
                                     (viaPointId - Constants.POINT_PUT_INTO.VIA) + 1,
-                                    context.getResources().getString(R.string.labelNoSimulatedPointSelected))
+                                    context.getResources().getString(R.string.labelNoPointSelected))
                                 );
                     } else {
                         buttonViaPoint.setText(
@@ -372,7 +365,7 @@ public class PlanRouteDialog extends DialogFragment
                             String.format(
                                 "%1$s:\n%2$s",
                                 context.getResources().getString(R.string.buttonDestinationPoint),
-                                context.getResources().getString(R.string.labelNoSimulatedPointSelected))
+                                context.getResources().getString(R.string.labelNoPointSelected))
                             );
                 } else {
                     buttonDestinationPoint.setText(
@@ -381,19 +374,6 @@ public class PlanRouteDialog extends DialogFragment
                                 context.getResources().getString(R.string.buttonDestinationPoint),
                                 destinationPoint.toString())
                             );
-                    if (destinationPoint.getPoint() instanceof GPS
-                            && destinationPoint.getPoint().getName().equals(context.getResources().getString(R.string.currentLocationName))
-                            && (
-                                   addressManagerRequest == null
-                                || addressManagerRequest.getStatus() == AsyncTask.Status.FINISHED)
-                            ) {
-                        addressManagerRequest = new AddressManager(
-                                context, PlanRouteDialog.this,
-                                destinationPoint.getPoint().getLatitude(),
-                                destinationPoint.getPoint().getLongitude());
-                        addressManagerRequest.setPointPutIntoVariable(Constants.POINT_PUT_INTO.DESTINATION);
-                        addressManagerRequest.execute();
-                    }
                 }
 
             } else if(intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
@@ -403,6 +383,7 @@ public class PlanRouteDialog extends DialogFragment
     };
 
     private Button createViaPointButton(Context context, int id) {
+        Timber.d("createViaPointButton: id=%1$d", id);
         Button button = new Button(context);
         button.setId(id);
         // layout params
@@ -415,9 +396,9 @@ public class PlanRouteDialog extends DialogFragment
         // click listener
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(view.getId());
-                selectPointDialog.setTargetFragment(PlanRouteDialog.this, 1);
-                selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+                PointInputDialog pointInputDialog = PointInputDialog.newInstance(view.getId());
+                pointInputDialog.setTargetFragment(PlanRouteDialog.this, 1);
+                pointInputDialog.show(getActivity().getSupportFragmentManager(), "PointInputDialog");
             }
         });
         return button;

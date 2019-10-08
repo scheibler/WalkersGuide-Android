@@ -20,16 +20,16 @@ if (keystoreProperties.isEmpty()) {
 }
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
 
     defaultConfig {
         applicationId "org.walkersguide.android"
         resConfigs "en", "de"
         minSdkVersion 16
-        targetSdkVersion 27
-        versionCode 12
-        versionName '1.0.0'
+        targetSdkVersion 29
+        versionCode 15
+        versionName '1.0.1'
         // personal data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
@@ -41,6 +41,8 @@ android {
         buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
         buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
         buildConfigField 'Integer', 'MINIMAL_API_VERSION', '1'
+        // set .apk name
+        setProperty("archivesBaseName", "${archivesBaseName}-$versionName")
     }
 
     signingConfigs {
@@ -59,23 +61,16 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            if (outputFile != null && outputFileName.endsWith('.apk')) {
-                outputFileName = "${archivesBaseName}-${variant.versionName}.apk"
-            }
-        }
-    }
-
     lintOptions {
         disable "StaticFieldLeak", "InflateParams", "GoogleAppIndexingWarning",
-                "ButtonStyle", "UseSparseArrays", "UseCompoundDrawables", "DefaultLocale"
+                "ButtonStyle", "UseSparseArrays", "UseCompoundDrawables",
+                "DefaultLocale", "AllowBackup", "IconLauncherShape", "Autofill", "GradleCompatible"
     }
 }
 
 dependencies {
     // android support library
-    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:design:28.0.0'
     // google java helper library
     implementation 'com.google.guava:guava:27.0.1-android'
     // logging

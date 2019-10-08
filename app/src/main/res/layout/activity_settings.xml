@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/activityMargin"
@@ -27,7 +28,9 @@
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelServerSettingsHeader" />
+                android:text="@string/labelServerSettingsHeader"
+                android:accessibilityHeading="true"
+                tools:ignore="UnusedAttribute" />
 
             <Button
                 android:id="@+id/buttonServerURL"
@@ -63,7 +66,9 @@
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelInterfaceSettingsHeader" />
+                android:text="@string/labelInterfaceSettingsHeader"
+                android:accessibilityHeading="true"
+                tools:ignore="UnusedAttribute" />
 
             <Switch
                 android:id="@+id/buttonEnableTextInputHistory"
@@ -87,7 +92,9 @@
                 android:focusable="true"
                 android:textStyle="bold"
                 android:textColor="@color/heading"
-                android:text="@string/labelImportAndExportSettingsHeader" />
+                android:text="@string/labelImportAndExportSettingsHeader"
+                android:accessibilityHeading="true"
+                tools:ignore="UnusedAttribute" />
 
             <Button
                 android:id="@+id/buttonImportSettings"

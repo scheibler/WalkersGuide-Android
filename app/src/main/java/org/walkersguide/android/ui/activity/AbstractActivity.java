@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.activity;
 
+import android.os.Build;
+import java.lang.System;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -61,7 +63,7 @@ import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.ui.dialog.RequestAddressDialog;
 import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
-import org.walkersguide.android.ui.dialog.SelectPointDialog;
+import org.walkersguide.android.ui.dialog.PointInputDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.ui.filter.InputFilterMinMax;
 import org.walkersguide.android.util.Constants;
@@ -108,6 +110,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
         Direction currentDirection = directionManagerInstance.getCurrentDirection();
         StringBuilder directionDescriptionBuilder = new StringBuilder();
         // get direction source name
+        boolean outdated = false;
         boolean compassCalibrationRequired = false;
         if (directionManagerInstance.getSimulationEnabled()) {
             directionDescriptionBuilder.append(
@@ -130,6 +133,10 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 default:
                     break;
             }
+            if (currentDirection != null
+                    && currentDirection.isOutdated()) {
+                outdated = true;
+            }
         }
         // bearing
         if (currentDirection != null) {
@@ -138,10 +145,15 @@ public abstract class AbstractActivity extends AppCompatActivity {
             directionDescriptionBuilder.append(
                     getResources().getString(R.string.errorNoDirectionFound));
         }
+        // outdated
+        if (outdated) {
+            directionDescriptionBuilder.append(
+                    String.format(", %1$s", getResources().getString(R.string.toolbarSensorDataOutdated)));
+        }
         // calibration required
         if (compassCalibrationRequired) {
             directionDescriptionBuilder.append(
-                    getResources().getString(R.string.directionAccuracyCalibrationRequired));
+                    String.format(", %1$s", getResources().getString(R.string.toolbarCompassCalibrationRequired)));
         }
         // add to menu item
         menu.findItem(R.id.menuItemDirection).setTitle(
@@ -149,42 +161,35 @@ public abstract class AbstractActivity extends AppCompatActivity {
 
         // update location menu item
         PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
+        StringBuilder locationDescriptionBuilder = new StringBuilder();
+        // get location source name
         if (positionManagerInstance.getSimulationEnabled()) {
+            locationDescriptionBuilder.append(
+                    String.format("%1$s: ", getResources().getString(R.string.locationSourceSimulatedPoint)));
             if (currentLocation == null) {
-                menu.findItem(R.id.menuItemLocation).setTitle(
-                        String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.locationSourceSimulatedPoint),
-                            getResources().getString(R.string.errorNoLocationFound))
-                        );
+                locationDescriptionBuilder.append(
+                        getResources().getString(R.string.errorNoLocationFound));
             } else {
-                menu.findItem(R.id.menuItemLocation).setTitle(
-                        String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.locationSourceSimulatedPoint),
-                            currentLocation.getPoint().getName())
-                        );
+                locationDescriptionBuilder.append(
+                        currentLocation.getPoint().getName());
             }
         } else {
+            locationDescriptionBuilder.append(
+                    String.format("%1$s: ", getResources().getString(R.string.locationSourceGPS)));
             if (currentLocation == null) {
-                menu.findItem(R.id.menuItemLocation).setTitle(
-                        String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.locationSourceGPS),
-                            getResources().getString(R.string.errorNoLocationFound))
-                        );
+                locationDescriptionBuilder.append(
+                        getResources().getString(R.string.errorNoLocationFound));
+            } else if (currentLocation.getPoint() instanceof GPS) {
+                locationDescriptionBuilder.append(
+                        ((GPS) currentLocation.getPoint()).getShortStatusMessage());
             } else {
-                int roundedAccuracy = Math.round(((GPS) currentLocation.getPoint()).getAccuracy());
-                menu.findItem(R.id.menuItemLocation).setTitle(
-                        String.format(
-                            "%1$s: %2$s: %3$s",
-                            getResources().getString(R.string.locationSourceGPS),
-                            getResources().getString(R.string.labelGPSAccuracy),
-                            getResources().getQuantityString(
-                                R.plurals.meter, roundedAccuracy, roundedAccuracy))
-                        );
+                locationDescriptionBuilder.append(
+                        currentLocation.getPoint().getName());
             }
         }
+        // add to menu item
+        menu.findItem(R.id.menuItemLocation).setTitle(
+                locationDescriptionBuilder.toString());
 
         return true;
     }
@@ -308,7 +313,10 @@ public abstract class AbstractActivity extends AppCompatActivity {
     public static class SelectDirectionSourceDialog extends DialogFragment implements ChildDialogCloseListener {
 
         private DirectionManager directionManagerInstance;
-        private RadioButton radioCompassDirection, radioGPSDirection;
+        private RadioButton radioCompassDirection;
+        private TextView labelCompassDirectionDetails;
+        private RadioButton radioGPSDirection;
+        private TextView labelGPSDirectionDetails;
         private Switch buttonEnableSimulation;
         private Button buttonSimulatedDirection;
 
@@ -334,6 +342,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
             View view = inflater.inflate(R.layout.dialog_select_direction_source, nullParent);
 
             // compass
+            labelCompassDirectionDetails = (TextView) view.findViewById(R.id.labelCompassDirectionDetails);
             radioCompassDirection = (RadioButton) view.findViewById(R.id.radioCompassDirection);
             radioCompassDirection.setChecked(
                     directionManagerInstance.getDirectionSource() == Constants.DIRECTION_SOURCE.COMPASS);
@@ -349,6 +358,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
             });
 
             // gps
+            labelGPSDirectionDetails = (TextView) view.findViewById(R.id.labelGPSDirectionDetails);
             radioGPSDirection = (RadioButton) view.findViewById(R.id.radioGPSDirection);
             radioGPSDirection.setChecked(
                     directionManagerInstance.getDirectionSource() == Constants.DIRECTION_SOURCE.GPS);
@@ -434,16 +444,18 @@ public abstract class AbstractActivity extends AppCompatActivity {
                                 String.format(
                                     "%1$s: %2$s",
                                     context.getResources().getString(R.string.directionSourceCompass),
-                                    compassDirection.getDetailedDescription())
+                                    compassDirection.toString())
                                 );
+                        labelCompassDirectionDetails.setText(
+                                fillDirectionDetailsLabel(
+                                    context, Constants.DIRECTION_SOURCE.COMPASS, compassDirection));
                     } else {
                         radioCompassDirection.setText(
-                                String.format(
-                                    "%1$s: %2$s",
-                                    context.getResources().getString(R.string.directionSourceCompass),
-                                    context.getResources().getString(R.string.errorNoDirectionFound))
-                                );
+                                context.getResources().getString(R.string.directionSourceCompass));
+                        labelCompassDirectionDetails.setText(
+                                context.getResources().getString(R.string.errorNoDirectionFound));
                     }
+
                 } else if (intent.getAction().equals(Constants.ACTION_NEW_GPS_DIRECTION)) {
                     Direction gpsDirection = Direction.fromString(
                             context, intent.getStringExtra(Constants.ACTION_NEW_GPS_DIRECTION_OBJECT));
@@ -452,16 +464,18 @@ public abstract class AbstractActivity extends AppCompatActivity {
                                 String.format(
                                     "%1$s: %2$s",
                                     context.getResources().getString(R.string.directionSourceGPS),
-                                    gpsDirection.getDetailedDescription())
+                                    gpsDirection.toString())
                                 );
+                        labelGPSDirectionDetails.setText(
+                                fillDirectionDetailsLabel(
+                                    context, Constants.DIRECTION_SOURCE.GPS, gpsDirection));
                     } else {
                         radioGPSDirection.setText(
-                                String.format(
-                                    "%1$s: %2$s",
-                                    context.getResources().getString(R.string.directionSourceGPS),
-                                    context.getResources().getString(R.string.errorNoDirectionFound))
-                                );
+                                context.getResources().getString(R.string.directionSourceGPS));
+                        labelGPSDirectionDetails.setText(
+                                context.getResources().getString(R.string.errorNoDirectionFound));
                     }
+
                 } else if (intent.getAction().equals(Constants.ACTION_NEW_SIMULATED_DIRECTION)) {
                     Direction simulatedDirection = Direction.fromString(
                             context, intent.getStringExtra(Constants.ACTION_NEW_SIMULATED_DIRECTION_OBJECT));
@@ -481,6 +495,37 @@ public abstract class AbstractActivity extends AppCompatActivity {
                                 );
                     }
                 }
+            }
+
+            private String fillDirectionDetailsLabel(Context context, int directionSource, Direction direction) {
+                StringBuilder stringBuilder = new StringBuilder();
+                // append formatted accuracy
+                if (direction.getAccuracyRating() != Constants.DIRECTION_ACCURACY_RATING.UNKNOWN) {
+                    stringBuilder.append(
+                            String.format(
+                                "%1$s: %2$s",
+                                context.getResources().getString(R.string.directionAccuracyLabel),
+                                Direction.formatAccuracyRating(context, direction.getAccuracyRating()))
+                            );
+                    if (directionSource == Constants.DIRECTION_SOURCE.COMPASS
+                            && direction.getAccuracyRating() == Constants.DIRECTION_ACCURACY_RATING.LOW) {
+                        stringBuilder.append(
+                                String.format(" (%1$s)", context.getResources().getString(R.string.toolbarCompassCalibrationRequired)));
+                            }
+                }
+                // append direction outdated message
+                if (direction.isOutdated()) {
+                    if (stringBuilder.length() > 0) {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                            stringBuilder.append(System.lineSeparator());
+                        } else {
+                            stringBuilder.append("\n");
+                        }
+                    }
+                    stringBuilder.append(
+                            context.getResources().getString(R.string.directionAccuracyOutdated));
+                }
+                return stringBuilder.toString();
             }
         };
 
@@ -678,7 +723,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                             // no simulated point selected
                             Toast.makeText(
                                     getActivity(),
-                                    getResources().getString(R.string.labelNoSimulatedPointSelected),
+                                    getResources().getString(R.string.labelNoPointSelected),
                                     Toast.LENGTH_LONG).show();
                             positionManagerInstance.setSimulationEnabled(false);
                             buttonEnableSimulation.setChecked(false);
@@ -690,9 +735,9 @@ public abstract class AbstractActivity extends AppCompatActivity {
             buttonSimulatedLocation = (Button) view.findViewById(R.id.buttonSimulatedLocation);
             buttonSimulatedLocation.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
-                    SelectPointDialog selectPointDialog = SelectPointDialog.newInstance(Constants.POINT_PUT_INTO.SIMULATION);
-                    selectPointDialog.setTargetFragment(SelectLocationSourceDialog.this, 1);
-                    selectPointDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+                    PointInputDialog pointInputDialog = PointInputDialog.newInstance(Constants.POINT_PUT_INTO.SIMULATION);
+                    pointInputDialog.setTargetFragment(SelectLocationSourceDialog.this, 1);
+                    pointInputDialog.show(getActivity().getSupportFragmentManager(), "PointInputDialog");
                 }
             });
 
@@ -750,7 +795,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                 } else if (intent.getAction().equals(Constants.ACTION_NEW_SIMULATED_LOCATION)) {
                     // clear fields
                     buttonSimulatedLocation.setText(
-                            context.getResources().getString(R.string.labelNoSimulatedPointSelected));
+                            context.getResources().getString(R.string.labelNoPointSelected));
                     // get simulated location
                     PointWrapper simulatedLocation = PointWrapper.fromString(
                             context, intent.getStringExtra(Constants.ACTION_NEW_SIMULATED_LOCATION_OBJECT));

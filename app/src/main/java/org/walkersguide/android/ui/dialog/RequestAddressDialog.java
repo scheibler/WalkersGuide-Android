@@ -33,7 +33,9 @@ import org.walkersguide.android.server.AddressManager.AddressListener;
 import org.walkersguide.android.ui.activity.PointDetailsActivity;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.TTSWrapper;
+import java.util.ArrayList;
+import org.walkersguide.android.data.profile.HistoryPointProfile;
+import org.walkersguide.android.data.basic.point.StreetAddress;
 
 public class RequestAddressDialog extends DialogFragment implements AddressListener {
 
@@ -41,9 +43,7 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
     private AccessDatabase accessDatabaseInstance;
     private PositionManager positionManagerInstance;
     private SettingsManager settingsManagerInstance;
-    private TTSWrapper ttsWrapperInstance;
     private AddressManager addressManagerRequest;
-    private boolean manualRequest;
 
     // ui components
     private TextView labelAddress;
@@ -58,12 +58,10 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
         accessDatabaseInstance = AccessDatabase.getInstance(context);
         positionManagerInstance = PositionManager.getInstance(context);
         settingsManagerInstance = SettingsManager.getInstance(context);
-        ttsWrapperInstance = TTSWrapper.getInstance(context);
         addressManagerRequest = null;
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        manualRequest = false;
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -127,7 +125,6 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     requestAddressForCurrentLocation();
-                    manualRequest = true;
                 }
             });
             // negative button
@@ -145,11 +142,11 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
     private void requestAddressForCurrentLocation() {
         PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
         if (currentLocation == null) {
-            String error = String.format(
-                    getResources().getString(R.string.messageAddressRequestFailed),
-                    getResources().getString(R.string.errorNoLocationFound));
-            labelAddress.setText(error);
-            //ttsWrapperInstance.speak(error, true, true);
+            labelAddress.setText(
+                    String.format(
+                        getResources().getString(R.string.messageAddressRequestFailed),
+                        getResources().getString(R.string.errorNoLocationFound))
+                    );
         } else {
             labelAddress.setText("");
             addressManagerRequest = new AddressManager(
@@ -161,35 +158,42 @@ public class RequestAddressDialog extends DialogFragment implements AddressListe
         }
     }
 
-    @Override public void addressRequestFinished(Context context, int returnCode, PointWrapper addressPoint) {
+    @Override public void addressRequestFinished(Context context, int returnCode, ArrayList<PointWrapper> addressPointList) {
         final AlertDialog dialog = (AlertDialog)getDialog();
         if (dialog == null) {
             return;
         }
 
         if (returnCode == Constants.RC.OK
-                && addressPoint != null) {
+                && addressPointList != null) {
+            PointWrapper addressPoint = addressPointList.get(0);
+
+            // add to database
+            AccessDatabase.getInstance(context).addFavoritePointToProfile(
+                    addressPoint, HistoryPointProfile.ID_ADDRESS_POINTS);
+
             // stick to positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setTag(addressPoint);
+
             // show results
-            String success = String.format(
-                    context.getResources().getString(R.string.messageAddressRequestSuccessful),
-                    addressPoint.getPoint().getName(),
-                    String.format(
-                        context.getResources().getString(R.string.labelPointDistanceAndBearing),
-                        context.getResources().getQuantityString(
-                            R.plurals.meter,
-                            addressPoint.distanceFromCurrentLocation(),
-                            addressPoint.distanceFromCurrentLocation()),
-                        StringUtility.formatRelativeViewingDirection(
-                            context, addressPoint.bearingFromCurrentLocation()))
-                    );
-            labelAddress.setText(success);
-            // speak aloud if it was a manual request
-            if (manualRequest) {
-                //ttsWrapperInstance.speak(success, true, true);
-                manualRequest = false;
+            if (addressPoint.getPoint() instanceof StreetAddress) {
+                labelAddress.setText(
+                        String.format(
+                            context.getResources().getString(R.string.messageAddressRequestSuccessful),
+                            ((StreetAddress) addressPoint.getPoint()).formatAddressLongLength(),
+                            String.format(
+                                context.getResources().getString(R.string.labelPointDistanceAndBearing),
+                                context.getResources().getQuantityString(
+                                    R.plurals.meter,
+                                    addressPoint.distanceFromCurrentLocation(),
+                                    addressPoint.distanceFromCurrentLocation()),
+                                StringUtility.formatRelativeViewingDirection(
+                                    context, addressPoint.bearingFromCurrentLocation()))
+                            )
+                        );
+            } else {
+                labelAddress.setText(addressPoint.toString());
             }
 
         } else {
