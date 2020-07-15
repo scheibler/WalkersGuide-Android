@@ -195,18 +195,15 @@ public class DirectionManager implements SensorEventListener {
      * implements SensorEventListener
      */
     // time between compass values
-    public static final int MIN_COMPASS_VALUE_DELAY = 250;          // 250 ms
-    // smooth down compass values
-    private int[] compassDirectionArray = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    //
+    private static final int MIN_COMPASS_VALUE_DELAY = 250;          // 250 ms
+
+    // sensors
     private int sensorAccuracyRating = Constants.DIRECTION_ACCURACY_RATING.UNKNOWN;
-    private float differenceToTrueNorth = 0.0f;
-    // compass with gyroscope variables
-    private float[] roationV = new float[16];
-    private float[] orientationV = new float[3];
-    // compass without gyroscope variables
+    // accelerometer
     private float[] valuesAccelerometer = new float[3];
-    private float[] valuesMagneticField = new float[3];
+    // compass
+    private int[] compassDirectionArray = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private float differenceToTrueNorth = 0.0f;
 
     public void setDifferenceToTrueNorth(float newDifference) {
         this.differenceToTrueNorth = newDifference;
@@ -238,32 +235,40 @@ public class DirectionManager implements SensorEventListener {
 
             case Sensor.TYPE_MAGNETIC_FIELD:
             case Sensor.TYPE_ROTATION_VECTOR:
-                System.arraycopy(compassDirectionArray, 0, compassDirectionArray, 1, compassDirectionArray.length-1);
-
                 // get new compass value
+                float[] orientationValues = new float[3];
+
                 if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
                     // compass without gyroscope for old devices
-                    System.arraycopy(event.values, 0, valuesMagneticField, 0, 3);
                     float[] matrixR = new float[9];
                     float[] matrixI = new float[9];
-                    float[] orientationValues = new float[3];
                     SensorManager.getRotationMatrix(
-                            matrixR, matrixI, valuesAccelerometer, valuesMagneticField);
+                            matrixR, matrixI, valuesAccelerometer, event.values);
                     SensorManager.getOrientation(matrixR, orientationValues);
-                    compassDirectionArray[0] = (
-                            (int) Math.round(
-                                Math.toDegrees(orientationValues[0]) + differenceToTrueNorth)
-                            + 360) % 360;
+                    // swap x and z axis if the smartphone stands upright
+                    if (isPhoneUpright(orientationValues)) {
+                        SensorManager.remapCoordinateSystem(
+                                matrixR, SensorManager.AXIS_X, SensorManager.AXIS_Z, matrixR);
+                        SensorManager.getOrientation(matrixR, orientationValues);
+                    }
 
                 } else {
                     // gyroscope included -> better compass accuracy
-                    SensorManager.getRotationMatrixFromVector(roationV, event.values);
-                    compassDirectionArray[0] = (
-                            (int) Math.round(
-                                Math.toDegrees(SensorManager.getOrientation(roationV, orientationV)[0]) + differenceToTrueNorth)
-                            + 360)
-                        % 360;
+                    float[] matrixRotation = new float[16];
+                    SensorManager.getRotationMatrixFromVector(
+                            matrixRotation, event.values);
+                    SensorManager.getOrientation(matrixRotation, orientationValues);
+                    // swap x and z axis if the smartphone stands upright
+                    if (isPhoneUpright(orientationValues)) {
+                        //Timber.d("vertical");
+                        SensorManager.remapCoordinateSystem(
+                                matrixRotation, SensorManager.AXIS_X, SensorManager.AXIS_Z, matrixRotation);
+                        SensorManager.getOrientation(matrixRotation, orientationValues);
+                    }
                 }
+
+                System.arraycopy(compassDirectionArray, 0, compassDirectionArray, 1, compassDirectionArray.length-1);
+                compassDirectionArray[0] = radianToDegree(orientationValues[0]);
 
                 // calculate average compass value
                 // Mitsuta method: http://abelian.org/vlf/bearings.html
@@ -331,6 +336,24 @@ public class DirectionManager implements SensorEventListener {
                 }
                 break;
         }
+    }
+
+    private boolean isPhoneUpright(float[] orientationValues) {
+        int pitch = radianToDegree(orientationValues[1]);
+        int roll = radianToDegree(orientationValues[2]);
+        //Timber.d("%1$d", roll);
+        //Timber.d("%1$d; %2$d; %3$d", radianToDegree(orientationValues[0]), pitch, roll);
+        return (pitch >= 65 && pitch <= 115)
+            || (pitch >= 245 && pitch <= 295);
+    }
+
+    private int radianToDegree(float radian) {
+        return (
+                (int) Math.round(
+                      Math.toDegrees(radian)
+                    + differenceToTrueNorth)
+                + 360)
+               % 360;
     }
 
 

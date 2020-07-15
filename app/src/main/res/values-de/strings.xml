@@ -16,6 +16,7 @@
     <string name="menuItemRequestAddress">Wo bin ich?</string>
     <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
+    <string name="menuItemContactMe">Kontakt</string>
 
     <!-- select direction source dialog -->
     <string name="selectDirectionSourceDialogName">Richtungsdetails</string>
@@ -129,7 +130,7 @@
     -->
 
     <!-- main activity -->
-    <string name="app_name">WalkersGuide-NG</string>
+    <string name="app_name">WalkersGuide</string>
     <string name="openNavigationDrawer">Menü öffnen</string>
     <string name="closeNavigationDrawer">Menü schließen</string>
     <!-- fragment names -->
@@ -237,8 +238,17 @@
 
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Abfahrten</string>
-    <string name="menuItemPublicTransportProvider">ÖPNV Provider</string>
-    <string name="labelNextDeparturesSuccess">%1$s gefunden</string>
+    <string name="menuItemPublicTransportProvider">ÖPNV Betreiber</string>
+    <string name="labelNoPtStationsNearby">Der ausgewählte ÖPNV Provider konnte keine Haltestelle finden.</string>
+    <string name="labelNoMoreDepartures">Für weitere Abfahrten bitte aktualisieren.</string>
+    <string name="labelMoreDepartures">Weitere Abfahrten laden</string>
+
+    <!-- SelectPtStationDialog -->
+    <string name="selectPtStationDialogTitle">Haltestelle auswählen:</string>
+
+    <!-- TripDetailsFragment -->
+    <string name="tripDetailsFragmentTitle">Fahrtdetails</string>
+    <string name="labelNoMoreStops">Die Linie hat ihre Zielhaltestelle erreicht.</string>
 
     <!-- EntrancesFragment -->
     <string name="fragmentEntrancesName">Eingänge</string>
@@ -354,8 +364,8 @@
     <string name="buttonServerURLNoSelection">URL: Keine ausgewählt</string>
     <string name="buttonServerMap">Karte: %1$s</string>
     <string name="buttonServerMapNoSelection">Karte: Keine ausgewählt</string>
-    <string name="buttonServerPublicTransportProvider">ÖPNV Betreiber: %1$s</string>
-    <string name="buttonServerPublicTransportProviderNoSelection">ÖPNV Betreiber: Keiner ausgewählt</string>
+    <string name="buttonPublicTransportProvider">ÖPNV Betreiber: %1$s</string>
+    <string name="buttonPublicTransportProviderNoSelection">ÖPNV Betreiber: Keiner ausgewählt</string>
     <string name="buttonAddressProvider">Adressauflösung: %1$s</string>
     <string name="buttonAddressProviderNoSelection">Adressauflösung: Keine ausgewählt</string>
     <string name="labelInterfaceSettingsHeader">Benutzungsoberfläche:</string>
@@ -370,9 +380,6 @@
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Karte auswählen:</string>
-
-    <!-- select public transport provider  dialog -->
-    <string name="selectPublicTransportProviderDialogTitle">ÖPNV Betreiber auswählen:</string>
 
     <!-- select address provider dialog -->
     <string name="selectAddressProviderDialogTitle">Adressauflösungsanbieter auswählen:</string>
@@ -405,6 +412,16 @@
     <!--
          other dialogs and layouts
     -->
+
+    <!-- SendFeedbackDialog -->
+    <string name="sendFeedbackDialogTitle">Feedback senden:</string>
+    <string name="sendFeedbackDialogTitleMissingMap">Anfrage: OSM Karte</string>
+    <string name="sendFeedbackDialogTitleMissingPtProvider">Anfrage: ÖPNV Provider</string>
+    <string name="labelSenderEmailAddress">Deine E-Mail Adresse (optional):</string>
+    <string name="labelMessage">Zu sendende Nachricht:</string>
+    <string name="labelMessageMissingMap">Die Karte welches Landes fehlt?</string>
+    <string name="labelMessageMissingPtProvider">Welcher ÖPNV Provider fehlt?</string>
+    <string name="messageSendFeedbackSuccessful">Nachricht erfolgreich versendet.</string>
 
     <!-- layout_heading_and_list_view_with_refresh_button -->
     <string name="buttonRefresh">Aktualisieren</string>
@@ -526,13 +543,30 @@
 
 
     <!--
-         settings
+        public transport
     -->
 
+    <!-- PTHelper -->
+    <string name="contentDescriptionLineDestination">%1$s</string>
+    <string name="contentDescriptionAbsoluteDepartureTime">um %1$s</string>
+    <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
+
+    <!-- select public transport provider  dialog -->
+    <string name="selectPublicTransportProviderDialogTitle">ÖPNV Betreiber auswählen:</string>
+
+    <!-- Countries -->
+    <string name="countryEurope">Europa</string>
+    <string name="countryGermany">Deutschland</string>
+    <string name="countrySwitzerland">Schweiz</string>
+
     <!-- public transport provider -->
-    <string name="publicTransportProviderDB">Deutsche Bahn</string>
+    <!-- europe -->
     <string name="publicTransportProviderRT">Railteam (Europa)</string>
+    <!-- germany -->
+    <string name="publicTransportProviderDB">Deutsche Bahn</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
+    <!-- switzerland -->
+    <string name="publicTransportProviderVBL">Verkehrsbetriebe Luzern</string>
 
 
     <!--
@@ -558,6 +592,7 @@
     <string name="dialogRefresh">Aktualisieren</string>
     <string name="dialogRemove">Entfernen</string>
     <string name="dialogSearch">Suchen</string>
+    <string name="dialogSomethingMissing">Fehlt etwas?</string>
     <string name="messagePleaseWait">Bitte warten…</string>
 
     <!-- sidewalk attributes-->
@@ -574,8 +609,6 @@
     <string name="errorBadGateway">Der ÖPNV Abfrageserver ist nicht erreichbar.</string>
     <string name="errorServiceUnavailableOrBusy">Der Server ist ausgelastet. Bitte später erneut versuchen.</string>
     <string name="errorNoPOITagsSelected">Keine POI Kategorien ausgewählt.</string>
-    <string name="errorPublicTransportProviderLoadingFailed">Ungültiger ÖPNV Provider.</string>
-    <string name="errorPublicTransportStationNotFound">Der ÖPNV Abfrageserver kann die ausgewählte Station nicht finden.</string>
     <string name="errorMapLoadingFailed">Die ausgewählte Karte wird vom Server nicht angeboten oder ist veraltet.</string>
     <string name="errorWrongMapSelected">Die Region, in der du dich befindest, liegt außerhalb der ausgewählten Karte.</string>
     <string name="errorStartOrDestinationMissing">Start- oder Zielpunkt fehlt.</string>
@@ -597,7 +630,13 @@
         dieser App nicht mehr unterstützt. Bitte wähle eine andere Karte aus oder gib eine neue
         Server-URL ein.</string>
     <string name="errorNoMapList">Der Server bietet derzeit keine Karten an.</string>
-    <string name="errorNoPublicTransportProviderList">Der Server bietet derzeit keine ÖPNV Provider an.</string>
+    <!-- public transport enabler -->
+    <string name="errorNoPtProvider">Kein ÖPNV Provider ausgewählt.</string>
+    <string name="errorMissingOrInvalidPtRequestData">ÖPNV Serveranfrage konnte wegen fehlender Informationen nicht ausgeführt werden.</string>
+    <string name="errorPtServiceDown">Der ÖPNV Provider ist nicht erreichbar.</string>
+    <string name="errorPtServiceFailed">Die Anfrage an den ÖPNV Provider ist fehlgeschlagen.</string>
+    <string name="errorNoPtDepartures">Keine Abfahrten gefunden.</string>
+    <string name="errorNoPtTrips">Keine passende Verbindung gefunden.</string>
     <!-- address lookup -->
     <string name="errorNoCoordinatesForAddress">Keine Koordinaten für diese Adresse gefunden.</string>
     <string name="errorNoAddressForCoordinates">Keine Adresse für diese Koordinaten gefunden.</string>
@@ -710,6 +749,18 @@
     </plurals>
 
     <plurals
+        name="minute">
+        <item quantity="one">einer Minute</item>
+        <item quantity="other">%d Minuten</item>
+    </plurals>
+
+    <plurals
+        name="minuteShort">
+        <item quantity="one">1 Min</item>
+        <item quantity="other">%d Min</item>
+    </plurals>
+
+    <plurals
         name="poi">
         <item quantity="one">1 POI</item>
         <item quantity="other">%d POI</item>
@@ -737,6 +788,12 @@
         name="satellite">
         <item quantity="one">1 Satellit</item>
         <item quantity="other">%d Satelliten</item>
+    </plurals>
+
+    <plurals
+        name="station">
+        <item quantity="one">1 Haltestelle</item>
+        <item quantity="other">%d Haltestellen</item>
     </plurals>
 
     <plurals

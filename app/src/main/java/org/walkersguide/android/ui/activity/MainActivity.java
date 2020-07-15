@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 import android.content.Intent;
 
 import android.os.Bundle;
@@ -83,6 +84,11 @@ public class MainActivity extends AbstractActivity {
                     case R.id.menuItemInfo:
                         Intent intentStartInfoActivity = new Intent(MainActivity.this, InfoActivity.class);
                         startActivity(intentStartInfoActivity);
+                        break;
+                    case R.id.menuItemContactMe:
+                        SendFeedbackDialog.newInstance(
+                                SendFeedbackDialog.Token.QUESTION)
+                            .show(getSupportFragmentManager(), "SendFeedbackDialog");
                         break;
                     default:
                         break;

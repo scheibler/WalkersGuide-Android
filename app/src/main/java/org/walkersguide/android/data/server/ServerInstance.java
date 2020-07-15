@@ -9,18 +9,15 @@ public class ServerInstance {
 
     private String serverName, serverURL, serverVersion;
     private ArrayList<OSMMap> availableMapList;
-    private ArrayList<PublicTransportProvider> supportedPublicTransportProviderList;
     private ArrayList<POICategory> supportedPOICategoryList;
     private ArrayList<Integer> supportedAPIVersionList;
 
     public ServerInstance(String serverName, String serverURL, String serverVersion,
-            ArrayList<OSMMap> mapList, ArrayList<PublicTransportProvider> publicTransportProviderList,
-            ArrayList<POICategory> poiCategoryList, ArrayList<Integer> apiVersionList) {
+            ArrayList<OSMMap> mapList, ArrayList<POICategory> poiCategoryList, ArrayList<Integer> apiVersionList) {
         this.serverName = serverName;
         this.serverURL = serverURL;
         this.serverVersion = serverVersion;
         this.availableMapList = mapList;
-        this.supportedPublicTransportProviderList = publicTransportProviderList;
         this.supportedPOICategoryList = poiCategoryList;
         this.supportedAPIVersionList = apiVersionList;
     }
@@ -39,10 +36,6 @@ public class ServerInstance {
 
     public ArrayList<OSMMap> getAvailableMapList() {
         return this.availableMapList;
-    }
-
-    public ArrayList<PublicTransportProvider> getSupportedPublicTransportProviderList() {
-        return this.supportedPublicTransportProviderList;
     }
 
     public ArrayList<POICategory> getSupportedPOICategoryList() {

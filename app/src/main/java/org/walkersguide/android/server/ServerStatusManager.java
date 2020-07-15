@@ -22,6 +22,7 @@ import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 import timber.log.Timber;
+import android.text.TextUtils;
 
 
 public class ServerStatusManager {
@@ -160,6 +161,158 @@ public class ServerStatusManager {
             if (newServerStatusListener != null
                     && this.serverStatusListenerList.contains(newServerStatusListener)) {
                 this.serverStatusListenerList.remove(newServerStatusListener);
+            }
+        }
+    }
+
+
+    /**
+     * send feedback
+     */
+    public interface SendFeedbackListener {
+        public void sendFeedbackRequestFinished(int returnCode);
+    }
+
+    private RequestSendFeedback requestSendFeedback = null;
+
+
+    public void requestSendFeedback(SendFeedbackListener sendFeedbackListener,
+            String token, String message, String senderEmailAddress) {
+        if (sendFeedbackRequestInProgress()) {
+            if (sendFeedbackListener == null) {
+                return;
+            } else if (this.requestSendFeedback.getMessage().equals(message)) {
+                this.requestSendFeedback.addListener(sendFeedbackListener);
+                return;
+            } else {
+                this.requestSendFeedback.cancel(true);
+            }
+        }
+        this.requestSendFeedback = new RequestSendFeedback(sendFeedbackListener, token, message, senderEmailAddress);
+        this.requestSendFeedback.execute();
+    }
+
+    public void invalidateSendFeedbackRequest(SendFeedbackListener sendFeedbackListener) {
+        if (sendFeedbackRequestInProgress()) {
+            this.requestSendFeedback.removeListener(sendFeedbackListener);
+        }
+    }
+
+    public boolean sendFeedbackRequestInProgress() {
+        if (this.requestSendFeedback != null
+                && this.requestSendFeedback.getStatus() != AsyncTask.Status.FINISHED) {
+            return true;
+        }
+        return false;
+    }
+
+
+    public class RequestSendFeedback extends AsyncTask<Void, Void, Void> {
+
+        private ArrayList<SendFeedbackListener> sendFeedbackListenerList;
+        private String token, message, sender;
+        private int returnCode;
+
+        public RequestSendFeedback(SendFeedbackListener sendFeedbackListener, String token, String message, String sender) {
+            this.sendFeedbackListenerList = new ArrayList<SendFeedbackListener>();
+            if (sendFeedbackListener != null) {
+                this.sendFeedbackListenerList.add(sendFeedbackListener);
+            }
+            this.token = token;
+            this.message = message;
+            this.sender = sender;
+            this.returnCode = Constants.RC.OK;
+        }
+
+        @Override protected Void doInBackground(Void... params) {
+            ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
+            // server instance
+            ServerInstance serverInstance = null;
+            try {
+                serverInstance = ServerUtility.getServerInstance(
+                        context, serverSettings.getServerURL());
+            } catch (ServerCommunicationException e) {
+                this.returnCode = e.getReturnCode();
+            } finally {
+                if (returnCode != Constants.RC.OK) {
+                    return null;
+                }
+            }
+
+            // check server version
+            if (serverInstance.getSupportedAPIVersionList().get(serverInstance.getSupportedAPIVersionList().size()-1) < 3) {
+                this.returnCode = Constants.RC.API_SERVER_OUTDATED;
+                return null;
+            }
+
+            // create server param list
+            JSONObject jsonServerParams = null;
+            try {
+                jsonServerParams = ServerUtility.createServerParamList(context);
+                jsonServerParams.put("token", this.token);
+                jsonServerParams.put("message", this.message);
+                if (! TextUtils.isEmpty(this.sender)) {
+                    jsonServerParams.put("sender", this.sender);
+                }
+            } catch (JSONException e) {
+                jsonServerParams = new JSONObject();
+            }
+
+            // start request
+            HttpsURLConnection connection = null;
+            try {
+                connection = ServerUtility.getHttpsURLConnectionObject(
+                        context,
+                        String.format(
+                            "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.SEND_FEEDBACK),
+                        jsonServerParams);
+                connection.connect();
+                int responseCode = connection.getResponseCode();
+                if (isCancelled()) {
+                    this.returnCode = Constants.RC.CANCELLED;
+                } else if (returnCode == Constants.RC.OK) {
+                    this.returnCode = responseCode;
+                }
+            } catch (IOException e) {
+                this.returnCode = Constants.RC.CONNECTION_FAILED;
+            } catch (ServerCommunicationException e) {
+                this.returnCode = e.getReturnCode();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+            return null;
+        }
+
+        @Override protected void onPostExecute(Void params) {
+            Timber.d("SendFeedback: %1$d", this.returnCode);
+            for (SendFeedbackListener sendFeedbackListener : this.sendFeedbackListenerList) {
+                sendFeedbackListener.sendFeedbackRequestFinished(returnCode);
+            }
+        }
+
+        @Override protected void onCancelled(Void params) {
+            for (SendFeedbackListener sendFeedbackListener : this.sendFeedbackListenerList) {
+                sendFeedbackListener.sendFeedbackRequestFinished(Constants.RC.CANCELLED);
+            }
+        }
+
+        public String getMessage() {
+            return this.message;
+        }
+
+        public void addListener(SendFeedbackListener newSendFeedbackListener) {
+            if (newSendFeedbackListener != null
+                    && ! this.sendFeedbackListenerList.contains(newSendFeedbackListener)) {
+                this.sendFeedbackListenerList.add(newSendFeedbackListener);
+            }
+        }
+
+        public void removeListener(SendFeedbackListener newSendFeedbackListener) {
+            if (newSendFeedbackListener != null
+                    && this.sendFeedbackListenerList.contains(newSendFeedbackListener)) {
+                this.sendFeedbackListenerList.remove(newSendFeedbackListener);
             }
         }
     }

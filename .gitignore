@@ -41,3 +41,11 @@ proguard/
 /out/
 /captures
 
+
+# un-ignore
+#
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+# public transport enabler library
+!public-transport-enabler-*.jar
+

@@ -39,10 +39,13 @@ import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import org.walkersguide.android.data.sensor.threshold.SpeedThreshold;
-import org.walkersguide.android.helper.FileUtility;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.LocationSettings;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 
 public class PositionManager implements android.location.LocationListener {
@@ -99,7 +102,7 @@ public class PositionManager implements android.location.LocationListener {
                 gpsFixFound = false;
             }
             if (BuildConfig.DEBUG) {
-                FileUtility.appendToLog(
+                appendToLog(
                         context,
                         "newLocationAttributes",
                         dateAndTimeFormatter.format(new Date(System.currentTimeMillis())));
@@ -206,7 +209,7 @@ public class PositionManager implements android.location.LocationListener {
         // debug: log to file
         if (BuildConfig.DEBUG) {
             NewLocationAttributes nla = newLocationAttributesBuilder.build();
-            FileUtility.appendToLog(
+            appendToLog(
                     context,
                     "newLocationAttributes",
                     String.format(
@@ -288,7 +291,7 @@ public class PositionManager implements android.location.LocationListener {
                 gpsBuilder.setDirection(gpsDirection);
                 // debug: log to file
                 if (BuildConfig.DEBUG) {
-                    FileUtility.appendToLog(
+                    appendToLog(
                             context,
                             "gpsBearing",
                             String.format(
@@ -401,7 +404,7 @@ public class PositionManager implements android.location.LocationListener {
             int bearingAccuracyDegrees = Math.round(location.getBearingAccuracyDegrees());
             // debug: log to file
             if (BuildConfig.DEBUG) {
-                FileUtility.appendToLog(
+                appendToLog(
                         context,
                         "gpsBearing",
                         String.format("bearingAccuracyDegrees: %1$d", bearingAccuracyDegrees));
@@ -451,6 +454,32 @@ public class PositionManager implements android.location.LocationListener {
             if (this.simulationEnabled) {
                 broadcastCurrentLocation();
             }
+        }
+    }
+
+
+    /**
+     * log to text file
+     */
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+
+    private static void appendToLog(Context context, String fileName, String message) {
+        File file = new File(
+                context.getApplicationContext().getExternalFilesDir(null),
+                String.format("%1$s.log", fileName));
+        try {
+            FileWriter fw = new FileWriter(file, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(
+                    String.format(
+                        "%1$s\t%2$s\n",
+                        message,
+                        sdf.format(new Date(System.currentTimeMillis())))
+                    );
+            bw.close();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

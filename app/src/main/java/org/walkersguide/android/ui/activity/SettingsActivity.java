@@ -1,5 +1,9 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
+import org.walkersguide.android.pt.PTHelper;
+import org.walkersguide.android.pt.PTHelper.Country;
+import android.content.IntentFilter;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -41,7 +45,6 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
 import org.walkersguide.android.ui.dialog.SelectMapDialog;
-import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
@@ -49,12 +52,14 @@ import org.walkersguide.android.util.SettingsImport;
 import org.walkersguide.android.util.SettingsImport.SettingsImportListener;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
+import android.content.BroadcastReceiver;
 
 
 public class SettingsActivity extends AbstractActivity implements ServerStatusListener {
 
-    private Button buttonServerURL, buttonServerMap, buttonServerPublicTransportProvider;
-    private Button buttonAddressProvider, buttonShakeIntensity;
+    private Button buttonServerURL, buttonServerMap;
+    private Button buttonPublicTransportProvider, buttonAddressProvider;
+    private Button buttonShakeIntensity;
     private Switch buttonEnableTextInputHistory;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
@@ -86,8 +91,8 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
             }
         });
 
-		buttonServerPublicTransportProvider = (Button) findViewById(R.id.buttonServerPublicTransportProvider);
-		buttonServerPublicTransportProvider.setOnClickListener(new View.OnClickListener() {
+		buttonPublicTransportProvider = (Button) findViewById(R.id.buttonPublicTransportProvider);
+		buttonPublicTransportProvider.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
                 SelectPublicTransportProviderDialog.newInstance()
                     .show(getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
@@ -142,27 +147,45 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
     @Override public void onPause() {
         super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(localIntentReceiver);
         ServerStatusManager.getInstance(this).invalidateServerStatusRequest(this);
     }
 
 	@Override public void onResume() {
 		super.onResume();
+        // listen for local intents
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(SelectPublicTransportProviderDialog.NEW_NETWORK_PROVIDER);
+        LocalBroadcastManager.getInstance(this).registerReceiver(localIntentReceiver, localIntentFilter);
+        // update ui
         updateUI();
     }
 
     private void updateUI() {
         ServerSettings serverSettings = settingsManagerInstance.getServerSettings();
 
-        // server url, map and public transport provider
+        // WalkersGuide server url
         buttonServerURL.setText(
                 String.format(
                     getResources().getString(R.string.buttonServerURL),
                     serverSettings.getServerURL())
                 );
+        // WalkersGuide server map placeholder
         buttonServerMap.setText(
                 getResources().getString(R.string.buttonServerMapNoSelection));
-        buttonServerPublicTransportProvider.setText(
-                getResources().getString(R.string.buttonServerPublicTransportProviderNoSelection));
+
+        // public transport provider
+        if (serverSettings.getSelectedPublicTransportProvider() != null) {
+            buttonPublicTransportProvider.setText(
+                    String.format(
+                        getResources().getString(R.string.buttonPublicTransportProvider),
+                        PTHelper.getNetworkProviderName(
+                            (SettingsActivity) this, serverSettings.getSelectedPublicTransportProvider()))
+                    );
+        } else {
+            buttonPublicTransportProvider.setText(
+                    getResources().getString(R.string.buttonPublicTransportProviderNoSelection));
+        }
 
         // address provider
         if (Constants.AddressProviderValueArray.length > 1) {
@@ -232,13 +255,6 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                             serverSettings.getSelectedMap().getName())
                         );
             }
-            if (serverSettings.getSelectedPublicTransportProvider() != null) {
-                buttonServerPublicTransportProvider.setText(
-                        String.format(
-                            context.getResources().getString(R.string.buttonServerPublicTransportProvider),
-                            serverSettings.getSelectedPublicTransportProvider().getName())
-                        );
-            }
         } else {
             SimpleMessageDialog.newInstance(
                     ServerUtility.getErrorMessageForReturnCode(context, returnCode))
@@ -246,6 +262,28 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
         }
     }
 
+
+    /**
+     * local broadcasts
+     */
+
+    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(SelectPublicTransportProviderDialog.NEW_NETWORK_PROVIDER)) {
+                buttonPublicTransportProvider.setText(
+                        String.format(
+                            context.getResources().getString(R.string.buttonPublicTransportProvider),
+                            PTHelper.getNetworkProviderName(
+                                context, settingsManagerInstance.getServerSettings().getSelectedPublicTransportProvider()))
+                        );
+            }
+        }
+    };
+
+
+    /**
+     * dialogs
+     */
 
     public static class NewServerDialog extends DialogFragment implements ServerStatusListener {
 

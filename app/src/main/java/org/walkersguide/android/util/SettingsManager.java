@@ -21,7 +21,12 @@ import org.walkersguide.android.data.route.WayClass;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.data.server.AddressProvider;
 import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.PublicTransportProvider;
+
+import org.walkersguide.android.pt.PTHelper;
+import org.walkersguide.android.pt.PTHelper.Country;
+
+import de.schildbach.pte.AbstractNetworkProvider;
+import java.util.Map;
 
 
 public class SettingsManager {
@@ -751,7 +756,7 @@ public class SettingsManager {
 
         private String serverURL;
         private OSMMap selectedMap;
-        private PublicTransportProvider selectedPublicTransportProvider;
+        private AbstractNetworkProvider selectedPublicTransportProvider;
         private AddressProvider selectedAddressProvider;
 
         public ServerSettings(JSONObject jsonObject) {
@@ -769,11 +774,27 @@ public class SettingsManager {
             } catch (JSONException e) {
             }
             // public transport provider
-            this.selectedPublicTransportProvider = null;
+            String networkProviderId = null;
             try {
-                this.selectedPublicTransportProvider = new PublicTransportProvider(
-                        context, jsonObject.getString("selectedPublicTransportProviderId"));
-            } catch (JSONException e) {}
+                networkProviderId = jsonObject.getString("networkProviderId");
+            } catch (JSONException e) {
+                networkProviderId = null;
+            } finally {
+                this.selectedPublicTransportProvider = null;
+                if (networkProviderId != null) {
+                    for( Map.Entry<Country,ArrayList<AbstractNetworkProvider>> entry : PTHelper.supportedNetworkProviderMap.entrySet()){
+                        for (AbstractNetworkProvider provider : entry.getValue()) {
+                            if (networkProviderId.equals(provider.id().name())) {
+                                this.selectedPublicTransportProvider = provider;
+                                break;
+                            }
+                        }
+                        if (this.selectedPublicTransportProvider != null) {
+                            break;
+                        }
+                    }
+                }
+            }
             // address provider
             this.selectedAddressProvider = new AddressProvider(context, Constants.ADDRESS_PROVIDER.OSM);
             try {
@@ -802,11 +823,11 @@ public class SettingsManager {
             storeServerSettings();
         }
 
-        public PublicTransportProvider getSelectedPublicTransportProvider() {
+        public AbstractNetworkProvider getSelectedPublicTransportProvider() {
             return this.selectedPublicTransportProvider;
         }
 
-        public void setSelectedPublicTransportProvider(PublicTransportProvider newProvider) {
+        public void setSelectedPublicTransportProvider(AbstractNetworkProvider newProvider) {
             this.selectedPublicTransportProvider = newProvider;
             storeServerSettings();
         }
@@ -834,7 +855,7 @@ public class SettingsManager {
             }
             if (this.selectedPublicTransportProvider != null) {
                 try {
-                    jsonServerSettings.put("selectedPublicTransportProviderId", this.selectedPublicTransportProvider.getId());
+    	    		jsonServerSettings.put("networkProviderId", this.selectedPublicTransportProvider.id().name());
                 } catch (JSONException e) {}
             }
             if (this.selectedAddressProvider != null) {

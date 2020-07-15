@@ -61,7 +61,7 @@ import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
-import org.walkersguide.android.ui.fragment.pointdetails.DeparturesFragment;
+import org.walkersguide.android.ui.fragment.pointdetails.pt.DeparturesFragment;
 import org.walkersguide.android.ui.fragment.pointdetails.EntrancesFragment;
 import org.walkersguide.android.ui.fragment.pointdetails.IntersectionWaysFragment;
 import org.walkersguide.android.ui.fragment.pointdetails.PedestrianCrossingsFragment;

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+
+    <!-- Most public transport authorities have their servers configured securely these days. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- This is the hall of shame: public transport authorities which still do not support HTTPS. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Railteam -->
+        <domain includeSubdomains="false">railteam.hafas.eu</domain>
+        <!-- VBL -->
+        <domain includeSubdomains="false">mobil.vbl.ch</domain>
+        <!-- VVO -->
+        <domain includeSubdomains="false">efa.vvo-online.de</domain>
+    </domain-config>
+
+</network-security-config>

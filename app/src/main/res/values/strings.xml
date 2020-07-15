@@ -16,6 +16,7 @@
     <string name="menuItemRequestAddress">Where am I?</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
+    <string name="menuItemContactMe">Contact</string>
 
     <!-- select direction source dialog -->
     <string name="selectDirectionSourceDialogName">Direction details</string>
@@ -129,7 +130,7 @@
     -->
 
     <!-- main activity -->
-    <string name="app_name">WalkersGuide-NG</string>
+    <string name="app_name">WalkersGuide</string>
     <string name="openNavigationDrawer">Open menu</string>
     <string name="closeNavigationDrawer">Close menu</string>
     <!-- fragment names -->
@@ -238,7 +239,16 @@
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Departures</string>
     <string name="menuItemPublicTransportProvider">Public transport provider</string>
-    <string name="labelNextDeparturesSuccess">%1$s found</string>
+    <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
+    <string name="labelNoMoreDepartures">Please refresh to load next departures.</string>
+    <string name="labelMoreDepartures">Load next departures</string>
+
+        <!-- SelectPtStationDialog -->
+    <string name="selectPtStationDialogTitle">Select station:</string>
+
+    <!-- TripDetailsFragment -->
+    <string name="tripDetailsFragmentTitle">Trip details</string>
+    <string name="labelNoMoreStops">The line arrived at its destination stop.</string>
 
     <!-- EntrancesFragment -->
     <string name="fragmentEntrancesName">Entrances</string>
@@ -354,8 +364,8 @@
     <string name="buttonServerURLNoSelection">URL: None selected</string>
     <string name="buttonServerMap">Map: %1$s</string>
     <string name="buttonServerMapNoSelection">Map: None selected</string>
-    <string name="buttonServerPublicTransportProvider">Public transport: %1$s</string>
-    <string name="buttonServerPublicTransportProviderNoSelection">Public transport: None selected</string>
+    <string name="buttonPublicTransportProvider">Public transport: %1$s</string>
+    <string name="buttonPublicTransportProviderNoSelection">Public transport: None selected</string>
     <string name="buttonAddressProvider">Address resolver: %1$s</string>
     <string name="buttonAddressProviderNoSelection">Address resolver: None selected</string>
     <string name="labelInterfaceSettingsHeader">Interface:</string>
@@ -370,9 +380,6 @@
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Select map:</string>
-
-    <!-- select public transport provider  dialog -->
-    <string name="selectPublicTransportProviderDialogTitle">Select public transport provider:</string>
 
     <!-- select address provider dialog -->
     <string name="selectAddressProviderDialogTitle">Select address resolver:</string>
@@ -405,6 +412,16 @@
     <!--
          other dialogs and layouts
     -->
+
+    <!-- SendFeedbackDialog -->
+    <string name="sendFeedbackDialogTitle">Send feedback:</string>
+    <string name="sendFeedbackDialogTitleMissingMap">Request: OSM map</string>
+    <string name="sendFeedbackDialogTitleMissingPtProvider">Request: Public transport provider</string>
+    <string name="labelSenderEmailAddress">Your email address (optional):</string>
+    <string name="labelMessage">Message to send:</string>
+    <string name="labelMessageMissingMap">The map of which country is missing?</string>
+    <string name="labelMessageMissingPtProvider">Which public transport provider is missing?</string>
+    <string name="messageSendFeedbackSuccessful">Message sent successfully.</string>
 
     <!-- layout_heading_and_list_view_with_refresh_button -->
     <string name="buttonRefresh">Refresh</string>
@@ -525,14 +542,31 @@
     <string name="wayClassWeightIgnore">Ignore</string>
 
 
-    <!--
-         settings
+    <!-- 
+        public transport
     -->
 
+    <!-- PTHelper -->
+    <string name="contentDescriptionLineDestination">%1$s</string>
+    <string name="contentDescriptionAbsoluteDepartureTime">at %1$s</string>
+    <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
+
+    <!-- select public transport provider  dialog -->
+    <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
+
+    <!-- Countries -->
+    <string name="countryEurope">Europe</string>
+    <string name="countryGermany">Germany</string>
+    <string name="countrySwitzerland">Switzerland</string>
+
     <!-- public transport provider -->
-    <string name="publicTransportProviderDB">Deutsche Bahn</string>
+    <!-- europe -->
     <string name="publicTransportProviderRT">Railteam (Europe)</string>
+    <!-- germany -->
+    <string name="publicTransportProviderDB">Deutsche Bahn</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
+    <!-- switzerland -->
+    <string name="publicTransportProviderVBL">Verkehrsbetriebe Luzern</string>
 
 
     <!--
@@ -558,6 +592,7 @@
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogRemove">Remove</string>
     <string name="dialogSearch">Search</string>
+    <string name="dialogSomethingMissing">Something missing?</string>
     <string name="messagePleaseWait">Please wait…</string>
 
     <!-- sidewalk attributes-->
@@ -574,8 +609,6 @@
     <string name="errorBadGateway">The public transport query server is not accessible.</string>
     <string name="errorServiceUnavailableOrBusy">The server is busy. Please retry later.</string>
     <string name="errorNoPOITagsSelected">No POI categories selected.</string>
-    <string name="errorPublicTransportProviderLoadingFailed">Invalid public transport provider.</string>
-    <string name="errorPublicTransportStationNotFound">The public transport query server can\'t find the requested station.</string>
     <string name="errorMapLoadingFailed">The selected map is either not available on the server or outdated.</string>
     <string name="errorWrongMapSelected">The given location lays outside of the selected map.</string>
     <string name="errorStartOrDestinationMissing">Start or destination point is missing.</string>
@@ -593,7 +626,13 @@
     <string name="errorAPIClientOutdated">The API version of this app is too old for the selected server. Please check for app updates on walkersguide.org or in the Google play store.</string>
     <string name="errorAPIServerOutdated">The API version of the selected map server is not longer supported by this app.</string>
     <string name="errorNoMapList">The server doesn\'t offer any maps.</string>
-    <string name="errorNoPublicTransportProviderList">The server doesn\'t offer any public transport providers.</string>
+    <!-- public transport enabler -->
+    <string name="errorNoPtProvider">No public transport provider selected.</string>
+    <string name="errorMissingOrInvalidPtRequestData">PT request data missing or invalid.</string>
+    <string name="errorPtServiceDown">The public transport provider is not accessible.</string>
+    <string name="errorPtServiceFailed">The public transport provider request failed.</string>
+    <string name="errorNoPtDepartures">No departures found.</string>
+    <string name="errorNoPtTrips">No matching trip found.</string>
     <!-- address lookup -->
     <string name="errorNoCoordinatesForAddress">No coordinates for this address found.</string>
     <string name="errorNoAddressForCoordinates">No address for this coordinates found.</string>
@@ -706,6 +745,18 @@
     </plurals>
 
     <plurals
+        name="minute">
+        <item quantity="one">einer Minute</item>
+        <item quantity="other">%d Minutes</item>
+    </plurals>
+
+    <plurals
+        name="minuteShort">
+        <item quantity="one">1 Min</item>
+        <item quantity="other">%d Min</item>
+    </plurals>
+
+    <plurals
         name="poi">
         <item quantity="one">1 POI</item>
         <item quantity="other">%d POI</item>
@@ -733,6 +784,12 @@
         name="satellite">
         <item quantity="one">1 satellite</item>
         <item quantity="other">%d satellites</item>
+    </plurals>
+
+    <plurals
+        name="station">
+        <item quantity="one">1 station</item>
+        <item quantity="other">%d stations</item>
     </plurals>
 
     <plurals

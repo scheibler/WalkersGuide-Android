@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.data.poi.POICategory;
 import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.PublicTransportProvider;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.R;
@@ -121,9 +120,14 @@ public class ServerUtility {
         } else {
             // check for server api version
             Collections.sort(supportedAPIVersionList);
-            if (BuildConfig.MINIMAL_API_VERSION < supportedAPIVersionList.get(0)) {
+            // check if app is outdated
+            int minServerApiVersion = supportedAPIVersionList.get(0);
+            if (BuildConfig.SUPPORTED_API_VERSION_LIST[BuildConfig.SUPPORTED_API_VERSION_LIST.length-1] < minServerApiVersion) {
                 throw new ServerCommunicationException(context, Constants.RC.API_CLIENT_OUTDATED);
-            } else if (BuildConfig.MINIMAL_API_VERSION > supportedAPIVersionList.get(supportedAPIVersionList.size()-1)) {
+            }
+            // check if server is outdated
+            int maxServerApiVersion = supportedAPIVersionList.get(supportedAPIVersionList.size()-1);
+            if (BuildConfig.SUPPORTED_API_VERSION_LIST[0] > maxServerApiVersion) {
                 throw new ServerCommunicationException(context, Constants.RC.API_SERVER_OUTDATED);
             }
         }
@@ -189,28 +193,9 @@ public class ServerUtility {
             throw new ServerCommunicationException(context, Constants.RC.BAD_RESPONSE);
         }
 
-        // list of public transport provider is optional
-        ArrayList<PublicTransportProvider> supportedPublicTransportProviderList = new ArrayList<PublicTransportProvider>();
-        JSONArray jsonPublicTransportProviderList = null;
-        try {
-            jsonPublicTransportProviderList = jsonServerResponse.getJSONArray("supported_public_transport_provider_list");
-        } catch (JSONException e) {
-            jsonPublicTransportProviderList = null;
-        } finally {
-            if (jsonPublicTransportProviderList != null) {
-                for (int i=0; i<jsonPublicTransportProviderList.length(); i++) {
-                    try {
-                        supportedPublicTransportProviderList.add(
-                                new PublicTransportProvider(context, jsonPublicTransportProviderList.getString(i)));
-                    } catch (JSONException e) {}
-                }
-            }
-        }
-
         // create server instance object
         ServerInstance serverInstance = new ServerInstance(
-                serverName, serverURL, serverVersion,
-                availableMapList, supportedPublicTransportProviderList,
+                serverName, serverURL, serverVersion, availableMapList,
                 supportedPOICategoryList, supportedAPIVersionList);
 
         // update server settings
@@ -221,10 +206,6 @@ public class ServerUtility {
         if (serverSettings.getSelectedMap() != null
                 && ! serverInstance.getAvailableMapList().contains(serverSettings.getSelectedMap())) {
             serverSettings.setSelectedMap(null);
-        }
-        if (serverSettings.getSelectedPublicTransportProvider() != null
-                && ! serverInstance.getSupportedPublicTransportProviderList().contains(serverSettings.getSelectedPublicTransportProvider())) {
-            serverSettings.setSelectedPublicTransportProvider(null);
         }
 
         // cache new server instance object and return
@@ -239,10 +220,7 @@ public class ServerUtility {
     public static HttpsURLConnection getHttpsURLConnectionObject(Context context, String queryURL,
             JSONObject postParameters) throws IOException, ServerCommunicationException {
         // check for internet connection
-        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = connMgr.getActiveNetworkInfo();
-        if (activeNetwork == null
-                || activeNetwork.getState() != NetworkInfo.State.CONNECTED) {
+        if (! isInternetAvailable(context)) {
             throw new ServerCommunicationException(context, Constants.RC.NO_INTERNET_CONNECTION);
         }
 
@@ -272,6 +250,15 @@ public class ServerUtility {
             os.close();
         }
         return connection;
+    }
+
+    public static boolean isInternetAvailable(Context context) {
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connMgr.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED) {
+            return true;
+        }
+        return false;
     }
 
     public static JSONObject createServerParamList(Context context) throws JSONException {
@@ -324,6 +311,11 @@ public class ServerUtility {
         return sb.toString();
     }
 
+
+    /**
+     * return codes
+     */
+
     public static String getErrorMessageForReturnCode(Context context, int returnCode) {
         switch (returnCode) {
             // walkersguide server errors
@@ -347,10 +339,6 @@ public class ServerUtility {
                 return context.getResources().getString(R.string.errorCancelled);
             case Constants.RC.NO_POI_TAGS_SELECTED:
                 return context.getResources().getString(R.string.errorNoPOITagsSelected);
-            case Constants.RC.PUBLIC_TRANSPORT_PROVIDER_LOADING_FAILED:
-                return context.getResources().getString(R.string.errorPublicTransportProviderLoadingFailed);
-            case Constants.RC.PUBLIC_TRANSPORT_STATION_NOT_FOUND:
-                return context.getResources().getString(R.string.errorPublicTransportStationNotFound);
             case Constants.RC.MAP_LOADING_FAILED:
                 return context.getResources().getString(R.string.errorMapLoadingFailed);
             case Constants.RC.WRONG_MAP_SELECTED:
@@ -387,8 +375,19 @@ public class ServerUtility {
                 return context.getResources().getString(R.string.errorAPIServerOutdated);
             case Constants.RC.NO_MAP_LIST:
                 return context.getResources().getString(R.string.errorNoMapList);
-            case Constants.RC.NO_PUBLIC_TRANSPORT_PROVIDER_LIST:
-                return context.getResources().getString(R.string.errorNoPublicTransportProviderList);
+            // public-transport-provider
+            case Constants.RC.NO_PT_PROVIDER:
+                return context.getResources().getString(R.string.errorNoPtProvider);
+            case Constants.RC.MISSING_OR_INVALID_PT_REQUEST_DATA:
+                return context.getResources().getString(R.string.errorMissingOrInvalidPtRequestData);
+            case Constants.RC.PT_SERVICE_DOWN:
+                return context.getResources().getString(R.string.errorPtServiceDown);
+            case Constants.RC.PT_SERVICE_FAILED:
+                return context.getResources().getString(R.string.errorPtServiceFailed);
+            case Constants.RC.NO_PT_DEPARTURES:
+                return context.getResources().getString(R.string.errorNoPtDepartures);
+            case Constants.RC.NO_PT_TRIPS:
+                return context.getResources().getString(R.string.errorNoPtTrips);
             // addresses
             case Constants.RC.NO_COORDINATES_FOR_ADDRESS:
                 return context.getResources().getString(R.string.errorNoCoordinatesForAddress);

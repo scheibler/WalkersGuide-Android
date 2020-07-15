@@ -45,10 +45,10 @@
                 android:text="@string/buttonServerMapNoSelection" />
 
             <Button
-                android:id="@+id/buttonServerPublicTransportProvider"
+                android:id="@+id/buttonPublicTransportProvider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/buttonServerPublicTransportProviderNoSelection" />
+                android:text="@string/buttonPublicTransportProviderNoSelection" />
 
             <Button
                 android:id="@+id/buttonAddressProvider"

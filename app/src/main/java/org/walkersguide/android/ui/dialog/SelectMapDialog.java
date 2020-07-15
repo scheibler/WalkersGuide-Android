@@ -56,15 +56,25 @@ public class SelectMapDialog extends DialogFragment implements ServerStatusListe
                         }
                     }
                     )
-                        .setNegativeButton(
-                                getResources().getString(R.string.dialogCancel),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dismiss();
-                                    }
-                                }
-                                )
-                        .create();
+            .setNeutralButton(
+                    getResources().getString(R.string.dialogSomethingMissing),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            SendFeedbackDialog.newInstance(
+                                    SendFeedbackDialog.Token.MAP_REQUEST)
+                                .show(getActivity().getSupportFragmentManager(), "SendFeedbackDialog");
+                        }
+                    }
+                    )
+            .setNegativeButton(
+                    getResources().getString(R.string.dialogCancel),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                        }
+                    }
+                    )
+            .create();
     }
 
     @Override public void onStop() {
