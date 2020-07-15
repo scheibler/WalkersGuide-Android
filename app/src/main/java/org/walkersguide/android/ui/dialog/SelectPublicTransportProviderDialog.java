@@ -8,7 +8,7 @@ import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import de.schildbach.pte.AbstractNetworkProvider;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -19,7 +19,7 @@ import android.content.Intent;
 
 import android.os.Bundle;
 
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
 
 import android.view.LayoutInflater;
 import android.view.View;

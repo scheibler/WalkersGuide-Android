@@ -7,10 +7,10 @@ import android.os.Looper;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
 import timber.log.Timber;
 import org.walkersguide.android.helper.ServerUtility;
-import android.support.v4.view.ViewCompat;
+import androidx.core.view.ViewCompat;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,7 +20,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.view.LayoutInflater;
 import android.view.Menu;

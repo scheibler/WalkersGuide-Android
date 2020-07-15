@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment;
 
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
 
 
 public abstract class AbstractUITab extends DialogFragment {

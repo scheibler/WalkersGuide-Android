@@ -17,10 +17,10 @@ import android.os.Bundle;
 
 import android.provider.Settings;
 
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
 
 import android.text.InputFilter;
 import android.text.InputType;
@@ -69,7 +69,7 @@ import org.walkersguide.android.ui.filter.InputFilterMinMax;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
-import android.support.v7.app.AppCompatDelegate;
+import androidx.appcompat.app.AppCompatDelegate;
 
 
 public abstract class AbstractActivity extends AppCompatActivity {

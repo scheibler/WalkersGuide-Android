@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment.main;
 
-import android.support.v4.view.ViewCompat;
+import androidx.core.view.ViewCompat;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -14,9 +14,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 
-import android.support.v4.app.DialogFragment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.Toolbar;
+import androidx.fragment.app.DialogFragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.widget.Toolbar;
 
 import android.text.Editable;
 import android.text.TextUtils;
