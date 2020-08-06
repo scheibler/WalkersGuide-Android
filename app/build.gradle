@@ -88,7 +88,7 @@ dependencies {
     // logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2020-03-20@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2020-08-06@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.10'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.10'
     implementation 'org.slf4j:slf4j-api:1.7.30'
