@@ -14,6 +14,7 @@
     <string name="menuItemLastVisitedPoints">Zuletzt besuchte Punkte</string>
     <string name="menuItemSaveCurrentPosition">Aktuelle Position sichern</string>
     <string name="menuItemRequestAddress">Wo bin ich?</string>
+    <string name="menuItemHikingTrails">Wanderwege</string>
     <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Kontakt</string>
@@ -413,6 +414,26 @@
          other dialogs and layouts
     -->
 
+    <!-- HikingTrailsDialog -->
+    <string name="hikingTrailsDialogTitle">Wanderwege</string>
+    <string name="labelHikingTrailsHeading">%1$s im Umkreis von %2$d km</string>
+    <string name="labelNoHikingTrailsNearby">Keine Wanderwege gefunden.</string>
+
+    <!-- TrailDetailsDialog -->
+    <string name="trailDetailsDialogTitle">Wanderwegdetails</string>
+    <string name="labelTrailName">Name</string>
+    <string name="labelTrailDescription">Beschreibung</string>
+    <string name="labelTrailLength">Länge</string>
+    <string name="labelTrailSymbol">Symbol</string>
+    <!-- distances -->
+    <string name="labelTrailDistancesHeading">Entfernungen von aktueller Position</string>
+    <string name="labelDistanceToTrailStart">Startpunkt</string>
+    <string name="labelDistanceToTrailDestination">Zielpunkt</string>
+    <string name="labelDistanceToTrailClosest">Nächstgelegener Routenpunkt</string>
+    <!-- menu_button_hiking_trails_dialog -->
+    <string name="menuItemDirectionForwards">Start - Ziel</string>
+    <string name="menuItemDirectionBackwards">Ziel - Start</string>
+
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Feedback senden:</string>
     <string name="sendFeedbackDialogTitleMissingMap">Anfrage: OSM Karte</string>
@@ -511,6 +532,9 @@
     <!--
          route management
     -->
+
+    <!-- hiking trail -->
+    <string name="hikingTrailToString">%1$s\nKürzeste Entfernung: %2$s</string>
 
     <!-- route object -->
     <string name="routeObjectToString">%1$d.\n%2$s\n%3$s</string>
@@ -734,6 +758,12 @@
         name="entrance">
         <item quantity="one">1 Eingang</item>
         <item quantity="other">%d Eingänge</item>
+    </plurals>
+
+    <plurals
+        name="hikingTrail">
+        <item quantity="one">1 Wanderweg</item>
+        <item quantity="other">%d Wanderwege</item>
     </plurals>
 
     <plurals

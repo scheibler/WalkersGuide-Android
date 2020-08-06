@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.RequestAddressDialog;
+import org.walkersguide.android.ui.dialog.HikingTrailsDialog;
 import org.walkersguide.android.ui.dialog.SaveCurrentPositionDialog;
 import org.walkersguide.android.ui.fragment.main.POIFragment;
 import org.walkersguide.android.ui.fragment.main.RouterFragment;
@@ -76,6 +77,10 @@ public class MainActivity extends AbstractActivity {
                     case R.id.menuItemRequestAddress:
                         RequestAddressDialog.newInstance()
                             .show(getSupportFragmentManager(), "RequestAddressDialog");
+                        break;
+                    case R.id.menuItemHikingTrails:
+                        HikingTrailsDialog.newInstance()
+                            .show(getSupportFragmentManager(), "HikingTrailsDialog");
                         break;
                     case R.id.menuItemSettings:
                         Intent intentStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);

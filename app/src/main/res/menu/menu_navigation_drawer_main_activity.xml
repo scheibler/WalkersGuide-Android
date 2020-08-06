@@ -13,6 +13,9 @@
         android:id="@+id/menuItemRequestAddress"
         android:title="@string/menuItemRequestAddress" />
     <item
+        android:id="@+id/menuItemHikingTrails"
+        android:title="@string/menuItemHikingTrails" />
+    <item
         android:id="@+id/menuItemSettings"
         android:title="@string/menuItemSettings" />
     <item

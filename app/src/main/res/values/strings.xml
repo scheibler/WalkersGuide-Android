@@ -14,6 +14,7 @@
     <string name="menuItemLastVisitedPoints">Last visited points</string>
     <string name="menuItemSaveCurrentPosition">Save position</string>
     <string name="menuItemRequestAddress">Where am I?</string>
+    <string name="menuItemHikingTrails">Hiking trails</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
@@ -413,6 +414,26 @@
          other dialogs and layouts
     -->
 
+    <!-- HikingTrailsDialog -->
+    <string name="hikingTrailsDialogTitle">Hiking trails</string>
+    <string name="labelHikingTrailsHeading">%1$s within %2$d km</string>
+    <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
+
+    <!-- TrailDetailsDialog -->
+    <string name="trailDetailsDialogTitle">Hiking trail details</string>
+    <string name="labelTrailName">Name</string>
+    <string name="labelTrailDescription">Description</string>
+    <string name="labelTrailLength">Length</string>
+    <string name="labelTrailSymbol">Symbol</string>
+    <!-- distances -->
+    <string name="labelTrailDistancesHeading">Distances from current position</string>
+    <string name="labelDistanceToTrailStart">Start point</string>
+    <string name="labelDistanceToTrailDestination">Destination point</string>
+    <string name="labelDistanceToTrailClosest">Closest route point</string>
+    <!-- menu_button_hiking_trails_dialog -->
+    <string name="menuItemDirectionForwards">Start to destination</string>
+    <string name="menuItemDirectionBackwards">Destination to Start</string>
+
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Send feedback:</string>
     <string name="sendFeedbackDialogTitleMissingMap">Request: OSM map</string>
@@ -511,6 +532,9 @@
     <!--
          route management
     -->
+
+    <!-- hiking trail -->
+    <string name="hikingTrailToString">%1$s\nClosest distance: %2$s</string>
 
     <!-- route object -->
     <string name="routeObjectToString">%1$d.\n%2$s\n%3$s</string>
@@ -730,6 +754,12 @@
         name="entrance">
         <item quantity="one">1 entrance</item>
         <item quantity="other">%d entrances</item>
+    </plurals>
+
+    <plurals
+        name="hikingTrail">
+        <item quantity="one">1 hiking trail</item>
+        <item quantity="other">%d hiking trails</item>
     </plurals>
 
     <plurals

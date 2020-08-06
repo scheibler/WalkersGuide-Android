@@ -46,6 +46,9 @@ public class GlobalInstance extends Application {
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         }
+        // app context
+        this.globalInstance = this;
+        // session
         this.sessionId = UUID.randomUUID().toString();
         this.wasInBackground = true;
         // notification channel (android 8)
@@ -57,6 +60,24 @@ public class GlobalInstance extends Application {
 
     public String getSessionId() {
         return this.sessionId;
+    }
+
+
+    /**
+     * application context
+     */
+    private static GlobalInstance globalInstance;
+
+    public static Context getContext() {
+        return globalInstance;
+    }
+
+    public static String getStringResource(int resourceId) {
+        return getContext().getResources().getString(resourceId);
+    }
+
+    public static String getPluralResource(int resourceId, int number) {
+        return getContext().getResources().getQuantityString(resourceId, number, number);
     }
 
 

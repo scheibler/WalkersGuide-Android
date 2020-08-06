@@ -16,6 +16,9 @@ import java.util.Locale;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
+import org.json.JSONObject;
+import org.json.JSONException;
+import android.text.TextUtils;
 
 
 public class StringUtility {
@@ -203,6 +206,35 @@ public class StringUtility {
         spanString.setSpan(
                 new ForegroundColorSpan(Color.rgb(215, 0, 0)), 0, spanString.length(), 0);
         return spanString;
+    }
+
+
+    /**
+     * json
+     */
+
+    public static Integer getNullableAndPositiveIntegerFromJsonObject(JSONObject jsonObject, String key) {
+        if (! jsonObject.isNull(key)) {
+            try {
+                int integerFromJson = jsonObject.getInt(key);
+                if (integerFromJson > 0) {
+                    return integerFromJson;
+                }
+            } catch (JSONException e) {}
+        }
+        return null;
+    }
+
+    public static String getNullableStringFromJsonObject(JSONObject jsonObject, String key) {
+        if (! jsonObject.isNull(key)) {
+            try {
+                String stringFromJson = jsonObject.getString(key);
+                if (! TextUtils.isEmpty(stringFromJson)) {
+                    return stringFromJson;
+                }
+            } catch (JSONException e) {}
+        }
+        return null;
     }
 
 }

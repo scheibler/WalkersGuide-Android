@@ -12,6 +12,7 @@ public class Constants {
         public static final String GET_ROUTE = "get_route";
         public static final String GET_NEXT_INTERSECTIONS_FOR_WAY = "get_next_intersections_for_way";
         public static final String GET_POI = "get_poi";
+        public static final String GET_HIKING_TRAILS = "get_hiking_trails";
         public static final String SEND_FEEDBACK = "send_feedback";
         public static final String CANCEL_REQUEST = "cancel_request";
         public static final String GET_STATUS = "get_status";
