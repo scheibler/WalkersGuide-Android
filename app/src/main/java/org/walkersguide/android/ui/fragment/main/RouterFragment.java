@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.main;
 
+import timber.log.Timber;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -303,6 +304,7 @@ public class RouterFragment extends AbstractUITab implements RouteRequestListene
      */
 
     @Override public void fragmentVisible() {
+        Timber.d("fragmentVisible");
         labelHeading.setText(
                 getResources().getString(R.string.messagePleaseWait));
         labelRouteStartPoint.setVisibility(View.GONE);
@@ -323,6 +325,7 @@ public class RouterFragment extends AbstractUITab implements RouteRequestListene
     }
 
     @Override public void fragmentInvisible() {
+        Timber.d("fragmentInvisible");
         routeManagerInstance.invalidateRouteRequest((RouterFragment) this);
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(routeBroadcastReceiver);
     }

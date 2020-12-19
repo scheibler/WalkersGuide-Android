@@ -299,8 +299,7 @@ public abstract class AbstractActivity extends AppCompatActivity {
                     invalidateOptionsMenu();
                 }
             } else if(intent.getAction().equals(Constants.ACTION_UPDATE_UI)) {
-                onPause();
-                onResume();
+                AbstractActivity.this.recreate();
             }
         }
     };
