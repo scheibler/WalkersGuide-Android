@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.main;
 
+import timber.log.Timber;
 import androidx.core.view.ViewCompat;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -527,6 +528,7 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
      */
 
     @Override public void fragmentVisible() {
+        Timber.d("fragmentVisible");
         // broadcast filter
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_LOCATION);
@@ -546,6 +548,7 @@ public class POIFragment extends AbstractUITab implements HistoryPointProfileLis
     }
 
     @Override public void fragmentInvisible() {
+        Timber.d("fragmentInvisible");
         if (contentType.equals(ContentType.POI)) {
             poiManagerInstance.invalidateRequest((POIFragment) this);
         } else {

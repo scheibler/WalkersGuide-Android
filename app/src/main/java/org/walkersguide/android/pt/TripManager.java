@@ -166,7 +166,8 @@ public class TripManager {
                         this.returnCode = Constants.RC.PT_SERVICE_FAILED;
                     } else {
                         for (Trip trip : tripsResult.trips) {
-                            if (trip.isTravelable()
+                            if (trip.getFirstPublicLeg() != null
+                                    && trip.isTravelable()
                                     && trip.getNumChanges() == 0) {
                                 String tripLineLabel = trip.getFirstPublicLeg().line.label;
                                 Date tripDepartureTime = PTHelper.getDepartureTime(trip.getFirstPublicLeg().departureStop);
