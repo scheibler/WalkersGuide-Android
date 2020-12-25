@@ -374,6 +374,12 @@
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
+    <string name="buttonExportSettings">Export application settings</string>
+    <!-- export messages -->
+    <string name="labelWriteExternalStoragePermissionDenied">Permission denied: Import and export not possible.</string>
+    <string name="labelOverwriteExistingSettings">Import settings already present. Do you really want to overwrite them?</string>
+    <string name="labelExportSuccessful">Export successful.\nPlease copy the created folder %1$s to your new device.</string>
+    <string name="labelExportFailed">Export failed.</string>
 
     <!-- new server dialog -->
     <string name="newServerDialogTitle">New server:</string>
@@ -392,9 +398,12 @@
 
     <!-- import settings dialog -->
     <string name="importSettingsDialogTitle">Import settings:</string>
-    <string name="labelImportDatabase">Database:</string>
-    <string name="labelImportDatabaseNotFound">Database: Not found</string>
-    <string name="labelImportDatabaseSuccessful">Database import successful.</string>
+    <string name="labelImportReady">Import data found: Ready to begin.\n\nPlease beware,
+        that this is highly experimental. Make sure, that the WalkersGuide program
+        versions from export and import are identical, to prevent data loss.</string>
+    <string name="labelImportDataNotFound">%1$s not found.</string>
+    <string name="labelImportSuccessful">Import successful.</string>
+    <string name="labelImportFailed">Import failed.</string>
 
     <!-- info activity -->
     <string name="infoActivityTitle">Info</string>

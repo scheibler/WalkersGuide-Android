@@ -69,7 +69,7 @@ android {
     lintOptions {
         disable "StaticFieldLeak", "InflateParams", "GoogleAppIndexingWarning",
                 "ButtonStyle", "UseSparseArrays", "UseCompoundDrawables",
-                "DefaultLocale", "AllowBackup", "IconLauncherShape", "Autofill", "GradleCompatible"
+                "DefaultLocale", "IconLauncherShape", "Autofill", "GradleCompatible"
     }
 }
 

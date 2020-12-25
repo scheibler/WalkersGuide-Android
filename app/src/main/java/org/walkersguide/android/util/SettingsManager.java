@@ -27,9 +27,20 @@ import org.walkersguide.android.pt.PTHelper.Country;
 
 import de.schildbach.pte.AbstractNetworkProvider;
 import java.util.Map;
+import timber.log.Timber;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.util.Set;
+import java.lang.Long;
+import java.lang.ClassNotFoundException;
 
 
 public class SettingsManager {
+    public static final String SETTINGS_FILE_NAME = "WalkersGuide-Android-Settings";
     public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
     // class variables
@@ -56,7 +67,7 @@ public class SettingsManager {
 
 	private SettingsManager(Context context) {
 		this.context = context;
-		this.settings = context.getSharedPreferences("WalkersGuide-Android-Settings", Context.MODE_PRIVATE);
+		this.settings = context.getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE);
 	}
 
 	public GeneralSettings getGeneralSettings() {
@@ -932,6 +943,101 @@ public class SettingsManager {
     		editor.apply();
             // null searchTermHistory object to force reload on next getSearchTermHistory()
             searchTermHistory = null;
+        }
+    }
+
+
+    /**
+     * import and export settings
+     */
+
+    public boolean importSettings(File sourceFile) {
+        FileInputStream fis = null;
+        ObjectInputStream ois = null;
+        Map<String, Object> map = null;
+        boolean success = true;
+        try {
+            fis = new FileInputStream(sourceFile);
+            ois = new ObjectInputStream(fis);
+            map = (Map) ois.readObject();
+        } catch(IOException | ClassNotFoundException e) {
+            Timber.e("Settings import failed: " + e.getMessage());
+            success = false;
+        } finally {
+            if (ois != null) {
+                try {
+                    ois.close();
+                } catch (IOException e) {}
+            }
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {}
+            }
+            if (! success) {
+                return false;
+            }
+        }
+
+        // restore settings
+        SharedPreferences.Editor editor = this.settings.edit();
+        editor.clear();
+        for (Map.Entry<String, Object> e : map.entrySet()) {
+            if (e.getValue() instanceof Boolean) {
+                editor.putBoolean(e.getKey(), (Boolean)e.getValue());
+            } else if (e.getValue() instanceof String) {
+                editor.putString(e.getKey(), (String)e.getValue());
+            } else if (e.getValue() instanceof Integer) {
+                editor.putInt(e.getKey(), (int)e.getValue());
+            } else if (e.getValue() instanceof Float) {
+                editor.putFloat(e.getKey(), (float)e.getValue());
+            } else if (e.getValue() instanceof Long) {
+                editor.putLong(e.getKey(), (Long) e.getValue());
+            } else if (e.getValue() instanceof Set) {
+                editor.putStringSet(e.getKey(), (Set<String>) e.getValue());
+            } else {
+                Timber.w("Settings type " + e.getValue().getClass().getName() + " is unknown");
+            }
+        }
+        success = editor.commit();
+
+        // reset and return
+        generalSettings = null;
+        directionSettings = null;
+        locationSettings = null;
+        poiSettings = null;
+        routeSettings = null;
+        serverSettings = null;
+        searchTermHistory = null;
+        return success;
+    }
+
+    public boolean exportSettings(File destinationFile) {
+        FileOutputStream fos = null;
+        ObjectOutputStream oos = null;
+        boolean success = true;
+        try {
+            fos = new FileOutputStream(destinationFile);
+            oos = new ObjectOutputStream(fos);
+            oos.writeObject(settings.getAll());
+        } catch(IOException e) {
+            Timber.e("Settings export failed: " + e.getMessage());
+            success = false;
+            if (destinationFile.exists()) {
+                destinationFile.delete();
+            }
+        } finally {
+            if (oos != null) {
+                try {
+                    oos.close();
+                } catch (IOException e) {}
+            }
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {}
+            }
+            return success;
         }
     }
 

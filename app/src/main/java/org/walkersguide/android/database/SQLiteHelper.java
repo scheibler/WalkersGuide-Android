@@ -22,6 +22,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     public static final String INTERNAL_DATABASE_NAME = BuildConfig.DATABASE_NAME;
     public static final String INTERNAL_TEMP_DATABASE_NAME = BuildConfig.DATABASE_NAME + ".tmp";
+    public static final String INTERNAL_OLD_DATABASE_NAME = BuildConfig.DATABASE_NAME + ".old";
     public static final int DATABASE_VERSION = BuildConfig.DATABASE_VERSION;
 
     // point table

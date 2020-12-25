@@ -374,6 +374,12 @@
     <string name="buttonShakeIntensity">Schüttelintensität</string>
     <string name="labelImportAndExportSettingsHeader">Import und Export:</string>
     <string name="buttonImportSettings">Einstellungen importieren</string>
+    <string name="buttonExportSettings">Einstellungen exportieren</string>
+    <!-- export messages -->
+    <string name="labelWriteExternalStoragePermissionDenied">Berechtigung nicht erteilt: Import und export nicht möglich.</string>
+    <string name="labelOverwriteExistingSettings">Importeinstellungen bereits vorhanden. Möchtest du diese wirklich überschreiben?</string>
+    <string name="labelExportSuccessful">Export erfolgreich. Bitte kopiere den Ordner %1$s auf dein neues Gerät.</string>
+    <string name="labelExportFailed">Export fehlgeschlagen.</string>
 
     <!-- new server dialog -->
     <string name="newServerDialogTitle">Neuer Server:</string>
@@ -392,9 +398,12 @@
 
     <!-- import settings dialog -->
     <string name="importSettingsDialogTitle">Einstellungen importieren:</string>
-    <string name="labelImportDatabase">Datenbank:</string>
-    <string name="labelImportDatabaseNotFound">Datenbank nicht gefunden.</string>
-    <string name="labelImportDatabaseSuccessful">Datenbankimport war erfolgreich.</string>
+    <string name="labelImportReady">Importdaten gefunden: Kann losgehen.\n\nBitte beachte, dass
+        der Importprozess ein experimentelles Feature darstellt. Stelle sicher, dass die
+        WalkersGuide Versionen für Export und Import identisch sind, um Datenverlust zu vermeiden.</string>
+    <string name="labelImportDataNotFound">%1$s nicht gefunden.</string>
+    <string name="labelImportSuccessful">Import erfolgreich.</string>
+    <string name="labelImportFailed">Import fehlgeschlagen.</string>
 
     <!-- info activity -->
     <string name="infoActivityTitle">Info</string>

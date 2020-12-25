@@ -1,6 +1,8 @@
 package org.walkersguide.android.ui.activity;
 
+import timber.log.Timber;
 import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
+import org.walkersguide.android.helper.FileUtility;
 import org.walkersguide.android.pt.PTHelper;
 import org.walkersguide.android.pt.PTHelper.Country;
 import android.content.IntentFilter;
@@ -48,11 +50,19 @@ import org.walkersguide.android.ui.dialog.SelectMapDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsImport;
-import org.walkersguide.android.util.SettingsImport.SettingsImportListener;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import android.content.BroadcastReceiver;
+import org.walkersguide.android.database.SQLiteHelper;
+import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.database.AccessDatabase;
+import android.database.SQLException;
+import android.app.Activity;
+import android.net.Uri;
+import android.Manifest;
+import androidx.core.app.ActivityCompat;
+import android.os.Environment;
+import android.content.pm.PackageManager;
 
 
 public class SettingsActivity extends AbstractActivity implements ServerStatusListener {
@@ -132,8 +142,20 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 		Button buttonImportSettings = (Button) findViewById(R.id.buttonImportSettings);
 		buttonImportSettings.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-                ImportSettingsDialog.newInstance()
-                    .show(getSupportFragmentManager(), "ImportSettingsDialog");
+                ActivityCompat.requestPermissions(
+                        SettingsActivity.this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        SETTINGS_IMPORT_ID);
+            }
+        });
+
+		Button buttonExportSettings = (Button) findViewById(R.id.buttonExportSettings);
+		buttonExportSettings.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
+                ActivityCompat.requestPermissions(
+                        SettingsActivity.this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        SETTINGS_EXPORT_ID);
             }
         });
     }
@@ -574,14 +596,86 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
         }
     }
 
+    /**
+     * import and export settings
+     */
+    private static final int SETTINGS_IMPORT_ID = 64;
+    private static final int SETTINGS_EXPORT_ID = 65;
 
-    public static class ImportSettingsDialog extends DialogFragment implements SettingsImportListener, ChildDialogCloseListener {
-        private static final String DATABASE_FILE_TO_IMPORT = "walkersguide.db";
+    @Override public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        for (int i=0; i<permissions.length; i++) {
+            if (permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    switch (requestCode) {
+                        case SETTINGS_IMPORT_ID:
+                            ImportSettingsDialog.newInstance()
+                                .show(getSupportFragmentManager(), "ImportSettingsDialog");
+                            break;
+                        case SETTINGS_EXPORT_ID:
+                            if (GlobalInstance.getExportFolder().exists()) {
+                                Dialog overwriteExistingSettingsDialog = new AlertDialog.Builder(SettingsActivity.this)
+                                    .setMessage(
+                                            getResources().getString(R.string.labelOverwriteExistingSettings))
+                                    .setCancelable(false)
+                                    .setPositiveButton(
+                                            getResources().getString(R.string.dialogYes),
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    FileUtility.deleteFolder(GlobalInstance.getExportFolder());
+                                                    exportSettingsAndDatabase();
+                                                    dialog.dismiss();
+                                                }
+                                            })
+                                    .setNegativeButton(
+                                            getResources().getString(R.string.dialogNo),
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            })
+                                    .create();
+                                overwriteExistingSettingsDialog.show();
+                            } else {
+                                exportSettingsAndDatabase();
+                            }
+                            break;
+                    }
+                } else {
+                    SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.labelWriteExternalStoragePermissionDenied))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                }
+            }
+        }
+    }
+
+    private void exportSettingsAndDatabase() {
+        GlobalInstance.getExportFolder().mkdirs();
+        // export settings
+        boolean settingsExportSuccessful = settingsManagerInstance.exportSettings(
+                GlobalInstance.getExportSettingsFile());
+        // copy database
+        boolean databaseExportSuccessful = FileUtility.copyFile(
+                GlobalInstance.getInternalDatabaseFile(), GlobalInstance.getExportDatabaseFile());
+        // show message
+        String message = null;
+        if (settingsExportSuccessful && databaseExportSuccessful) {
+            message = String.format(
+                    getResources().getString(R.string.labelExportSuccessful),
+                    GlobalInstance.getExportFolder().getAbsolutePath());
+        } else {
+            message = getResources().getString(R.string.labelExportFailed);
+        }
+        SimpleMessageDialog.newInstance(message)
+            .show(getSupportFragmentManager(), "SimpleMessageDialog");
+    }
+
+
+    public static class ImportSettingsDialog extends DialogFragment implements ChildDialogCloseListener {
 
         private SettingsManager settingsManagerInstance;
-        private SettingsImport settingsImportRequest;
 
-        private TextView labelDatabaseImport;
+        private TextView labelImport;
 
         public static ImportSettingsDialog newInstance() {
             ImportSettingsDialog importSettingsDialogInstance = new ImportSettingsDialog();
@@ -597,7 +691,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
             final ViewGroup nullParent = null;
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
-            labelDatabaseImport = (TextView) view.findViewById(R.id.label);
+            labelImport = (TextView) view.findViewById(R.id.label);
 
             // create dialog
             return new AlertDialog.Builder(getActivity())
@@ -622,13 +716,33 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
             super.onStart();
             final AlertDialog dialog = (AlertDialog)getDialog();
             if(dialog != null) {
+
                 // positive button
                 Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 buttonPositive.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        tryToImportSettings();
+                        final AlertDialog dialog = (AlertDialog)getDialog();
+                        if(dialog != null) {
+                            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                            buttonPositive.setClickable(false);
+                        }
+                        String message = null;
+                        if (importSettingsAndDatabase()) {
+                            message = getResources().getString(R.string.labelImportSuccessful);
+                            // remove imported settings folder
+                            FileUtility.deleteFolder(GlobalInstance.getExportFolder());
+                            // reset cache
+                            ServerStatusManager.getInstance(GlobalInstance.getContext()).setCachedServerInstance(null);
+                        } else {
+                            message = getResources().getString(R.string.labelImportFailed);
+                        }
+                        // show result
+                        SimpleMessageDialog simpleMessageDialog = SimpleMessageDialog.newInstance(message);
+                        simpleMessageDialog.setTargetFragment(ImportSettingsDialog.this, 1);
+                        simpleMessageDialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
                     }
                 });
+
                 // negative button
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -636,56 +750,32 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                         dialog.dismiss();
                     }
                 });
-                // database file label
-                File databaseFileToImport = new File(
-                        getActivity().getExternalFilesDir(null), DATABASE_FILE_TO_IMPORT);
-                if (databaseFileToImport.exists()) {
-                    labelDatabaseImport.setText(
+
+                // check for import data availibility
+                buttonPositive.setVisibility(View.GONE);
+                if (! GlobalInstance.getExportFolder().exists()) {
+                    labelImport.setText(
                             String.format(
-                                "%1$s: %2$s",
-                                getResources().getString(R.string.labelImportDatabase),
-                                databaseFileToImport.getAbsolutePath())
+                                getResources().getString(R.string.labelImportDataNotFound),
+                                GlobalInstance.getExportFolder().getAbsolutePath())
                             );
-                    buttonPositive.setVisibility(View.VISIBLE);
+                } else if (! GlobalInstance.getExportSettingsFile().exists()) {
+                    labelImport.setText(
+                            String.format(
+                                getResources().getString(R.string.labelImportDataNotFound),
+                                GlobalInstance.getExportSettingsFile().getAbsolutePath())
+                            );
+                } else if (! GlobalInstance.getExportDatabaseFile().exists()) {
+                    labelImport.setText(
+                            String.format(
+                                getResources().getString(R.string.labelImportDataNotFound),
+                                GlobalInstance.getExportDatabaseFile().getAbsolutePath())
+                            );
                 } else {
-                    labelDatabaseImport.setText(
-                            getResources().getString(R.string.labelImportDatabaseNotFound));
-                    buttonPositive.setVisibility(View.GONE);
+                    labelImport.setText(
+                            getResources().getString(R.string.labelImportReady));
+                    buttonPositive.setVisibility(View.VISIBLE);
                 }
-            }
-        }
-
-        private void tryToImportSettings() {
-            // cancel previous request
-            if (settingsImportRequest != null
-                    && settingsImportRequest.getStatus() != AsyncTask.Status.FINISHED) {
-                settingsImportRequest.cancel();
-            }
-            // change positive button label
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setText(getResources().getString(R.string.dialogCancel));
-            }
-            settingsImportRequest = new SettingsImport(
-                    getActivity(), ImportSettingsDialog.this, new File(getActivity().getExternalFilesDir(null), DATABASE_FILE_TO_IMPORT));
-            settingsImportRequest.execute();
-        }
-
-    	@Override public void settingsImportFinished(int returnCode, String returnMessage) {
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setText(getResources().getString(R.string.dialogImport));
-            }
-            SimpleMessageDialog simpleMessageDialog = SimpleMessageDialog.newInstance(returnMessage);
-            if (returnCode == Constants.RC.OK) {
-                simpleMessageDialog.setTargetFragment(ImportSettingsDialog.this, 1);
-            }
-            simpleMessageDialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
-            // re-query server information (maps, public transport providers, ...)
-            if (returnCode == Constants.RC.OK) {
-                ServerStatusManager.getInstance(getActivity()).setCachedServerInstance(null);
             }
         }
 
@@ -695,12 +785,33 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
             dismiss();
         }
 
-        @Override public void onDismiss(final DialogInterface dialog) {
-            super.onDismiss(dialog);
-            if (settingsImportRequest != null
-                    && settingsImportRequest.getStatus() != AsyncTask.Status.FINISHED) {
-                settingsImportRequest.cancel();
+        private boolean importSettingsAndDatabase() {
+            // import settings
+            boolean settingsImportSuccessful = settingsManagerInstance.importSettings(
+                    GlobalInstance.getExportSettingsFile());
+            Timber.d("settings import: %1$s", settingsImportSuccessful);
+            if (! settingsImportSuccessful) {
+                return false;
             }
+            // restore database
+            boolean copyDatabaseSuccessful = FileUtility.copyFile(
+                    GlobalInstance.getExportDatabaseFile(), GlobalInstance.getTempDatabaseFile());
+            Timber.d("copy database successful: %1$s", copyDatabaseSuccessful);
+            if (! copyDatabaseSuccessful) {
+                return false;
+            }
+            // close database
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(GlobalInstance.getContext());
+            accessDatabaseInstance.close();
+            // remove old database
+            File databaseFileToBeReplaced = GlobalInstance.getInternalDatabaseFile();
+            if (databaseFileToBeReplaced.exists()) {
+                databaseFileToBeReplaced.delete();
+            }
+            // rename temp database file and open again
+            GlobalInstance.getTempDatabaseFile().renameTo(GlobalInstance.getInternalDatabaseFile());
+            accessDatabaseInstance.open();
+            return true;
         }
     }
 

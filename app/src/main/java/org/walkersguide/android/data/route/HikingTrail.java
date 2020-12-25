@@ -77,7 +77,7 @@ public class HikingTrail implements Serializable {
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + Long.hashCode(this.relationId);
+        result = prime * result + String.valueOf(this.relationId).hashCode();
         return result;
     }
 

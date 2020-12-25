@@ -46,14 +46,16 @@ public class AccessDatabase {
 
     private AccessDatabase(Context context) {
         this.context = context;
-        dbHelper = new SQLiteHelper(context);
+        open();
+    }
+
+    public void open() throws SQLException {
+        this.dbHelper = new SQLiteHelper(context);
         this.database = dbHelper.getWritableDatabase();
     }
 
-    public void reOpen() throws SQLException {
-        dbHelper.close();
-        dbHelper = new SQLiteHelper(context);
-        database = dbHelper.getWritableDatabase();
+    public void close() throws SQLException {
+        this.dbHelper.close();
     }
 
     public void setSomeDefaults() {

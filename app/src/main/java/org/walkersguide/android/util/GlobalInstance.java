@@ -27,6 +27,9 @@ import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.activity.MainActivity;
 
 import timber.log.Timber;
+import java.io.File;
+import android.os.Environment;
+import org.walkersguide.android.database.SQLiteHelper;
 
 
 public class GlobalInstance extends Application {
@@ -169,6 +172,31 @@ public class GlobalInstance extends Application {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(
                 WG_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+
+    /**
+     * settings import and export folders and files
+     */
+
+    public static File getExportFolder() {
+        return Environment.getExternalStoragePublicDirectory("WalkersGuide");
+    }
+
+    public static File getInternalDatabaseFile() {
+        return getContext().getDatabasePath(SQLiteHelper.INTERNAL_DATABASE_NAME);
+    }
+
+    public static File getTempDatabaseFile() {
+        return getContext().getDatabasePath(SQLiteHelper.INTERNAL_TEMP_DATABASE_NAME);
+    }
+
+    public static File getExportDatabaseFile() {
+        return new File(getExportFolder(), SQLiteHelper.INTERNAL_DATABASE_NAME);
+    }
+
+    public static File getExportSettingsFile() {
+        return new File(getExportFolder(), SettingsManager.SETTINGS_FILE_NAME);
     }
 
 }
