@@ -28,8 +28,8 @@ android {
         resConfigs "en", "de"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 16
-        versionName '1.1.0'
+        versionCode 17
+        versionName '1.2.0'
         // personal data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'

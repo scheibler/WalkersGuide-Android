@@ -3,6 +3,19 @@ Change Log
 
 
 
+v1.2.0: 2020-12-27
+------------------
+
+- Dark mode support
+- Settings import and export
+- Departures and trip details views reworked
+- PTE version from December 2020 fixes the broken VVO provider
+- Support for webserver API 4: hiking trails
+    * Dialog shows nearby hiking trails
+    * Disabled until the route calculation of the selected hiking trail is implemented at the server
+
+
+
 v1.1.0: 2020-07-15
 ------------------
 
