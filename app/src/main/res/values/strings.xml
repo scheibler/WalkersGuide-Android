@@ -694,13 +694,6 @@
     <string name="errorAPIClientOutdated">The API version of this app is too old for the selected server. Please check for app updates on walkersguide.org or in the Google play store.</string>
     <string name="errorAPIServerOutdated">The API version of the selected map server is not longer supported by this app.</string>
     <string name="errorNoMapList">The server doesn\'t offer any maps.</string>
-    <!-- public transport enabler -->
-    <string name="errorNoPtProvider">No public transport provider selected.</string>
-    <string name="errorMissingOrInvalidPtRequestData">PT request data missing or invalid.</string>
-    <string name="errorPtServiceDown">The public transport provider is not accessible.</string>
-    <string name="errorPtServiceFailed">The public transport provider request failed.</string>
-    <string name="errorNoPtDepartures">No departures found.</string>
-    <string name="errorNoPtTrips">No matching trip found.</string>
     <!-- address lookup -->
     <string name="errorNoCoordinatesForAddress">No coordinates for this address found.</string>
     <string name="errorNoAddressForCoordinates">No address for this coordinates found.</string>

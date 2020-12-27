@@ -57,7 +57,8 @@ public class POIProfileAdapter extends ArrayAdapter<Integer> {
         // label
         if (holder.labelPOIProfileName != null) {
             if (poiProfileId == SettingsManager.getInstance(context).getPOISettings().getSelectedPOIProfileId()) {
-                holder.labelPOIProfileName.setText(StringUtility.boldAndRed(poiProfileName));
+                holder.labelPOIProfileName.setText(
+                        StringUtility.boldAndRed(context, poiProfileName));
                 holder.labelPOIProfileName.setContentDescription(
                         String.format(
                             "%1$s: %2$s",

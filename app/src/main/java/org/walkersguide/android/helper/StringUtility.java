@@ -1,8 +1,8 @@
 package org.walkersguide.android.helper;
 
+import androidx.core.content.ContextCompat;
 import android.content.Context;
 
-import android.graphics.Color;
 import android.graphics.Typeface;
 
 import android.text.SpannableString;
@@ -200,11 +200,26 @@ public class StringUtility {
         return hoursMinutesFormat.format(new Date(timestamp));
     }
 
-    public static SpannableString boldAndRed(String text) {
+    public static SpannableString boldAndRed(Context context, String text) {
+        return boldAndRed(context, text, 0, text.length());
+    }
+
+    public static SpannableString boldAndRed(Context context, String text, int begin, int end) {
+        if (begin < 0 || begin >= text.length()) {
+            begin = 0;
+        }
+        if (end < 0 || end >= text.length()) {
+            end = text.length();
+        }
         SpannableString spanString = new SpannableString(text);
-        spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
         spanString.setSpan(
-                new ForegroundColorSpan(Color.rgb(215, 0, 0)), 0, spanString.length(), 0);
+                new StyleSpan(
+                    Typeface.BOLD),
+                begin, end, 0);
+        spanString.setSpan(
+                new ForegroundColorSpan(
+                    ContextCompat.getColor(context, R.color.heading)),
+                begin, end, 0);
         return spanString;
     }
 

@@ -1,12 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
-import android.os.Build;
-import android.graphics.Color;
-import android.graphics.Typeface;
 
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import de.schildbach.pte.AbstractNetworkProvider;
@@ -176,44 +170,33 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
 
         @Override public View getGroupView(int groupPosition, boolean isExpanded,
                 View convertView, ViewGroup parent) {
+            Country country = getGroup(groupPosition);
+
             EntryHolderParent holder;
             if (convertView == null) {
                 holder = new EntryHolderParent();
-                convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view, parent, false);
+                convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_heading, parent, false);
                 holder.labelCountry = (TextView) convertView.findViewById(R.id.label);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    holder.labelCountry.setAccessibilityHeading(true);
-                }
                 convertView.setTag(holder);
             } else {
                 holder = (EntryHolderParent) convertView.getTag();
             }
 
-            SpannableString countryString = null;
-            // id -> name
-            Country country = getGroup(groupPosition);
+            String countryString = null;
             switch (country) {
                 case EUROPE:
-                    countryString = new SpannableString(
-                            context.getResources().getString(R.string.countryEurope));
+                    countryString = context.getResources().getString(R.string.countryEurope);
                     break;
                 case GERMANY:
-                    countryString = new SpannableString(
-                            context.getResources().getString(R.string.countryGermany));
+                    countryString = context.getResources().getString(R.string.countryGermany);
                     break;
                 case SWITZERLAND:
-                    countryString = new SpannableString(
-                            context.getResources().getString(R.string.countrySwitzerland));
+                    countryString = context.getResources().getString(R.string.countrySwitzerland);
                     break;
                 default:
-                    countryString = new SpannableString(country.name());
+                    countryString = country.name();
                     break;
             }
-            // bold and red
-            countryString.setSpan(
-                    new StyleSpan(Typeface.BOLD), 0, countryString.length(), 0);
-            countryString.setSpan(
-                    new ForegroundColorSpan(Color.rgb(215, 0, 0)), 0, countryString.length(), 0);
 
             holder.labelCountry.setText(
                     String.format(
@@ -239,7 +222,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             EntryHolderChild holder;
             if (convertView == null) {
                 holder = new EntryHolderChild();
-                convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_checked_text_view, parent, false);
+                convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_checked, parent, false);
                 holder.labelProvider = (CheckedTextView) convertView.findViewById(R.id.label);
                 convertView.setTag(holder);
             } else {

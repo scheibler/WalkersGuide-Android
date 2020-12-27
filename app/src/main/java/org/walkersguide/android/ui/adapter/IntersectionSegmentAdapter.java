@@ -55,7 +55,8 @@ public class IntersectionSegmentAdapter extends ArrayAdapter<IntersectionSegment
                             context.getResources().getString(R.string.labelPartOfPreviousRouteSegment))
                         );
             } else if (segment.isPartOfNextRouteSegment()) {
-                holder.label.setText(StringUtility.boldAndRed(segment.toString()));
+                holder.label.setText(
+                        StringUtility.boldAndRed(context, segment.toString()));
                 holder.label.setContentDescription(
                         String.format(
                             "%1$s,\n%2$s",

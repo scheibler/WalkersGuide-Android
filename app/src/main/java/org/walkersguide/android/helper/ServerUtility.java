@@ -203,9 +203,15 @@ public class ServerUtility {
         if (! serverInstance.getServerURL().equals(serverSettings.getServerURL())) {
             serverSettings.setServerURL(serverInstance.getServerURL());
         }
-        if (serverSettings.getSelectedMap() != null
-                && ! serverInstance.getAvailableMapList().contains(serverSettings.getSelectedMap())) {
-            serverSettings.setSelectedMap(null);
+        if (serverSettings.getSelectedMap() != null) {
+            int indexOfSelectedMap = serverInstance.getAvailableMapList().indexOf(serverSettings.getSelectedMap());
+            if (indexOfSelectedMap == -1) {
+                // reset
+                serverSettings.setSelectedMap(null);
+            } else {
+                // update
+                serverSettings.setSelectedMap(serverInstance.getAvailableMapList().get(indexOfSelectedMap));
+            }
         }
 
         // cache new server instance object and return

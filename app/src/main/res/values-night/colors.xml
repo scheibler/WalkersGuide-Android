@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- text: white -->
+    <color name="text">#ffffff</color>
+
+    <!-- divider: white -->
+    <color name="divider">#ffffff</color>
+
+    <!-- headings: orange -->
+    <color name="heading">#FFA500</color>
+
+    <!-- images -->
+    <color name="image">#add3f0</color>
+
+</resources>

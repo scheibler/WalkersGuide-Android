@@ -46,7 +46,7 @@ public class RouteObjectAdapter extends ArrayAdapter<RouteObject> {
         if (holder.label != null) {
             if (routeObject.equals(selectedRouteObject)) {
                 holder.label.setText(
-                        StringUtility.boldAndRed(routeObject.toString()));
+                        StringUtility.boldAndRed(context, routeObject.toString()));
                 holder.label.setContentDescription(
                         String.format(
                             "%1$s: %2$s",

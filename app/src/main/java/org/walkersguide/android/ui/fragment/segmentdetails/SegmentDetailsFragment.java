@@ -409,7 +409,8 @@ public class SegmentDetailsFragment extends AbstractUITab {
     	label.setLayoutParams(lp);
         // text
         if (isHeading) {
-            label.setText(StringUtility.boldAndRed(text));
+            label.setText(
+                    StringUtility.boldAndRed(getActivity(), text));
         } else {
             label.setText(text);
         }

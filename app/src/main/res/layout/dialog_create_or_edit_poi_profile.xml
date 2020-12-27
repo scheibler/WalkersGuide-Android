@@ -14,9 +14,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:textStyle="bold"
-            android:textColor="@color/heading"
-            android:text="@string/labelProfileName" />
+            android:text="@string/labelProfileName"
+            android:theme="@style/HeadingTextView" />
 
         <include
             layout="@layout/layout_single_edit_text" />
@@ -36,9 +35,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:focusable="true"
-                android:textStyle="bold"
-                android:textColor="@color/heading"
-                android:text="@string/labelPOIProfileFavoritesAndHistory" />
+                android:text="@string/labelPOIProfileFavoritesAndHistory"
+                android:theme="@style/HeadingTextView" />
 
             <Switch
                 android:id="@+id/buttonIncludeFavorites"
@@ -51,9 +49,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:focusable="true"
-                android:textStyle="bold"
-                android:textColor="@color/heading"
-                android:text="@string/labelPOIProfileCategories" />
+                android:text="@string/labelPOIProfileCategories"
+                android:theme="@style/HeadingTextView" />
 
             <org.walkersguide.android.ui.view.CheckBoxGroupView
                 android:id="@+id/checkBoxGroupPOICategories"

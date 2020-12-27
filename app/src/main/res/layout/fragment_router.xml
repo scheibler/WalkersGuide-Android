@@ -105,9 +105,8 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
-                android:textStyle="bold"
-                android:textColor="@color/heading"
-                android:focusable="true" />
+                android:focusable="true"
+                android:theme="@style/HeadingTextView" />
 
             <TextView
                 android:id="@+id/labelRouteSegmentDescription"
