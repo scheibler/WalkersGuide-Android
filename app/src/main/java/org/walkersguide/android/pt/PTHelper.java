@@ -77,8 +77,6 @@ public class PTHelper {
                 case RT:
                     return context.getResources().getString(R.string.publicTransportProviderRT);
                 // germany
-                case DB:
-                    return context.getResources().getString(R.string.publicTransportProviderDB);
                 case VVO:
                     return context.getResources().getString(R.string.publicTransportProviderVVO);
                 // switzerland
@@ -95,11 +93,84 @@ public class PTHelper {
 
 
     /**
+     * requests
+     */
+
+    public static final int RC_OK = HttpsURLConnection.HTTP_OK;
+    public static final int RC_CANCELLED = 2000;
+    public static final int RC_NO_INTERNET_CONNECTION = 2001;
+    public static final int RC_NO_NETWORK_PROVIDER = 2002;
+    public static final int RC_NO_STATION = 2003;
+    public static final int RC_NO_DEPARTURE_DATE = 2004;
+    public static final int RC_NO_COORDINATES = 2005;
+    // pte server responses
+    public static final int RC_REQUEST_FAILED = 2010;
+    public static final int RC_SERVICE_DOWN = 2011;
+    public static final int RC_INVALID_PROVIDER = 2012;
+    public static final int RC_INVALID_STATION = 2013;
+    public static final int RC_NO_DEPARTURES = 2014;
+    public static final int RC_NO_TRIPS = 2015;
+    public static final int RC_UNKNOWN_SERVER_RESPONSE = 2016;
+
+
+    public static String getErrorMessageForReturnCode(Context context, int returnCode) {
+        switch (returnCode) {
+            case RC_OK:
+                return "";
+            case RC_CANCELLED:
+                return context.getResources().getString(R.string.errorCancelled);
+            case RC_NO_INTERNET_CONNECTION:
+                return context.getResources().getString(R.string.errorNoInternetConnection);
+            case RC_NO_NETWORK_PROVIDER:
+                return context.getResources().getString(R.string.errorNoNetworkProvider);
+            case RC_NO_STATION:
+                return context.getResources().getString(R.string.errorNoStation);
+            case RC_NO_DEPARTURE_DATE:
+                return context.getResources().getString(R.string.errorNoDepartureDate);
+            case RC_NO_COORDINATES:
+                return context.getResources().getString(R.string.errorNoCoordinates);
+            // server responses
+            case RC_REQUEST_FAILED:
+                return context.getResources().getString(R.string.errorPTRequestFailed);
+            case RC_SERVICE_DOWN:
+                return context.getResources().getString(R.string.errorPTServiceDown);
+            case RC_INVALID_PROVIDER:
+                return context.getResources().getString(R.string.errorInvalidProvider);
+            case RC_INVALID_STATION:
+                return context.getResources().getString(R.string.errorInvalidStation);
+            case RC_NO_DEPARTURES:
+                return context.getResources().getString(R.string.errorNoDepartures);
+            case RC_NO_TRIPS:
+                return context.getResources().getString(R.string.errorNoTrips);
+            case RC_UNKNOWN_SERVER_RESPONSE:
+                return context.getResources().getString(R.string.errorUnknownServerResponse);
+            default:
+                return String.format(
+                        context.getResources().getString(R.string.messageUnknownError), returnCode);
+        }
+    }
+
+
+    /**
      * string formatting
      */
 
+    public static String vehicleTypesToString(Context context, Set<Product> products) {
+        if (products == null) {
+            return "";
+        } else {
+            ArrayList<String> vehicleTypeNameList = new ArrayList<String>();
+            for (Product product : products) {
+                vehicleTypeNameList.add(getVehicleName(context, product));
+            }
+            return TextUtils.join(", ", vehicleTypeNameList);
+        }
+    }
+
     public static String getLocationName(Location location) {
-        if (! TextUtils.isEmpty(location.name)
+        if (location == null) {
+            return "";
+        } else if (! TextUtils.isEmpty(location.name)
                 && ! TextUtils.isEmpty(location.place)
                 && ! location.name.equals(location.place)) {
             return String.format("%1$s, %2$s", location.name, location.place);
@@ -112,39 +183,84 @@ public class PTHelper {
         }
     }
 
-    public static String vehicleTypesToString(Set<Product> products) {
-        ArrayList<String> vehicleTypeNameList = new ArrayList<String>();
-        if (products != null) {
-            for (Product product : products) {
-                vehicleTypeNameList.add(
-                          product.name().substring(0, 1).toUpperCase()
-                        + product.name().substring(1).toLowerCase());
-            }
+    public static String getVehicleName(Context context, Product product) {
+        if (product == null) {
+            return "";
+        } else if (product.code == Product.HIGH_SPEED_TRAIN.code) {
+            return context.getResources().getString(R.string.productHighSpeedTrain);
+        } else if (product.code == Product.REGIONAL_TRAIN.code) {
+            return context.getResources().getString(R.string.productRegionalTrain);
+        } else if (product.code == Product.SUBURBAN_TRAIN.code) {
+            return context.getResources().getString(R.string.productSuburbanTrain);
+        } else if (product.code == Product.SUBWAY.code) {
+            return context.getResources().getString(R.string.productSubway);
+        } else if (product.code == Product.TRAM.code) {
+            return context.getResources().getString(R.string.productTram);
+        } else if (product.code == Product.BUS.code) {
+            return context.getResources().getString(R.string.productBus);
+        } else if (product.code == Product.FERRY.code) {
+            return context.getResources().getString(R.string.productFerry);
+        } else if (product.code == Product.CABLECAR.code) {
+            return context.getResources().getString(R.string.productCableCar);
+        } else if (product.code == Product.ON_DEMAND.code) {
+            return context.getResources().getString(R.string.productOnDemand);
+        } else {
+            return product.name().substring(0, 1).toUpperCase()
+                + product.name().substring(1).toLowerCase();
         }
-        return TextUtils.join(", ", vehicleTypeNameList);
     }
 
-    public static String formatAbsoluteDepartureTime(Context context, Date date, boolean shortOutput) {
-        SimpleDateFormat hoursMinutesFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        if (shortOutput) {
-            return hoursMinutesFormat.format(date);
+    public static String formatAbsoluteDepartureTime(Context context, Date date) {
+        if (date == null) {
+            return "";
         } else {
+            SimpleDateFormat hoursMinutesFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
             return String.format(
                     context.getResources().getString(R.string.contentDescriptionAbsoluteDepartureTime),
                     hoursMinutesFormat.format(date));
         }
     }
 
-    public static String formatRelativeDepartureTimeInMinutes(Context context, Date date, boolean shortOutput) {
-        int departureInMinutes = (int) Math.ceil((date.getTime() - System.currentTimeMillis()) / 60000.0);
-        if (shortOutput) {
-            return context.getResources().getQuantityString(
-                    R.plurals.minuteShort, departureInMinutes, departureInMinutes);
+    public static String formatRelativeDepartureTime(Context context, Date date, boolean contentDescription) {
+        if (date == null) {
+            return "";
         } else {
+            ArrayList<String> relativeDepartureTimeList = new ArrayList<String>();
+            // calculate hours and minutes
+            int hours = (int) Math.floor((date.getTime() - System.currentTimeMillis()) / (60*60*1000.0));
+            int minutes = ( (int) Math.ceil((date.getTime() - System.currentTimeMillis()) / (60*1000.0)) ) % 60;
+            // special case for everything between -59 sec and 0 sec
+            if (minutes == 0) {
+                hours += 1;
+            }
+            // fill string formatter list
+            //
+            // add hours
+            if (hours > 0) {
+                if (contentDescription) {
+                    relativeDepartureTimeList.add(
+                            context.getResources().getQuantityString(
+                                R.plurals.hourLong, hours, hours));
+                } else {
+                    relativeDepartureTimeList.add(
+                            context.getResources().getQuantityString(
+                                R.plurals.hourShort, hours, hours));
+                }
+            }
+            // add minutes
+            if (contentDescription) {
+                relativeDepartureTimeList.add(
+                        context.getResources().getQuantityString(
+                            R.plurals.minuteLong, minutes, minutes));
+            } else {
+                relativeDepartureTimeList.add(
+                        context.getResources().getQuantityString(
+                            R.plurals.minuteShort, minutes, minutes));
+            }
+            // return formatted string
             return String.format(
                     context.getResources().getString(R.string.contentDescriptionRelativeDepartureTime),
-                    context.getResources().getQuantityString(
-                        R.plurals.minute, departureInMinutes, departureInMinutes));
+                    TextUtils.join(" ", relativeDepartureTimeList));
         }
     }
 
@@ -152,6 +268,17 @@ public class PTHelper {
     /**
      * miscellaneous
      */
+
+    public static int distanceBetweenTwoPoints(Point pointA, Point pointB) {
+        if (pointA != null && pointB != null) {
+            float[] results = new float[1];
+            android.location.Location.distanceBetween(
+                    pointA.getLatAsDouble(), pointA.getLonAsDouble(),
+                    pointB.getLatAsDouble(), pointB.getLonAsDouble(), results);
+            return Math.round(results[0]);
+        }
+        return 1000000000;
+    }
 
     public static Date getDepartureTime(Departure departure) {
         if (departure != null) {

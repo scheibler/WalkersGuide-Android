@@ -240,16 +240,27 @@
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Abfahrten</string>
     <string name="menuItemPublicTransportProvider">ÖPNV Betreiber</string>
+    <string name="menuItemSelectDepartureDateAndTime">Abfahrtszeit</string>
     <string name="labelNoPtStationsNearby">Der ausgewählte ÖPNV Provider konnte keine Haltestelle finden.</string>
-    <string name="labelNoMoreDepartures">Für weitere Abfahrten bitte aktualisieren.</string>
-    <string name="labelMoreDepartures">Weitere Abfahrten laden</string>
+    <!-- DepartureAdapter -->
+    <string name="labelDepartureAdapter">%1$s %2$s\nnach %3$s\n%4$s %5$s</string>
+    <string name="labelDepartureAdapterCD">%1$s %2$s,\nnach %3$s,\n%4$s, %5$s</string>
+    <string name="labelFromPlatform">Von Gleis %1$s</string>
 
     <!-- SelectPtStationDialog -->
     <string name="selectPtStationDialogTitle">Haltestelle auswählen:</string>
 
+    <!-- SelectDepartureDateAndTimeDialog -->
+    <string name="selectDepartureDateAndTimeDialogTitle">Abfahrtsdatum und -zeit wählen:</string>
+
     <!-- TripDetailsFragment -->
     <string name="tripDetailsFragmentTitle">Fahrtdetails</string>
+    <string name="labelDepartureDetails">Haltestelle: %1$s\n%2$s %3$s nach %4$s\nAbfahrt %5$s %6$s</string>
+    <string name="switchSimulateNearbyStationLocation">Haltestellenposition simulieren</string>
     <string name="labelNoMoreStops">Die Linie hat ihre Zielhaltestelle erreicht.</string>
+    <!-- TripAdapter -->
+    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
+    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
 
     <!-- EntrancesFragment -->
     <string name="fragmentEntrancesName">Eingänge</string>
@@ -580,9 +591,21 @@
     -->
 
     <!-- PTHelper -->
-    <string name="contentDescriptionLineDestination">%1$s</string>
+    <string name="errorNoNetworkProvider">Kein ÖPNV Provider ausgewählt.</string>
+    <string name="errorNoStation">Keine Haltestelle ausgewählt</string>
+    <string name="errorNoDepartureDate">Kein Abfahrtsdatum ausgewählt</string>
+    <string name="errorNoCoordinates">Die aktuelle Position ist nicht verfügbar.</string>
+    <string name="errorPTRequestFailed">Die Anfrage an den ÖPNV Provider ist fehlgeschlagen.</string>
+    <string name="errorPTServiceDown">Der ÖPNV Provider ist nicht erreichbar.</string>
+    <string name="errorInvalidProvider">Ungültiger ÖPNV Provider.</string>
+    <string name="errorInvalidStation">Ungültige Haltestelle.</string>
+    <string name="errorNoDepartures">Keine Abfahrten gefunden.</string>
+    <string name="errorNoTrips">Keine passende Verbindung gefunden.</string>
+    <string name="errorUnknownServerResponse">Die Antwort des ÖPNV Providers konnte nicht verarbeitet werden.</string>
+    <!-- formatter -->
     <string name="contentDescriptionAbsoluteDepartureTime">um %1$s</string>
     <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
+    <string name="contentDescriptionLineDestination">%1$s</string>
 
     <!-- select public transport provider  dialog -->
     <string name="selectPublicTransportProviderDialogTitle">ÖPNV Betreiber auswählen:</string>
@@ -596,10 +619,20 @@
     <!-- europe -->
     <string name="publicTransportProviderRT">Railteam (Europa)</string>
     <!-- germany -->
-    <string name="publicTransportProviderDB">Deutsche Bahn</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
     <!-- switzerland -->
     <string name="publicTransportProviderVBL">Verkehrsbetriebe Luzern</string>
+
+    <!-- Vehicle type names -->
+    <string name="productHighSpeedTrain">Fernzug</string>
+    <string name="productRegionalTrain">Regionalzug</string>
+    <string name="productSuburbanTrain">S-Bahn</string>
+    <string name="productSubway">U-Bahn</string>
+    <string name="productTram">Tram</string>
+    <string name="productBus">Bus</string>
+    <string name="productFerry">Fähre</string>
+    <string name="productCableCar">Seilbahn</string>
+    <string name="productOnDemand">Ruftaxi</string>
 
 
     <!--
@@ -622,6 +655,7 @@
     <string name="dialogDone">Fertig</string>
     <string name="dialogExclude">Ausschließen</string>
     <string name="dialogImport">Importieren</string>
+    <string name="dialogNow">Jetzt</string>
     <string name="dialogRefresh">Aktualisieren</string>
     <string name="dialogRemove">Entfernen</string>
     <string name="dialogSearch">Suchen</string>
@@ -644,6 +678,7 @@
     <string name="errorNoPOITagsSelected">Keine POI Kategorien ausgewählt.</string>
     <string name="errorMapLoadingFailed">Die ausgewählte Karte wird vom Server nicht angeboten oder ist veraltet.</string>
     <string name="errorWrongMapSelected">Die Region, in der du dich befindest, liegt außerhalb der ausgewählten Karte.</string>
+    <string name="errorMapOutdated">Diese Funktion bietet die ausgewählte Karte noch nicht an.</string>
     <string name="errorStartOrDestinationMissing">Start- oder Zielpunkt fehlt.</string>
     <string name="errorStartAndDestinationTooFarAway">Start- und Zielpunkt liegen zu weit auseinander. Bitte füge mindestens ein Zwischenziel ein.</string>
     <string name="errorTooManyWayClassesIgnored">Du hast zu viele Wegeklassen ausgeschlossen.</string>
@@ -663,13 +698,6 @@
         dieser App nicht mehr unterstützt. Bitte wähle eine andere Karte aus oder gib eine neue
         Server-URL ein.</string>
     <string name="errorNoMapList">Der Server bietet derzeit keine Karten an.</string>
-    <!-- public transport enabler -->
-    <string name="errorNoPtProvider">Kein ÖPNV Provider ausgewählt.</string>
-    <string name="errorMissingOrInvalidPtRequestData">ÖPNV Serveranfrage konnte wegen fehlender Informationen nicht ausgeführt werden.</string>
-    <string name="errorPtServiceDown">Der ÖPNV Provider ist nicht erreichbar.</string>
-    <string name="errorPtServiceFailed">Die Anfrage an den ÖPNV Provider ist fehlgeschlagen.</string>
-    <string name="errorNoPtDepartures">Keine Abfahrten gefunden.</string>
-    <string name="errorNoPtTrips">Keine passende Verbindung gefunden.</string>
     <!-- address lookup -->
     <string name="errorNoCoordinatesForAddress">Keine Koordinaten für diese Adresse gefunden.</string>
     <string name="errorNoAddressForCoordinates">Keine Adresse für diese Koordinaten gefunden.</string>
@@ -685,8 +713,6 @@
     <string name="errorNoRouteCreated">Es wurde noch keine Route geplant.</string>
     <string name="errorNoRouteSelected">Es wurde noch keine Route ausgewählt.</string>
     <string name="errorRouteParsing">Die ausgewählte Route konnte nicht geladen werden.</string>
-    <!-- settings import -->
-    <string name="errorDatabaseImportFailed">Der Datenbankimport ist fehlgeschlagen.</string>
     <!-- others -->
     <string name="messageErrorPointDataLoadingFailed">Der ausgewählte Punkt konnte nicht geladen werden.</string>
     <string name="messageNameMissing">Bitte gib einen Namen ein.</string>
@@ -776,6 +802,18 @@
     </plurals>
 
     <plurals
+        name="hourShort">
+        <item quantity="one">1 Std</item>
+        <item quantity="other">%d Std</item>
+    </plurals>
+
+    <plurals
+        name="hourLong">
+        <item quantity="one">einer Stunde</item>
+        <item quantity="other">%d Stunden</item>
+    </plurals>
+
+    <plurals
         name="meter">
         <item quantity="one">1 Meter</item>
         <item quantity="other">%d Meter</item>
@@ -788,15 +826,15 @@
     </plurals>
 
     <plurals
-        name="minute">
-        <item quantity="one">einer Minute</item>
-        <item quantity="other">%d Minuten</item>
-    </plurals>
-
-    <plurals
         name="minuteShort">
         <item quantity="one">1 Min</item>
         <item quantity="other">%d Min</item>
+    </plurals>
+
+    <plurals
+        name="minuteLong">
+        <item quantity="one">einer Minute</item>
+        <item quantity="other">%d Minuten</item>
     </plurals>
 
     <plurals

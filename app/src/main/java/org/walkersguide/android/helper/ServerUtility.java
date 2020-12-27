@@ -343,6 +343,8 @@ public class ServerUtility {
                 return context.getResources().getString(R.string.errorMapLoadingFailed);
             case Constants.RC.WRONG_MAP_SELECTED:
                 return context.getResources().getString(R.string.errorWrongMapSelected);
+            case Constants.RC.MAP_OUTDATED:
+                return context.getResources().getString(R.string.errorMapOutdated);
             // route calculation
             case Constants.RC.START_OR_DESTINATION_MISSING:
                 return context.getResources().getString(R.string.errorStartOrDestinationMissing);
@@ -375,19 +377,6 @@ public class ServerUtility {
                 return context.getResources().getString(R.string.errorAPIServerOutdated);
             case Constants.RC.NO_MAP_LIST:
                 return context.getResources().getString(R.string.errorNoMapList);
-            // public-transport-provider
-            case Constants.RC.NO_PT_PROVIDER:
-                return context.getResources().getString(R.string.errorNoPtProvider);
-            case Constants.RC.MISSING_OR_INVALID_PT_REQUEST_DATA:
-                return context.getResources().getString(R.string.errorMissingOrInvalidPtRequestData);
-            case Constants.RC.PT_SERVICE_DOWN:
-                return context.getResources().getString(R.string.errorPtServiceDown);
-            case Constants.RC.PT_SERVICE_FAILED:
-                return context.getResources().getString(R.string.errorPtServiceFailed);
-            case Constants.RC.NO_PT_DEPARTURES:
-                return context.getResources().getString(R.string.errorNoPtDepartures);
-            case Constants.RC.NO_PT_TRIPS:
-                return context.getResources().getString(R.string.errorNoPtTrips);
             // addresses
             case Constants.RC.NO_COORDINATES_FOR_ADDRESS:
                 return context.getResources().getString(R.string.errorNoCoordinatesForAddress);
@@ -415,9 +404,6 @@ public class ServerUtility {
                 return context.getResources().getString(R.string.errorNoRouteSelected);
             case Constants.RC.ROUTE_PARSING_ERROR:
                 return context.getResources().getString(R.string.errorRouteParsing);
-            // settings
-            case Constants.RC.DATABASE_IMPORT_FAILED:      // database import failed
-                return context.getResources().getString(R.string.errorDatabaseImportFailed);
             default:
                 return String.format(
                         context.getResources().getString(R.string.messageUnknownError), returnCode);

@@ -240,16 +240,27 @@
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Departures</string>
     <string name="menuItemPublicTransportProvider">Public transport provider</string>
+    <string name="menuItemSelectDepartureDateAndTime">Departure time</string>
     <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
-    <string name="labelNoMoreDepartures">Please refresh to load next departures.</string>
-    <string name="labelMoreDepartures">Load next departures</string>
+    <!-- DepartureAdapter -->
+    <string name="labelDepartureAdapter">%1$s %2$s\nto %3$s\n%4$s %5$s</string>
+    <string name="labelDepartureAdapterCD">%1$s %2$s,\nto %3$s,\n%4$s, %5$s</string>
+    <string name="labelFromPlatform">From platform %1$s</string>
 
-        <!-- SelectPtStationDialog -->
+    <!-- SelectPtStationDialog -->
     <string name="selectPtStationDialogTitle">Select station:</string>
+
+    <!-- SelectDepartureDateAndTimeDialog -->
+    <string name="selectDepartureDateAndTimeDialogTitle">Select departure date and time:</string>
 
     <!-- TripDetailsFragment -->
     <string name="tripDetailsFragmentTitle">Trip details</string>
+    <string name="labelDepartureDetails">Station: %1$s\n%2$s %3$s to %4$s\nDeparture %5$s %6$s</string>
+    <string name="switchSimulateNearbyStationLocation">Simulate station location</string>
     <string name="labelNoMoreStops">The line arrived at its destination stop.</string>
+    <!-- TripAdapter -->
+    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
+    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
 
     <!-- EntrancesFragment -->
     <string name="fragmentEntrancesName">Entrances</string>
@@ -580,9 +591,21 @@
     -->
 
     <!-- PTHelper -->
-    <string name="contentDescriptionLineDestination">%1$s</string>
+    <string name="errorNoNetworkProvider">No public transport provider selected.</string>
+    <string name="errorNoStation">No station selected.</string>
+    <string name="errorNoDepartureDate">No departure date selected.</string>
+    <string name="errorNoCoordinates">The current position is not available.</string>
+    <string name="errorPTRequestFailed">The public transport provider request failed.</string>
+    <string name="errorPTServiceDown">The public transport provider is not accessibile.</string>
+    <string name="errorInvalidProvider">Invalid public transport provider.</string>
+    <string name="errorInvalidStation">Invalid station.</string>
+    <string name="errorNoDepartures">No departures found.</string>
+    <string name="errorNoTrips">No matching trip found.</string>
+    <string name="errorUnknownServerResponse">The public transport provider response could not be processed.</string>
+    <!-- formatter -->
     <string name="contentDescriptionAbsoluteDepartureTime">at %1$s</string>
     <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
+    <string name="contentDescriptionLineDestination">%1$s</string>
 
     <!-- select public transport provider  dialog -->
     <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
@@ -596,10 +619,20 @@
     <!-- europe -->
     <string name="publicTransportProviderRT">Railteam (Europe)</string>
     <!-- germany -->
-    <string name="publicTransportProviderDB">Deutsche Bahn</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
     <!-- switzerland -->
     <string name="publicTransportProviderVBL">Verkehrsbetriebe Luzern</string>
+
+    <!-- Vehicle type names -->
+    <string name="productHighSpeedTrain">Highspeed train</string>
+    <string name="productRegionalTrain">Train</string>
+    <string name="productSuburbanTrain">Suburban</string>
+    <string name="productSubway">Subway</string>
+    <string name="productTram">Tram</string>
+    <string name="productBus">Bus</string>
+    <string name="productFerry">Ferry</string>
+    <string name="productCableCar">Cable car</string>
+    <string name="productOnDemand">On demand</string>
 
 
     <!--
@@ -622,6 +655,7 @@
     <string name="dialogDone">Done</string>
     <string name="dialogExclude">Exclude</string>
     <string name="dialogImport">Import</string>
+    <string name="dialogNow">Now</string>
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogRemove">Remove</string>
     <string name="dialogSearch">Search</string>
@@ -644,6 +678,7 @@
     <string name="errorNoPOITagsSelected">No POI categories selected.</string>
     <string name="errorMapLoadingFailed">The selected map is either not available on the server or outdated.</string>
     <string name="errorWrongMapSelected">The given location lays outside of the selected map.</string>
+    <string name="errorMapOutdated">The selected map does not offer this feature.</string>
     <string name="errorStartOrDestinationMissing">Start or destination point is missing.</string>
     <string name="errorStartAndDestinationTooFarAway">The distance between start and destination points is too big. Please include at least one via point.</string>
     <string name="errorTooManyWayClassesIgnored">You\'ve excluded too many way classes from routing.</string>
@@ -681,8 +716,6 @@
     <string name="errorNoRouteCreated">No route created.</string>
     <string name="errorNoRouteSelected">No route selected.</string>
     <string name="errorRouteParsing">Route parsing error.</string>
-    <!-- settings import -->
-    <string name="errorDatabaseImportFailed">Database import failed</string>
     <!-- others -->
     <string name="errorDirectionOutOfRange">The direction value must lay between 0° and 359°</string>
     <string name="messageErrorPointDataLoadingFailed">Selected point could not be loaded.</string>
@@ -772,6 +805,18 @@
     </plurals>
 
     <plurals
+        name="hourShort">
+        <item quantity="one">1 hr</item>
+        <item quantity="other">%d hrs</item>
+    </plurals>
+
+    <plurals
+        name="hourLong">
+        <item quantity="one">einer hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+
+    <plurals
         name="meter">
         <item quantity="one">1 meter</item>
         <item quantity="other">%d meters</item>
@@ -784,15 +829,15 @@
     </plurals>
 
     <plurals
-        name="minute">
-        <item quantity="one">einer Minute</item>
-        <item quantity="other">%d Minutes</item>
-    </plurals>
-
-    <plurals
         name="minuteShort">
         <item quantity="one">1 Min</item>
         <item quantity="other">%d Min</item>
+    </plurals>
+
+    <plurals
+        name="minuteLong">
+        <item quantity="one">einer Minute</item>
+        <item quantity="other">%d Minutes</item>
     </plurals>
 
     <plurals

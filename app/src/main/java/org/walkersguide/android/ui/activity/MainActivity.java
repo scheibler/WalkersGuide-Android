@@ -30,6 +30,7 @@ import org.walkersguide.android.ui.fragment.main.RouterFragment;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager.GeneralSettings;
 import org.walkersguide.android.data.profile.HistoryPointProfile;
+import android.view.Menu;
 
 
 public class MainActivity extends AbstractActivity {
@@ -50,6 +51,9 @@ public class MainActivity extends AbstractActivity {
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         navigationView = (NavigationView) findViewById(R.id.navigationView);
         navigationView.setItemIconTintList(null);
+        // hide hiking trails menu item for now
+        Menu navigationViewMenu = navigationView.getMenu();
+        navigationViewMenu.findItem(R.id.menuItemHikingTrails).setVisible(false);
 
         // Setup click events on the Navigation View Items.
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {

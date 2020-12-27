@@ -5,7 +5,6 @@ import java.util.EnumSet;
 
 import de.schildbach.pte.AbstractNetworkProvider;
 import de.schildbach.pte.dto.Location;
-import de.schildbach.pte.dto.LocationType;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Stop;
 import de.schildbach.pte.dto.Trip;
@@ -20,7 +19,6 @@ import android.os.AsyncTask;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 
@@ -28,7 +26,6 @@ import timber.log.Timber;
 import android.text.TextUtils;
 import java.util.Date;
 import org.walkersguide.android.helper.ServerUtility;
-import org.walkersguide.android.util.Constants;
 
 
 public class TripManager {
@@ -60,9 +57,7 @@ public class TripManager {
         if (tripRequestTaskInProgress()) {
             if (listener == null) {
                 return;
-            } else if (tripRequestTask.isSameProvider(provider)
-                    && tripRequestTask.isSameStation(station)
-                    && tripRequestTask.isSameDeparture(departure)) {
+            } else if (this.tripRequestTask.isSameRequest(provider, station, departure)) {
                 this.tripRequestTask.addListener(listener);
                 return;
             } else {
@@ -105,7 +100,7 @@ public class TripManager {
         private Departure departure;
 
         public TripRequestTask(TripListener listener, AbstractNetworkProvider provider, Location station, Departure departure) {
-            this.returnCode = Constants.RC.OK;
+            this.returnCode = PTHelper.RC_OK;
             this.tripListenerList = new ArrayList<TripListener>();
             if (listener != null) {
                 this.tripListenerList.add(listener);
@@ -122,13 +117,16 @@ public class TripManager {
             ArrayList<Stop> stopList = new ArrayList<Stop>();
 
             if (this.provider == null) {
-                this.returnCode = Constants.RC.NO_PT_PROVIDER;
-            } else if (this.station == null || this.departure == null) {
-                this.returnCode = Constants.RC.MISSING_OR_INVALID_PT_REQUEST_DATA;
+                this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
+            } else if (this.station == null) {
+                this.returnCode = PTHelper.RC_NO_STATION;
+            } else if (this.departure == null) {
+                this.returnCode = PTHelper.RC_NO_DEPARTURE_DATE;
             } else if (! ServerUtility.isInternetAvailable(context)) {
-                this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
+                this.returnCode = PTHelper.RC_NO_INTERNET_CONNECTION;
             } else {
 
+                Timber.d("Request: from %1$s to %2$s at %3$s", this.station.toString(), this.departure.toString(), this.departure.plannedTime.toString());
                 String lineLabel = this.departure.line.label;
                 Date departureTime = PTHelper.getDepartureTime(this.departure);
                 Location destination = this.departure.destination;
@@ -138,33 +136,28 @@ public class TripManager {
                             EnumSet.of(this.departure.line.product), Optimize.LEAST_CHANGES, null, null, null);
                 }
                 QueryTripsResult tripsResult = null;
-                Timber.d("Request: from %1$s to %2$s at %3$s", this.station.toString(), this.departure.toString(), this.departure.plannedTime.toString());
 
                 try {
                     tripsResult = this.provider.queryTrips(
                             this.station, null, destination, departureTime, true, options);
                     if (tripsResult != null
                             && tripsResult.status == QueryTripsResult.Status.AMBIGUOUS
-                            && hasAmbiguousDestination(tripsResult.ambiguousTo)) {
-                        destination = getAmbiguousDestination(tripsResult.ambiguousTo);
+                            && tripsResult.ambiguousTo != null
+                            && tripsResult.ambiguousTo.size() > 0) {
+                        destination = tripsResult.ambiguousTo.get(0);
                         Timber.d("ambiguous: %1$s", destination.toString());
                         tripsResult = this.provider.queryTrips(
                                 this.station, null, destination, departureTime, true, options);
                     }
+
                 } catch (IOException e) {
                     Timber.e("TripManager query error: %1$s", e.getMessage());
                     tripsResult = null;
-                } finally {
 
-                    if (tripsResult == null
-                            || tripsResult.status == QueryTripsResult.Status.SERVICE_DOWN) {
-                        this.returnCode = Constants.RC.PT_SERVICE_DOWN;
-                    } else if (tripsResult.status == QueryTripsResult.Status.NO_TRIPS) {
-                        this.returnCode = Constants.RC.NO_PT_TRIPS;
-                    } else if (tripsResult.status != QueryTripsResult.Status.OK) {
-                        Timber.d("Failed: %1$s", tripsResult.status);
-                        this.returnCode = Constants.RC.PT_SERVICE_FAILED;
-                    } else {
+                } finally {
+                    if (tripsResult == null) {
+                        this.returnCode = PTHelper.RC_REQUEST_FAILED;
+                    } else if (tripsResult.status == QueryTripsResult.Status.OK) {
                         for (Trip trip : tripsResult.trips) {
                             if (trip.getFirstPublicLeg() != null
                                     && trip.isTravelable()
@@ -186,8 +179,18 @@ public class TripManager {
                             }
                         }
                         if (stopList.isEmpty()) {
-                            this.returnCode = Constants.RC.NO_PT_TRIPS;
+                            this.returnCode = PTHelper.RC_NO_TRIPS;
                         }
+                    } else if (tripsResult.status == QueryTripsResult.Status.SERVICE_DOWN) {
+                        this.returnCode = PTHelper.RC_SERVICE_DOWN;
+                    } else if (tripsResult.status == QueryTripsResult.Status.UNKNOWN_FROM
+                            || tripsResult.status == QueryTripsResult.Status.UNKNOWN_TO) {
+                        this.returnCode = PTHelper.RC_INVALID_STATION;
+                    } else if (tripsResult.status == QueryTripsResult.Status.NO_TRIPS) {
+                        this.returnCode = PTHelper.RC_NO_TRIPS;
+                    } else {
+                        this.returnCode = PTHelper.RC_UNKNOWN_SERVER_RESPONSE;
+                        Timber.d("Status: %1$s", tripsResult.status);
                     }
                 }
             }
@@ -197,7 +200,7 @@ public class TripManager {
 
         @Override protected void onPostExecute(ArrayList<Stop> stopList) {
             for (TripListener listener : this.tripListenerList) {
-                if (this.returnCode == Constants.RC.OK) {
+                if (this.returnCode == PTHelper.RC_OK) {
                     listener.tripRequestTaskSuccessful(stopList);
                 } else {
                     listener.tripRequestTaskFailed(this.returnCode);
@@ -207,7 +210,7 @@ public class TripManager {
 
         @Override protected void onCancelled(ArrayList<Stop> stopList) {
             for (TripListener listener : this.tripListenerList) {
-                listener.tripRequestTaskFailed(Constants.RC.CANCELLED);
+                listener.tripRequestTaskFailed(PTHelper.RC_CANCELLED);
             }
         }
 
@@ -229,41 +232,36 @@ public class TripManager {
             }
         }
 
-        public boolean isSameProvider(AbstractNetworkProvider newProvider) {
+        public boolean isSameRequest(AbstractNetworkProvider newProvider, Location newStation, Departure newDeparture) {
+            if (this.isSameProvider(newProvider)
+                    && this.isSameStation(newStation)
+                    && this.isSameDeparture(newDeparture)) {
+                return true;
+            }
+            return false;
+        }
+
+        private boolean isSameProvider(AbstractNetworkProvider newProvider) {
             if (this.provider == null) {
                 return newProvider == null;
             }
             return this.provider.equals(newProvider);
         }
 
-        public boolean isSameStation(Location newStation) {
+        private boolean isSameStation(Location newStation) {
             if (this.station == null) {
                 return newStation == null;
             }
             return this.station.equals(newStation);
         }
 
-        public boolean isSameDeparture(Departure newDeparture) {
+        private boolean isSameDeparture(Departure newDeparture) {
             if (this.departure == null) {
                 return newDeparture == null;
             }
             return this.departure.equals(newDeparture);
         }
 
-        private Location getAmbiguousDestination(List<Location> ambiguousDestinationList) {
-            if (ambiguousDestinationList != null) {
-                for (Location ambiguousDestination : ambiguousDestinationList) {
-                    if (ambiguousDestination.type.equals(LocationType.STATION)) {
-                        return ambiguousDestination;
-                    }
-                }
-            }
-            return null;
-        }
-
-        private boolean hasAmbiguousDestination(List<Location> ambiguousDestinationList) {
-            return getAmbiguousDestination(ambiguousDestinationList) != null;
-        }
     }
 
 }

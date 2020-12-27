@@ -126,7 +126,7 @@ public class InfoActivity extends AbstractActivity implements ServerStatusListen
                             selectedMap.getName())
                         );
                 // map creation date
-                String formattedDate = DateFormat.getDateFormat(context).format(
+                String formattedDate = DateFormat.getMediumDateFormat(context).format(
                         new Date(selectedMap.getCreated()));
                 labelSelectedMapCreated.setText(
                         String.format(

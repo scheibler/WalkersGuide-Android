@@ -20,9 +20,7 @@ import java.util.ArrayList;
 import timber.log.Timber;
 import android.text.TextUtils;
 import java.util.Date;
-
 import org.walkersguide.android.helper.ServerUtility;
-import org.walkersguide.android.util.Constants;
 
 
 public class DepartureManager {
@@ -49,13 +47,11 @@ public class DepartureManager {
         this.departureRequestTask = null;
     }
 
-    public void requestDeparture(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date departureTime) {
+    public void requestDeparture(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date departureDate) {
         if (departureRequestTaskInProgress()) {
             if (listener == null) {
                 return;
-            } else if (departureRequestTask.isSameProvider(provider)
-                    && departureRequestTask.isSameStation(station)
-                    && departureRequestTask.isSameDepartureTime(departureTime)) {
+            } else if (this.departureRequestTask.isSameRequest(provider, station)) {
                 this.departureRequestTask.addListener(listener);
                 return;
             } else {
@@ -63,7 +59,7 @@ public class DepartureManager {
             }
         }
         // new request
-        this.departureRequestTask = new DepartureRequestTask(listener, provider, station, departureTime);
+        this.departureRequestTask = new DepartureRequestTask(listener, provider, station, departureDate);
         this.departureRequestTask.execute();
     }
 
@@ -95,10 +91,10 @@ public class DepartureManager {
 
         private AbstractNetworkProvider provider;
         private Location station;
-        private Date departureTime;
+        private Date initialDepartureDate;
 
-        public DepartureRequestTask(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date departureTime) {
-            this.returnCode = Constants.RC.OK;
+        public DepartureRequestTask(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date initialDepartureDate) {
+            this.returnCode = PTHelper.RC_OK;
             this.departureListenerList = new ArrayList<DepartureListener>();
             if (listener != null) {
                 this.departureListenerList.add(listener);
@@ -108,46 +104,74 @@ public class DepartureManager {
                 this.provider.setUserAgent(PTHelper.USER_AGENT);
             }
             this.station = station;
-            this.departureTime = departureTime;
+            this.initialDepartureDate = initialDepartureDate;
         }
 
         @Override protected ArrayList<Departure> doInBackground(Void... params) {
             ArrayList<Departure> departureList = new ArrayList<Departure>();
 
             if (this.provider == null) {
-                this.returnCode = Constants.RC.NO_PT_PROVIDER;
-            } else if (this.station == null || this.departureTime == null) {
-                this.returnCode = Constants.RC.MISSING_OR_INVALID_PT_REQUEST_DATA;
+                this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
+            } else if (this.station == null) {
+                this.returnCode = PTHelper.RC_NO_STATION;
             } else if (! ServerUtility.isInternetAvailable(context)) {
-                this.returnCode = Constants.RC.NO_INTERNET_CONNECTION;
+                this.returnCode = PTHelper.RC_NO_INTERNET_CONNECTION;
             } else {
 
+                int numberOfRequests = 0, maxNumberOfRequests = 5, maxNumberOfDepartures = 50;
+                Date nextDepartureDate = this.initialDepartureDate;
+                Date maxDepartureDate = new Date(
+                        this.initialDepartureDate.getTime() + 3*60*60*1000);
                 QueryDeparturesResult departuresResult = null;
-                try {
-                    departuresResult = this.provider.queryDepartures(
-                            this.station.id, this.departureTime, 100, false);
-                } catch (IOException e) {
-                    Timber.e("DepartureManager query error: %1$s", e.getMessage());
-                    departuresResult = null;
-                } finally {
+                while (this.returnCode == PTHelper.RC_OK
+                        && numberOfRequests < maxNumberOfRequests
+                        && departureList.size() < maxNumberOfDepartures
+                        && nextDepartureDate.before(maxDepartureDate)) {
 
-                    if (departuresResult == null
-                            || departuresResult.status == QueryDeparturesResult.Status.SERVICE_DOWN) {
-                        this.returnCode = Constants.RC.PT_SERVICE_DOWN;
-                    } else if (departuresResult.status != QueryDeparturesResult.Status.OK) {
-                        Timber.d("Failed: %1$s", departuresResult.status);
-                        this.returnCode = Constants.RC.PT_SERVICE_FAILED;
-                    } else {
-                        for (StationDepartures stationDepartures  : departuresResult.stationDepartures) {
-                            for (Departure departure : stationDepartures.departures) {
-                                if (! departureList.contains(departure)) {
-                                    departureList.add(departure);
-                                }
+                    // query departures
+                    try {
+                        departuresResult = this.provider.queryDepartures(
+                                this.station.id, nextDepartureDate, 100, false);
+                    } catch (IOException e) {
+                        Timber.e("DepartureManager query error: %1$s", e.getMessage());
+                        departuresResult = null;
+                    } finally {
+                        if (departuresResult == null) {
+                            break;
+                        }
+                        Timber.d("result: %1$s, numberOfRequests: %2$d", departuresResult.status, numberOfRequests);
+                    }
+
+                    // parse departures
+                    for (StationDepartures stationDepartures  : departuresResult.stationDepartures) {
+                        for (Departure departure : stationDepartures.departures) {
+                            if (! departureList.contains(departure)) {
+                                departureList.add(departure);
                             }
                         }
-                        if (departureList.isEmpty()) {
-                            this.returnCode = Constants.RC.NO_PT_DEPARTURES;
-                        }
+                    }
+
+                    // update next departure date
+                    if (! departureList.isEmpty()) {
+                        nextDepartureDate = PTHelper.getDepartureTime(
+                                departureList.get(departureList.size()-1));
+                    }
+                    // increment request counter
+                    numberOfRequests += 1;
+                }
+
+                // post-processing
+                if (departureList.isEmpty()) {
+                    if (departuresResult == null) {
+                        this.returnCode = PTHelper.RC_REQUEST_FAILED;
+                    } else if (departuresResult.status == QueryDeparturesResult.Status.SERVICE_DOWN) {
+                        this.returnCode = PTHelper.RC_SERVICE_DOWN;
+                    } else if (departuresResult.status == QueryDeparturesResult.Status.INVALID_STATION) {
+                        this.returnCode = PTHelper.RC_INVALID_STATION;
+                    } else if (departuresResult.status == QueryDeparturesResult.Status.OK) {
+                        this.returnCode = PTHelper.RC_NO_DEPARTURES;
+                    } else {
+                        this.returnCode = PTHelper.RC_UNKNOWN_SERVER_RESPONSE;
                     }
                 }
             }
@@ -156,9 +180,8 @@ public class DepartureManager {
         }
 
         @Override protected void onPostExecute(ArrayList<Departure> departureList) {
-            Timber.d("Done; rc=%1$d", this.returnCode);
             for (DepartureListener listener : this.departureListenerList) {
-                if (returnCode == Constants.RC.OK) {
+                if (returnCode == PTHelper.RC_OK) {
                     listener.departureRequestTaskSuccessful(departureList);
                 } else {
                     listener.departureRequestTaskFailed(returnCode);
@@ -168,7 +191,7 @@ public class DepartureManager {
 
         @Override protected void onCancelled(ArrayList<Departure> departureList) {
             for (DepartureListener listener : this.departureListenerList) {
-                listener.departureRequestTaskFailed(Constants.RC.CANCELLED);
+                listener.departureRequestTaskFailed(PTHelper.RC_CANCELLED);
             }
         }
 
@@ -190,25 +213,25 @@ public class DepartureManager {
             }
         }
 
-        public boolean isSameProvider(AbstractNetworkProvider newProvider) {
+        public boolean isSameRequest(AbstractNetworkProvider newProvider, Location newStation) {
+            if (this.isSameProvider(newProvider) && this.isSameStation(newStation)) {
+                return true;
+            }
+            return false;
+        }
+
+        private boolean isSameProvider(AbstractNetworkProvider newProvider) {
             if (this.provider == null) {
                 return newProvider == null;
             }
             return this.provider.equals(newProvider);
         }
 
-        public boolean isSameStation(Location newStation) {
+        private boolean isSameStation(Location newStation) {
             if (this.station == null) {
                 return newStation == null;
             }
-            return this.station.equals(newStation);
-        }
-
-        public boolean isSameDepartureTime(Date newDate) {
-            if (this.departureTime == null) {
-                return newDate == null;
-            }
-            return this.departureTime.equals(newDate);
+            return this.station.id.equals(newStation.id);
         }
     }
 

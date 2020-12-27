@@ -10,7 +10,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import androidx.fragment.app.DialogFragment;
 import timber.log.Timber;
-import org.walkersguide.android.helper.ServerUtility;
 import androidx.core.view.ViewCompat;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -58,6 +57,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.text.TextUtils;
 import android.widget.HeaderViewListAdapter;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public class TripDetailsFragment extends AbstractUITab implements TripListener, Runnable {
@@ -188,6 +188,8 @@ public class TripDetailsFragment extends AbstractUITab implements TripListener, 
         listViewTrip.setEmptyView(labelEmptyListView);
 
         if (station != null && departure != null) {
+            // show controls
+            labelHeading.setVisibility(View.VISIBLE);
             labelHeading.setVisibility(View.VISIBLE);
             buttonRefresh.setVisibility(View.VISIBLE);
             listViewTrip.setVisibility(View.VISIBLE);
@@ -311,7 +313,7 @@ public class TripDetailsFragment extends AbstractUITab implements TripListener, 
         ViewCompat.setAccessibilityLiveRegion(
                 labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
         labelEmptyListView.setText(
-                ServerUtility.getErrorMessageForReturnCode(TripDetailsFragment.this.getContext(), returnCode));
+                PTHelper.getErrorMessageForReturnCode(TripDetailsFragment.this.getContext(), returnCode));
     }
 
 
@@ -338,7 +340,7 @@ public class TripDetailsFragment extends AbstractUITab implements TripListener, 
         private ArrayList<Stop> stopList;
 
         public TripAdapter(Context context, ArrayList<Stop> stopList) {
-            super(context, R.layout.list_item_station_and_departure_time);
+            super(context, R.layout.layout_single_text_view);
             this.context = context;
             this.stopList = stopList;
         }
@@ -349,36 +351,33 @@ public class TripDetailsFragment extends AbstractUITab implements TripListener, 
             // load item layout
             EntryHolder holder;
             if (convertView == null) {
-                convertView = LayoutInflater.from(this.context).inflate(R.layout.list_item_station_and_departure_time, parent, false);
+                convertView = LayoutInflater.from(this.context).inflate(R.layout.layout_single_text_view, parent, false);
                 holder = new EntryHolder();
-                holder.labelStationName = (TextView) convertView.findViewById(R.id.labelStationName);
-                holder.labelRelativeDepartureTime = (TextView) convertView.findViewById(R.id.labelRelativeDepartureTime);
-                holder.labelAbsoluteDepartureTime = (TextView) convertView.findViewById(R.id.labelAbsoluteDepartureTime);
+                holder.label = (TextView) convertView.findViewById(R.id.label);
                 convertView.setTag(holder);
             } else {
                 holder = (EntryHolder) convertView.getTag();
             }
 
-            if (holder.labelStationName != null) {
-                holder.labelStationName.setText(
-                        PTHelper.getLocationName(stop.location));
-            }
-            if (holder.labelRelativeDepartureTime != null) {
-                holder.labelRelativeDepartureTime.setText(
-                        PTHelper.formatRelativeDepartureTimeInMinutes(
-                            context, PTHelper.getDepartureTime(stop), true));
-                holder.labelRelativeDepartureTime.setContentDescription(
-                        PTHelper.formatRelativeDepartureTimeInMinutes(
-                            context, PTHelper.getDepartureTime(stop), false));
-            }
-            if (holder.labelAbsoluteDepartureTime != null) {
-                holder.labelAbsoluteDepartureTime.setText(
+            holder.label.setText(
+                    String.format(
+                        context.getResources().getString(R.string.labelTripAdapter),
+                        PTHelper.getLocationName(stop.location),
+                        PTHelper.formatRelativeDepartureTime(
+                            context, PTHelper.getDepartureTime(stop), false),
                         PTHelper.formatAbsoluteDepartureTime(
-                            context, PTHelper.getDepartureTime(stop), true));
-                holder.labelAbsoluteDepartureTime.setContentDescription(
+                            context, PTHelper.getDepartureTime(stop)))
+                    );
+
+            holder.label.setContentDescription(
+                    String.format(
+                        context.getResources().getString(R.string.labelTripAdapterCD),
+                        PTHelper.getLocationName(stop.location),
+                        PTHelper.formatRelativeDepartureTime(
+                            context, PTHelper.getDepartureTime(stop), true),
                         PTHelper.formatAbsoluteDepartureTime(
-                            context, PTHelper.getDepartureTime(stop), false));
-            }
+                            context, PTHelper.getDepartureTime(stop)))
+                    );
 
             return convertView;
         }
@@ -406,7 +405,7 @@ public class TripDetailsFragment extends AbstractUITab implements TripListener, 
         }
 
         private class EntryHolder {
-            public TextView labelStationName, labelRelativeDepartureTime, labelAbsoluteDepartureTime;
+            public TextView label;
         }
     }
 

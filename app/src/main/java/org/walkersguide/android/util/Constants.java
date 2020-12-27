@@ -34,6 +34,7 @@ public class Constants {
         // map
         public static final int MAP_LOADING_FAILED = 555;
         public static final int WRONG_MAP_SELECTED = 556;
+        public static final int MAP_OUTDATED = 557;
         // poi
         public static final int NO_POI_TAGS_SELECTED = 560;
         // route calculation
@@ -58,14 +59,6 @@ public class Constants {
         public static final int API_SERVER_OUTDATED = 1015;
         public static final int NO_MAP_LIST = 1016;
 
-        // public-transport-enabler
-        public static final int NO_PT_PROVIDER = 1040;
-        public static final int MISSING_OR_INVALID_PT_REQUEST_DATA = 1041;
-        public static final int PT_SERVICE_DOWN = 1042;
-        public static final int PT_SERVICE_FAILED = 1043;
-        public static final int NO_PT_DEPARTURES = 1044;
-        public static final int NO_PT_TRIPS = 1045;
-
         // address manager
         public static final int NO_COORDINATES_FOR_ADDRESS = 1050;
         public static final int NO_ADDRESS_FOR_COORDINATES = 1051;
@@ -83,9 +76,6 @@ public class Constants {
         public static final int NO_ROUTE_CREATED = 1070;
         public static final int NO_ROUTE_SELECTED = 1071;
         public static final int ROUTE_PARSING_ERROR = 1072;
-
-        // settings loader
-        public static final int DATABASE_IMPORT_FAILED = 1100;
     }
 
     public interface POINT_SELECT_FROM {
