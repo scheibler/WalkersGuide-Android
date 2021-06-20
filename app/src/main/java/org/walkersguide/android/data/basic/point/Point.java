@@ -20,6 +20,7 @@ public class Point {
     private Location location;
     private long nodeId;
     private int tactilePaving, wheelchair;
+    private String altName, oldName, note;
 
     public Point(Context context, JSONObject inputData) throws JSONException {
         this.context = context;
@@ -50,6 +51,22 @@ public class Point {
                 this.wheelchair = wheelchairValue;
             }
         } catch (JSONException e) {}
+        // alt_name, old_name and note
+        try {
+            this.altName = inputData.getString("alt_name");
+        } catch (JSONException e) {
+            this.altName = "";
+        }
+        try {
+            this.oldName = inputData.getString("old_name");
+        } catch (JSONException e) {
+            this.oldName = "";
+        }
+        try {
+            this.note = inputData.getString("note");
+        } catch (JSONException e) {
+            this.note = "";
+        }
     }
 
     public Context getContext() {
@@ -98,6 +115,18 @@ public class Point {
     public long getNodeId() {
         return this.nodeId;
     }
+    public String getAltName() {
+        return this.altName;
+    }
+
+    public String getOldName() {
+        return this.oldName;
+    }
+
+    public String getNote() {
+        return this.note;
+    }
+
 
     /**
      * tactile paving
@@ -190,6 +219,22 @@ public class Point {
         if (this.wheelchair > -1) {
             try {
                 jsonObject.put("wheelchair", this.wheelchair);
+            } catch (JSONException e) {}
+        }
+        // alt_name, old_name and note
+        if (! this.altName.equals("")) {
+            try {
+                jsonObject.put("alt_name", this.altName);
+            } catch (JSONException e) {}
+        }
+        if (! this.oldName.equals("")) {
+            try {
+                jsonObject.put("old_name", this.oldName);
+            } catch (JSONException e) {}
+        }
+        if (! this.note.equals("")) {
+            try {
+                jsonObject.put("note", this.note);
             } catch (JSONException e) {}
         }
         return jsonObject;

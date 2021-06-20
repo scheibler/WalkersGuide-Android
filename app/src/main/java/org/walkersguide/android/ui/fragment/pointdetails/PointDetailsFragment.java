@@ -592,6 +592,35 @@ public class PointDetailsFragment extends AbstractUITab {
                 }
             }
 
+            // alt_name, old_name and note
+            if (! point.getAltName().equals("")) {
+                addTextView(
+                        TEXTVIEW_NO_ID,
+                        String.format(
+                            "%1$s: %2$s",
+                            getResources().getString(R.string.labelPointAltName),
+                            point.getAltName()),
+                        false, TEXTVIEW_NO_AUTO_LINK);
+            }
+            if (! point.getOldName().equals("")) {
+                addTextView(
+                        TEXTVIEW_NO_ID,
+                        String.format(
+                            "%1$s: %2$s",
+                            getResources().getString(R.string.labelPointOldName),
+                            point.getOldName()),
+                        false, TEXTVIEW_NO_AUTO_LINK);
+            }
+            if (! point.getNote().equals("")) {
+                addTextView(
+                        TEXTVIEW_NO_ID,
+                        String.format(
+                            "%1$s: %2$s",
+                            getResources().getString(R.string.labelPointNote),
+                            point.getNote()),
+                        false, TEXTVIEW_NO_AUTO_LINK);
+            }
+
             // accessibility attributes
             if (point.getTactilePaving() != -1
                     || point.getWheelchair() != -1) {

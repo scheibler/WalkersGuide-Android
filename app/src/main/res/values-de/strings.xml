@@ -321,6 +321,10 @@
     <string name="labelPointTrafficSignalsAttributesHeading">Ampel</string>
     <string name="labelPointTrafficSignalsSound">Tonsignal:</string>
     <string name="labelPointTrafficSignalsVibration">Vibrationssignal:</string>
+    <!-- point: alt names -->
+    <string name="labelPointAltName">Alternativname</string>
+    <string name="labelPointOldName">Früherer Name</string>
+    <string name="labelPointNote">Notiz des Mappers</string>
     <!-- point: accessibility -->
     <string name="labelPointAccessibilityHeading">Barrierefreiheit</string>
     <string name="labelPointTactilePaving">Leitlinie:</string>
