@@ -1,6 +1,9 @@
 package org.walkersguide.android.pt;
 
+import de.schildbach.pte.DbProvider;
 import org.walkersguide.android.R;
+import org.walkersguide.android.helper.FileUtility;
+import org.walkersguide.android.util.GlobalInstance;
 
 import android.content.Context;
 
@@ -32,6 +35,11 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
+import com.google.common.base.Charsets;
+import java.io.File;
+import org.json.JSONObject;
+import java.io.IOException;
+import org.json.JSONException;
 
 
 public class PTHelper {
@@ -54,6 +62,14 @@ public class PTHelper {
                 new RtProvider());
         // germany
         ArrayList<AbstractNetworkProvider> germanyProviderList = new ArrayList<AbstractNetworkProvider>();
+        // DB
+        DbProviderCredentials dbProviderCredentials = getDbProviderCredentials();
+        if (dbProviderCredentials != null) {
+            germanyProviderList.add(
+                    new DbProvider(
+                        dbProviderCredentials.apiAuthorization,
+                        dbProviderCredentials.salt.getBytes(Charsets.UTF_8)));
+        }
         // vvo
         germanyProviderList.add(
                 new VvoProvider());
@@ -77,6 +93,8 @@ public class PTHelper {
                 case RT:
                     return context.getResources().getString(R.string.publicTransportProviderRT);
                 // germany
+                case DB:
+                    return context.getResources().getString(R.string.publicTransportProviderDB);
                 case VVO:
                     return context.getResources().getString(R.string.publicTransportProviderVVO);
                 // switzerland
@@ -88,6 +106,50 @@ public class PTHelper {
             }
         } else {
             return "";
+        }
+    }
+
+    // credentials
+    //
+    // folder
+    private static final String PT_PROVIDER_CREDENTIALS_FOLDER_NAME = "pt_provider_credentials";
+    private static File getPtProviderCredentialsFolder() {
+        return new File(
+                GlobalInstance.getContext().getExternalFilesDir(null),
+                PT_PROVIDER_CREDENTIALS_FOLDER_NAME);
+    }
+
+    // deutsche bahn
+    private static final String DB_PROVIDER_API_CREDENTIALS_FILE_NAME = "db_provider_api_credentials.json";
+
+    private static DbProviderCredentials getDbProviderCredentials() {
+        File dbProviderApiCredentialsFile = new File(
+                getPtProviderCredentialsFolder(),
+                DB_PROVIDER_API_CREDENTIALS_FILE_NAME);
+        if (dbProviderApiCredentialsFile.exists()) {
+            JSONObject jsonDbProviderApiCredentials = null;
+            try {
+                jsonDbProviderApiCredentials = FileUtility.readJsonObjectFromTextFile(dbProviderApiCredentialsFile);
+            } catch (IOException | JSONException e) {
+                jsonDbProviderApiCredentials = null;
+            } finally {
+                if (jsonDbProviderApiCredentials != null
+                        && ! jsonDbProviderApiCredentials.isNull("apiAuthorization")
+                        && ! jsonDbProviderApiCredentials.isNull("salt")) {
+                    return new DbProviderCredentials(
+                            jsonDbProviderApiCredentials.optString("apiAuthorization"),
+                            jsonDbProviderApiCredentials.optString("salt"));
+                        }
+            }
+        }
+        return null;
+    }
+
+    private static class DbProviderCredentials {
+        public String apiAuthorization, salt;
+        public DbProviderCredentials(String apiAuthorization, String salt) {
+            this.apiAuthorization = apiAuthorization;
+            this.salt = salt;
         }
     }
 

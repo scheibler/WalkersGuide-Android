@@ -623,6 +623,7 @@
     <!-- europe -->
     <string name="publicTransportProviderRT">Railteam (Europe)</string>
     <!-- germany -->
+    <string name="publicTransportProviderDB">Deutsche Bahn</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
     <!-- switzerland -->
     <string name="publicTransportProviderVBL">Verkehrsbetriebe Luzern</string>

@@ -1,5 +1,4 @@
-WalkersGuide-Android
-====================
+#WalkersGuide-Android
 
 
 WalkersGuide is a navigational aid primarily intended for blind and visual impaired pedestrians. It
@@ -12,4 +11,33 @@ operating system since version 4.1. The application is fully accessible with And
 Talkback.
 
 Please visit https://www.walkersguide.org for more information about the project.
+
+
+
+## Public transport api credentials
+
+Some public transport providers require api credentials for usage. Put the credentials file into the
+following folder if you want to use one of them (create if necessary):
+
+~~~
+/sdcard/Android/data/org.walkersguide.android/files/pt_provider_credentials/
+~~~
+
+Then create the credentials file (see below). Afterwards close WalkersGuide from the recent apps
+screen and restart again. You will find the respective provider in the app settings under "public
+transport provider".
+
+For more information visit the [public-transport-enabler website](https://github.com/schildbach/public-transport-enabler).
+
+
+### Deutsche Bahn
+
+Create `db_provider_api_credentials.json` in the following format:
+
+~~~
+{
+    "apiAuthorization" : "YOUR_API_AUTHORIZATION_KEY",
+    "salt" : "YOUR_SALT"
+}
+~~~
 
