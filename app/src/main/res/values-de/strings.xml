@@ -605,6 +605,7 @@
     <string name="errorInvalidStation">Ungültige Haltestelle.</string>
     <string name="errorNoDepartures">Keine Abfahrten gefunden.</string>
     <string name="errorNoTrips">Keine passende Verbindung gefunden.</string>
+    <string name="errorAmbiguousDestination">Uneindeutige Zielhaltestelle.</string>
     <string name="errorUnknownServerResponse">Die Antwort des ÖPNV Providers konnte nicht verarbeitet werden.</string>
     <!-- formatter -->
     <string name="contentDescriptionAbsoluteDepartureTime">um %1$s</string>

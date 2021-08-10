@@ -605,6 +605,7 @@
     <string name="errorInvalidStation">Invalid station.</string>
     <string name="errorNoDepartures">No departures found.</string>
     <string name="errorNoTrips">No matching trip found.</string>
+    <string name="errorAmbiguousDestination">Ambiguous destination.</string>
     <string name="errorUnknownServerResponse">The public transport provider response could not be processed.</string>
     <!-- formatter -->
     <string name="contentDescriptionAbsoluteDepartureTime">at %1$s</string>

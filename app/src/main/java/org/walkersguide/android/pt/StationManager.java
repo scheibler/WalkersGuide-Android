@@ -151,7 +151,7 @@ public class StationManager {
                     nearbyResult = this.provider.queryNearbyLocations(
                             EnumSet.of(LocationType.STATION),
                             new Location(LocationType.COORD, null, this.position),
-                            0, 0);
+                            1000, 0);
                 } catch (IOException e) {
                     Timber.e("e: %1$s", e.getMessage());
                     nearbyResult = null;

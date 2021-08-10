@@ -172,7 +172,8 @@ public class PTHelper {
     public static final int RC_INVALID_STATION = 2013;
     public static final int RC_NO_DEPARTURES = 2014;
     public static final int RC_NO_TRIPS = 2015;
-    public static final int RC_UNKNOWN_SERVER_RESPONSE = 2016;
+    public static final int RC_AMBIGUOUS_DESTINATION = 2016;
+    public static final int RC_UNKNOWN_SERVER_RESPONSE = 2017;
 
 
     public static String getErrorMessageForReturnCode(Context context, int returnCode) {
@@ -204,6 +205,8 @@ public class PTHelper {
                 return context.getResources().getString(R.string.errorNoDepartures);
             case RC_NO_TRIPS:
                 return context.getResources().getString(R.string.errorNoTrips);
+            case RC_AMBIGUOUS_DESTINATION:
+                return context.getResources().getString(R.string.errorAmbiguousDestination);
             case RC_UNKNOWN_SERVER_RESPONSE:
                 return context.getResources().getString(R.string.errorUnknownServerResponse);
             default:

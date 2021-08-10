@@ -130,6 +130,7 @@ public class DepartureManager {
 
                     // query departures
                     try {
+                        Timber.d("request: stationId=%1$s, date=%2$s", this.station.id, nextDepartureDate.toString());
                         departuresResult = this.provider.queryDepartures(
                                 this.station.id, nextDepartureDate, 100, false);
                     } catch (IOException e) {
