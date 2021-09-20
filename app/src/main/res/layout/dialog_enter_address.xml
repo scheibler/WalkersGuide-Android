@@ -4,8 +4,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <include
-        layout="@layout/layout_single_autocomplete_text_view" />
+    <EditText
+        android:id="@+id/editAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/editHintAddress"
+        android:inputType="text"
+        android:imeOptions="actionDone" />
 
     <Switch
         android:id="@+id/buttonNearbyCurrentLocation"

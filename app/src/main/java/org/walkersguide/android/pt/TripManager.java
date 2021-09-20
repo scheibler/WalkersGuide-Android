@@ -14,7 +14,6 @@ import de.schildbach.pte.dto.Product;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.TripOptions;
 
-import android.content.Context;
 
 import android.os.AsyncTask;
 
@@ -38,21 +37,27 @@ public class TripManager {
     }
 
 
-    private Context context;
-    private static TripManager TripManagerInstance;
+    private static TripManager managerInstance;
     private TripRequestTask tripRequestTask;
 
-    public static TripManager getInstance(Context context) {
-        if(TripManagerInstance == null){
-            TripManagerInstance = new TripManager(context.getApplicationContext());
+    public static TripManager getInstance() {
+        if (managerInstance == null){
+            managerInstance = getInstanceSynchronized();
         }
-        return TripManagerInstance;
+        return managerInstance;
     }
 
-    private TripManager(Context context) {
-        this.context = context;
+    private static synchronized TripManager getInstanceSynchronized() {
+        if (managerInstance == null){
+            managerInstance = new TripManager();
+        }
+        return managerInstance;
+    }
+
+    private TripManager() {
         this.tripRequestTask = null;
     }
+
 
     public void requestTrip(TripListener listener,
             AbstractNetworkProvider provider, Location station, Departure departure) {
@@ -92,7 +97,7 @@ public class TripManager {
     }
 
 
-    private class TripRequestTask extends AsyncTask<Void, Void, ArrayList<Stop>> {
+    private static class TripRequestTask extends AsyncTask<Void, Void, ArrayList<Stop>> {
 
         private int returnCode;
         private ArrayList<TripListener> tripListenerList;
@@ -124,7 +129,7 @@ public class TripManager {
                 this.returnCode = PTHelper.RC_NO_STATION;
             } else if (this.departure == null) {
                 this.returnCode = PTHelper.RC_NO_DEPARTURE_DATE;
-            } else if (! ServerUtility.isInternetAvailable(context)) {
+            } else if (! ServerUtility.isInternetAvailable()) {
                 this.returnCode = PTHelper.RC_NO_INTERNET_CONNECTION;
             } else {
 

@@ -1,26 +1,23 @@
 package org.walkersguide.android.data.sensor.attribute;
 
-import android.content.Context;
 
 import java.lang.NullPointerException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import org.walkersguide.android.data.sensor.threshold.SpeedThreshold;
+import org.walkersguide.android.data.basic.point.Point;
 
 
 public class NewLocationAttributes {
 
     public static class Builder {
         // variables
-        private Context context;
         private JSONObject jsonNewLocationAttributes;
         // mandatory params
-        public Builder(Context context, PointWrapper location) {
-            this.context = context;
+        public Builder(Point location) {
             this.jsonNewLocationAttributes = new JSONObject();
             try {
                 jsonNewLocationAttributes.put("location", location.toJson());
@@ -48,7 +45,7 @@ public class NewLocationAttributes {
         // build
         public NewLocationAttributes build() {
             try {
-                return new NewLocationAttributes(this.context, this.jsonNewLocationAttributes);
+                return new NewLocationAttributes(this.jsonNewLocationAttributes);
             } catch (JSONException e) {
                 return null;
             }
@@ -59,25 +56,25 @@ public class NewLocationAttributes {
         }
     }
 
-    public static NewLocationAttributes fromString(Context context, String locationDataString) {
+    public static NewLocationAttributes fromString(String locationDataString) {
         try {
             return new NewLocationAttributes(
-                    context, new JSONObject(locationDataString));
+                    new JSONObject(locationDataString));
         } catch (JSONException | NullPointerException e) {
             return null;
         }
     }
 
 
-    private PointWrapper location;
+    private Point location;
     private DistanceThreshold immediateDistanceThreshold;
     private DistanceThreshold aggregatingDistanceThreshold;
     private SpeedThreshold speedThreshold;
 
-    public NewLocationAttributes(Context context, JSONObject inputData) throws JSONException {
+    public NewLocationAttributes(JSONObject inputData) throws JSONException {
         // location object
-        this.location = new PointWrapper(
-                context, inputData.getJSONObject("location"));
+        this.location = Point.create(
+                inputData.getJSONObject("location"));
         // immediate distance threshold
         this.immediateDistanceThreshold = DistanceThreshold.ZERO_METERS;
         try {
@@ -107,7 +104,7 @@ public class NewLocationAttributes {
         } catch (JSONException e) {}
     }
 
-    public PointWrapper getLocation() {
+    public Point getLocation() {
         return this.location;
     }
 
@@ -135,7 +132,7 @@ public class NewLocationAttributes {
     @Override public String toString() {
         return String.format(
                 "%1$s, immediate: %2$s, aggregating: %3$s, speed: %4$s",
-                this.location.getPoint().getName(),
+                this.location.getName(),
                 this.immediateDistanceThreshold.toString(),
                 this.aggregatingDistanceThreshold.toString(),
         this.speedThreshold.toString());

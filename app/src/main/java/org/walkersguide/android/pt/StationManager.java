@@ -10,7 +10,6 @@ import de.schildbach.pte.dto.SuggestLocationsResult;
 import de.schildbach.pte.dto.NearbyLocationsResult;
 import de.schildbach.pte.dto.Point;
 
-import android.content.Context;
 
 import android.os.AsyncTask;
 
@@ -33,21 +32,27 @@ public class StationManager {
     }
 
 
-    private Context context;
-    private static StationManager stationManagerInstance;
+    private static StationManager managerInstance;
     private StationRequestTask stationRequestTask;
 
-    public static StationManager getInstance(Context context) {
-        if(stationManagerInstance == null){
-            stationManagerInstance = new StationManager(context.getApplicationContext());
+    public static StationManager getInstance() {
+        if (managerInstance == null){
+            managerInstance = getInstanceSynchronized();
         }
-        return stationManagerInstance;
+        return managerInstance;
     }
 
-    private StationManager(Context context) {
-        this.context = context;
+    private static synchronized StationManager getInstanceSynchronized() {
+        if (managerInstance == null){
+            managerInstance = new StationManager();
+        }
+        return managerInstance;
+    }
+
+    private StationManager() {
         this.stationRequestTask = null;
     }
+
 
     public void requestStationList(StationListener listener,
             AbstractNetworkProvider provider, Point position, String searchTerm) {
@@ -88,7 +93,7 @@ public class StationManager {
     }
 
 
-    private class StationRequestTask extends AsyncTask<Void, Void, ArrayList<Location>> {
+    private static class StationRequestTask extends AsyncTask<Void, Void, ArrayList<Location>> {
 
         private int returnCode;
         private ArrayList<StationListener> stationListenerList;
@@ -119,7 +124,7 @@ public class StationManager {
                 this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
             } else if (this.position == null) {
                 this.returnCode = PTHelper.RC_NO_COORDINATES;
-            } else if (! ServerUtility.isInternetAvailable(context)) {
+            } else if (! ServerUtility.isInternetAvailable()) {
                 this.returnCode = PTHelper.RC_NO_INTERNET_CONNECTION;
 
             } else if (! TextUtils.isEmpty(this.searchTerm)) {

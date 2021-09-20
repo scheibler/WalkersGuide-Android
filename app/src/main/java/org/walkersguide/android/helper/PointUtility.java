@@ -11,6 +11,7 @@ import org.walkersguide.android.util.SettingsManager;
 public class PointUtility {
 
     public static void putNewPoint(Context context, PointWrapper newPoint, int putInto) {
+        /*
         switch (putInto) {
             case Constants.POINT_PUT_INTO.START:
                 SettingsManager.getInstance(context).getRouteSettings().setStartPoint(newPoint);
@@ -28,6 +29,7 @@ public class PointUtility {
                 }
                 break;
         }
+        */
     }
 
 }

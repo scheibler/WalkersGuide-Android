@@ -4,14 +4,17 @@
         android:id="@+id/menuItemPlanRoute"
         android:title="@string/menuItemPlanRoute" />
     <item
-        android:id="@+id/menuItemLastVisitedPoints"
-        android:title="@string/menuItemLastVisitedPoints" />
+        android:id="@+id/menuItemWhereAmI"
+        android:title="@string/menuItemWhereAmI" />
     <item
-        android:id="@+id/menuItemSaveCurrentPosition"
-        android:title="@string/menuItemSaveCurrentPosition" />
+        android:id="@+id/menuItemSaveCurrentLocation"
+        android:title="@string/menuItemSaveCurrentLocation" />
     <item
-        android:id="@+id/menuItemRequestAddress"
-        android:title="@string/menuItemRequestAddress" />
+        android:id="@+id/menuItemLastPoints"
+        android:title="@string/menuItemLastPoints" />
+    <item
+        android:id="@+id/menuItemLastRoutes"
+        android:title="@string/menuItemLastRoutes" />
     <item
         android:id="@+id/menuItemHikingTrails"
         android:title="@string/menuItemHikingTrails" />

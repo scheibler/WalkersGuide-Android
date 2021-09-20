@@ -1,86 +1,94 @@
 package org.walkersguide.android.data.route;
 
-import android.content.Context;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
+import java.io.Serializable;
+import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.data.basic.segment.RouteSegment;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.GlobalInstance;
 
 
-public class RouteObject {
+public class RouteObject implements Serializable {
+    private static final long serialVersionUID = 1l;
 
-    public static SegmentWrapper getDummyRouteSegment(Context context) {
-        SegmentWrapper dummyRouteSegment = null;
-        try {
-            dummyRouteSegment = new SegmentWrapper(context, new JSONObject(Constants.DUMMY.FOOTWAY));
-        } catch (JSONException e) {}
-        return dummyRouteSegment;
+    private boolean isFirstRouteObject, isLastRouteObject;
+    private RouteSegment segment;
+    private Point point;
+    private Integer turn;
+
+    public RouteObject(boolean isFirstRouteObject, boolean isLastRouteObject, RouteSegment segment, Point point, Integer turn) {
+        this.isFirstRouteObject = isFirstRouteObject;
+        this.isLastRouteObject = isLastRouteObject;
+        this.segment = segment;
+        this.point = point;
+        this.turn = turn;
     }
 
-    private Context context;
-    private int index;
-    private SegmentWrapper segment;
-    private RoutePoint point;
+    public RouteObject(JSONObject inputData) throws JSONException {
+        this.isFirstRouteObject = inputData.getBoolean(KEY_IS_FIRST_ROUTE_OBJECT);
+        this.isLastRouteObject = inputData.getBoolean(KEY_IS_LAST_ROUTE_OBJECT);
 
-    public RouteObject(Context context, int index, JSONObject inputData) throws JSONException {
-        this.context = context;
-        this.index = index;
-        this.segment = new SegmentWrapper(context, inputData.getJSONObject("segment"));
-        this.point = new RoutePoint(context, inputData.getJSONObject("point"));
+        // segment and point
+        if (this.isFirstRouteObject) {
+            this.segment = null;
+        } else {
+            this.segment = new RouteSegment(inputData.getJSONObject(KEY_SEGMENT));
+        }
+        this.point = Point.create(inputData.getJSONObject(KEY_POINT));
+
+        // turn
+        if (this.isFirstRouteObject || this.isLastRouteObject) {
+            this.turn = null;
+        } else {
+            this.turn = inputData.getInt(KEY_TURN);
+        }
     }
 
-    /** from flat route list **/
-    public RouteObject(Context context, int index, JSONObject jsonSegment, JSONObject jsonPoint) throws JSONException {
-        this.context = context;
-        this.index = index;
-        this.segment = new SegmentWrapper(context, jsonSegment);
-        this.point = new RoutePoint(context, jsonPoint);
+    public boolean getIsFirstRouteObject() {
+        return this.isFirstRouteObject;
     }
 
-    public int getIndex() {
-        return this.index;
+    public boolean getIsLastRouteObject() {
+        return this.isLastRouteObject;
     }
 
-    public SegmentWrapper getRouteSegment() {
+    public RouteSegment getSegment() {
         return this.segment;
     }
 
-    public RoutePoint getRoutePoint() {
+    public Point getPoint() {
         return this.point;
     }
 
-    public JSONObject toJson() throws JSONException {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("segment", this.segment.toJson());
-        jsonObject.put("point", this.point.toJson());
-        return jsonObject;
+    public Integer getTurn() {
+        return this.turn;
     }
 
-    @Override public String toString() {
-        if (this.index == 0) {
+    public String getInstruction() {
+        if (this.isFirstRouteObject) {
+            return String.format("Startpunkt: %1$s", point.getName());
+        } else if (this.isLastRouteObject) {
+            return String.format("Zielpunkt: %1$s", point.getName());
+        } else if (StringUtility.getDirectionConstant(this.turn) == Constants.DIRECTION.NORTH) {
             return String.format(
-                    this.context.getResources().getString(R.string.routeObjectToString),
-                    this.index+1,
-                    this.context.getResources().getString(R.string.proceedToFirstRoutePoint),
-                    this.point.toString());
+                    GlobalInstance.getStringResource(R.string.routePointToStringCross),
+                    StringUtility.formatInstructionDirection(this.turn),
+                    this.getPoint().getName());
         } else {
             return String.format(
-                    this.context.getResources().getString(R.string.routeObjectToString),
-                    this.index+1,
-                    this.segment.toString(),
-                    this.point.toString());
+                    GlobalInstance.getStringResource(R.string.routePointToString),
+                    StringUtility.formatInstructionDirection(this.turn),
+                    this.getPoint().getName());
         }
     }
 
 	@Override public int hashCode() {
-        int hash = 17;
-		hash = hash * 31 + this.segment.hashCode();
-		hash = hash * 31 + this.point.hashCode();
-        return hash;
-    }
+        return this.point.hashCode();
+	}
 
 	@Override public boolean equals(Object obj) {
 		if (this == obj) {
@@ -91,8 +99,32 @@ public class RouteObject {
 			return false;
         }
 		RouteObject other = (RouteObject) obj;
-        return (this.segment.equals(other.getRouteSegment())
-                && this.point.equals(other.getRoutePoint()));
+        return this.point.equals(other.getPoint());
+    }
+
+
+    /**
+     * to json
+     */
+
+    public static final String KEY_IS_FIRST_ROUTE_OBJECT = "is_first_route_object";
+    public static final String KEY_IS_LAST_ROUTE_OBJECT = "is_last_route_object";
+    public static final String KEY_POINT = "point";
+    public static final String KEY_SEGMENT = "segment";
+    public static final String KEY_TURN = "turn";
+
+    public JSONObject toJson() throws JSONException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(KEY_IS_FIRST_ROUTE_OBJECT, this.isFirstRouteObject);
+        jsonObject.put(KEY_IS_LAST_ROUTE_OBJECT, this.isLastRouteObject);
+        if (this.segment != null) {
+            jsonObject.put(KEY_SEGMENT, this.segment.toJson());
+        }
+        jsonObject.put(KEY_POINT, this.point.toJson());
+        if (this.turn != null) {
+            jsonObject.put(KEY_TURN, this.turn);
+        }
+        return jsonObject;
     }
 
 }

@@ -54,7 +54,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
 
     @Override public void onAttach(Context context){
         super.onAttach(context);
-        settingsManagerInstance = SettingsManager.getInstance(context);
+        settingsManagerInstance = SettingsManager.getInstance();
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {

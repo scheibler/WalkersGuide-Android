@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/imageViewIsFavorite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:tint="@color/image"
+        android:src="@drawable/favorite"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0" />
+
+    <ImageButton
+        android:id="@+id/buttonActionFor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="@dimen/minWidth"
+        android:minHeight="@dimen/minHeight"
+        android:background="@null"
+        android:tint="@color/image"
+        android:src="@drawable/expand_more"
+        android:contentDescription="@string/buttonActionFor" />
+
+</merge>

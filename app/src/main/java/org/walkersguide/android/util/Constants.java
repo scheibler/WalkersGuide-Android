@@ -63,8 +63,6 @@ public class Constants {
         public static final int NO_COORDINATES_FOR_ADDRESS = 1050;
         public static final int NO_ADDRESS_FOR_COORDINATES = 1051;
         public static final int NEITHER_COORDINATES_NOR_ADDRESS = 1052;
-        public static final int GOOGLE_MAPS_QUOTA_EXCEEDED = 1053;
-        public static final int ADDRESS_PROVIDER_NOT_SUPPORTED = 1054;
 
         // poi manager
         public static final int NO_POI_PROFILE_CREATED = 1060;
@@ -141,10 +139,11 @@ public class Constants {
     public interface MAIN_FRAGMENT {
         public static final int ROUTER = 0;
         public static final int POI = 1;
+        public static final int FAVORITES = 2;
     }
 
     public final static int[] MainActivityFragmentValueArray = {
-        MAIN_FRAGMENT.ROUTER, MAIN_FRAGMENT.POI
+        MAIN_FRAGMENT.ROUTER, MAIN_FRAGMENT.POI, MAIN_FRAGMENT.FAVORITES
     };
 
 

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/activityMargin"
+        android:orientation="vertical">
+
+        <!-- client information -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelAppInformationHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <TextView
+            android:id="@+id/labelProgramVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelInfoProgramVersion" />
+
+
+        <!-- contact data -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:focusable="true"
+            android:text="@string/labelContactDataHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <TextView
+            android:id="@+id/labelInfoEMail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelInfoEMail"
+            android:autoLink="email" />
+
+        <TextView
+            android:id="@+id/labelInfoURL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelInfoURL"
+            android:autoLink="web" />
+
+
+        <!-- selected server -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:focusable="true"
+            android:text="@string/labelServerHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <TextView
+            android:id="@+id/labelServerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelServerName" />
+
+        <TextView
+            android:id="@+id/labelServerVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelServerVersion" />
+
+        <TextView
+            android:id="@+id/labelSelectedMapName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelSelectedMapName" />
+
+        <TextView
+            android:id="@+id/labelSelectedMapCreated"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelSelectedMapCreated" />
+    </LinearLayout>
+</ScrollView>

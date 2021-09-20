@@ -40,7 +40,7 @@ public class ServerStatusManager {
 
     private ServerStatusManager(Context context) {
         this.context = context;
-        this.settingsManagerInstance = SettingsManager.getInstance(context);
+        this.settingsManagerInstance = SettingsManager.getInstance();
     }
 
 
@@ -225,7 +225,7 @@ public class ServerStatusManager {
         }
 
         @Override protected Void doInBackground(Void... params) {
-            ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
+            ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
             // server instance
             ServerInstance serverInstance = null;
             try {
@@ -346,7 +346,7 @@ public class ServerStatusManager {
         }
 
         @Override protected Void doInBackground(Void... params) {
-            ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
+            ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
             // server instance
             ServerInstance serverInstance = null;
             try {

@@ -9,66 +9,115 @@ import java.util.Locale;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.io.Serializable;
+import org.walkersguide.android.helper.StringUtility;
 
 
-public abstract class PointWithAddressData extends Point {
+public abstract class PointWithAddressData extends Point implements Serializable {
+    private static final long serialVersionUID = 1l;
+
+    public abstract static class Builder extends Point.Builder {
+        public Builder(Type type, String name, String subType, double latitude, double longitude) {
+            super(type, name, subType, latitude, longitude);
+        }
+
+        // optional params
+        public Builder setDisplayName(final String displayName) {
+            try {
+                super.inputData.put(KEY_DISPLAY_NAME, displayName);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setExtraName(final String extraName) {
+            try {
+                super.inputData.put(KEY_EXTRA_NAME, extraName);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setHouseNumber(final String houseNumber) {
+            try {
+                super.inputData.put(KEY_HOUSE_NUMBER, houseNumber);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setRoad(final String road) {
+            try {
+                super.inputData.put(KEY_ROAD, road);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setResidential(final String residential) {
+            try {
+                super.inputData.put(KEY_RESENTIAL, residential);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setSuburb(final String suburb) {
+            try {
+                super.inputData.put(KEY_SUBURB, suburb);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setCityDistrict(final String cityDistrict) {
+            try {
+                super.inputData.put(KEY_CITY_DISTRICT, cityDistrict);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setZipcode(final String zipCode) {
+            try {
+                super.inputData.put(KEY_ZIP_CODE, zipCode);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setCity(final String city) {
+            try {
+                super.inputData.put(KEY_CITY, city);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setState(final String state) {
+            try {
+                super.inputData.put(KEY_STATE, state);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setCountry(final String country) {
+            try {
+                super.inputData.put(KEY_COUNTRY, country);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setCountryCode(final String countryCode) {
+            try {
+                super.inputData.put(KEY_COUNTRY_CODE, countryCode);
+            } catch (JSONException e) {}
+            return this;
+        }
+    }
+
 
     private String displayName, extraName;
-    private String houseNumber, road, residential, suburb, cityDistrict, postcode, city, state, country, countryCode;
+    private String houseNumber, road, residential, suburb, cityDistrict, zipCode, city, state, country, countryCode;
 
-    public PointWithAddressData(Context context, JSONObject inputData) throws JSONException {
-        // point super constructor
-        super(context, inputData);
+    public PointWithAddressData(JSONObject inputData) throws JSONException {
+        super(inputData);
+
         // names
-        this.displayName = "";
-        try {
-            this.displayName = inputData.getString("display_name");
-        } catch (JSONException e) {}
-        this.extraName = "";
-        try {
-            this.extraName = inputData.getString("extra_name");
-        } catch (JSONException e) {}
+        this.displayName = StringUtility.getNullableStringFromJsonObject(inputData, KEY_DISPLAY_NAME);
+        this.extraName = StringUtility.getNullableStringFromJsonObject(inputData, KEY_EXTRA_NAME);
+
         // address components
-        this.houseNumber = "";
-        try {
-            this.houseNumber = inputData.getString("house_number");
-        } catch (JSONException e) {}
-        this.road = "";
-        try {
-            this.road = inputData.getString("road");
-        } catch (JSONException e) {}
-        this.residential = "";
-        try {
-            this.residential = inputData.getString("residential");
-        } catch (JSONException e) {}
-        this.suburb = "";
-        try {
-            this.suburb = inputData.getString("suburb");
-        } catch (JSONException e) {}
-        this.cityDistrict = "";
-        try {
-            this.cityDistrict = inputData.getString("city_district");
-        } catch (JSONException e) {}
-        this.postcode = "";
-        try {
-            this.postcode = inputData.getString("postcode");
-        } catch (JSONException e) {}
-        this.city = "";
-        try {
-            this.city = inputData.getString("city");
-        } catch (JSONException e) {}
-        this.state = "";
-        try {
-            this.state = inputData.getString("state");
-        } catch (JSONException e) {}
-        this.country = "";
-        try {
-            this.country = inputData.getString("country");
-        } catch (JSONException e) {}
-        this.countryCode = "";
-        try {
-            this.countryCode = inputData.getString("country_code");
-        } catch (JSONException e) {}
+        this.houseNumber = StringUtility.getNullableStringFromJsonObject(inputData, KEY_HOUSE_NUMBER);
+        this.road = StringUtility.getNullableStringFromJsonObject(inputData, KEY_ROAD);
+        this.residential = StringUtility.getNullableStringFromJsonObject(inputData, KEY_RESENTIAL);
+        this.suburb = StringUtility.getNullableStringFromJsonObject(inputData, KEY_SUBURB);
+        this.cityDistrict = StringUtility.getNullableStringFromJsonObject(inputData, KEY_CITY_DISTRICT);
+        this.zipCode = StringUtility.getNullableStringFromJsonObject(inputData, KEY_ZIP_CODE);
+        this.city = StringUtility.getNullableStringFromJsonObject(inputData, KEY_CITY);
+        this.state = StringUtility.getNullableStringFromJsonObject(inputData, KEY_STATE);
+        this.country = StringUtility.getNullableStringFromJsonObject(inputData, KEY_COUNTRY);
+        this.countryCode = StringUtility.getNullableStringFromJsonObject(inputData, KEY_COUNTRY_CODE);
     }
 
     public String getDisplayName() {
@@ -87,17 +136,6 @@ public abstract class PointWithAddressData extends Point {
         return this.road;
     }
 
-    public String formatRoadAndHouseNumber() {
-        if (! TextUtils.isEmpty(this.road)
-                && ! TextUtils.isEmpty(this.houseNumber)) {
-            if (Locale.getDefault().getLanguage().equals(Locale.GERMAN.getLanguage())) {
-                return String.format("%1$s %2$s", this.road, this.houseNumber);
-            }
-            return String.format("%1$s %2$s", this.houseNumber, this.road);
-        }
-        return this.road;
-    }
-
     public String getResidential() {
         return this.residential;
     }
@@ -110,8 +148,8 @@ public abstract class PointWithAddressData extends Point {
         return this.cityDistrict;
     }
 
-    public String getPostcode() {
-        return this.postcode;
+    public String getZipcode() {
+        return this.zipCode;
     }
 
     public String getCity() {
@@ -130,25 +168,32 @@ public abstract class PointWithAddressData extends Point {
         return this.countryCode;
     }
 
+
+    /**
+     * address formatter
+     */
+
     public boolean hasAddress() {
-        if (! TextUtils.isEmpty(this.city)
-                && (
-                       ! TextUtils.isEmpty(this.extraName)
-                    || ! TextUtils.isEmpty(this.road))
-                ) {
-            return true;
+        return this.city != null
+                && (this.extraName != null || this.road != null);
+    }
+
+    public String formatRoadAndHouseNumber() {
+        if (this.road != null && this.houseNumber != null) {
+            if (Locale.getDefault().getLanguage().equals(Locale.GERMAN.getLanguage())) {
+                return String.format("%1$s %2$s", this.road, this.houseNumber);
+            }
+            return String.format("%1$s %2$s", this.houseNumber, this.road);
+        } else if (this.road != null) {
+            return this.road;
         }
-        return false;
+        return this.extraName;
     }
 
     public String formatAddressShortLength() {
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
-            if (! TextUtils.isEmpty(this.extraName)) {
-                addressComponentList.add(this.extraName);
-            } else {
-                addressComponentList.add(this.formatRoadAndHouseNumber());
-            }
+            addressComponentList.add(this.formatRoadAndHouseNumber());
             addressComponentList.add(this.city);
             return TextUtils.join(", ", addressComponentList);
         }
@@ -158,18 +203,15 @@ public abstract class PointWithAddressData extends Point {
     public String formatAddressMediumLength() {
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
-            // street and house number
+            // road and house number
             addressComponentList.add(this.formatRoadAndHouseNumber());
-            // extra name, residential or  city district
-            if (! TextUtils.isEmpty(this.extraName)
-                    && ! TextUtils.join(", ", addressComponentList).toLowerCase().contains(this.extraName.toLowerCase())) {
-                addressComponentList.add(0, this.extraName);
-            } else if (TextUtils.isEmpty(this.houseNumber)) {
-                if (! TextUtils.isEmpty(this.residential)) {
+            // add residential or  city district if houseNumber == null
+            if (this.houseNumber == null) {
+                if (this.residential != null) {
                     addressComponentList.add(this.residential);
-                } else if (! TextUtils.isEmpty(this.cityDistrict)) {
+                } else if (this.cityDistrict != null) {
                     addressComponentList.add(this.cityDistrict);
-                } else if (! TextUtils.isEmpty(this.suburb)) {
+                } else if (this.suburb != null) {
                     addressComponentList.add(this.suburb);
                 }
             }
@@ -183,100 +225,99 @@ public abstract class PointWithAddressData extends Point {
     public String formatAddressLongLength() {
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
-            // street and house number
+            // road and house number
             addressComponentList.add(this.formatRoadAndHouseNumber());
-            // extra name, residential or  city district
-            if (! TextUtils.isEmpty(this.extraName)
+            // extra name if not already present
+            if (this.extraName != null
                     && ! TextUtils.join(", ", addressComponentList).toLowerCase().contains(this.extraName.toLowerCase())) {
                 addressComponentList.add(0, this.extraName);
             }
             // residential, suburb or  city district
-            if (! TextUtils.isEmpty(this.residential)) {
+            if (this.residential != null) {
                 addressComponentList.add(this.residential);
-            } else if (! TextUtils.isEmpty(this.cityDistrict)) {
+            } else if (this.cityDistrict != null) {
                 addressComponentList.add(this.cityDistrict);
-            } else if (! TextUtils.isEmpty(this.suburb)) {
+            } else if (this.suburb != null) {
                 addressComponentList.add(this.suburb);
             }
-            // postcode, city and country
-            if (! TextUtils.isEmpty(this.postcode)) {
-                addressComponentList.add(this.postcode);
+            // zip code, city and country
+            if (this.zipCode != null) {
+                addressComponentList.add(this.zipCode);
             }
             addressComponentList.add(this.city);
-            if (! TextUtils.isEmpty(this.country)) {
+            if (this.country != null) {
                 addressComponentList.add(this.country);
             }
             return TextUtils.join(", ", addressComponentList);
-        } else if (! TextUtils.isEmpty(this.displayName)) {
+        } else if (this.displayName != null) {
             return this.displayName;
         }
         return super.getName();
     }
 
+
+    /**
+     * to json
+     */
+
+    // names
+    public static final String KEY_DISPLAY_NAME = "display_name";
+    public static final String KEY_EXTRA_NAME = "extra_name";
+    // address components
+    public static final String KEY_HOUSE_NUMBER = "house_number";
+    public static final String KEY_ROAD = "road";
+    public static final String KEY_RESENTIAL = "residential";
+    public static final String KEY_SUBURB= "suburb";
+    public static final String KEY_CITY_DISTRICT = "city_district";
+    public static final String KEY_ZIP_CODE = "postcode";
+    public static final String KEY_CITY = "city";
+    public static final String KEY_STATE = "state";
+    public static final String KEY_COUNTRY = "country";
+    public static final String KEY_COUNTRY_CODE = "country_code";
+
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
+
         // names
-        if (! TextUtils.isEmpty(this.displayName)) {
-            try {
-                jsonObject.put("display_name", this.displayName);
-            } catch (JSONException e) {}
+        if (this.displayName != null) {
+            jsonObject.put(KEY_DISPLAY_NAME, this.displayName);
         }
-        if (! TextUtils.isEmpty(this.extraName)) {
-            try {
-                jsonObject.put("extra_name", this.extraName);
-            } catch (JSONException e) {}
+        if (this.extraName != null) {
+            jsonObject.put(KEY_EXTRA_NAME, this.extraName);
         }
+
         // address components
-        if (! TextUtils.isEmpty(this.houseNumber)) {
-            try {
-                jsonObject.put("house_number", this.houseNumber);
-            } catch (JSONException e) {}
+        if (this.houseNumber != null) {
+            jsonObject.put(KEY_HOUSE_NUMBER, this.houseNumber);
         }
-        if (! TextUtils.isEmpty(this.road)) {
-            try {
-                jsonObject.put("road", this.road);
-            } catch (JSONException e) {}
+        if (this.road != null) {
+            jsonObject.put(KEY_ROAD, this.road);
         }
-        if (! TextUtils.isEmpty(this.residential)) {
-            try {
-                jsonObject.put("residential", this.residential);
-            } catch (JSONException e) {}
+        if (this.residential != null) {
+            jsonObject.put(KEY_RESENTIAL, this.residential);
         }
-        if (! TextUtils.isEmpty(this.suburb)) {
-            try {
-                jsonObject.put("suburb", this.suburb);
-            } catch (JSONException e) {}
+        if (this.suburb != null) {
+            jsonObject.put(KEY_SUBURB, this.suburb);
         }
-        if (! TextUtils.isEmpty(this.cityDistrict)) {
-            try {
-                jsonObject.put("city_district", this.cityDistrict);
-            } catch (JSONException e) {}
+        if (this.cityDistrict != null) {
+            jsonObject.put(KEY_CITY_DISTRICT, this.cityDistrict);
         }
-        if (! TextUtils.isEmpty(this.postcode)) {
-            try {
-                jsonObject.put("postcode", this.postcode);
-            } catch (JSONException e) {}
+        if (this.zipCode != null) {
+            jsonObject.put(KEY_ZIP_CODE, this.zipCode);
         }
-        if (! TextUtils.isEmpty(this.city)) {
-            try {
-                jsonObject.put("city", this.city);
-            } catch (JSONException e) {}
+        if (this.city != null) {
+            jsonObject.put(KEY_CITY, this.city);
         }
-        if (! TextUtils.isEmpty(this.state)) {
-            try {
-                jsonObject.put("state", this.state);
-            } catch (JSONException e) {}
+        if (this.state != null) {
+            jsonObject.put(KEY_STATE, this.state);
         }
-        if (! TextUtils.isEmpty(this.country)) {
-            try {
-                jsonObject.put("country", this.country);
-            } catch (JSONException e) {}
+        if (this.country != null) {
+            jsonObject.put(KEY_COUNTRY, this.country);
         }
-        if (! TextUtils.isEmpty(this.countryCode)) {
-            try {
-                jsonObject.put("country_code", this.countryCode);
-            } catch (JSONException e) {}
+        if (this.countryCode != null) {
+            jsonObject.put(KEY_COUNTRY_CODE, this.countryCode);
         }
+
         return jsonObject;
     }
 

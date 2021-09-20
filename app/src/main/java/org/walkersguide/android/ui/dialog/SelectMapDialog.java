@@ -42,7 +42,7 @@ public class SelectMapDialog extends DialogFragment implements ServerStatusListe
 
     @Override public void onAttach(Context context){
         super.onAttach(context);
-        settingsManagerInstance = SettingsManager.getInstance(context);
+        settingsManagerInstance = SettingsManager.getInstance();
         serverStatusManagerInstance = ServerStatusManager.getInstance(context);
     }
 

@@ -15,29 +15,9 @@
         <include
             layout="@layout/layout_toolbar" />
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical" >
+        <include
+            layout="@layout/layout_view_pager_and_tab_layout" />
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                app:tabTextAppearance="@style/SmallTabText"
-                app:tabIndicatorColor="@color/heading"
-                app:tabMode="fixed"
-                app:tabGravity="fill" />
-
-            <androidx.viewpager.widget.ViewPager
-                android:id="@+id/pager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="@dimen/activityMargin"
-                android:layout_marginRight="@dimen/activityMargin"
-                android:layout_above="@id/tabLayout" />
-        </RelativeLayout>
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView
@@ -45,7 +25,8 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:layout_marginTop="5dp"
-        android:fitsSystemWindows="true"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:paddingTop="5dp"
         app:menu="@menu/menu_navigation_drawer_main_activity" />
+
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="HeadingTextView" parent="Widget.AppCompat.Button">
+    <style name="HeadingTextView" parent="Widget.AppCompat.TextView">
         <item name="android:accessibilityHeading">true</item>
         <item name="android:minHeight">@dimen/minHeight</item>
         <item name="android:textStyle">bold</item>

@@ -2,23 +2,23 @@ package org.walkersguide.android.data.server;
 
 import java.util.ArrayList;
 
-import org.walkersguide.android.data.poi.POICategory;
+import org.walkersguide.android.server.poi.PoiCategory;
 
 
 public class ServerInstance {
 
     private String serverName, serverURL, serverVersion;
     private ArrayList<OSMMap> availableMapList;
-    private ArrayList<POICategory> supportedPOICategoryList;
+    private ArrayList<PoiCategory> supportedPoiCategoryList;
     private ArrayList<Integer> supportedAPIVersionList;
 
     public ServerInstance(String serverName, String serverURL, String serverVersion,
-            ArrayList<OSMMap> mapList, ArrayList<POICategory> poiCategoryList, ArrayList<Integer> apiVersionList) {
+            ArrayList<OSMMap> mapList, ArrayList<PoiCategory> poiCategoryList, ArrayList<Integer> apiVersionList) {
         this.serverName = serverName;
         this.serverURL = serverURL;
         this.serverVersion = serverVersion;
         this.availableMapList = mapList;
-        this.supportedPOICategoryList = poiCategoryList;
+        this.supportedPoiCategoryList = poiCategoryList;
         this.supportedAPIVersionList = apiVersionList;
     }
 
@@ -38,8 +38,8 @@ public class ServerInstance {
         return this.availableMapList;
     }
 
-    public ArrayList<POICategory> getSupportedPOICategoryList() {
-        return this.supportedPOICategoryList;
+    public ArrayList<PoiCategory> getSupportedPoiCategoryList() {
+        return this.supportedPoiCategoryList;
     }
 
     public ArrayList<Integer> getSupportedAPIVersionList() {

@@ -20,29 +20,19 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 
 import timber.log.Timber;
 import java.io.File;
 import android.os.Environment;
-import org.walkersguide.android.database.SQLiteHelper;
+import org.walkersguide.android.database.util.SQLiteHelper;
 
 
 public class GlobalInstance extends Application {
-
-    private static final long MAX_ACTIVITY_TRANSITION_TIME_MS = 2000;
-
-    // session id
-    private String sessionId;
-
-    // background detection
-    private Timer mActivityTransitionTimer;
-    private TimerTask mActivityTransitionTimerTask;
-    private boolean wasInBackground;
 
     @Override public void onCreate() {
         super.onCreate();
@@ -56,13 +46,6 @@ public class GlobalInstance extends Application {
         this.wasInBackground = true;
         // notification channel (android 8)
         createNotificationChannel();
-        // open database and check for some defaults
-        AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(this);
-        accessDatabaseInstance.setSomeDefaults();
-    }
-
-    public String getSessionId() {
-        return this.sessionId;
     }
 
 
@@ -85,8 +68,23 @@ public class GlobalInstance extends Application {
 
 
     /**
+     * session id
+     */
+    private String sessionId;
+
+    public String getSessionId() {
+        return this.sessionId;
+    }
+
+
+    /**
      * Background detection
      */
+    private static final long MAX_ACTIVITY_TRANSITION_TIME_MS = 2000;
+
+    private Timer mActivityTransitionTimer;
+    private TimerTask mActivityTransitionTimerTask;
+    private boolean wasInBackground;
 
     public boolean applicationWasInBackground() {
         return this.wasInBackground;

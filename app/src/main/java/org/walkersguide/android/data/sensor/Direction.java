@@ -134,7 +134,7 @@ public class Direction {
         return String.format(
                 "%1$d° (%2$s)",
                 this.bearing,
-                StringUtility.formatGeographicDirection(this.context, this.bearing));
+                StringUtility.formatGeographicDirection(this.bearing));
     }
 
 	@Override public int hashCode() {

@@ -40,23 +40,7 @@ public class PointWrapper {
 
     public PointWrapper(Context context, JSONObject inputData) throws JSONException {
         this.context = context;
-        if (inputData.getString("type").equals(Constants.POINT.STATION)) {
-            this.point = new Station(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.ENTRANCE)) {
-            this.point = new Entrance(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.POI)) {
-            this.point = new POI(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.STREET_ADDRESS)) {
-            this.point = new StreetAddress(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.GPS)) {
-            this.point = new GPS(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.INTERSECTION)) {
-            this.point = new Intersection(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.POINT.PEDESTRIAN_CROSSING)) {
-            this.point = new PedestrianCrossing(context, inputData);
-        } else {
-            this.point = new Point(context, inputData);
-        }
+        this.point = Point.create(inputData);
     }
 
     public Context getContext() {
@@ -102,11 +86,12 @@ public class PointWrapper {
     }
 
     public Integer distanceFromCurrentLocation() {
+        /*
         PointWrapper currentLocation = PositionManager.getInstance(context).getCurrentLocation();
         if (currentLocation != null) {
             return currentLocation.distanceTo(this);
-        }
-        return null;
+        }*/
+        return 666;
     }
 
     public Integer bearingFromCurrentLocation() {
@@ -115,6 +100,7 @@ public class PointWrapper {
     }
 
     public Integer bearingFromCurrentLocation(Direction currentDirection) {
+        /*
         PointWrapper currentLocation = PositionManager.getInstance(context).getCurrentLocation();
         if (currentLocation != null && currentDirection != null) {
             int absoluteDirection = currentLocation.bearingTo(this);
@@ -124,8 +110,8 @@ public class PointWrapper {
                 relativeDirection += 360;
             }
             return relativeDirection;
-        }
-        return null;
+        }*/
+        return 42;
     }
 
     public JSONObject toJson() throws JSONException {
@@ -157,8 +143,7 @@ public class PointWrapper {
                     this.pointToString(),
                     context.getResources().getQuantityString(
                         R.plurals.meter, distanceFromCurrentLocation, distanceFromCurrentLocation),
-                    StringUtility.formatRelativeViewingDirection(
-                        context, bearingFromCurrentLocation)
+                    StringUtility.formatRelativeViewingDirection(bearingFromCurrentLocation)
                     );
         }
         return pointToString();
@@ -208,7 +193,7 @@ public class PointWrapper {
             }
 
             Integer bearingObject1 = object1.bearingFromCurrentLocation();
-            Integer bearingObject2 = object1.bearingFromCurrentLocation();
+            Integer bearingObject2 = object2.bearingFromCurrentLocation();
             if (bearingObject1 != null && bearingObject2 != null) {
                 if (bearingObject1 < bearingObject2) {
                     return -1;

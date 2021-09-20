@@ -12,14 +12,18 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
-    <style name="HeadingTextView" parent="Widget.AppCompat.Button">
+    <style name="SmallTabText" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">@dimen/smallTextSize</item>
+    </style>
+
+    <style name="HeadingTextView" parent="Widget.AppCompat.TextView">
         <item name="android:minHeight">@dimen/minHeight</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/heading</item>
     </style>
 
-    <style name="SmallTabText" parent="TextAppearance.Design.Tab">
-        <item name="android:textSize">@dimen/smallTextSize</item>
+    <style name="FullScreenDialog" parent="AppTheme" >
+        <item name="android:windowIsFloating">false</item>
     </style>
 
 </resources>

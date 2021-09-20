@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/minHeight"
+    android:descendantFocusability="blocksDescendants"
+    android:gravity="center_vertical"
+    android:orientation="horizontal" >
+
+    <CheckedTextView
+        android:id="@+id/labelPoiProfile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0"
+        android:checkMark="@android:drawable/btn_radio"
+        android:focusable="true" />
+
+    <ImageButton
+        android:id="@+id/buttonActionFor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="@dimen/minWidth"
+        android:minHeight="@dimen/minHeight"
+        android:background="@null"
+        android:tint="@color/image"
+        android:src="@drawable/expand_more"
+        android:contentDescription="@string/buttonActionFor" />
+
+</LinearLayout>

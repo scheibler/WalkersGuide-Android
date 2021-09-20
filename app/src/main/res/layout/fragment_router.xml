@@ -12,21 +12,15 @@
         android:layout_marginBottom="30dp"
         android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/labelRouteStartPoint"
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutStartPoint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minLines="1"
-            android:maxLines = "1"
-            android:focusable="true" />
+            android:layout_height="wrap_content" />
 
-        <TextView
-            android:id="@+id/labelRouteDestinationPoint"
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutDestinationPoint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minLines="1"
-            android:maxLines = "1"
-            android:focusable="true" />
+            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/buttonRouteCommandList"
@@ -108,23 +102,15 @@
                 android:focusable="true"
                 android:theme="@style/HeadingTextView" />
 
-            <TextView
-                android:id="@+id/labelRouteSegmentDescription"
+            <org.walkersguide.android.ui.view.TextViewAndActionButton
+                android:id="@+id/layoutCurrentSegment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:focusable="true" />
+                android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/labelRoutePointDescription"
+            <org.walkersguide.android.ui.view.TextViewAndActionButton
+                android:id="@+id/layoutCurrentPoint"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:focusable="true" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
     </ScrollView>
 

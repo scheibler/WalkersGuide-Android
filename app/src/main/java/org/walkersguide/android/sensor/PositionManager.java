@@ -1,5 +1,7 @@
 package org.walkersguide.android.sensor;
 
+import org.walkersguide.android.database.profiles.DatabasePointProfile;
+import org.walkersguide.android.util.GlobalInstance;
 import android.annotation.TargetApi;
 
 import android.content.Context;
@@ -31,10 +33,9 @@ import java.util.HashMap;
 import org.json.JSONException;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.database.util.AccessDatabase;
+import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.HistoryPointProfile;
 import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
@@ -57,6 +58,13 @@ public class PositionManager implements android.location.LocationListener {
     private SettingsManager settingsManagerInstance;
     private Vibrator vibrator;
 
+    public static PositionManager getInstance() {
+        if(positionManagerInstance == null){
+            positionManagerInstance = new PositionManager(GlobalInstance.getContext());
+        }
+        return positionManagerInstance;
+    }
+
     public static PositionManager getInstance(Context context) {
         if(positionManagerInstance == null){
             positionManagerInstance = new PositionManager(context.getApplicationContext());
@@ -66,7 +74,7 @@ public class PositionManager implements android.location.LocationListener {
 
     private PositionManager(Context context) {
         this.context = context;
-        this.settingsManagerInstance = SettingsManager.getInstance(context);
+        this.settingsManagerInstance = SettingsManager.getInstance();
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
@@ -123,11 +131,11 @@ public class PositionManager implements android.location.LocationListener {
     /**
      * current location
      */
-    private HashMap<DistanceThreshold,PointWrapper> lastAggregatingLocationMap = null;
-    private PointWrapper lastImmediateLocation = null;
+    private HashMap<DistanceThreshold,Point> lastAggregatingLocationMap = null;
+    private Point lastImmediateLocation = null;
     private float[] travelingSpeedArray = null;
 
-    public PointWrapper getCurrentLocation() {
+    public Point getCurrentLocation() {
         LocationSettings locationSettings = settingsManagerInstance.getLocationSettings();
         if (this.simulationEnabled) {
             return locationSettings.getSimulatedLocation();
@@ -141,8 +149,8 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastCurrentLocation() {
-        PointWrapper currentLocation = getCurrentLocation();
-        NewLocationAttributes.Builder newLocationAttributesBuilder = new NewLocationAttributes.Builder(context, currentLocation);
+        Point currentLocation = getCurrentLocation();
+        NewLocationAttributes.Builder newLocationAttributesBuilder = new NewLocationAttributes.Builder(currentLocation);
 
         // add optional attributes
         if (currentLocation != null) {
@@ -150,7 +158,7 @@ public class PositionManager implements android.location.LocationListener {
             // aggregating threshold
             if (lastAggregatingLocationMap == null) {
                 // initialize
-                lastAggregatingLocationMap = new HashMap<DistanceThreshold,PointWrapper>();;
+                lastAggregatingLocationMap = new HashMap<DistanceThreshold,Point>();;
                 for (DistanceThreshold distanceThreshold : DistanceThreshold.values()) {
                     lastAggregatingLocationMap.put(distanceThreshold, currentLocation);
                 }
@@ -232,19 +240,22 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastGPSLocation() {
-        PointWrapper gpsLocation = settingsManagerInstance.getLocationSettings().getGPSLocation();
         Intent intent = new Intent(Constants.ACTION_NEW_GPS_LOCATION);
         try {
             intent.putExtra(
-                    Constants.ACTION_NEW_GPS_LOCATION_OBJECT, gpsLocation.toJson().toString());
+                    Constants.ACTION_NEW_GPS_LOCATION_OBJECT, getGPSLocation().toJson().toString());
         } catch (JSONException | NullPointerException e) {}
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    public Point getGPSLocation() {
+        return settingsManagerInstance.getLocationSettings().getGPSLocation();
     }
 
     @Override public void onLocationChanged(Location newLocationObject) {
         // try to create gps point from location object
         GPS.Builder gpsBuilder = new GPS.Builder(
-                context, newLocationObject.getLatitude(), newLocationObject.getLongitude(), newLocationObject.getTime());
+                newLocationObject.getLatitude(), newLocationObject.getLongitude(), newLocationObject.getTime());
 
         // optional args
         if (newLocationObject.getProvider() != null) {
@@ -303,23 +314,11 @@ public class PositionManager implements android.location.LocationListener {
             }
         }
 
-        GPS currentLocation = null;
-        PointWrapper pointWrapper = settingsManagerInstance.getLocationSettings().getGPSLocation();
-        if (pointWrapper  != null
-                && pointWrapper.getPoint() instanceof GPS) {
-            currentLocation = (GPS) pointWrapper.getPoint();
-        }
+        GPS currentLocation = settingsManagerInstance.getLocationSettings().getGPSLocation();
         GPS newLocation = gpsBuilder.build();
-        if(isBetterLocation(currentLocation, newLocation)) {
+        if (isBetterLocation(currentLocation, newLocation)) {
+            settingsManagerInstance.getLocationSettings().setGPSLocation(newLocation);
 
-            // save current location
-            LocationSettings locationSettings = settingsManagerInstance.getLocationSettings();
-            try {
-                locationSettings.setGPSLocation(
-                        new PointWrapper(this.context, gpsBuilder.toJson()));
-            } catch (JSONException e) {
-                return;
-            }
             // broadcast new gps position action
             broadcastGPSLocation();
             // broadcast new location action
@@ -357,7 +356,7 @@ public class PositionManager implements android.location.LocationListener {
         }
 
         // Check whether the new location fix is newer or older
-        long timeDelta = newLocation.getTime() - currentLocation.getTime();
+        long timeDelta = newLocation.getTimestamp() - currentLocation.getTimestamp();
         boolean isNewer = timeDelta > 0;
         boolean isABitNewer = timeDelta > 10000;
         boolean isSignificantlyNewer = timeDelta > 20000;
@@ -432,22 +431,24 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastSimulatedLocation() {
-        PointWrapper simulatedLocation = settingsManagerInstance.getLocationSettings().getSimulatedLocation();
         Intent intent = new Intent(Constants.ACTION_NEW_SIMULATED_LOCATION);
         try {
             intent.putExtra(
-                    Constants.ACTION_NEW_SIMULATED_LOCATION_OBJECT, simulatedLocation.toJson().toString());
+                    Constants.ACTION_NEW_SIMULATED_LOCATION_OBJECT, getSimulatedLocation().toJson().toString());
         } catch (JSONException | NullPointerException e) {}
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
-    public void setSimulatedLocation(PointWrapper newLocation) {
+    public Point getSimulatedLocation() {
+        return settingsManagerInstance.getLocationSettings().getSimulatedLocation();
+    }
+
+    public void setSimulatedLocation(Point newLocation) {
         if (newLocation != null) {
-            LocationSettings locationSettings = this.settingsManagerInstance.getLocationSettings();
-            locationSettings.setSimulatedLocation(newLocation);
+            settingsManagerInstance.getLocationSettings().setSimulatedLocation(newLocation);
             // add to simulated points profile
-            AccessDatabase.getInstance(this.context).addFavoritePointToProfile(
-                    newLocation, HistoryPointProfile.ID_SIMULATED_POINTS);
+            AccessDatabase.getInstance().addObjectToDatabaseProfile(
+                    newLocation, DatabasePointProfile.SIMULATED_POINTS);
             // broadcast new simulated location action
             broadcastSimulatedLocation();
             // broadcast new location action

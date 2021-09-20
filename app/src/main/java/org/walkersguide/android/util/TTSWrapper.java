@@ -27,22 +27,27 @@ public class TTSWrapper extends UtteranceProgressListener {
     private static final String DELIMITER = ". ";
     private static final String UTTERANCE_ID_SPEAK = "utteranceidspeak";
 
-    private static TTSWrapper ttsWrapperInstance;
-    private Context mContext;
+    private static TTSWrapper managerInstance;
     private AccessibilityManager accessibilityManager;
     private TextToSpeech tts;
 
-    public static TTSWrapper getInstance(Context context) {
-        if(ttsWrapperInstance == null){
-            ttsWrapperInstance = new TTSWrapper(context.getApplicationContext());
+    public static TTSWrapper getInstance() {
+        if (managerInstance == null){
+            managerInstance = getInstanceSynchronized();
         }
-        return ttsWrapperInstance;
+        return managerInstance;
     }
 
-    private TTSWrapper(Context context) {
-        mContext = context;
-        accessibilityManager = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
-        tts = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
+    private static synchronized TTSWrapper getInstanceSynchronized() {
+        if (managerInstance == null){
+            managerInstance = new TTSWrapper();
+        }
+        return managerInstance;
+    }
+
+    private TTSWrapper() {
+        accessibilityManager = (AccessibilityManager) GlobalInstance.getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        tts = new TextToSpeech(GlobalInstance.getContext(), new TextToSpeech.OnInitListener() {
             @Override public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
                     tts.setLanguage(Locale.getDefault());

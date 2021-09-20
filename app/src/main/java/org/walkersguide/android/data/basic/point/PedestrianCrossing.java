@@ -1,30 +1,31 @@
 package org.walkersguide.android.data.basic.point;
 
+import org.walkersguide.android.R;
 import android.content.Context;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.HashMap;
+import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.helper.StringUtility;
 
 
-public class PedestrianCrossing extends Point {
+public class PedestrianCrossing extends Point implements Serializable {
+    private static final long serialVersionUID = 1l;
 
-    private int trafficSignalsSound, trafficSignalsVibration;
+    private TrafficSignal trafficSignalsSound, trafficSignalsVibration;
 
-    public PedestrianCrossing(Context context, JSONObject inputData) throws JSONException {
-        // point super constructor
-        super(context, inputData);
+    public PedestrianCrossing(JSONObject inputData) throws JSONException {
+        super(inputData);
         // traffic signal attributes
-        try {
-            this.trafficSignalsSound = inputData.getInt("traffic_signals_sound");
-        } catch (JSONException e) {
-            this.trafficSignalsSound = -1;
-        }
-        try {
-            this.trafficSignalsVibration = inputData.getInt("traffic_signals_vibration");
-        } catch (JSONException e) {
-            this.trafficSignalsVibration = -1;
-        }
+        this.trafficSignalsSound = TrafficSignal.lookUpById(
+                StringUtility.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_TRAFFIC_SIGNALS_SOUND));
+        this.trafficSignalsVibration = TrafficSignal.lookUpById(
+                StringUtility.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_TRAFFIC_SIGNALS_VIBRATION));
     }
+
 
     /**
      * traffic signal properties
@@ -33,41 +34,62 @@ public class PedestrianCrossing extends Point {
      *   1: yes
      */
 
-    public interface TRAFFIC_SIGNAL {
-        public static final int NO = 0;
-        public static final int YES = 1;
+    public enum TrafficSignal {
+        NO(0, GlobalInstance.getStringResource(R.string.trafficSignalNo)),
+        YES(1, GlobalInstance.getStringResource(R.string.trafficSignalYes));
+
+        // lookup by id
+        private static final Map<Integer,TrafficSignal> valuesById;
+        static {
+            valuesById = new HashMap<Integer,TrafficSignal>();
+            for(TrafficSignal signal : TrafficSignal.values()) {
+                valuesById.put(signal.id, signal);
+            }
+        }
+
+        public static TrafficSignal lookUpById(Integer id) {
+            return valuesById.get(id);
+        }
+
+        // constructor
+        public int id;
+        public String name;
+
+        private TrafficSignal(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @Override public String toString() {
+            return this.name;
+        }
     }
 
-    public final static int[] TrafficSignalValueArray = {
-        TRAFFIC_SIGNAL.NO, TRAFFIC_SIGNAL.YES
-    };
-
-    public int getTrafficSignalsSound() {
+    public TrafficSignal getTrafficSignalsSound() {
         return this.trafficSignalsSound;
     }
 
-    public int getTrafficSignalsVibration() {
+    public TrafficSignal getTrafficSignalsVibration() {
         return this.trafficSignalsVibration;
     }
 
+
+    /**
+     * to json
+     */
+
+    public static final String KEY_TRAFFIC_SIGNALS_SOUND = "traffic_signals_sound";
+    public static final String KEY_TRAFFIC_SIGNALS_VIBRATION = "traffic_signals_vibration";
+
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
-        // traffic signal attributes
-        if (this.trafficSignalsSound > -1) {
-            try {
-                jsonObject.put("traffic_signals_sound", this.trafficSignalsSound);
-            } catch (JSONException e) {}
+        if (this.trafficSignalsSound != null) {
+            jsonObject.put(KEY_TRAFFIC_SIGNALS_SOUND, this.trafficSignalsSound);
         }
-        if (this.trafficSignalsVibration > -1) {
-            try {
-                jsonObject.put("traffic_signals_vibration", this.trafficSignalsVibration);
-            } catch (JSONException e) {}
+        if (this.trafficSignalsVibration != null) {
+            jsonObject.put(KEY_TRAFFIC_SIGNALS_VIBRATION, this.trafficSignalsVibration);
         }
         return jsonObject;
-    }
-
-    @Override public String toString() {
-        return super.toString();
     }
 
 }

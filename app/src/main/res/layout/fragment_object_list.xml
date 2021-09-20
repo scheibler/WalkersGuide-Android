@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/layoutTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="10dp"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/buttonSelectProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonSelectProfile" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:labelFor="@+id/editSearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/labelSearch" />
+
+            <AutoCompleteTextView
+                android:id="@+id/editSearch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:completionThreshold="2"
+                android:inputType="textFilter"
+                android:imeOptions="actionDone" />
+
+            <ImageButton
+                android:id="@+id/buttonClearSearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/minWidth"
+                android:minHeight="@dimen/minHeight"
+                android:background="@null"
+                android:tint="@color/image"
+                android:src="@drawable/clear"
+                android:contentDescription="@string/buttonClearSearch" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <include
+        layout="@layout/layout_heading_and_list_view_with_refresh_button"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/layoutTop" />
+
+</RelativeLayout>

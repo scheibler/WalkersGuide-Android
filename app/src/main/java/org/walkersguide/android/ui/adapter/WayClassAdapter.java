@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.server.route.WayClass;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 

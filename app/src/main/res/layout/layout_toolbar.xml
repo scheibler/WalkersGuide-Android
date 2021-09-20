@@ -11,7 +11,43 @@
         android:layout_height="wrap_content"
         android:elevation="6dp"
         android:minHeight="?attr/actionBarSize"
-        android:fitsSystemWindows="true" />
+        android:fitsSystemWindows="true" >
+
+        <ImageButton
+            android:id="@+id/buttonDirectionDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:minWidth="@dimen/minWidth"
+            android:minHeight="@dimen/minHeight"
+            android:background="@null"
+            android:tint="@color/image"
+            android:src="@drawable/toolbar_direction"
+            android:contentDescription="@string/directionSourceCompass" />
+
+        <ImageButton
+            android:id="@+id/buttonLocationDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:minWidth="@dimen/minWidth"
+            android:minHeight="@dimen/minHeight"
+            android:background="@null"
+            android:tint="@color/image"
+            android:src="@drawable/toolbar_location"
+            android:contentDescription="@string/locationSourceGPS" />
+
+        <TextView
+            android:id="@+id/labelToolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/minWidth"
+            android:minHeight="@dimen/minHeight"
+            android:gravity="center_vertical"
+            android:textSize="@dimen/bigTextSize" />
+    </androidx.appcompat.widget.Toolbar>
 
     <View
         android:layout_width="match_parent"

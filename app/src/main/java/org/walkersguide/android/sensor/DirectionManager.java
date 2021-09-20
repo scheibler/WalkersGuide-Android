@@ -1,5 +1,6 @@
 package org.walkersguide.android.sensor;
 
+import org.walkersguide.android.util.GlobalInstance;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,6 +39,13 @@ public class DirectionManager implements SensorEventListener {
     private static DirectionManager directionManagerInstance;
     private SettingsManager settingsManagerInstance;
 
+    public static DirectionManager getInstance() {
+        if(directionManagerInstance == null){
+            directionManagerInstance = new DirectionManager(GlobalInstance.getContext());
+        }
+        return directionManagerInstance;
+    }
+
     public static DirectionManager getInstance(Context context) {
         if(directionManagerInstance == null){
             directionManagerInstance = new DirectionManager(context.getApplicationContext());
@@ -47,7 +55,7 @@ public class DirectionManager implements SensorEventListener {
 
     private DirectionManager(Context context) {
         this.context = context;
-        this.settingsManagerInstance = SettingsManager.getInstance(context);
+        this.settingsManagerInstance = SettingsManager.getInstance();
         // listen for new gps position broadcasts
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_GPS_LOCATION);
@@ -209,16 +217,19 @@ public class DirectionManager implements SensorEventListener {
         this.differenceToTrueNorth = newDifference;
     }
 
+    public Direction getCompassDirection() {
+        return settingsManagerInstance.getDirectionSettings().getCompassDirection();
+    }
+
     public void requestCompassDirection() {
         broadcastCompassDirection();
     }
 
     private void broadcastCompassDirection() {
-        Direction compassDirection = settingsManagerInstance.getDirectionSettings().getCompassDirection();
         Intent intent = new Intent(Constants.ACTION_NEW_COMPASS_DIRECTION);
         try {
             intent.putExtra(
-                    Constants.ACTION_NEW_COMPASS_DIRECTION_OBJECT, compassDirection.toJson().toString());
+                    Constants.ACTION_NEW_COMPASS_DIRECTION_OBJECT, getCompassDirection().toJson().toString());
         } catch (JSONException | NullPointerException e) {}
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
@@ -361,16 +372,19 @@ public class DirectionManager implements SensorEventListener {
      * direction from gps
      */
 
+    public Direction getGPSDirection() {
+        return settingsManagerInstance.getDirectionSettings().getGPSDirection();
+    }
+
     public void requestGPSDirection() {
         broadcastGPSDirection();
     }
 
     private void broadcastGPSDirection() {
-        Direction gpsDirection = settingsManagerInstance.getDirectionSettings().getGPSDirection();
         Intent intent = new Intent(Constants.ACTION_NEW_GPS_DIRECTION);
         try {
             intent.putExtra(
-                    Constants.ACTION_NEW_GPS_DIRECTION_OBJECT, gpsDirection.toJson().toString());
+                    Constants.ACTION_NEW_GPS_DIRECTION_OBJECT, getGPSDirection().toJson().toString());
         } catch (JSONException | NullPointerException e) {}
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
@@ -404,16 +418,19 @@ public class DirectionManager implements SensorEventListener {
      * simulated direction
      */
 
+    public Direction getSimulatedDirection() {
+        return settingsManagerInstance.getDirectionSettings().getSimulatedDirection();
+    }
+
     public void requestSimulatedDirection() {
         broadcastSimulatedDirection();
     }
 
     private void broadcastSimulatedDirection() {
-        Direction simulatedDirection = settingsManagerInstance.getDirectionSettings().getSimulatedDirection();
         Intent intent = new Intent(Constants.ACTION_NEW_SIMULATED_DIRECTION);
         try {
             intent.putExtra(
-                    Constants.ACTION_NEW_SIMULATED_DIRECTION_OBJECT, simulatedDirection.toJson().toString());
+                    Constants.ACTION_NEW_SIMULATED_DIRECTION_OBJECT, getSimulatedDirection().toJson().toString());
         } catch (JSONException | NullPointerException e) {}
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
@@ -455,7 +472,7 @@ public class DirectionManager implements SensorEventListener {
                     newAccelerometerValues[0] + newAccelerometerValues[1]
                     + newAccelerometerValues[2] - valuesAccelerometer[0]
                     - valuesAccelerometer[1] - valuesAccelerometer[2]) / diff * 10000;
-            if (speed > settingsManagerInstance.getGeneralSettings().getShakeIntensity()) {
+            if (speed > settingsManagerInstance.getSelectedShakeIntensity()) {
                 if ((++mShakeCount >= SHAKE_COUNT)
                         && (now - mLastShake > SHAKE_DURATION)) {
                     mLastShake = now;

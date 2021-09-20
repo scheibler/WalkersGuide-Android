@@ -30,7 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.data.poi.POICategory;
+import org.walkersguide.android.server.poi.PoiCategory;
 import org.walkersguide.android.data.server.OSMMap;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.exception.ServerCommunicationException;
@@ -173,33 +173,28 @@ public class ServerUtility {
             throw new ServerCommunicationException(context, Constants.RC.NO_MAP_LIST);
         }
 
-        ArrayList<POICategory> supportedPOICategoryList = new ArrayList<POICategory>();
-        JSONArray jsonPOICategoryList = null;
+        ArrayList<PoiCategory> supportedPoiCategoryList = new ArrayList<PoiCategory>();
+        JSONArray jsonPoiCategoryList = null;
         try {
-            jsonPOICategoryList = jsonServerResponse.getJSONArray("supported_poi_category_list");
+            jsonPoiCategoryList = jsonServerResponse.getJSONArray("supported_poi_category_list");
         } catch (JSONException e) {
-            jsonPOICategoryList = null;
+            jsonPoiCategoryList = null;
         } finally {
-            if (jsonPOICategoryList != null) {
-                for (int i=0; i<jsonPOICategoryList.length(); i++) {
-                    try {
-                        supportedPOICategoryList.add(
-                                new POICategory(context, jsonPOICategoryList.getString(i)));
-                    } catch (JSONException e) {}
-                }
+            if (jsonPoiCategoryList != null) {
+                supportedPoiCategoryList = PoiCategory.listFromJson(jsonPoiCategoryList);
             }
         }
-        if (supportedPOICategoryList.isEmpty()) {
+        if (supportedPoiCategoryList.isEmpty()) {
             throw new ServerCommunicationException(context, Constants.RC.BAD_RESPONSE);
         }
 
         // create server instance object
         ServerInstance serverInstance = new ServerInstance(
                 serverName, serverURL, serverVersion, availableMapList,
-                supportedPOICategoryList, supportedAPIVersionList);
+                supportedPoiCategoryList, supportedAPIVersionList);
 
         // update server settings
-        ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
+        ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
         if (! serverInstance.getServerURL().equals(serverSettings.getServerURL())) {
             serverSettings.setServerURL(serverInstance.getServerURL());
         }
@@ -226,7 +221,7 @@ public class ServerUtility {
     public static HttpsURLConnection getHttpsURLConnectionObject(Context context, String queryURL,
             JSONObject postParameters) throws IOException, ServerCommunicationException {
         // check for internet connection
-        if (! isInternetAvailable(context)) {
+        if (! isInternetAvailable()) {
             throw new ServerCommunicationException(context, Constants.RC.NO_INTERNET_CONNECTION);
         }
 
@@ -258,8 +253,8 @@ public class ServerUtility {
         return connection;
     }
 
-    public static boolean isInternetAvailable(Context context) {
-        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    public static boolean isInternetAvailable() {
+        ConnectivityManager connMgr = (ConnectivityManager) GlobalInstance.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = connMgr.getActiveNetworkInfo();
         if (activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED) {
             return true;
@@ -268,7 +263,7 @@ public class ServerUtility {
     }
 
     public static JSONObject createServerParamList(Context context) throws JSONException {
-        ServerSettings serverSettings = SettingsManager.getInstance(context).getServerSettings();
+        ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
         JSONObject requestJson = new JSONObject();
         // session id and language
         requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
@@ -323,6 +318,10 @@ public class ServerUtility {
      */
 
     public static String getErrorMessageForReturnCode(Context context, int returnCode) {
+        return getErrorMessageForReturnCode(returnCode);
+    }
+
+    public static String getErrorMessageForReturnCode(int returnCode) {
         switch (returnCode) {
             // walkersguide server errors
             //
@@ -330,89 +329,85 @@ public class ServerUtility {
             case Constants.RC.OK:
                 return "";
             case Constants.RC.BAD_REQUEST:
-                return context.getResources().getString(R.string.errorBadRequest);
+                return GlobalInstance.getStringResource(R.string.errorBadRequest);
             case Constants.RC.REQUEST_IN_PROGRESS:
-                return context.getResources().getString(R.string.errorRequestInProgress);
+                return GlobalInstance.getStringResource(R.string.errorRequestInProgress);
             // caused by server
             case Constants.RC.INTERNAL_SERVER_ERROR:
-                return context.getResources().getString(R.string.errorInternalServerError);
+                return GlobalInstance.getStringResource(R.string.errorInternalServerError);
             case Constants.RC.BAD_GATEWAY:
-                return context.getResources().getString(R.string.errorBadGateway);
+                return GlobalInstance.getStringResource(R.string.errorBadGateway);
             case Constants.RC.SERVICE_UNAVAILABLE:
-                return context.getResources().getString(R.string.errorServiceUnavailableOrBusy);
+                return GlobalInstance.getStringResource(R.string.errorServiceUnavailableOrBusy);
             // walkersguide custom errors
             case Constants.RC.CANCELLED_BY_CLIENT:
-                return context.getResources().getString(R.string.errorCancelled);
+                return GlobalInstance.getStringResource(R.string.errorCancelled);
             case Constants.RC.NO_POI_TAGS_SELECTED:
-                return context.getResources().getString(R.string.errorNoPOITagsSelected);
+                return GlobalInstance.getStringResource(R.string.errorNoPOITagsSelected);
             case Constants.RC.MAP_LOADING_FAILED:
-                return context.getResources().getString(R.string.errorMapLoadingFailed);
+                return GlobalInstance.getStringResource(R.string.errorMapLoadingFailed);
             case Constants.RC.WRONG_MAP_SELECTED:
-                return context.getResources().getString(R.string.errorWrongMapSelected);
+                return GlobalInstance.getStringResource(R.string.errorWrongMapSelected);
             case Constants.RC.MAP_OUTDATED:
-                return context.getResources().getString(R.string.errorMapOutdated);
+                return GlobalInstance.getStringResource(R.string.errorMapOutdated);
             // route calculation
             case Constants.RC.START_OR_DESTINATION_MISSING:
-                return context.getResources().getString(R.string.errorStartOrDestinationMissing);
+                return GlobalInstance.getStringResource(R.string.errorStartOrDestinationMissing);
             case Constants.RC.START_AND_DESTINATION_TOO_FAR_AWAY:
-                return context.getResources().getString(R.string.errorStartAndDestinationTooFarAway);
+                return GlobalInstance.getStringResource(R.string.errorStartAndDestinationTooFarAway);
             case Constants.RC.TOO_MANY_WAY_CLASSES_IGNORED:
-                return context.getResources().getString(R.string.errorTooManyWayClassesIgnored);
+                return GlobalInstance.getStringResource(R.string.errorTooManyWayClassesIgnored);
             case Constants.RC.NO_ROUTE_BETWEEN_START_AND_DESTINATION:
-                return context.getResources().getString(R.string.errorNoRouteBetweenStartAndDestination);
+                return GlobalInstance.getStringResource(R.string.errorNoRouteBetweenStartAndDestination);
 
             // android app
             case Constants.RC.CANCELLED:
-                return context.getResources().getString(R.string.errorCancelled);
+                return GlobalInstance.getStringResource(R.string.errorCancelled);
             case Constants.RC.NO_LOCATION_FOUND:
-                return context.getResources().getString(R.string.errorNoLocationFound);
+                return GlobalInstance.getStringResource(R.string.errorNoLocationFound);
             case Constants.RC.NO_DIRECTION_FOUND:
-                return context.getResources().getString(R.string.errorNoDirectionFound);
+                return GlobalInstance.getStringResource(R.string.errorNoDirectionFound);
             // server
             case Constants.RC.CONNECTION_FAILED:
-                return context.getResources().getString(R.string.errorConnectionFailed);
+                return GlobalInstance.getStringResource(R.string.errorConnectionFailed);
             case Constants.RC.BAD_RESPONSE:
-                return context.getResources().getString(R.string.errorBadResponse);
+                return GlobalInstance.getStringResource(R.string.errorBadResponse);
             case Constants.RC.NO_SERVER_URL:
-                return context.getResources().getString(R.string.errorNoServerURL);
+                return GlobalInstance.getStringResource(R.string.errorNoServerURL);
             case Constants.RC.NO_INTERNET_CONNECTION:
-                return context.getResources().getString(R.string.errorNoInternetConnection);
+                return GlobalInstance.getStringResource(R.string.errorNoInternetConnection);
             case Constants.RC.API_CLIENT_OUTDATED:
-                return context.getResources().getString(R.string.errorAPIClientOutdated);
+                return GlobalInstance.getStringResource(R.string.errorAPIClientOutdated);
             case Constants.RC.API_SERVER_OUTDATED:
-                return context.getResources().getString(R.string.errorAPIServerOutdated);
+                return GlobalInstance.getStringResource(R.string.errorAPIServerOutdated);
             case Constants.RC.NO_MAP_LIST:
-                return context.getResources().getString(R.string.errorNoMapList);
+                return GlobalInstance.getStringResource(R.string.errorNoMapList);
             // addresses
             case Constants.RC.NO_COORDINATES_FOR_ADDRESS:
-                return context.getResources().getString(R.string.errorNoCoordinatesForAddress);
+                return GlobalInstance.getStringResource(R.string.errorNoCoordinatesForAddress);
             case Constants.RC.NO_ADDRESS_FOR_COORDINATES:
-                return context.getResources().getString(R.string.errorNoAddressForCoordinates);
+                return GlobalInstance.getStringResource(R.string.errorNoAddressForCoordinates);
             case Constants.RC.NEITHER_COORDINATES_NOR_ADDRESS:
-                return context.getResources().getString(R.string.errorNeitherCoordinatesNorAddress);
-            case Constants.RC.GOOGLE_MAPS_QUOTA_EXCEEDED:
-                return context.getResources().getString(R.string.errorGoogleMapsQuotaExceeded);
-            case Constants.RC.ADDRESS_PROVIDER_NOT_SUPPORTED:
-                return context.getResources().getString(R.string.errorAddressProviderNotSupported);
+                return GlobalInstance.getStringResource(R.string.errorNeitherCoordinatesNorAddress);
             // poi
             case Constants.RC.NO_POI_PROFILE_CREATED:
-                return context.getResources().getString(R.string.errorNoPOIProfileCreated);
+                return GlobalInstance.getStringResource(R.string.errorNoPOIProfileCreated);
             case Constants.RC.NO_POI_PROFILE_SELECTED:
-                return context.getResources().getString(R.string.errorNoPOIProfileSelected);
+                return GlobalInstance.getStringResource(R.string.errorNoPOIProfileSelected);
             case Constants.RC.POI_PROFILE_PARSING_ERROR:
-                return context.getResources().getString(R.string.errorPOIProfileParsing);
+                return GlobalInstance.getStringResource(R.string.errorPOIProfileParsing);
             case Constants.RC.UNSUPPORTED_POI_REQUEST_ACTION:
-                return context.getResources().getString(R.string.errorUnsupportedPOIRequestAction);
+                return GlobalInstance.getStringResource(R.string.errorUnsupportedPOIRequestAction);
             // route
             case Constants.RC.NO_ROUTE_CREATED:
-                return context.getResources().getString(R.string.errorNoRouteCreated);
+                return GlobalInstance.getStringResource(R.string.errorNoRouteCreated);
             case Constants.RC.NO_ROUTE_SELECTED:
-                return context.getResources().getString(R.string.errorNoRouteSelected);
+                return GlobalInstance.getStringResource(R.string.errorNoRouteSelected);
             case Constants.RC.ROUTE_PARSING_ERROR:
-                return context.getResources().getString(R.string.errorRouteParsing);
+                return GlobalInstance.getStringResource(R.string.errorRouteParsing);
             default:
                 return String.format(
-                        context.getResources().getString(R.string.messageUnknownError), returnCode);
+                        GlobalInstance.getStringResource(R.string.messageUnknownError), returnCode);
         }
     }
 

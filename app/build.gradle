@@ -36,7 +36,7 @@ android {
         // internal
         // database
         buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-        buildConfigField 'Integer', 'DATABASE_VERSION', '9'
+        buildConfigField 'Integer', 'DATABASE_VERSION', '10'
         // server
         buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
         buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
@@ -67,7 +67,7 @@ android {
     }
 
     lintOptions {
-        disable "StaticFieldLeak", "InflateParams", "GoogleAppIndexingWarning",
+        disable "InflateParams", "GoogleAppIndexingWarning",
                 "ButtonStyle", "UseSparseArrays", "UseCompoundDrawables",
                 "DefaultLocale", "IconLauncherShape", "Autofill"
     }
@@ -83,8 +83,9 @@ dependencies {
     implementation 'androidx.viewpager:viewpager:1.0.0'
     // material design
     implementation 'com.google.android.material:material:1.2.1'
-    // guava
+    // google helpers
     implementation 'com.google.guava:guava:28.2-android'
+    implementation 'com.google.code.gson:gson:2.8.6'
     // logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
     // public transport enabler

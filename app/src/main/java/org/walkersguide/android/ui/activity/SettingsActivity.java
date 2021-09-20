@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.activity;
 
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.LinearLayout;
 import timber.log.Timber;
 import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.helper.FileUtility;
@@ -53,9 +55,9 @@ import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import android.content.BroadcastReceiver;
-import org.walkersguide.android.database.SQLiteHelper;
+import org.walkersguide.android.database.util.SQLiteHelper;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.database.util.AccessDatabase;
 import android.database.SQLException;
 import android.app.Activity;
 import android.net.Uri;
@@ -63,9 +65,11 @@ import android.Manifest;
 import androidx.core.app.ActivityCompat;
 import android.os.Environment;
 import android.content.pm.PackageManager;
+import org.walkersguide.android.ui.listener.TextChangedListener;
+import android.text.Editable;
 
 
-public class SettingsActivity extends AbstractActivity implements ServerStatusListener {
+public class SettingsActivity extends AbstractToolbarActivity implements ServerStatusListener {
 
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider, buttonAddressProvider;
@@ -74,7 +78,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_settings);
+		//setContentView(R.layout.activity_settings);
 
         // toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -129,10 +133,10 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
         buttonEnableTextInputHistory = (Switch) findViewById(R.id.buttonEnableTextInputHistory);
         buttonEnableTextInputHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked != settingsManagerInstance.getGeneralSettings().getEnableTextInputHistory()) {
-                    settingsManagerInstance.getGeneralSettings().setEnableTextInputHistory(isChecked);
+                if (isChecked != settingsManagerInstance.getEnableSearchTermHistory()) {
+                    settingsManagerInstance.setEnableSearchTermHistory(isChecked);
                     if (! isChecked) {
-                        settingsManagerInstance.getSearchTermHistory().clearSearchTermList();
+                        settingsManagerInstance.clearSearchTermHistory();
                     }
                 }
             }
@@ -162,8 +166,8 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
     @Override public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.menuItemDirection).setVisible(false);
-        menu.findItem(R.id.menuItemLocation).setVisible(false);
+        //menu.findItem(R.id.menuItemDirection).setVisible(false);
+        //menu.findItem(R.id.menuItemLocation).setVisible(false);
         return true;
     }
 
@@ -228,7 +232,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
         // shake intensity button
         String shakeIntensityName;
-        switch (settingsManagerInstance.getGeneralSettings().getShakeIntensity()) {
+        switch (settingsManagerInstance.getSelectedShakeIntensity()) {
             case Constants.SHAKE_INTENSITY.DISABLED:
                 shakeIntensityName = getResources().getString(R.string.shakeIntensityDisabled);
                 break;
@@ -248,7 +252,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                 shakeIntensityName = getResources().getString(R.string.shakeIntensityVeryStrong);
                 break;
             default:
-                shakeIntensityName = String.valueOf(settingsManagerInstance.getGeneralSettings().getShakeIntensity());
+                shakeIntensityName = String.valueOf(settingsManagerInstance.getSelectedShakeIntensity());
                 break;
         }
         buttonShakeIntensity.setText(
@@ -259,7 +263,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                 );
 
         // privacy and development settings
-        buttonEnableTextInputHistory.setChecked(settingsManagerInstance.getGeneralSettings().getEnableTextInputHistory());
+        buttonEnableTextInputHistory.setChecked(settingsManagerInstance.getEnableSearchTermHistory());
 
         // request server status instance
         ServerStatusManager.getInstance(this).requestServerStatus(
@@ -308,61 +312,66 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
      */
 
     public static class NewServerDialog extends DialogFragment implements ServerStatusListener {
+        private static final String KEY_SERVER_URL = "serverUrl";
 
         // Store instance variables
-        private InputMethodManager imm;
         private ServerStatusManager serverStatusManagerInstance;
-        private SettingsManager settingsManagerInstance;
+        private String serverUrl;
+
         private EditText editServerURL;
 
         public static NewServerDialog newInstance() {
-            NewServerDialog newServerDialogInstance = new NewServerDialog();
-            return newServerDialogInstance;
+            NewServerDialog dialog = new NewServerDialog();
+            return dialog;
         }
 
         @Override public void onAttach(Context context){
             super.onAttach(context);
-            imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
             serverStatusManagerInstance = ServerStatusManager.getInstance(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
+        }
+
+        @Override public void onDetach(){
+            super.onDetach();
+            serverStatusManagerInstance.invalidateServerStatusRequest((NewServerDialog) this);
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // custom view
-            final ViewGroup nullParent = null;
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_edit_text, nullParent);
+            if(savedInstanceState != null) {
+                serverUrl = savedInstanceState.getString(KEY_SERVER_URL);
+            } else {
+                serverUrl = SettingsManager.getInstance().getServerSettings().getServerURL();
+            }
 
-            editServerURL = (EditText) view.findViewById(R.id.editInput);
+            editServerURL = new EditText(NewServerDialog.this.getContext());
+            LayoutParams lp = new LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            editServerURL.setLayoutParams(lp);
+            editServerURL.setText(serverUrl);
+            editServerURL.selectAll();
             editServerURL.setHint(getResources().getString(R.string.editHintServerURL));
             editServerURL.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
             editServerURL.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            editServerURL.setText(
-                    settingsManagerInstance.getServerSettings().getServerURL());
             editServerURL.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
                     if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        InputMethodManager imm =(InputMethodManager) GlobalInstance.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                         tryToContactServer();
                         return true;
                     }
                     return false;
                 }
             });
-
-            ImageButton buttonDelete = (ImageButton) view.findViewById(R.id.buttonDelete);
-            buttonDelete.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    // clear edit text
-                    editServerURL.setText("");
-                    // show keyboard
-                    imm.showSoftInput(editServerURL, InputMethodManager.SHOW_IMPLICIT);
+            editServerURL.addTextChangedListener(new TextChangedListener<EditText>(editServerURL) {
+                @Override public void onTextChanged(EditText view, Editable s) {
+                    serverUrl = view.getText().toString();
                 }
             });
 
             // create dialog
             return new AlertDialog.Builder(getActivity())
                 .setTitle(getResources().getString(R.string.newServerDialogTitle))
-                .setView(view)
+                .setView(editServerURL)
                 .setPositiveButton(
                         getResources().getString(R.string.dialogDone),
                         new DialogInterface.OnClickListener() {
@@ -418,23 +427,19 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
             }
         }
 
-        @Override public void onStop() {
-            super.onStop();
-            serverStatusManagerInstance.invalidateServerStatusRequest((NewServerDialog) this);
+        @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+            super.onSaveInstanceState(savedInstanceState);
+            savedInstanceState.putString(KEY_SERVER_URL, serverUrl);
         }
 
         private void tryToContactServer() {
-            // hide keyboard
-            imm.hideSoftInputFromWindow(editServerURL.getWindowToken(), 0);
-            // 
-            serverStatusManagerInstance.requestServerStatus(
-                    (NewServerDialog) this, editServerURL.getText().toString().trim());
+            serverStatusManagerInstance.requestServerStatus((NewServerDialog) this, serverUrl);
         }
 
     	@Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
             if (returnCode == Constants.RC.OK
                     && serverInstance != null) {
-                if (isAdded() && settingsManagerInstance.getServerSettings().getSelectedMap() == null) {
+                if (isAdded() && SettingsManager.getInstance().getServerSettings().getSelectedMap() == null) {
                     SelectMapDialog.newInstance()
                         .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
                 }
@@ -464,7 +469,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
         @Override public void onAttach(Context context){
             super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
+            settingsManagerInstance = SettingsManager.getInstance();
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -528,7 +533,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
         @Override public void onAttach(Context context){
             super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
+            settingsManagerInstance = SettingsManager.getInstance();
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -558,7 +563,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                         formattedShakeIntensityArray[i] = String.valueOf(Constants.ShakeIntensityValueArray[i]);
                         break;
                 }
-                if (Constants.ShakeIntensityValueArray[i] == settingsManagerInstance.getGeneralSettings().getShakeIntensity()) {
+                if (Constants.ShakeIntensityValueArray[i] == settingsManagerInstance.getSelectedShakeIntensity()) {
                     indexOfSelectedShakeIntensity = i;
                 }
             }
@@ -577,7 +582,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                                     selectedShakeIntensity = -1;
                                 } finally {
                                     if (selectedShakeIntensity > -1) {
-                                        settingsManagerInstance.getGeneralSettings().setShakeIntensity(selectedShakeIntensity);
+                                        settingsManagerInstance.setSelectedShakeIntensity(selectedShakeIntensity);
                                         Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
                                         LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                                     }
@@ -684,7 +689,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
 
         @Override public void onAttach(Context context){
             super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance(context);
+            settingsManagerInstance = SettingsManager.getInstance();
         }
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -801,7 +806,7 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
                 return false;
             }
             // close database
-            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance(GlobalInstance.getContext());
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
             accessDatabaseInstance.close();
             // remove old database
             File databaseFileToBeReplaced = GlobalInstance.getInternalDatabaseFile();
@@ -813,6 +818,14 @@ public class SettingsActivity extends AbstractActivity implements ServerStatusLi
             accessDatabaseInstance.open();
             return true;
         }
+    }
+
+    public int getLayoutResourceId() {
+		return R.layout.activity_settings;
+    }
+
+    public void configureToolbarNavigationButton() {
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
 }

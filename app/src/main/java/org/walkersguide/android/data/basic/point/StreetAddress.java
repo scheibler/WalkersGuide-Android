@@ -1,28 +1,40 @@
 package org.walkersguide.android.data.basic.point;
 
+import org.walkersguide.android.R;
 import android.content.Context;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public class StreetAddress extends PointWithAddressData {
 
-    public StreetAddress(Context context, JSONObject inputData) throws JSONException {
-        // point super constructor
-        super(context, inputData);
+
+    public static class Builder extends PointWithAddressData.Builder {
+        public Builder(String name, double latitude, double longitude) {
+            super(
+                    Point.Type.STREET_ADDRESS,
+                    name,
+                    GlobalInstance.getStringResource(R.string.pointTypeStreetAddress),
+                    latitude,
+                    longitude);
+        }
+
+        // build
+        public StreetAddress build() throws JSONException {
+            return new StreetAddress(super.inputData);
+        }
     }
 
-    @Override public String getName() {
+
+    public StreetAddress(JSONObject inputData) throws JSONException {
+        super(inputData);
+    }
+
+    @Override public String getOriginalName() {
         return super.formatAddressMediumLength();
-    }
-
-    @Override public JSONObject toJson() throws JSONException {
-        return super.toJson();
-    }
-
-    @Override public String toString() {
-        return String.format("%1$s (%2$s)", this.getName(), super.getSubType());
     }
 
 }

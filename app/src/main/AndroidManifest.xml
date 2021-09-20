@@ -21,7 +21,7 @@
         android:name=".util.GlobalInstance" >
 
         <activity
-            android:name=".ui.activity.MainActivity"
+            android:name=".ui.activity.toolbar.tabs.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,24 +30,23 @@
         </activity>
 
         <activity
-            android:name=".ui.activity.PointDetailsActivity"
+            android:name=".ui.activity.toolbar.tabs.PointDetailsActivity"
             android:label="@string/pointDetailsActivityTitle"
-            android:parentActivityName=".ui.activity.MainActivity" />
+            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
 
         <activity
-            android:name=".ui.activity.SegmentDetailsActivity"
+            android:name=".ui.activity.toolbar.tabs.SegmentDetailsActivity"
             android:label="@string/segmentDetailsActivityTitle"
-            android:parentActivityName=".ui.activity.MainActivity" />
+            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
+
+        <activity
+            android:name=".ui.activity.toolbar.FragmentContainerActivity"
+            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
 
         <activity
             android:name=".ui.activity.SettingsActivity"
             android:label="@string/settingsActivityTitle"
-            android:parentActivityName=".ui.activity.MainActivity" />
-
-        <activity
-            android:name=".ui.activity.InfoActivity"
-            android:label="@string/infoActivityTitle"
-            android:parentActivityName=".ui.activity.MainActivity" />
+            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
 
         <!--
         <service

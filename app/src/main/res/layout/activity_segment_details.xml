@@ -16,12 +16,13 @@
         android:layout_marginBottom="15dp"
         android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/labelSegmentName"
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutSelectedSegment"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:textStyle="bold" />
+            android:layout_height="wrap_content" />
+
+        <include
+            layout="@layout/layout_default_divider" />
 
         <TextView
             android:id="@+id/labelSegmentType"
@@ -29,69 +30,17 @@
             android:layout_height="wrap_content"
             android:focusable="true" />
 
-        <LinearLayout
-            android:id="@+id/layoutFootwaySpecific"
+        <TextView
+            android:id="@+id/labelSegmentDirection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/labelSegmentDirection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" >
-
-                <Switch
-                    android:id="@+id/buttonSegmentExcludeFromRouting"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.0"
-                    android:paddingTop="5dp"
-                    android:paddingBottom="5dp"
-                    android:text="@string/buttonSegmentExcludeFromRouting" />
-
-                <Switch
-                    android:id="@+id/buttonSegmentSimulateDirection"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.0"
-                    android:paddingTop="5dp"
-                    android:paddingBottom="5dp"
-                    android:text="@string/buttonSegmentSimulateDirection" />
-            </LinearLayout>
-        </LinearLayout>
+            android:focusable="true" />
 
         <include
             layout="@layout/layout_default_divider" />
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical" >
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            app:tabIndicatorColor="@android:color/white"
-            app:tabIndicatorHeight="4dp"
-            app:tabMode="fixed"
-            app:tabGravity="fill" />
-
-        <androidx.viewpager.widget.ViewPager
-            android:id="@+id/pager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@id/tab_layout" />
-    </RelativeLayout>
+    <include
+        layout="@layout/layout_view_pager_and_tab_layout" />
 
 </LinearLayout>

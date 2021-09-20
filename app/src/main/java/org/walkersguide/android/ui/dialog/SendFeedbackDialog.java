@@ -37,7 +37,7 @@ import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.server.ServerStatusManager.SendFeedbackListener;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;

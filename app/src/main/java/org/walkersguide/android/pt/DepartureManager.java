@@ -8,7 +8,6 @@ import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.StationDepartures;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 
-import android.content.Context;
 
 import android.os.AsyncTask;
 
@@ -21,6 +20,7 @@ import timber.log.Timber;
 import android.text.TextUtils;
 import java.util.Date;
 import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public class DepartureManager {
@@ -31,21 +31,27 @@ public class DepartureManager {
     }
 
 
-    private Context context;
-    private static DepartureManager DepartureManagerInstance;
+    private static DepartureManager managerInstance;
     private DepartureRequestTask departureRequestTask;
 
-    public static DepartureManager getInstance(Context context) {
-        if(DepartureManagerInstance == null){
-            DepartureManagerInstance = new DepartureManager(context.getApplicationContext());
+    public static DepartureManager getInstance() {
+        if (managerInstance == null){
+            managerInstance = getInstanceSynchronized();
         }
-        return DepartureManagerInstance;
+        return managerInstance;
     }
 
-    private DepartureManager(Context context) {
-        this.context = context;
+    private static synchronized DepartureManager getInstanceSynchronized() {
+        if (managerInstance == null){
+            managerInstance = new DepartureManager();
+        }
+        return managerInstance;
+    }
+
+    private DepartureManager() {
         this.departureRequestTask = null;
     }
+
 
     public void requestDeparture(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date departureDate) {
         if (departureRequestTaskInProgress()) {
@@ -84,7 +90,7 @@ public class DepartureManager {
     }
 
 
-    private class DepartureRequestTask extends AsyncTask<Void, Void, ArrayList<Departure>> {
+    private static class DepartureRequestTask extends AsyncTask<Void, Void, ArrayList<Departure>> {
 
         private int returnCode;
         private ArrayList<DepartureListener> departureListenerList;
@@ -114,7 +120,7 @@ public class DepartureManager {
                 this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
             } else if (this.station == null) {
                 this.returnCode = PTHelper.RC_NO_STATION;
-            } else if (! ServerUtility.isInternetAvailable(context)) {
+            } else if (! ServerUtility.isInternetAvailable()) {
                 this.returnCode = PTHelper.RC_NO_INTERNET_CONNECTION;
             } else {
 

@@ -24,11 +24,8 @@ import java.util.ArrayList;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.route.HikingTrail;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.server.RouteManager.RouteCalculationListener;
-import org.walkersguide.android.server.RouteManager;
 import android.widget.TextView;
 import android.widget.ImageButton;
-import android.content.Context;
 import android.view.ViewGroup;
 import android.view.LayoutInflater;
 import androidx.core.view.ViewCompat;
@@ -38,7 +35,6 @@ import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import javax.net.ssl.HttpsURLConnection;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.json.JSONObject;
@@ -48,6 +44,7 @@ import java.io.IOException;
 import org.json.JSONException;
 import android.view.MenuItem;
 import timber.log.Timber;
+import org.walkersguide.android.data.basic.point.Point;
 
 
 public class HikingTrailsDialog extends DialogFragment {
@@ -253,12 +250,12 @@ public class HikingTrailsDialog extends DialogFragment {
         }
 
         @Override protected Integer doInBackground(Void... params) {
-            ServerSettings serverSettings = SettingsManager.getInstance(GlobalInstance.getContext()).getServerSettings();
+            ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
             int returnCode = Constants.RC.OK;
 
             // get current location
-            PositionManager positionManagerInstance = PositionManager.getInstance(GlobalInstance.getContext());
-            PointWrapper currentLocation = positionManagerInstance.getCurrentLocation();
+            PositionManager positionManagerInstance = PositionManager.getInstance();
+            Point currentLocation = positionManagerInstance.getCurrentLocation();
             if (currentLocation == null) {
                 return Constants.RC.NO_LOCATION_FOUND;
             }
@@ -272,8 +269,8 @@ public class HikingTrailsDialog extends DialogFragment {
 
                 // create server param list
                 JSONObject jsonServerParams = ServerUtility.createServerParamList(GlobalInstance.getContext());
-                jsonServerParams.put("lat", currentLocation.getPoint().getLatitude());
-                jsonServerParams.put("lon", currentLocation.getPoint().getLongitude());
+                jsonServerParams.put("lat", currentLocation.getLatitude());
+                jsonServerParams.put("lon", currentLocation.getLongitude());
                 jsonServerParams.put("radius", DEFAULT_TRAIL_RADIUS);
 
                 // start request
@@ -340,7 +337,7 @@ public class HikingTrailsDialog extends DialogFragment {
      * trail details dialog
      */
 
-    public static class TrailDetailsDialog extends DialogFragment implements RouteCalculationListener {
+    public static class TrailDetailsDialog extends DialogFragment {
 
         private HikingTrail trail;
 
@@ -498,14 +495,6 @@ public class HikingTrailsDialog extends DialogFragment {
 
         @Override public void onStop() {
             super.onStop();
-        }
-
-
-        /**
-         * RouteCalculationListener
-         */
-
-    	@Override public void routeCalculationFinished(Context context, int returnCode, int routeId) {
         }
     }
 

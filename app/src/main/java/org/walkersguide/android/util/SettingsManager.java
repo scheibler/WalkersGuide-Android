@@ -1,5 +1,10 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
+import org.walkersguide.android.database.profiles.DatabasePointProfile;
+import org.walkersguide.android.server.poi.PoiProfile;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -14,10 +19,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.database.AccessDatabase;
+import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.data.profile.HistoryPointProfile;
-import org.walkersguide.android.data.route.WayClass;
+import org.walkersguide.android.server.route.WayClass;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.data.server.AddressProvider;
 import org.walkersguide.android.data.server.OSMMap;
@@ -37,210 +41,248 @@ import java.io.ObjectInputStream;
 import java.util.Set;
 import java.lang.Long;
 import java.lang.ClassNotFoundException;
+import org.walkersguide.android.data.basic.point.GPS;
+import org.walkersguide.android.data.basic.point.Point;
+import java.util.List;
+import android.text.TextUtils;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.data.route.Route;
 
 
 public class SettingsManager {
+
+    // constants
     public static final String SETTINGS_FILE_NAME = "WalkersGuide-Android-Settings";
     public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
+	// defaults
+    public static final int DEFAULT_SELECTED_POI_PROFILE_ID = 1;
+    public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
+    public static final int DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = 0;
+    public static final int DEFAULT_SHAKE_INTENSITY = Constants.SHAKE_INTENSITY.DISABLED;
+    public static final boolean DEFAULT_ENABLE_SEARCH_TERM_HISTORY = true;
+    public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
+    public static final boolean DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT = true;
+
+    // keys
+    private static final String KEY_SELECTED_POI_PROFILE_ID = "selectedPoiProfileId";
+    private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
+    private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
+    private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
+    private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
+    private static final String KEY_ENABLE_SEARCH_TERM_HISTORY = "enableSearchTermHistory";
+    private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
+    private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
+    // subclasses
+    private static final String KEY_DIRECTION_SETTINGS = "directionSettings";
+    private static final String KEY_LOCATION_SETTINGS = "locationSettings";
+    private static final String KEY_PLAN_ROUTE_SETTINGS = "planRouteSettings";
+    private static final String KEY_SERVER_SETTINGS = "serverSettings";
+
+
     // class variables
-    private static SettingsManager settingsManagerInstance;
+    private static SettingsManager managerInstance;
     private Context context;
     private SharedPreferences settings;
 
-    // settings
-    private GeneralSettings generalSettings;
-    private DirectionSettings directionSettings;
-    private LocationSettings locationSettings;
-    private POISettings poiSettings;
-    private RouteSettings routeSettings;
-    private ServerSettings serverSettings;
-    private SearchTermHistory searchTermHistory;
-
-	public static SettingsManager getInstance(Context context) {
-		if (settingsManagerInstance == null) {
-			settingsManagerInstance = new SettingsManager(
-					context.getApplicationContext());
-		}
-		return settingsManagerInstance;
-	}
-
-	private SettingsManager(Context context) {
-		this.context = context;
-		this.settings = context.getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE);
-	}
-
-	public GeneralSettings getGeneralSettings() {
-        if (generalSettings == null) {
-            JSONObject jsonGeneralSettings;
-            try {
-    		    jsonGeneralSettings = new JSONObject(settings.getString("generalSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonGeneralSettings = new JSONObject();
-            }
-            generalSettings = new GeneralSettings(jsonGeneralSettings);
+    public static SettingsManager getInstance() {
+        if (managerInstance == null){
+            managerInstance = getInstanceSynchronized();
         }
-		return generalSettings;
-	}
+        return managerInstance;
+    }
 
-	public DirectionSettings getDirectionSettings() {
-        if (directionSettings == null) {
-            JSONObject jsonDirectionSettings;
-            try {
-    		    jsonDirectionSettings = new JSONObject(settings.getString("directionSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonDirectionSettings = new JSONObject();
-            }
-            directionSettings = new DirectionSettings(jsonDirectionSettings);
+    private static synchronized SettingsManager getInstanceSynchronized() {
+        if (managerInstance == null){
+            managerInstance = new SettingsManager();
         }
-		return directionSettings;
-	}
+        return managerInstance;
+    }
 
-	public LocationSettings getLocationSettings() {
-        if (locationSettings == null) {
-            JSONObject jsonLocationSettings;
-            try {
-    		    jsonLocationSettings = new JSONObject(settings.getString("locationSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonLocationSettings = new JSONObject();
-            }
-            locationSettings = new LocationSettings(jsonLocationSettings);
-        }
-		return locationSettings;
-	}
+    private SettingsManager() {
+		this.context = GlobalInstance.getContext();
+		this.settings = GlobalInstance.getContext().getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE);
 
-	public POISettings getPOISettings() {
-        if (poiSettings == null) {
-            JSONObject jsonPOISettings;
-            try {
-    		    jsonPOISettings = new JSONObject(settings.getString("poiSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonPOISettings = new JSONObject();
-            }
-            poiSettings = new POISettings(jsonPOISettings);
+        // remove deprecated settings
+        if (settings.contains("generalSettings")) {
+            Editor editor = settings.edit();
+            editor.remove("generalSettings");
+            editor.apply();
         }
-		return poiSettings;
-	}
-
-	public RouteSettings getRouteSettings() {
-        if (routeSettings == null) {
-            JSONObject jsonRouteSettings;
-            try {
-    		    jsonRouteSettings = new JSONObject(settings.getString("routeSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonRouteSettings = new JSONObject();
-            }
-            routeSettings = new RouteSettings(jsonRouteSettings);
+        if (settings.contains("poiSettings")) {
+            Editor editor = settings.edit();
+            editor.remove("poiSettings");
+            editor.apply();
         }
-		return routeSettings;
-	}
-
-	public ServerSettings getServerSettings() {
-        if (serverSettings == null) {
-            JSONObject jsonServerSettings;
-            try {
-    		    jsonServerSettings = new JSONObject(settings.getString("serverSettings", "{}"));
-    		} catch (JSONException e) {
-                jsonServerSettings = new JSONObject();
-            }
-            serverSettings = new ServerSettings(jsonServerSettings);
-        }
-		return serverSettings;
-	}
-
-	public SearchTermHistory getSearchTermHistory() {
-        if (searchTermHistory == null) {
-            JSONArray jsonSearchTermList;
-            try {
-    		    jsonSearchTermList = new JSONArray(settings.getString("searchTermList", "[]"));
-    		} catch (JSONException e) {
-                jsonSearchTermList = new JSONArray();
-            }
-            searchTermHistory = new SearchTermHistory(jsonSearchTermList);
-        }
-		return searchTermHistory;
 	}
 
 
     /**
-     * General, direction and location settings
+     * main settings
      */
 
-    public class GeneralSettings {
+    public PoiProfile getSelectedPoiProfile() {
+        return PoiProfile.load(
+                settings.getLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID));
+    }
 
-        private int recentOpenTab;
-        private int shakeIntensity;
-        private boolean enableTextInputHistory;
+    public void setSelectedPoiProfile(PoiProfile newProfile) {
+        Editor editor = settings.edit();
+        if (newProfile != null) {
+            editor.putLong(KEY_SELECTED_POI_PROFILE_ID, newProfile.getId());
+        } else {
+            editor.putLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID);
+        }
+        editor.apply();
+    }
 
-        public GeneralSettings(JSONObject jsonObject) {
-            this.recentOpenTab = Constants.MAIN_FRAGMENT.ROUTER;
-            try {
-                int tab = jsonObject.getInt("recentOpenTab");
-                if (Ints.contains(Constants.MainActivityFragmentValueArray, tab)) {
-                    this.recentOpenTab = tab;
+    public Route getSelectedRoute() {
+        return Route.load(
+                settings.getLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID));
+    }
+
+    public void setSelectedRoute(Route newRoute) {
+        Editor editor = settings.edit();
+        if (newRoute != null
+                && AccessDatabase.getInstance().addObjectToDatabaseProfile(newRoute, DatabaseRouteProfile.PLANNED_ROUTES)) {
+            editor.putLong(KEY_SELECTED_ROUTE_ID, newRoute.getId());
+        } else {
+            editor.putLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID);
+        }
+        editor.apply();
+    }
+
+    public int getSelectedTabForMainActivity() {
+        return settings.getInt(KEY_SELECTED_TAB_MAIN_ACTIVITY, DEFAULT_SELECTED_TAB_MAIN_ACTIVITY);
+    }
+
+    public void setSelectedTabForMainActivity(int newTab) {
+        Editor editor = settings.edit();
+        editor.putInt(KEY_SELECTED_TAB_MAIN_ACTIVITY, newTab);
+        editor.apply();
+    }
+
+    public int getSelectedShakeIntensity() {
+        int intensity = settings.getInt(KEY_SHAKE_INTENSITY, DEFAULT_SHAKE_INTENSITY);
+        return Ints.contains(Constants.ShakeIntensityValueArray, intensity) ? intensity : DEFAULT_SHAKE_INTENSITY;
+    }
+
+    public void setSelectedShakeIntensity(int newIntensity) {
+        Editor editor = settings.edit();
+        editor.putInt(KEY_SHAKE_INTENSITY, newIntensity);
+        editor.apply();
+    }
+
+    public boolean getEnableSearchTermHistory() {
+        return settings.getBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, DEFAULT_ENABLE_SEARCH_TERM_HISTORY);
+    }
+
+    public void setEnableSearchTermHistory(boolean enableSearchTermHistory) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, enableSearchTermHistory);
+        editor.apply();
+    }
+
+    public boolean getShowActionButton() {
+        return settings.getBoolean(KEY_SHOW_ACTION_BUTTON, DEFAULT_SHOW_ACTION_BUTTON);
+    }
+
+    public void setShowActionButton(boolean showActionButton) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_SHOW_ACTION_BUTTON, showActionButton);
+        editor.apply();
+    }
+
+    public boolean getAutoSkipToNextRoutePoint() {
+        return settings.getBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT);
+    }
+
+    public void setAutoSkipToNextRoutePoint(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, newValue);
+        editor.apply();
+    }
+
+
+    /**
+     * search term history
+     */
+
+    public ArrayList<String> getSearchTermHistory() {
+        Gson gson = new Gson();
+        ArrayList<String> searchTermHistory = gson.fromJson(
+                settings.getString(KEY_SEARCH_TERM_HISTORY, "[]"),
+                new TypeToken<List<String>>() {}.getType());
+        if (searchTermHistory == null) {
+            searchTermHistory = new ArrayList<String>();
+        }
+        return searchTermHistory;
+    }
+
+    public void addToSearchTermHistory(String newSearchTerm) {
+        if (! TextUtils.isEmpty(newSearchTerm)) {
+            ArrayList<String> searchTermHistory = getSearchTermHistory();
+
+            // add every single word at least four chars long
+            for (String word : newSearchTerm.split("\\s")) {
+                if (word.length() > 3
+                        && ! searchTermHistory.contains(word)) {
+                    searchTermHistory.add(0, word);
                 }
-            } catch (JSONException e) {}
-            this.shakeIntensity = Constants.SHAKE_INTENSITY.DISABLED;
-            try {
-                int intensity = jsonObject.getInt("shakeIntensity");
-                if (Ints.contains(Constants.ShakeIntensityValueArray, intensity)) {
-                    this.shakeIntensity = intensity;
-                }
-            } catch (JSONException e) {}
-            // enable text input history
-            this.enableTextInputHistory = true;
-            try {
-                this.enableTextInputHistory = jsonObject.getBoolean("enableTextInputHistory");
-            } catch (JSONException e) {}
-        }
-
-        public int getRecentOpenTab() {
-            return this.recentOpenTab;
-        }
-
-        public void setRecentOpenTab(int tabIndex) {
-            this.recentOpenTab = tabIndex;
-            storeGeneralSettings();
-        }
-
-        public int getShakeIntensity() {
-            return this.shakeIntensity;
-        }
-
-        public void setShakeIntensity(int newIntensity) {
-            if (Ints.contains(Constants.ShakeIntensityValueArray, newIntensity)) {
-                this.shakeIntensity = newIntensity;
-                storeGeneralSettings();
             }
-        }
 
-        public boolean getEnableTextInputHistory() {
-            return this.enableTextInputHistory;
-        }
+            // add complete phrase
+            if (! searchTermHistory.contains(newSearchTerm)) {
+                searchTermHistory.add(0, newSearchTerm);
+            }
 
-        public void setEnableTextInputHistory(boolean enabled) {
-            this.enableTextInputHistory = enabled;
-            storeGeneralSettings();
-        }
+            // clear odd entries
+            int numberOfOddEntries = searchTermHistory.size() - MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES;
+            if (numberOfOddEntries > 0) {
+                searchTermHistory.subList(
+                        searchTermHistory.size() - numberOfOddEntries,
+                        searchTermHistory.size())
+                    .clear();
+            }
 
-        public void storeGeneralSettings() {
-            JSONObject jsonGeneralSettings = new JSONObject();
-            try {
-                jsonGeneralSettings.put("recentOpenTab", this.recentOpenTab);
-            } catch (JSONException e) {}
-            try {
-                jsonGeneralSettings.put("shakeIntensity", this.shakeIntensity);
-            } catch (JSONException e) {}
-            try {
-                jsonGeneralSettings.put("enableTextInputHistory", this.enableTextInputHistory);
-            } catch (JSONException e) {}
-    		// save settings
-	    	Editor editor = settings.edit();
-		    editor.putString("generalSettings", jsonGeneralSettings.toString());
-    		editor.apply();
-            // null GeneralSettings object to force reload on next getGeneralSettings()
-            generalSettings = null;
+            // save
+            Gson gson = new Gson();
+            Editor editor = settings.edit();
+            editor.putString(
+                    KEY_SEARCH_TERM_HISTORY,
+                    gson.toJson(
+                        searchTermHistory,
+                        new TypeToken<List<String>>() {}.getType()));
+            editor.apply();
         }
+    }
+
+    public void clearSearchTermHistory() {
+        if (settings.contains(KEY_SEARCH_TERM_HISTORY)) {
+            Editor editor = settings.edit();
+            editor.remove(KEY_SEARCH_TERM_HISTORY);
+            editor.apply();
+        }
+    }
+
+
+    /**
+     * direction settings
+     */
+
+    public DirectionSettings getDirectionSettings() {
+        JSONObject jsonDirectionSettings = new JSONObject();
+        try {
+            jsonDirectionSettings = new JSONObject(
+                    settings.getString(KEY_DIRECTION_SETTINGS, "{}"));
+    	} catch (JSONException e) {}
+        return new DirectionSettings(jsonDirectionSettings);
+    }
+
+    public void setDirectionSettings(JSONObject jsonDirectionSettings) {
+        Editor editor = settings.edit();
+        editor.putString(KEY_DIRECTION_SETTINGS, jsonDirectionSettings.toString());
+        editor.apply();
     }
 
 
@@ -341,65 +383,67 @@ public class SettingsManager {
                 } catch (JSONException e) {}
             }
     		// save settings
-	    	Editor editor = settings.edit();
-		    editor.putString("directionSettings", jsonDirectionSettings.toString());
-    		editor.apply();
-            // null DirectionSettings object to force reload on next getDirectionSettings()
-            directionSettings = null;
+            setDirectionSettings(jsonDirectionSettings);
         }
     }
 
 
+    /**
+     * location settings
+     */
+
+    public LocationSettings getLocationSettings() {
+        JSONObject jsonLocationSettings = new JSONObject();
+        try {
+            jsonLocationSettings = new JSONObject(
+                    settings.getString(KEY_LOCATION_SETTINGS, "{}"));
+    	} catch (JSONException e) {}
+        return new LocationSettings(jsonLocationSettings);
+    }
+
+    public void setLocationSettings(JSONObject jsonLocationSettings) {
+        Editor editor = settings.edit();
+        editor.putString(KEY_LOCATION_SETTINGS, jsonLocationSettings.toString());
+        editor.apply();
+    }
+
 
     public class LocationSettings {
 
-        private PointWrapper gpsLocation, simulatedLocation;
+        private GPS gpsLocation;
+        private Point simulatedLocation;
 
         public LocationSettings(JSONObject jsonObject) {
             // gps location
             this.gpsLocation = null;
             try {
-                this.gpsLocation = new PointWrapper(
-                        context, jsonObject.getJSONObject("gpsLocation"));
+                this.gpsLocation = (GPS) Point.create(
+                        jsonObject.getJSONObject("gpsLocation"));
             } catch (JSONException e) {}
             // simulated location
             this.simulatedLocation = null;
             try {
-                this.simulatedLocation = new PointWrapper(
-                        context, jsonObject.getJSONObject("simulatedLocation"));
+                this.simulatedLocation = Point.create(
+                        jsonObject.getJSONObject("simulatedLocation"));
             } catch (JSONException e) {}
         }
 
-        public PointWrapper getGPSLocation() {
+        public GPS getGPSLocation() {
             return this.gpsLocation;
         }
 
-        public void removeGPSLocation() {
-            this.gpsLocation = null;
+        public void setGPSLocation(GPS newLocation) {
+            this.gpsLocation = newLocation;
             storeLocationSettings();
         }
 
-        public void setGPSLocation(PointWrapper newLocation) {
-            if (newLocation != null) {
-                this.gpsLocation = newLocation;
-                storeLocationSettings();
-            }
-        }
-
-        public PointWrapper getSimulatedLocation() {
+        public Point getSimulatedLocation() {
             return this.simulatedLocation;
         }
 
-        public void removeSimulatedLocation() {
-            this.simulatedLocation = null;
+        public void setSimulatedLocation(Point newLocation) {
+            this.simulatedLocation = newLocation;
             storeLocationSettings();
-        }
-
-        public void setSimulatedLocation(PointWrapper newLocation) {
-            if (newLocation != null) {
-                this.simulatedLocation = newLocation;
-                storeLocationSettings();
-            }
         }
 
         public void storeLocationSettings() {
@@ -415,179 +459,49 @@ public class SettingsManager {
                 } catch (JSONException e) {}
             }
     		// save settings
-	    	Editor editor = settings.edit();
-		    editor.putString("locationSettings", jsonLocationSettings.toString());
-    		editor.apply();
-            // null LocationSettings object to force reload on next getLocationSettings()
-            locationSettings = null;
+            setLocationSettings(jsonLocationSettings);
         }
     }
 
 
     /**
-     * poi settings
+     * plan route settings
      */
 
-    public class POISettings {
 
-        private int selectedHistoryPointProfileId, selectedPOIProfileId;
-        private boolean autoUpdate;
-        private boolean directionFilter;
-        private boolean showAllPoints;
+    public PlanRouteSettings getPlanRouteSettings() {
+        JSONObject jsonPlanRouteSettings = new JSONObject();
+        try {
+            jsonPlanRouteSettings = new JSONObject(
+                    settings.getString(KEY_PLAN_ROUTE_SETTINGS, "{}"));
+    	} catch (JSONException e) {}
+        return new PlanRouteSettings(jsonPlanRouteSettings);
+    }
 
-        public POISettings(JSONObject jsonObject) {
-            // selected history point profile id
-            this.selectedHistoryPointProfileId = HistoryPointProfile.ID_ALL_POINTS;
-            try {
-                this.selectedHistoryPointProfileId = jsonObject.getInt("selectedHistoryPointProfileId");
-            } catch (JSONException e) {}
-            // selected poi profile id
-            this.selectedPOIProfileId = -1;
-            try {
-                this.selectedPOIProfileId = jsonObject.getInt("selectedPOIProfileId");
-            } catch (JSONException e) {}
-            // auto update point and segment lists
-            this.autoUpdate = false;
-            try {
-                this.autoUpdate = jsonObject.getBoolean("autoUpdate");
-            } catch (JSONException e) {}
-            // viewing direction filter
-            this.directionFilter = false;
-            try {
-                this.directionFilter = jsonObject.getBoolean("directionFilter");
-            } catch (JSONException e) {}
-            // show all points switch at the next intersections fragment
-            this.showAllPoints = false;
-            try {
-                this.showAllPoints = jsonObject.getBoolean("showAllPoints");
-            } catch (JSONException e) {}
-        }
-
-        public int getSelectedHistoryPointProfileId() {
-            if (! HistoryPointProfile.getProfileMap(context).containsKey(this.selectedHistoryPointProfileId)) {
-                setSelectedHistoryPointProfileId(-1);
-            }
-            return this.selectedHistoryPointProfileId;
-        }
-
-        public void setSelectedHistoryPointProfileId(int newHistoryPointProfileId) {
-            this.selectedHistoryPointProfileId = newHistoryPointProfileId;
-            storePOISettings();
-        }
-
-        public int getSelectedPOIProfileId() {
-            if (! AccessDatabase.getInstance(context).getPOIProfileMap().containsKey(this.selectedPOIProfileId)) {
-                setSelectedPOIProfileId(-1);
-            }
-            return this.selectedPOIProfileId;
-        }
-
-        public void setSelectedPOIProfileId(int newPOIProfileId) {
-            this.selectedPOIProfileId = newPOIProfileId;
-            storePOISettings();
-        }
-
-        public boolean getAutoUpdate() {
-            return this.autoUpdate;
-        }
-
-        public void setAutoUpdate(boolean newAutoUpdate) {
-            this.autoUpdate = newAutoUpdate;
-            storePOISettings();
-        }
-
-        public boolean filterPointListByDirection() {
-            return this.directionFilter;
-        }
-
-        public void setDirectionFilterStatus(boolean newStatus) {
-            this.directionFilter = newStatus;
-            storePOISettings();
-        }
-
-        public boolean getShowAllPoints() {
-            return this.showAllPoints;
-        }
-
-        public void setShowAllPoints(boolean newShowAllPoints) {
-            this.showAllPoints = newShowAllPoints;
-            storePOISettings();
-        }
-
-        public void storePOISettings() {
-            JSONObject jsonPOISettings = new JSONObject();
-            try {
-                jsonPOISettings.put("selectedHistoryPointProfileId", this.selectedHistoryPointProfileId);
-            } catch (JSONException e) {}
-            try {
-                jsonPOISettings.put("selectedPOIProfileId", this.selectedPOIProfileId);
-            } catch (JSONException e) {}
-            try {
-                jsonPOISettings.put("autoUpdate", this.autoUpdate);
-            } catch (JSONException e) {}
-            try {
-                jsonPOISettings.put("directionFilter", this.directionFilter);
-            } catch (JSONException e) {}
-            try {
-                jsonPOISettings.put("showAllPoints", this.showAllPoints);
-            } catch (JSONException e) {}
-            // save settings
-            Editor editor = settings.edit();
-            editor.putString("poiSettings", jsonPOISettings.toString());
-            editor.apply();
-            // null POISettings object to force reload on next getPOISettings()
-            poiSettings = null;
-        }
+    public void setPlanRouteSettings(JSONObject jsonPlanRouteSettings) {
+        Editor editor = settings.edit();
+        editor.putString(KEY_PLAN_ROUTE_SETTINGS, jsonPlanRouteSettings.toString());
+        editor.apply();
     }
 
 
-    /**
-     * route settings
-     */
+    public class PlanRouteSettings {
+        private static final String KEY_START_POINT_ID = "startPointId";
+        private static final String KEY_DESTINATION_POINT_ID = "destinationPointId";
+        private static final String KEY_VIA_POINT_1_ID = "viaPoint1Id";
+        private static final String KEY_VIA_POINT_2_ID = "viaPoint2Id";
+        private static final String KEY_VIA_POINT_3_ID = "viaPoint3Id";
 
-    public class RouteSettings {
-
-        private int selectedRouteId;
-        private PointWrapper start, destination;
-        private ArrayList<PointWrapper> viaPointList;
+        private Long startPointId, destinationPointId;
+        private Long viaPoint1Id, viaPoint2Id, viaPoint3Id;
         private ArrayList<WayClass> wayClassList;
-        private boolean autoSkipToNextRoutePoint;
 
-        public RouteSettings(JSONObject jsonObject) {
-            this.selectedRouteId = -1;
-            try {
-                this.selectedRouteId = jsonObject.getInt("selectedRouteId");
-            } catch (JSONException e) {}
-            // start point
-            this.start = null;
-            try {
-                this.start = new PointWrapper(
-                        context, jsonObject.getJSONObject("start"));
-            } catch (JSONException e) {}
-            // destination point
-            this.destination = null;
-            try {
-                this.destination = new PointWrapper(
-                        context, jsonObject.getJSONObject("destination"));
-            } catch (JSONException e) {}
-            // via points
-            viaPointList = new ArrayList<PointWrapper>();
-            JSONArray jsonViaPointList = null;
-            try {
-                jsonViaPointList = jsonObject.getJSONArray("viaPointList");
-            } catch (JSONException e) {
-                jsonViaPointList = null;
-            } finally {
-                if (jsonViaPointList != null) {
-                    for (int i=0; i<jsonViaPointList.length(); i++) {
-                        try {
-                            this.viaPointList.add(
-                                    new PointWrapper(
-                                        context, jsonViaPointList.getJSONObject(i)));
-                        } catch (JSONException e) {}
-                    }
-                }
-            }
+        public PlanRouteSettings(JSONObject jsonObject) {
+            this.startPointId = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_START_POINT_ID);
+            this.destinationPointId = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_DESTINATION_POINT_ID);
+            this.viaPoint1Id = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_VIA_POINT_1_ID);
+            this.viaPoint2Id = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_VIA_POINT_2_ID);
+            this.viaPoint3Id = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_VIA_POINT_3_ID);
             // way classes and weights
             JSONObject jsonWayClassIdAndWeights = null;
             try {
@@ -602,90 +516,76 @@ public class SettingsManager {
                 } catch (JSONException | NullPointerException e) {}
                 wayClassList.add(new WayClass(wayClassId, wayClassWeight));
             }
-            // auto skik to next route point
-            this.autoSkipToNextRoutePoint = true;
-            try {
-                this.autoSkipToNextRoutePoint= jsonObject.getBoolean("autoSkipToNextRoutePoint");
-            } catch (JSONException e) {}
         }
 
-        public int getSelectedRouteId() {
-            if (! AccessDatabase.getInstance(context).getRouteIdList(null).contains(this.selectedRouteId)) {
-                setSelectedRouteId(-1);
-            }
-            return this.selectedRouteId;
+        public Point getStartPoint() {
+            return getPoint(startPointId);
         }
 
-        public void setSelectedRouteId(int newRouteId) {
-            this.selectedRouteId = newRouteId;
-            storeRouteSettings();
+        public void setStartPoint(Point newStartPoint) {
+            this.startPointId = setPoint(newStartPoint);
+            storePlanRouteSettings();
         }
 
-        public PointWrapper getStartPoint() {
-            return this.start;
+        public Point getDestinationPoint() {
+            return getPoint(destinationPointId);
         }
 
-        public void removeStartPoint() {
-            this.start = null;
-            storeRouteSettings();
+        public void setDestinationPoint(Point newDestinationPoint) {
+            this.destinationPointId = setPoint(newDestinationPoint);
+            storePlanRouteSettings();
         }
 
-        public void setStartPoint(PointWrapper newLocation) {
-            if (newLocation != null) {
-                this.start = newLocation;
-                storeRouteSettings();
-            }
+        public Point getViaPoint1() {
+            return getPoint(viaPoint1Id);
         }
 
-        public PointWrapper getDestinationPoint() {
-            return this.destination;
+        public void setViaPoint1(Point newViaPoint1) {
+            this.viaPoint1Id = setPoint(newViaPoint1);
+            storePlanRouteSettings();
         }
 
-        public void removeDestinationPoint() {
-            this.destination = null;
-            storeRouteSettings();
+        public Point getViaPoint2() {
+            return getPoint(viaPoint2Id);
         }
 
-        public void setDestinationPoint(PointWrapper newLocation) {
-            if (newLocation != null) {
-                this.destination = newLocation;
-                storeRouteSettings();
-            }
+        public void setViaPoint2(Point newViaPoint2) {
+            this.viaPoint2Id = setPoint(newViaPoint2);
+            storePlanRouteSettings();
         }
 
-        public ArrayList<PointWrapper> getViaPointList() {
-            return this.viaPointList;
+        public Point getViaPoint3() {
+            return getPoint(viaPoint3Id);
         }
 
-        public void setViaPointList(ArrayList<PointWrapper> newViaPointList) {
-            if (newViaPointList != null) {
-                this.viaPointList = newViaPointList;
-                storeRouteSettings();
-            }
+        public void setViaPoint3(Point newViaPoint3) {
+            this.viaPoint3Id = setPoint(newViaPoint3);
+            storePlanRouteSettings();
         }
 
-        public void replaceViaPointAtIndex(int index, PointWrapper viaPointToReplace) {
-            try {
-                this.viaPointList.set(index, viaPointToReplace);
-            } catch (IndexOutOfBoundsException e) {
-                this.viaPointList.add(index, viaPointToReplace);
-            } finally {
-                storeRouteSettings();
-            }
-        }
-
-        public void removeViaPointAtIndex(int index) {
-            try {
-                this.viaPointList.remove(index);
-            } catch (IndexOutOfBoundsException e) {
-            } finally {
-                storeRouteSettings();
-            }
+        public boolean hasViaPoint() {
+            return getViaPoint1() != null || getViaPoint2() != null || getViaPoint3() != null;
         }
 
         public void clearViaPointList() {
-            this.viaPointList = new ArrayList<PointWrapper>();
-            storeRouteSettings();
+            setViaPoint1(null);
+            setViaPoint2(null);
+            setViaPoint3(null);
+        }
+
+        private Point getPoint(Long id) {
+            if (id != null) {
+                return Point.load(id);
+            }
+            return null;
+        }
+
+        private Long setPoint(Point newPoint) {
+            if (newPoint != null
+                    && AccessDatabase.getInstance().addObjectToDatabaseProfile(newPoint, DatabasePointProfile.ROUTE_POINTS)) {
+                return newPoint.getId();
+            }
+            return null;
         }
 
         public ArrayList<WayClass> getWayClassList() {
@@ -695,47 +595,37 @@ public class SettingsManager {
         public void setWayClassList(ArrayList<WayClass> newWayClassList) {
             if (newWayClassList != null) {
                 this.wayClassList = newWayClassList;
-                storeRouteSettings();
+                storePlanRouteSettings();
             }
         }
 
-        public boolean getAutoSkipToNextRoutePoint() {
-            return this.autoSkipToNextRoutePoint;
-        }
-
-        public void setAutoSkipToNextRoutePoint(boolean newValue) {
-            this.autoSkipToNextRoutePoint = newValue;
-            storeRouteSettings();
-        }
-
-        public void storeRouteSettings() {
-            JSONObject jsonRouteSettings = new JSONObject();
-            try {
-                jsonRouteSettings.put("selectedRouteId", this.selectedRouteId);
-            } catch (JSONException e) {}
-            // start and destination
-            if (this.start != null) {
+        private void storePlanRouteSettings() {
+            JSONObject jsonPlanRouteSettings = new JSONObject();
+            if (this.startPointId != null) {
                 try {
-                    jsonRouteSettings.put("start", this.start.toJson());
+                    jsonPlanRouteSettings.put(KEY_START_POINT_ID, this.startPointId);
                 } catch (JSONException e) {}
             }
-            if (this.destination != null) {
+            if (this.destinationPointId != null) {
                 try {
-                    jsonRouteSettings.put("destination", this.destination.toJson());
+                    jsonPlanRouteSettings.put(KEY_DESTINATION_POINT_ID, this.destinationPointId);
                 } catch (JSONException e) {}
             }
-            // via points
-            JSONArray jsonViaPointList = new JSONArray();
-            for (PointWrapper viaPoint : this.viaPointList) {
-                if (viaPoint != null) {
-                    try {
-                        jsonViaPointList.put(viaPoint.toJson());
-                    } catch (JSONException e) {}
-                }
+            if (this.viaPoint1Id != null) {
+                try {
+                    jsonPlanRouteSettings.put(KEY_VIA_POINT_1_ID, this.viaPoint1Id);
+                } catch (JSONException e) {}
             }
-            try {
-                jsonRouteSettings.put("viaPointList", jsonViaPointList);
-            } catch (JSONException e) {}
+            if (this.viaPoint2Id != null) {
+                try {
+                    jsonPlanRouteSettings.put(KEY_VIA_POINT_2_ID, this.viaPoint2Id);
+                } catch (JSONException e) {}
+            }
+            if (this.viaPoint3Id != null) {
+                try {
+                    jsonPlanRouteSettings.put(KEY_VIA_POINT_3_ID, this.viaPoint3Id);
+                } catch (JSONException e) {}
+            }
             // way classes and weights
             JSONObject jsonWayClassIdAndWeights = new JSONObject();
             for (WayClass wayClass : this.wayClassList) {
@@ -744,17 +634,10 @@ public class SettingsManager {
                 } catch (JSONException e) {}
             }
             try {
-                jsonRouteSettings.put("wayClassIdAndWeights", jsonWayClassIdAndWeights);
-            } catch (JSONException e) {}
-            try {
-                jsonRouteSettings.put("autoSkipToNextRoutePoint", this.autoSkipToNextRoutePoint);
+                jsonPlanRouteSettings.put("wayClassIdAndWeights", jsonWayClassIdAndWeights);
             } catch (JSONException e) {}
     		// save settings
-	    	Editor editor = settings.edit();
-		    editor.putString("routeSettings", jsonRouteSettings.toString());
-    		editor.apply();
-            // null RouteSettings object to force reload on next getRouteSettings()
-            routeSettings = null;
+            setPlanRouteSettings(jsonPlanRouteSettings);
         }
     }
 
@@ -762,6 +645,22 @@ public class SettingsManager {
     /**
      * server settings
      */
+
+    public ServerSettings getServerSettings() {
+        JSONObject jsonServerSettings = new JSONObject();
+        try {
+            jsonServerSettings = new JSONObject(
+                    settings.getString(KEY_SERVER_SETTINGS, "{}"));
+    	} catch (JSONException e) {}
+        return new ServerSettings(jsonServerSettings);
+    }
+
+    public void setServerSettings(JSONObject jsonServerSettings) {
+        Editor editor = settings.edit();
+        editor.putString(KEY_SERVER_SETTINGS, jsonServerSettings.toString());
+        editor.apply();
+    }
+
 
     public class ServerSettings {
 
@@ -875,74 +774,7 @@ public class SettingsManager {
                 } catch (JSONException e) {}
             }
     		// save settings
-	    	Editor editor = settings.edit();
-		    editor.putString("serverSettings", jsonServerSettings.toString());
-    		editor.apply();
-            // null ServerSettings object to force reload on next getServerSettings()
-            serverSettings = null;
-        }
-    }
-
-
-    /**
-     * search term history and settings
-     */
-
-    public class SearchTermHistory {
-
-        private ArrayList<String> searchTermList;
-
-        public SearchTermHistory(JSONArray jsonSearchTermList) {
-            searchTermList = new ArrayList<String>();
-            for(int i=0; i<jsonSearchTermList.length(); i++){
-                try {
-                    searchTermList.add(jsonSearchTermList.getString(i));
-                } catch (JSONException e) {}
-            }
-        }
-
-        public ArrayList<String> getSearchTermList() {
-            return this.searchTermList;
-        }
-
-        public void addSearchTerm(String searchTerm) {
-            for (String word : searchTerm.split("\\s")) {
-                // add every single word at least four chars long
-                if (word.length() > 3
-                        && ! this.searchTermList.contains(word)) {
-                    this.searchTermList.add(0, word);
-                }
-                if (! this.searchTermList.contains(searchTerm)) {
-                    this.searchTermList.add(0, searchTerm);
-                }
-                // clear odd entries
-                int numberOfOddEntries = this.searchTermList.size() - MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES;
-                if (numberOfOddEntries > 0) {
-                    searchTermList.subList(
-                            searchTermList.size() - numberOfOddEntries,
-                            searchTermList.size())
-                        .clear();
-                }
-                storeSearchTermHistory();
-            }
-        }
-
-        public void clearSearchTermList() {
-            this.searchTermList = new ArrayList<String>();
-            storeSearchTermHistory();
-        }
-
-        public void storeSearchTermHistory() {
-            JSONArray jsonSearchTermList = new JSONArray();
-            for (String searchTerm : this.searchTermList) {
-                jsonSearchTermList.put(searchTerm);
-            }
-    		// save settings
-	    	Editor editor = settings.edit();
-		    editor.putString("searchTermList", jsonSearchTermList.toString());
-    		editor.apply();
-            // null searchTermHistory object to force reload on next getSearchTermHistory()
-            searchTermHistory = null;
+            setServerSettings(jsonServerSettings);
         }
     }
 
@@ -996,19 +828,11 @@ public class SettingsManager {
             } else if (e.getValue() instanceof Set) {
                 editor.putStringSet(e.getKey(), (Set<String>) e.getValue());
             } else {
-                Timber.w("Settings type " + e.getValue().getClass().getName() + " is unknown");
+                Timber.e("Settings type " + e.getValue().getClass().getName() + " is unknown");
             }
         }
         success = editor.commit();
 
-        // reset and return
-        generalSettings = null;
-        directionSettings = null;
-        locationSettings = null;
-        poiSettings = null;
-        routeSettings = null;
-        serverSettings = null;
-        searchTermHistory = null;
         return success;
     }
 

@@ -16,48 +16,13 @@ import java.util.Locale;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.util.GlobalInstance;
 import org.json.JSONObject;
 import org.json.JSONException;
 import android.text.TextUtils;
 
 
 public class StringUtility {
-
-    /**
-     * printable point and segment type
-     */
-
-    public static String formatPointType(Context context, String type) {
-        if (type.equals(Constants.POINT.STATION)) {
-            return context.getResources().getString(R.string.pointTypeStation);
-        } else if (type.equals(Constants.POINT.ENTRANCE)) {
-            return context.getResources().getString(R.string.pointTypeEntrance);
-        } else if (type.equals(Constants.POINT.POI)) {
-            return context.getResources().getString(R.string.pointTypePOI);
-        } else if (type.equals(Constants.POINT.STREET_ADDRESS)) {
-            return context.getResources().getString(R.string.pointTypeStreetAddress);
-        } else if (type.equals(Constants.POINT.GPS)) {
-            return context.getResources().getString(R.string.pointTypeGPS);
-        } else if (type.equals(Constants.POINT.INTERSECTION)) {
-            return context.getResources().getString(R.string.pointTypeIntersection);
-        } else if (type.equals(Constants.POINT.PEDESTRIAN_CROSSING)) {
-            return context.getResources().getString(R.string.pointTypePedestrianCrossing);
-        } else {
-            return context.getResources().getString(R.string.pointTypePoint);
-        }
-    }
-
-
-    public static String formatSegmentType(Context context, String type) {
-        if (type.equals(Constants.SEGMENT.INTERSECTION)) {
-            return context.getResources().getString(R.string.segmentTypeIntersection);
-        } else if (type.equals(Constants.SEGMENT.ROUTE)) {
-            return context.getResources().getString(R.string.segmentTypeRoute);
-        } else {
-            return context.getResources().getString(R.string.segmentTypeFootway);
-        }
-    }
-
 
     /**
      * format directions
@@ -88,105 +53,81 @@ public class StringUtility {
         }
     }
 
-    public static String formatInstructionDirection(Context context, int direction) {
+    public static String formatInstructionDirection(int direction) {
         if (direction < 0) {
             direction += 360;
         }
         switch (getDirectionConstant(direction)) {
             case Constants.DIRECTION.NORTH:
-                return context.getResources().getString(R.string.directionCross);
+                return GlobalInstance.getStringResource(R.string.directionCross);
             case Constants.DIRECTION.NORTH_EAST:
-                return context.getResources().getString(R.string.directionTurnRightSlightly);
+                return GlobalInstance.getStringResource(R.string.directionTurnRightSlightly);
             case Constants.DIRECTION.EAST:
-                return context.getResources().getString(R.string.directionTurnRight);
+                return GlobalInstance.getStringResource(R.string.directionTurnRight);
             case Constants.DIRECTION.SOUTH_EAST:
-                return context.getResources().getString(R.string.directionTurnRightStrongly);
+                return GlobalInstance.getStringResource(R.string.directionTurnRightStrongly);
             case Constants.DIRECTION.SOUTH:
-                return context.getResources().getString(R.string.directionTurnRound);
+                return GlobalInstance.getStringResource(R.string.directionTurnRound);
             case Constants.DIRECTION.SOUTH_WEST:
-                return context.getResources().getString(R.string.directionTurnLeftStrongly);
+                return GlobalInstance.getStringResource(R.string.directionTurnLeftStrongly);
             case Constants.DIRECTION.WEST:
-                return context.getResources().getString(R.string.directionTurnLeft);
+                return GlobalInstance.getStringResource(R.string.directionTurnLeft);
             case Constants.DIRECTION.NORTH_WEST:
-                return context.getResources().getString(R.string.directionTurnLeftSlightly);
+                return GlobalInstance.getStringResource(R.string.directionTurnLeftSlightly);
             default:
-                return context.getResources().getString(R.string.directionStraightforward);
+                return GlobalInstance.getStringResource(R.string.directionStraightforward);
         }
     }
 
-    public static String formatRelativeViewingDirection(Context context, int direction) {
+    public static String formatRelativeViewingDirection(int direction) {
         if (direction < 0) {
             direction += 360;
         }
         switch (getDirectionConstant(direction)) {
             case Constants.DIRECTION.NORTH:
-                return context.getResources().getString(R.string.directionStraightforward);
+                return GlobalInstance.getStringResource(R.string.directionStraightforward);
             case Constants.DIRECTION.NORTH_EAST:
-                return context.getResources().getString(R.string.directionRightSlightly);
+                return GlobalInstance.getStringResource(R.string.directionRightSlightly);
             case Constants.DIRECTION.EAST:
-                return context.getResources().getString(R.string.directionRight);
+                return GlobalInstance.getStringResource(R.string.directionRight);
             case Constants.DIRECTION.SOUTH_EAST:
-                return context.getResources().getString(R.string.directionRightStrongly);
+                return GlobalInstance.getStringResource(R.string.directionRightStrongly);
             case Constants.DIRECTION.SOUTH:
-                return context.getResources().getString(R.string.directionBehind);
+                return GlobalInstance.getStringResource(R.string.directionBehind);
             case Constants.DIRECTION.SOUTH_WEST:
-                return context.getResources().getString(R.string.directionLeftStrongly);
+                return GlobalInstance.getStringResource(R.string.directionLeftStrongly);
             case Constants.DIRECTION.WEST:
-                return context.getResources().getString(R.string.directionLeft);
+                return GlobalInstance.getStringResource(R.string.directionLeft);
             case Constants.DIRECTION.NORTH_WEST:
-                return context.getResources().getString(R.string.directionLeftSlightly);
+                return GlobalInstance.getStringResource(R.string.directionLeftSlightly);
             default:
-                return context.getResources().getString(R.string.directionStraightforward);
+                return GlobalInstance.getStringResource(R.string.directionStraightforward);
         }
     }
 
-    public static String formatGeographicDirection(Context context, int direction) {
+    public static String formatGeographicDirection(int direction) {
         if (direction < 0) {
             direction += 360;
         }
         switch (getDirectionConstant(direction)) {
             case Constants.DIRECTION.NORTH:
-                return context.getResources().getString(R.string.directionNorth);
+                return GlobalInstance.getStringResource(R.string.directionNorth);
             case Constants.DIRECTION.NORTH_EAST:
-                return context.getResources().getString(R.string.directionNorthEast);
+                return GlobalInstance.getStringResource(R.string.directionNorthEast);
             case Constants.DIRECTION.EAST:
-                return context.getResources().getString(R.string.directionEast);
+                return GlobalInstance.getStringResource(R.string.directionEast);
             case Constants.DIRECTION.SOUTH_EAST:
-                return context.getResources().getString(R.string.directionSouthEast);
+                return GlobalInstance.getStringResource(R.string.directionSouthEast);
             case Constants.DIRECTION.SOUTH:
-                return context.getResources().getString(R.string.directionSouth);
+                return GlobalInstance.getStringResource(R.string.directionSouth);
             case Constants.DIRECTION.SOUTH_WEST:
-                return context.getResources().getString(R.string.directionSouthWest);
+                return GlobalInstance.getStringResource(R.string.directionSouthWest);
             case Constants.DIRECTION.WEST:
-                return context.getResources().getString(R.string.directionWest);
+                return GlobalInstance.getStringResource(R.string.directionWest);
             case Constants.DIRECTION.NORTH_WEST:
-                return context.getResources().getString(R.string.directionNorthWest);
+                return GlobalInstance.getStringResource(R.string.directionNorthWest);
             default:
-                return context.getResources().getString(R.string.directionNorth);
-        }
-    }
-
-
-    /**
-     * poi profile
-     */
-
-    public static String formatProfileSortCriteria(Context context, int sortCriteria) {
-        switch (sortCriteria) {
-            case Constants.SORT_CRITERIA.NAME_ASC:
-                return context.getResources().getString(R.string.sortNameAsc);
-            case Constants.SORT_CRITERIA.NAME_DESC:
-                return context.getResources().getString(R.string.sortNameDesc);
-            case Constants.SORT_CRITERIA.DISTANCE_ASC:
-                return context.getResources().getString(R.string.sortDistanceAsc);
-            case Constants.SORT_CRITERIA.DISTANCE_DESC:
-                return context.getResources().getString(R.string.sortDistanceDesc);
-            case Constants.SORT_CRITERIA.ORDER_ASC:
-                return context.getResources().getString(R.string.sortOrderAsc);
-            case Constants.SORT_CRITERIA.ORDER_DESC:
-                return context.getResources().getString(R.string.sortOrderDesc);
-            default:
-                return "";
+                return GlobalInstance.getStringResource(R.string.directionNorth);
         }
     }
 
@@ -200,11 +141,11 @@ public class StringUtility {
         return hoursMinutesFormat.format(new Date(timestamp));
     }
 
-    public static SpannableString boldAndRed(Context context, String text) {
-        return boldAndRed(context, text, 0, text.length());
+    public static SpannableString boldAndRed(String text) {
+        return boldAndRed(text, 0, text.length());
     }
 
-    public static SpannableString boldAndRed(Context context, String text, int begin, int end) {
+    public static SpannableString boldAndRed(String text, int begin, int end) {
         if (begin < 0 || begin >= text.length()) {
             begin = 0;
         }
@@ -218,7 +159,7 @@ public class StringUtility {
                 begin, end, 0);
         spanString.setSpan(
                 new ForegroundColorSpan(
-                    ContextCompat.getColor(context, R.color.heading)),
+                    ContextCompat.getColor(GlobalInstance.getContext(), R.color.heading)),
                 begin, end, 0);
         return spanString;
     }
@@ -228,6 +169,26 @@ public class StringUtility {
      * json
      */
 
+    public static Float getNullableAndPositiveFloatFromJsonObject(JSONObject jsonObject, String key) {
+        Double nullableAndPositiveDouble = getNullableAndPositiveDoubleFromJsonObject(jsonObject, key);
+        if (nullableAndPositiveDouble != null) {
+            return new Float(nullableAndPositiveDouble);
+        }
+        return null;
+    }
+
+    public static Double getNullableAndPositiveDoubleFromJsonObject(JSONObject jsonObject, String key) {
+        if (! jsonObject.isNull(key)) {
+            try {
+                double doubleFromJson = jsonObject.getDouble(key);
+                if (doubleFromJson > 0) {
+                    return doubleFromJson;
+                }
+            } catch (JSONException e) {}
+        }
+        return null;
+    }
+
     public static Integer getNullableAndPositiveIntegerFromJsonObject(JSONObject jsonObject, String key) {
         if (! jsonObject.isNull(key)) {
             try {
@@ -235,6 +196,27 @@ public class StringUtility {
                 if (integerFromJson > 0) {
                     return integerFromJson;
                 }
+            } catch (JSONException e) {}
+        }
+        return null;
+    }
+
+    public static Long getNullableAndPositiveLongFromJsonObject(JSONObject jsonObject, String key) {
+        if (! jsonObject.isNull(key)) {
+            try {
+                long longFromJson = jsonObject.getLong(key);
+                if (longFromJson > 0) {
+                    return longFromJson;
+                }
+            } catch (JSONException e) {}
+        }
+        return null;
+    }
+
+    public static Boolean getNullableBooleanFromJsonObject(JSONObject jsonObject, String key) {
+        if (! jsonObject.isNull(key)) {
+            try {
+                return jsonObject.getBoolean(key);
             } catch (JSONException e) {}
         }
         return null;
@@ -250,6 +232,18 @@ public class StringUtility {
             } catch (JSONException e) {}
         }
         return null;
+    }
+
+
+    /**
+     * compare objects
+     */
+
+    public static boolean compareObjects(Object object1, Object object2) {
+        if (object1 == null) {
+            return object2 == null;
+        }
+        return object1.equals(object2);
     }
 
 }

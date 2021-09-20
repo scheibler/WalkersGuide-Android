@@ -7,7 +7,6 @@ import java.util.Comparator;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.data.basic.segment.Footway;
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.segment.RouteSegment;
 import org.walkersguide.android.data.basic.segment.Segment;
@@ -21,13 +20,7 @@ public class SegmentWrapper {
 
     public SegmentWrapper(Context context, JSONObject inputData) throws JSONException {
         this.context = context;
-        if (inputData.getString("type").equals(Constants.SEGMENT.INTERSECTION)) {
-            this.segment = new IntersectionSegment(context, inputData);
-        } else if (inputData.getString("type").equals(Constants.SEGMENT.ROUTE)) {
-            this.segment = new RouteSegment(context, inputData);
-        } else {
-            this.segment = new Footway(context, inputData);
-        }
+        this.segment = Segment.create(inputData);
     }
 
     public Segment getSegment() {
@@ -40,7 +33,7 @@ public class SegmentWrapper {
         } else if (segment instanceof RouteSegment) {
             return ((RouteSegment) segment).toJson();
         } else {
-            return ((Footway) segment).toJson();
+            return new JSONObject();
         }
     }
 
@@ -50,7 +43,7 @@ public class SegmentWrapper {
         } else if (segment instanceof RouteSegment) {
             return ((RouteSegment) segment).toString();
         } else {
-            return ((Footway) segment).toString();
+            return "";
         }
     }
 

@@ -9,25 +9,17 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/buttonStartPoint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="@dimen/smallPadding"
-            android:text="@string/buttonStartPoint" />
+        <!-- start and destination -->
 
-        <LinearLayout
-            android:id="@+id/layoutViaPointList"
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutStartPoint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:layout_height="wrap_content" />
 
-        <Button
-            android:id="@+id/buttonDestinationPoint"
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutDestinationPoint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@dimen/smallPadding"
-            android:text="@string/buttonDestinationPoint" />
+            android:layout_height="wrap_content" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,39 +28,66 @@
 
             <Button
                 android:id="@+id/buttonNewRoute"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="@dimen/smallPadding"
-                android:paddingBottom="@dimen/smallPadding"
                 android:text="@string/buttonNewRoute"
                 android:contentDescription="@string/buttonNewRouteCD" />
 
             <Button
-                android:id="@+id/buttonAddViaPoint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="@dimen/smallPadding"
-                android:paddingBottom="@dimen/smallPadding"
-                android:text="@string/buttonAddViaPoint"
-                android:contentDescription="@string/buttonAddViaPointCD" />
-
-            <Button
                 android:id="@+id/buttonSwapRoute"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="@dimen/smallPadding"
-                android:paddingBottom="@dimen/smallPadding"
                 android:text="@string/buttonSwapRoute"
                 android:contentDescription="@string/buttonSwapRouteCD" />
         </LinearLayout>
 
+
+        <!-- via points -->
+
+        <Switch
+            android:id="@+id/switchShowViaPointList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/smallPadding"
+            android:paddingBottom="@dimen/smallPadding"
+            android:minHeight="@dimen/minHeight"
+            android:thumbTint="@color/image"
+            android:text="@string/buttonIncludeFavorites"
+            android:theme="@style/HeadingTextView" />
+
+        <LinearLayout
+            android:id="@+id/layoutViaPointList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <org.walkersguide.android.ui.view.TextViewAndActionButton
+                android:id="@+id/layoutViaPoint1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <org.walkersguide.android.ui.view.TextViewAndActionButton
+                android:id="@+id/layoutViaPoint2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <org.walkersguide.android.ui.view.TextViewAndActionButton
+                android:id="@+id/layoutViaPoint3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+
+        <!-- route options -->
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:paddingTop="@dimen/smallPadding"
+            android:paddingBottom="@dimen/smallPadding"
+            android:minHeight="@dimen/minHeight"
             android:focusable="true"
             android:text="@string/labelRouteOptions"
             android:theme="@style/HeadingTextView" />

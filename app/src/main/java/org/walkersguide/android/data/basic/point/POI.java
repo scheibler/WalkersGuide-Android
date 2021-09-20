@@ -1,7 +1,5 @@
 package org.walkersguide.android.data.basic.point;
 
-import android.content.Context;
-
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -10,74 +8,53 @@ import org.json.JSONObject;
 
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.R;
+import java.io.Serializable;
+import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.GlobalInstance;
 
 
-public class POI extends PointWithAddressData {
+public class POI extends PointWithAddressData implements Serializable {
+    private static final long serialVersionUID = 1l;
 
-    private ArrayList<PointWrapper> entranceList;
-    private PointWrapper isInside;
+    private ArrayList<Entrance> entranceList;
+    private POI isInside;
     private String email, phone, website, openingHours;
 
-    public POI(Context context, JSONObject inputData) throws JSONException {
-        // point super constructor
-        super(context, inputData);
+    public POI(JSONObject inputData) throws JSONException {
+        super(inputData);
 
         // entrance list
-        this.entranceList = new ArrayList<PointWrapper>();
-        JSONArray jsonEntranceList;
-        try {
-            jsonEntranceList = inputData.getJSONArray("entrance_list");
-        } catch (JSONException e) {
-            jsonEntranceList = new JSONArray();
-        }
-        for (int j=0; j<jsonEntranceList.length(); j++) {
-            PointWrapper entrance = null;
-            try {
-                entrance = new PointWrapper(context, jsonEntranceList.getJSONObject(j));
-            } catch (JSONException e) {
-                entrance = null;
-            } finally {
-                if (entrance != null) {
-                    this.entranceList.add(entrance);
-                }
+        this.entranceList = new ArrayList<Entrance>();
+        if (! inputData.isNull(KEY_ENTRANCE_LIST)) {
+            JSONArray jsonEntranceList = inputData.getJSONArray(KEY_ENTRANCE_LIST);
+            for (int j=0; j<jsonEntranceList.length(); j++) {
+                try {
+                    entranceList.add(
+                            new Entrance(
+                                jsonEntranceList.getJSONObject(j)));
+                } catch (JSONException e) {}
             }
         }
 
         // is inside a building
-        try {
-            this.isInside = new PointWrapper(context, inputData.getJSONObject("is_inside"));
-        } catch (JSONException e) {
-            isInside = null;
+        if (! inputData.isNull(KEY_IS_INSIDE)) {
+            try {
+                this.isInside = new POI(inputData.getJSONObject(KEY_IS_INSIDE));
+            } catch (JSONException e) {}
         }
 
         // other optional attributes
-        try {
-            this.email = inputData.getString("email");
-        } catch (JSONException e) {
-            this.email = "";
-        }
-        try {
-            this.phone = inputData.getString("phone");
-        } catch (JSONException e) {
-            this.phone = "";
-        }
-        try {
-            this.website = inputData.getString("website");
-        } catch (JSONException e) {
-            this.website = "";
-        }
-        try {
-            this.openingHours = inputData.getString("opening_hours");
-        } catch (JSONException e) {
-            this.openingHours = "";
-        }
+        this.email = StringUtility.getNullableStringFromJsonObject(inputData, KEY_EMAIL);
+        this.phone = StringUtility.getNullableStringFromJsonObject(inputData, KEY_PHONE);
+        this.website = StringUtility.getNullableStringFromJsonObject(inputData, KEY_WEBSITE);
+        this.openingHours = StringUtility.getNullableStringFromJsonObject(inputData, KEY_OPENING_HOURS);
     }
 
-    public ArrayList<PointWrapper> getEntranceList() {
+    public ArrayList<Entrance> getEntranceList() {
         return this.entranceList;
     }
 
-    public PointWrapper getOuterBuilding() {
+    public POI getOuterBuilding() {
         return this.isInside;
     }
 
@@ -97,63 +74,57 @@ public class POI extends PointWithAddressData {
         return this.openingHours;
     }
 
+    @Override public String toString() {
+        String description = super.toString();
+        if (! this.entranceList.isEmpty()) {
+            description += String.format(
+                    ", %1$s", GlobalInstance.getPluralResource(R.plurals.entrance, this.entranceList.size()));
+        }
+        return description;
+    }
+
+
+    /**
+     * to json
+     */
+
+    public static final String KEY_ENTRANCE_LIST = "entrance_list";
+    public static final String KEY_IS_INSIDE = "is_inside";
+    public static final String KEY_EMAIL = "email";
+    public static final String KEY_PHONE = "phone";
+    public static final String KEY_WEBSITE = "website";
+    public static final String KEY_OPENING_HOURS = "opening_hours";
+
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
 
         // entrances
         JSONArray jsonEntranceList = new JSONArray();
-        for (PointWrapper entrance : this.entranceList) {
-            try {
-                jsonEntranceList.put(entrance.toJson());
-            } catch (JSONException e) {}
+        for (Entrance entrance : this.entranceList) {
+            jsonEntranceList.put(entrance.toJson());
         }
-        if (jsonEntranceList.length() > 0) {
-            try {
-                jsonObject.put("entrance_list", jsonEntranceList);
-            } catch (JSONException e) {}
-        }
+        jsonObject.put(KEY_ENTRANCE_LIST, jsonEntranceList);
 
         // outer building
         if (this.isInside != null) {
-            try {
-                jsonObject.put("is_inside", this.isInside.toJson());
-            } catch (JSONException e) {}
+            jsonObject.put(KEY_IS_INSIDE, this.isInside.toJson());
         }
 
-        // optional parameters
-        if (! this.email.equals("")) {
-            try {
-                jsonObject.put("email", this.email);
-            } catch (JSONException e) {}
+        // other parameters
+        if (this.email != null) {
+            jsonObject.put(KEY_EMAIL, this.email);
         }
-        if (! this.phone.equals("")) {
-            try {
-                jsonObject.put("phone", this.phone);
-            } catch (JSONException e) {}
+        if (this.phone != null) {
+            jsonObject.put(KEY_PHONE, this.phone);
         }
-        if (! this.website.equals("")) {
-            try {
-                jsonObject.put("website", this.website);
-            } catch (JSONException e) {}
+        if (this.website != null) {
+            jsonObject.put(KEY_WEBSITE, this.website);
         }
-        if (! this.openingHours.equals("")) {
-            try {
-                jsonObject.put("opening_hours", this.openingHours);
-            } catch (JSONException e) {}
+        if (this.openingHours != null) {
+            jsonObject.put(KEY_OPENING_HOURS, this.openingHours);
         }
 
         return jsonObject;
-    }
-
-    @Override public String toString() {
-        String description = super.toString();
-        if (! this.entranceList.isEmpty()) {
-            description += String.format(
-                    ", %1$s",
-                    super.getContext().getResources().getQuantityString(
-                        R.plurals.entrance, this.entranceList.size(), this.entranceList.size()));
-        }
-        return description;
     }
 
 }

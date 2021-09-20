@@ -1,37 +1,65 @@
 package org.walkersguide.android.data.basic.segment;
 
-import android.content.Context;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.walkersguide.android.R;
+import java.io.Serializable;
+import org.walkersguide.android.util.GlobalInstance;
 
 
-public class RouteSegment extends Footway {
+public class RouteSegment extends Segment implements Serializable {
+    private static final long serialVersionUID = 1l;
+
+
+    /**
+     * builder
+     */
+
+    public static class Builder extends Segment.Builder {
+        public Builder(int bearing, int distance) {
+            super(
+                    Segment.Type.ROUTE,
+                    "Wegstück",
+                    "Luftlinie",
+                    //GlobalInstance.getStringResource(R.string.currentLocationName),
+                    bearing);
+            try {
+                super.inputData.put(KEY_DISTANCE, distance);
+            } catch (JSONException e) {}
+        }
+        // build
+        public RouteSegment build() {
+            RouteSegment segment = null;
+            try {
+                segment = new RouteSegment(super.inputData);
+            } catch (JSONException e) {
+                segment = null;
+            }
+            return segment;
+        }
+    }
+
+
+    /**
+     * constructor
+     */
 
     private int distance;
 
-    public RouteSegment(Context context, JSONObject inputData) throws JSONException {
-        super(context, inputData);
-        this.distance = inputData.getInt("distance");
+    public RouteSegment(JSONObject inputData) throws JSONException {
+        super(inputData);
+        this.distance = inputData.getInt(KEY_DISTANCE);
     }
 
     public int getDistance() {
         return this.distance;
     }
 
-    public JSONObject toJson() throws JSONException {
-        JSONObject jsonObject = super.toJson();
-        jsonObject.put("distance", this.distance);
-        return jsonObject;
-    }
-
     @Override public String toString() {
         return String.format(
-                super.getContext().getResources().getString(R.string.routeSegmentToString),
-                super.getContext().getResources().getQuantityString(
-                    R.plurals.meter, this.distance, this.distance),
+                GlobalInstance.getStringResource(R.string.routeSegmentToString),
+                GlobalInstance.getPluralResource(R.plurals.meter, this.distance),
                 super.toString());
     }
 
@@ -50,8 +78,21 @@ public class RouteSegment extends Footway {
 			return false;
         }
 		RouteSegment other = (RouteSegment) obj;
-        return (super.equals(((Footway) other))
+        return (super.equals(((Segment) other))
             && this.distance == other.getDistance());
+    }
+
+
+    /**
+     * to json
+     */
+
+    public static final String KEY_DISTANCE = "distance";
+
+    public JSONObject toJson() throws JSONException {
+        JSONObject jsonObject = super.toJson();
+        jsonObject.put(KEY_DISTANCE, this.distance);
+        return jsonObject;
     }
 
 }

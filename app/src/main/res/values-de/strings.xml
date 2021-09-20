@@ -88,7 +88,7 @@
 
     <!-- get current position dialog -->
     <string name="radioGPSCoordinates">Exakte Position</string>
-    <string name="editGPSCoordinatesNearestAddress">In der Nähe von %1$s</string>
+    <string name="labelNearby">In der Nähe von %1$s</string>
     <string name="radioNearestAddress">Nächstliegende Adresse</string>
 
     <!-- enter address dialog -->
@@ -167,14 +167,28 @@
     <!-- route history dialog -->
     <string name="routeHistoryDialogTitle">Letzte Routen</string>
 
+
+    <!--
+        poi
+    --> 
+
+    <!-- AbstractPointProfileFragment -->
+    <!-- toolbar menu -->
+    <string name="menuItemJumpToTop">An den Listenanfang springen</string>
+    <string name="menuItemFilterResult">Nach Blickrichtung filtern</string>
+    <string name="menuItemSortMethod">Sortieren</string>
+    <!-- SelectDatabasePointProfileDialog / SelectServerPointProfileDialog -->
+    <string name="selectPointProfileDialogTitle">Profil auswählen:</string>
+
+    <!-- DatabasePointProfileFragment -->
+    <string name="fragmentFavoritesName">Favoriten</string>
+    <string name="fragmentPointHistoryName">Verlauf</string>
+
     <!-- poi fragment -->
     <string name="buttonSelectProfile">Profil: %1$s</string>
     <string name="buttonSelectProfileNone">Profil: Keins ausgewählt</string>
     <string name="buttonSelectProfileCD">Profil: %1$s.\nAusgewählte Kategorien: %2$s</string>
     <string name="buttonClearSearch">Suche zurücksetzen</string>
-    <!-- toolbar menu -->
-    <string name="menuItemJumpToTop">An den Listenanfang springen</string>
-    <string name="menuItemFilterResult">Nach Blickrichtung filtern</string>
     <!-- dialog titles -->
     <string name="poiFragmentHistoryPointProfileDialogTitle">Aus den zuletzt besuchten Punkten auswählen:</string>
     <string name="poiFragmentPOIProfileDialogTitle">POI auswählen:</string>
@@ -195,11 +209,12 @@
 
     <!-- select poi profile dialog -->
     <string name="selectPOIProfileDialogTitle">POI Profil auswählen:</string>
-    <string name="buttonActionForPOIProfile">Aktionen für</string>
+    <string name="buttonActionFor">Aktionen für</string>
     <string name="menuItemEditProfile">Profil bearbeiten</string>
     <string name="menuItemRemoveProfile">Profil löschen</string>
 
     <!-- POIProfilePointAdapter -->
+    <string name="imageViewIsFavorite">Favorit</string>
     <string name="imagePointIsFavorite">Favorit</string>
 
     <!-- new / edit poi profile dialog -->
@@ -374,6 +389,7 @@
     <string name="menuItemShowAllPoints">Alle Punkte anzeigen</string>
 
     <!-- settings activity -->
+    <string name="fragmentSettingsName">Einstellungen</string>
     <string name="settingsActivityTitle">Einstellungen</string>
     <string name="labelServerSettingsHeader">Server:</string>
     <string name="buttonServerURL">URL: %1$s</string>
@@ -420,8 +436,8 @@
     <string name="labelImportSuccessful">Import erfolgreich.</string>
     <string name="labelImportFailed">Import fehlgeschlagen.</string>
 
-    <!-- info activity -->
-    <string name="infoActivityTitle">Info</string>
+    <!-- info fragment -->
+    <string name="fragmentInfoName">Info</string>
     <string name="labelAppInformationHeader">WalkersGuide:</string>
     <string name="labelInfoProgramVersion">Version</string>
     <string name="labelContactDataHeader">Kontaktdaten:</string>
@@ -432,6 +448,12 @@
     <string name="labelServerVersion">Version:</string>
     <string name="labelSelectedMapName">Karte:</string>
     <string name="labelSelectedMapCreated">Erstellt am:</string>
+
+
+    <!-- selector fragments -->
+
+    <!-- SelectSortMethodDialog -->
+    <string name="selectSortMethodDialogTitle">Sortierung auswählen:</string>
 
 
     <!--
@@ -490,6 +512,16 @@
     <string name="pointTypePedestrianCrossing">Querung</string>
     <string name="pointTypePoint">Wegpunkt</string>
 
+    <!-- Point -->
+    <!-- TactilePaving -->
+    <string name="tactilePavingNo">Nein</string>
+    <string name="tactilePavingYes">Ja</string>
+    <string name="tactilePavingIncorrect">Falsch verlegt</string>
+    <!-- Wheelchair -->
+    <string name="wheelchairNo">Nein</string>
+    <string name="wheelchairLimited">Teilweise</string>
+    <string name="wheelchairYes">Ja</string>
+
     <!-- gps point -->
     <string name="currentLocationName">GPS Position</string>
 
@@ -516,7 +548,15 @@
          poi management
     -->
 
-    <!-- HistoryPointProfile -->
+    <!-- DatabasePointProfile -->
+    <string name="databasePointProfileFavorites">Favoriten</string>
+    <string name="databasePointProfileAllPoints">Alle Punkte</string>
+    <string name="databasePointProfileAddressPoints">Adressen</string>
+    <string name="databasePointProfileRoutePoints">Routenpunkte</string>
+    <string name="databasePointProfileSimulatedPoints">Simulierte Punkte</string>
+    <string name="databasePointProfileUserCreatedPoints">Selbst angelegte Punkte</string>
+
+    <!-- HistoryPointProfile (to be removed) -->
     <string name="fpNameAllPoints">Alle Punkte</string>
     <string name="fpNameAddressPoints">Adressen</string>
     <string name="fpNameRoutePoints">Routenpunkte</string>
@@ -770,13 +810,16 @@
     <string name="shakeIntensityStrong">Stark</string>
     <string name="shakeIntensityVeryStrong">Sehr stark</string>
 
-    <!-- sort criteria -->
-    <string name="sortDistanceAsc">Entfernung, aufsteigend</string>
-    <string name="sortDistanceDesc">Entfernung, absteigend</string>
+    <!-- class SortMethod -->
+    <string name="sortAccessedAsc">Zuletzt besucht, aufsteigend</string>
+    <string name="sortAccessedDesc">Zuletzt besucht, absteigend</string>
     <string name="sortNameAsc">Name, aufsteigend</string>
     <string name="sortNameDesc">Name, absteigend</string>
-    <string name="sortOrderAsc">Datum, aufsteigend</string>
-    <string name="sortOrderDesc">Datum, absteigend</string>
+    <string name="sortDistanceAsc">Entfernung, aufsteigend</string>
+    <string name="sortDistanceDesc">Entfernung, absteigend</string>
+    <string name="sortCreatedAsc">Hinzugefügt, aufsteigend</string>
+    <string name="sortCreatedDesc">Hinzugefügt, absteigend</string>
+    <string name="sortToString">Sortiert nach %1$s</string>
 
 
     <!--
@@ -829,6 +872,12 @@
         name="meterFloat">
         <item quantity="one">1.0 Meter</item>
         <item quantity="other">%1$.1f Meter</item>
+    </plurals>
+
+    <plurals
+        name="inMeters">
+        <item quantity="one">In 1 Meter</item>
+        <item quantity="other">In %d Metern</item>
     </plurals>
 
     <plurals
