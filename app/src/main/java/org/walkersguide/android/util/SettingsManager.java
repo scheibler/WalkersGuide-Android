@@ -50,10 +50,8 @@ import org.walkersguide.android.data.route.Route;
 
 
 public class SettingsManager {
-
-    // constants
-    public static final String SETTINGS_FILE_NAME = "WalkersGuide-Android-Settings";
-    public static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
+    private static final String SETTINGS_FILE_NAME = "WalkersGuide-Android-Settings";
+    private static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
 	// defaults
     public static final int DEFAULT_SELECTED_POI_PROFILE_ID = 1;

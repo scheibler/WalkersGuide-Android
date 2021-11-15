@@ -24,41 +24,9 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "org.walkersguide.android"
         resConfigs "en", "de"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 17
-        versionName '1.2.0'
-        // personal data
-        buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
-        buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
-        // internal
-        // database
-        buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-        buildConfigField 'Integer', 'DATABASE_VERSION', '10'
-        // server
-        buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
-        buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
-        buildConfigField 'int[]', 'SUPPORTED_API_VERSION_LIST', '{3, 4}'
-        // set .apk name
-        setProperty("archivesBaseName", "${archivesBaseName}-$versionName")
-    }
-
-    signingConfigs {
-        release {
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-        }
-    }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-        }
     }
 
     compileOptions {
@@ -66,10 +34,81 @@ android {
         targetCompatibility 1.8
     }
 
+    signingConfigs {
+
+        beta {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+
+        prod {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+    }
+
+    flavorDimensions "version"
+    productFlavors {
+
+        beta {
+            applicationId "org.walkersguide.android.beta"
+            versionCode 1
+            versionName '2.0.0-b1'
+            signingConfig signingConfigs.beta
+            // personal data
+            buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
+            buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
+            // internal
+            // database
+            buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
+            buildConfigField 'Integer', 'DATABASE_VERSION', '10'
+            // server
+            buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
+            buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
+            buildConfigField 'int[]', 'SUPPORTED_API_VERSION_LIST', '{3, 4}'
+        }
+
+        prod {
+            applicationId "org.walkersguide.android"
+            dimension "version"
+            versionCode 17
+            versionName '1.2.0'
+            signingConfig signingConfigs.prod
+            // personal data
+            buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
+            buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
+            // internal
+            // database
+            buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
+            buildConfigField 'Integer', 'DATABASE_VERSION', '10'
+            // server
+            buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
+            buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
+            buildConfigField 'int[]', 'SUPPORTED_API_VERSION_LIST', '{3, 4}'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = "${variant.flavorName}-${variant.versionName}-${variant.buildType.name}.apk"
+        }
+    }
+
     lintOptions {
         disable "InflateParams", "GoogleAppIndexingWarning",
                 "ButtonStyle", "UseSparseArrays", "UseCompoundDrawables",
                 "DefaultLocale", "IconLauncherShape", "Autofill"
+        abortOnError false
     }
 }
 

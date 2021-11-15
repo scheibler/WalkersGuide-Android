@@ -19,6 +19,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.walkersguide.android.R;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.content.Intent;
+import org.walkersguide.android.util.Constants;
 
 public class SimpleMessageDialog extends DialogFragment {
 
@@ -27,11 +30,17 @@ public class SimpleMessageDialog extends DialogFragment {
     }
 
     private ChildDialogCloseListener childDialogCloseListener;
+    private boolean reloadUi;
 
     public static SimpleMessageDialog newInstance(String message) {
+        return newInstance(message, false);
+    }
+
+    public static SimpleMessageDialog newInstance(String message, boolean reloadUi) {
         SimpleMessageDialog simpleMessageDialogInstance = new SimpleMessageDialog();
         Bundle args = new Bundle();
         args.putString("message", message);
+        args.putBoolean("reloadUi", reloadUi);
         simpleMessageDialogInstance.setArguments(args);
         return simpleMessageDialogInstance;
     }
@@ -47,12 +56,20 @@ public class SimpleMessageDialog extends DialogFragment {
         }
     }
 
+    @Override public void onDetach() {
+        super.onDetach();
+        childDialogCloseListener = null;
+    }
+
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        reloadUi = getArguments().getBoolean("reloadUi");
+
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
 		TextView labelSimpleMessage = (TextView) view.findViewById(R.id.label);
         labelSimpleMessage.setText(getArguments().getString("message"));
+
         return new AlertDialog.Builder(getActivity())
             .setView(view)
             .setPositiveButton(
@@ -75,14 +92,13 @@ public class SimpleMessageDialog extends DialogFragment {
             .create();
     }
 
-    @Override public void onStop() {
-        super.onStop();
-        childDialogCloseListener = null;
-    }
-
     private void close() {
         if (childDialogCloseListener != null) {
             childDialogCloseListener.childDialogClosed();
+        }
+        if (reloadUi) {
+            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
+            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
         }
         dismiss();
     }

@@ -229,11 +229,13 @@ public class PoiListFromServerFragment extends ObjectListFragment
         super.prepareRequest();
         progressHandler.postDelayed(progressUpdater, 2000);
 
-        buttonSelectProfile.setText(
-                String.format(
-                    GlobalInstance.getStringResource(R.string.buttonSelectProfile),
-                    request.getProfile().getName())
-                );
+        if ( request.hasProfile()) {
+            buttonSelectProfile.setText(
+                    String.format(
+                        GlobalInstance.getStringResource(R.string.buttonSelectProfile),
+                        request.getProfile().getName())
+                    );
+        }
 
         if (listViewObject.getFooterViewsCount() > 0) {
             listViewObject.removeFooterView(labelMoreResultsFooter);

@@ -54,6 +54,10 @@ public class GlobalInstance extends Application {
      */
     private static GlobalInstance globalInstance;
 
+    public static GlobalInstance getInstance() {
+        return (GlobalInstance) globalInstance;
+    }
+
     public static Context getContext() {
         return globalInstance;
     }
@@ -170,31 +174,6 @@ public class GlobalInstance extends Application {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(
                 WG_NOTIFICATION_ID, notificationBuilder.build());
-    }
-
-
-    /**
-     * settings import and export folders and files
-     */
-
-    public static File getExportFolder() {
-        return Environment.getExternalStoragePublicDirectory("WalkersGuide");
-    }
-
-    public static File getInternalDatabaseFile() {
-        return getContext().getDatabasePath(SQLiteHelper.INTERNAL_DATABASE_NAME);
-    }
-
-    public static File getTempDatabaseFile() {
-        return getContext().getDatabasePath(SQLiteHelper.INTERNAL_TEMP_DATABASE_NAME);
-    }
-
-    public static File getExportDatabaseFile() {
-        return new File(getExportFolder(), SQLiteHelper.INTERNAL_DATABASE_NAME);
-    }
-
-    public static File getExportSettingsFile() {
-        return new File(getExportFolder(), SettingsManager.SETTINGS_FILE_NAME);
     }
 
 }

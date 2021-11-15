@@ -6,7 +6,6 @@ import timber.log.Timber;
 import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.helper.FileUtility;
 import org.walkersguide.android.pt.PTHelper;
-import org.walkersguide.android.pt.PTHelper.Country;
 import android.content.IntentFilter;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -15,7 +14,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.fragment.app.DialogFragment;
@@ -27,22 +25,18 @@ import android.text.InputType;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.File;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.data.server.AddressProvider;
 import org.walkersguide.android.data.server.ServerInstance;
 import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.R;
@@ -50,7 +44,6 @@ import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
 import org.walkersguide.android.ui.dialog.SelectMapDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.ServerSettings;
@@ -58,21 +51,31 @@ import android.content.BroadcastReceiver;
 import org.walkersguide.android.database.util.SQLiteHelper;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.database.util.AccessDatabase;
-import android.database.SQLException;
-import android.app.Activity;
 import android.net.Uri;
 import android.Manifest;
 import androidx.core.app.ActivityCompat;
-import android.os.Environment;
-import android.content.pm.PackageManager;
 import org.walkersguide.android.ui.listener.TextChangedListener;
 import android.text.Editable;
+import java.io.BufferedInputStream;
+import java.util.zip.ZipOutputStream;
+import java.io.FileOutputStream;
+import java.io.BufferedOutputStream;
+import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.util.zip.ZipEntry;
+import androidx.appcompat.app.AppCompatActivity;
+import java.util.Date;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.util.zip.ZipInputStream;
+import java.io.ByteArrayOutputStream;
 
 
 public class SettingsActivity extends AbstractToolbarActivity implements ServerStatusListener {
 
     private Button buttonServerURL, buttonServerMap;
-    private Button buttonPublicTransportProvider, buttonAddressProvider;
+    private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
     private Switch buttonEnableTextInputHistory;
 
@@ -113,14 +116,6 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
             }
         });
 
-		buttonAddressProvider = (Button) findViewById(R.id.buttonAddressProvider);
-		buttonAddressProvider.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-                SelectAddressProviderDialog.newInstance()
-                    .show(getSupportFragmentManager(), "SelectAddressProviderDialog");
-            }
-        });
-
         buttonShakeIntensity = (Button) findViewById(R.id.buttonShakeIntensity);
         buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -146,29 +141,16 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
 		Button buttonImportSettings = (Button) findViewById(R.id.buttonImportSettings);
 		buttonImportSettings.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-                ActivityCompat.requestPermissions(
-                        SettingsActivity.this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        SETTINGS_IMPORT_ID);
+                importSettings();
             }
         });
 
 		Button buttonExportSettings = (Button) findViewById(R.id.buttonExportSettings);
 		buttonExportSettings.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-                ActivityCompat.requestPermissions(
-                        SettingsActivity.this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        SETTINGS_EXPORT_ID);
+                exportSettings();
             }
         });
-    }
-
-    @Override public boolean onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        //menu.findItem(R.id.menuItemDirection).setVisible(false);
-        //menu.findItem(R.id.menuItemLocation).setVisible(false);
-        return true;
     }
 
     @Override public void onPause() {
@@ -211,23 +193,6 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
         } else {
             buttonPublicTransportProvider.setText(
                     getResources().getString(R.string.buttonPublicTransportProviderNoSelection));
-        }
-
-        // address provider
-        if (Constants.AddressProviderValueArray.length > 1) {
-            if (serverSettings.getSelectedAddressProvider() != null) {
-                buttonAddressProvider.setText(
-                        String.format(
-                            getResources().getString(R.string.buttonAddressProvider),
-                            serverSettings.getSelectedAddressProvider().getName())
-                        );
-            } else {
-                buttonAddressProvider.setText(
-                        getResources().getString(R.string.buttonAddressProviderNoSelection));
-            }
-            buttonAddressProvider.setVisibility(View.VISIBLE);
-        } else {
-            buttonAddressProvider.setVisibility(View.GONE);
         }
 
         // shake intensity button
@@ -285,6 +250,237 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
             SimpleMessageDialog.newInstance(
                     ServerUtility.getErrorMessageForReturnCode(context, returnCode))
                 .show(getSupportFragmentManager(), "SimpleMessageDialog");
+        }
+    }
+
+
+    /**
+     * import and export settings
+     *
+     * Doc: Storage Access Framework
+     *   Access documents and other files from shared storage
+     *   https://developer.android.com/training/data-storage/shared/documents-files
+     */
+    private static final int BUFFER_SIZE = 1024;
+    private static final String MIME_TYPE_ZIP = "application/zip";
+
+    private static final int IMPORT_SETTINGS = 13;
+    private static final int EXPORT_SETTINGS = 14;
+
+    private void importSettings() {
+        cleanupCache();
+
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(MIME_TYPE_ZIP);
+        startActivityForResult(intent, IMPORT_SETTINGS);
+    }
+
+    private void exportSettings() {
+        cleanupCache();
+
+        ArrayList<File> inputFileList = new ArrayList<File>();
+        // settings
+        File settingsFile = getCachedSettingsFile();
+        boolean settingsFileCreation = settingsManagerInstance.exportSettings(settingsFile);
+        if (! settingsFileCreation || ! settingsFile.exists()) {
+            return;
+        } else {
+            inputFileList.add(settingsFile);
+        }
+        // database
+        File databaseFile = getCachedDatabaseFile();
+        boolean databaseFileCreation = FileUtility.copyFile(
+                SQLiteHelper.getDatabaseFile(), databaseFile);
+        if (! databaseFileCreation || ! databaseFile.exists()) {
+            return;
+        } else {
+            inputFileList.add(databaseFile);
+        }
+
+        // create zip file
+        File zipFile = getCachedZipFile();
+        ZipOutputStream out = null;
+        boolean zipFileCreationSuccessful = true;
+        try {
+            out = new ZipOutputStream(
+                    new BufferedOutputStream(
+                        new FileOutputStream(zipFile)));
+            BufferedInputStream origin = null;
+            byte data[] = new byte[BUFFER_SIZE];
+
+            for (File inputFile : inputFileList) {
+                FileInputStream fi = new FileInputStream(inputFile);
+                origin = new BufferedInputStream(fi, BUFFER_SIZE);
+                ZipEntry entry = new ZipEntry(inputFile.getName());
+                out.putNextEntry(entry);
+                int count;
+                while ((count = origin.read(data, 0, BUFFER_SIZE)) != -1) {
+                    out.write(data, 0, count);
+                }
+                origin.close();
+            }
+
+        } catch (Exception e) {
+            zipFileCreationSuccessful = false;
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.finish();
+                    out.close();
+                } catch (IOException e) {}
+            }
+            if (! zipFileCreationSuccessful || ! zipFile.exists()) {
+                return;
+            }
+        }
+
+        final SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(MIME_TYPE_ZIP);
+        intent.putExtra(
+                Intent.EXTRA_TITLE,
+                String.format(
+                    Locale.ROOT, "walkersguide_backup_%1$s.zip", isoDateFormat.format(new Date()))
+                );
+        startActivityForResult(intent, EXPORT_SETTINGS);
+    }
+
+    @Override public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        super.onActivityResult(requestCode, resultCode, resultData);
+        if (resultCode != AppCompatActivity.RESULT_OK) {
+            Timber.i("import or export cancelled");
+            cleanupCache();
+            return;
+        }
+
+        Uri selectedUri = resultData.getData();
+        File zipFile = getCachedZipFile();
+        switch (requestCode) {
+
+            case IMPORT_SETTINGS:
+                boolean zipFileCreationSuccessful = FileUtility.copyFile(selectedUri, zipFile);
+                Timber.d("import: zipFileCreationSuccessful = %1$s", zipFileCreationSuccessful);
+                if (! zipFileCreationSuccessful || ! zipFile.exists()) {
+                    SimpleMessageDialog.newInstance(
+                            GlobalInstance.getStringResource(R.string.labelImportFailed))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                    return;
+                }
+
+                // unzip
+                ZipInputStream zin = null;
+                try {
+                    zin = new ZipInputStream(new FileInputStream(zipFile));
+                    ZipEntry ze = null;
+                    while ((ze = zin.getNextEntry()) != null) {
+                        if (ze.isDirectory()) {
+                            continue;
+                        }
+                        FileOutputStream fout = new FileOutputStream(
+                                new File(getCacheDirectory(), ze.getName()));
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        int count;
+
+                        // reading and writing
+                        while ((count = zin.read(buffer)) != -1) {
+                            baos.write(buffer, 0, count);
+                            byte[] bytes = baos.toByteArray();
+                            fout.write(bytes);
+                            baos.reset();
+                        }
+                        fout.close();
+                        zin.closeEntry();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (zin != null) {
+                        try {
+                            zin.close();
+                        } catch (IOException e) {}
+                    }
+                }
+
+                // restore settings
+                File settingsFile = getCachedSettingsFile();
+                if (! settingsFile.exists()) {
+                    return;
+                }
+                boolean settingsImportSuccessful = settingsManagerInstance.importSettings(settingsFile);
+                Timber.d("settings import: %1$s", settingsImportSuccessful);
+                if (! settingsImportSuccessful) {
+                    return;
+                }
+
+                // restore database
+                File newDatabaseFile = getCachedDatabaseFile();
+                if (! newDatabaseFile.exists()) {
+                    return;
+                }
+                // close database
+                AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
+                accessDatabaseInstance.close();
+                // remove old database
+                File oldDatabaseFile = SQLiteHelper.getDatabaseFile();
+                if (oldDatabaseFile.exists()) {
+                    oldDatabaseFile.delete();
+                }
+                // copy from cache
+                boolean databaseImportSuccessful = FileUtility.copyFile(
+                        newDatabaseFile, SQLiteHelper.getDatabaseFile());
+                // open again
+                accessDatabaseInstance.open();
+
+                // reset cache and reload ui
+                cleanupCache();
+                ServerStatusManager.getInstance(GlobalInstance.getContext()).setCachedServerInstance(null);
+                SimpleMessageDialog.newInstance(
+                        GlobalInstance.getStringResource(R.string.labelImportSuccessful), true)
+                    .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                break;
+
+            case EXPORT_SETTINGS:
+                boolean copySelectedUriSuccessful = FileUtility.copyFile(zipFile, selectedUri);
+                cleanupCache();
+                Timber.d("export: copy successful = %1$s", copySelectedUriSuccessful);
+                break;
+        }
+    }
+
+    // static helpers
+
+    private static File getCacheDirectory() {
+        return GlobalInstance.getContext().getCacheDir();
+    }
+
+    private static File getCachedSettingsFile() {
+        return new File(getCacheDirectory(), "settings.xml");
+    }
+
+    private static File getCachedDatabaseFile() {
+        return new File(getCacheDirectory(), "database.sql");
+    }
+
+    private static File getCachedZipFile() {
+        return new File(getCacheDirectory(), "backup.zip");
+    }
+
+    private static void cleanupCache() {
+        File settingsFile = getCachedSettingsFile();
+        if (settingsFile.exists()) {
+            settingsFile.delete();
+        }
+        File databaseFile = getCachedDatabaseFile();
+        if (databaseFile.exists()) {
+            databaseFile.delete();
+        }
+        File zipFile = getCachedZipFile();
+        if (zipFile.exists()) {
+            zipFile.delete();
         }
     }
 
@@ -457,70 +653,6 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
     }
 
 
-    public static class SelectAddressProviderDialog extends DialogFragment {
-
-        // Store instance variables
-        private SettingsManager settingsManagerInstance;
-
-        public static SelectAddressProviderDialog newInstance() {
-            SelectAddressProviderDialog selectAddressProviderDialogInstance = new SelectAddressProviderDialog();
-            return selectAddressProviderDialogInstance;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance();
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            String[] formattedAddressProviderNameArray = new String[Constants.AddressProviderValueArray.length];
-            int indexOfSelectedAddressProvider = -1;
-            for (int i=0; i<Constants.AddressProviderValueArray.length; i++) {
-                AddressProvider addressProvider = new AddressProvider(getActivity(), Constants.AddressProviderValueArray[i]);
-                formattedAddressProviderNameArray[i] = addressProvider.getName();
-                if (addressProvider.equals(settingsManagerInstance.getServerSettings().getSelectedAddressProvider())) {
-                    indexOfSelectedAddressProvider = i;
-                }
-            }
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.selectAddressProviderDialogTitle))
-                .setSingleChoiceItems(
-                        formattedAddressProviderNameArray,
-                        indexOfSelectedAddressProvider,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                AddressProvider newAddressProvider = null;
-                                try {
-                                    newAddressProvider = new AddressProvider(
-                                            getActivity(), Constants.AddressProviderValueArray[which]);
-                                } catch (IndexOutOfBoundsException e) {
-                                    newAddressProvider = null;
-                                } finally {
-                                    if (newAddressProvider != null) {
-                                        settingsManagerInstance.getServerSettings().setSelectedAddressProvider(newAddressProvider);
-                                        Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-                                    }
-                                }
-                                dismiss();
-                            }
-                        }
-            )
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dismiss();
-                            }
-                        }
-                        )
-                .create();
-        }
-    }
-
-
     public static class SelectShakeIntensityDialog extends DialogFragment {
 
         // Store instance variables
@@ -601,23 +733,7 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
         }
     }
 
-    /**
-     * import and export settings
-     */
-    private static final int SETTINGS_IMPORT_ID = 64;
-    private static final int SETTINGS_EXPORT_ID = 65;
-
-    @Override public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        for (int i=0; i<permissions.length; i++) {
-            if (permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    switch (requestCode) {
-                        case SETTINGS_IMPORT_ID:
-                            ImportSettingsDialog.newInstance()
-                                .show(getSupportFragmentManager(), "ImportSettingsDialog");
-                            break;
-                        case SETTINGS_EXPORT_ID:
-                            if (GlobalInstance.getExportFolder().exists()) {
+    /*
                                 Dialog overwriteExistingSettingsDialog = new AlertDialog.Builder(SettingsActivity.this)
                                     .setMessage(
                                             getResources().getString(R.string.labelOverwriteExistingSettings))
@@ -626,8 +742,6 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
                                             getResources().getString(R.string.dialogYes),
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    FileUtility.deleteFolder(GlobalInstance.getExportFolder());
-                                                    exportSettingsAndDatabase();
                                                     dialog.dismiss();
                                                 }
                                             })
@@ -640,31 +754,7 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
                                             })
                                     .create();
                                 overwriteExistingSettingsDialog.show();
-                            } else {
-                                exportSettingsAndDatabase();
-                            }
-                            break;
-                    }
-                } else {
-                    SimpleMessageDialog.newInstance(
-                            getResources().getString(R.string.labelWriteExternalStoragePermissionDenied))
-                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
-                }
-            }
-        }
-    }
 
-    private void exportSettingsAndDatabase() {
-        GlobalInstance.getExportFolder().mkdirs();
-        // export settings
-        boolean settingsExportSuccessful = settingsManagerInstance.exportSettings(
-                GlobalInstance.getExportSettingsFile());
-        // copy database
-        boolean databaseExportSuccessful = FileUtility.copyFile(
-                GlobalInstance.getInternalDatabaseFile(), GlobalInstance.getExportDatabaseFile());
-        // show message
-        String message = null;
-        if (settingsExportSuccessful && databaseExportSuccessful) {
             message = String.format(
                     getResources().getString(R.string.labelExportSuccessful),
                     GlobalInstance.getExportFolder().getAbsolutePath());
@@ -673,152 +763,8 @@ public class SettingsActivity extends AbstractToolbarActivity implements ServerS
         }
         SimpleMessageDialog.newInstance(message)
             .show(getSupportFragmentManager(), "SimpleMessageDialog");
-    }
+    */
 
-
-    public static class ImportSettingsDialog extends DialogFragment implements ChildDialogCloseListener {
-
-        private SettingsManager settingsManagerInstance;
-
-        private TextView labelImport;
-
-        public static ImportSettingsDialog newInstance() {
-            ImportSettingsDialog importSettingsDialogInstance = new ImportSettingsDialog();
-            return importSettingsDialogInstance;
-        }
-
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance();
-        }
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final ViewGroup nullParent = null;
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
-            labelImport = (TextView) view.findViewById(R.id.label);
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.importSettingsDialogTitle))
-                .setView(view)
-                .setPositiveButton(
-                        getResources().getString(R.string.dialogImport),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogClose),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .create();
-        }
-
-        @Override public void onStart() {
-            super.onStart();
-            final AlertDialog dialog = (AlertDialog)getDialog();
-            if(dialog != null) {
-
-                // positive button
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        final AlertDialog dialog = (AlertDialog)getDialog();
-                        if(dialog != null) {
-                            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                            buttonPositive.setClickable(false);
-                        }
-                        String message = null;
-                        if (importSettingsAndDatabase()) {
-                            message = getResources().getString(R.string.labelImportSuccessful);
-                            // remove imported settings folder
-                            FileUtility.deleteFolder(GlobalInstance.getExportFolder());
-                            // reset cache
-                            ServerStatusManager.getInstance(GlobalInstance.getContext()).setCachedServerInstance(null);
-                        } else {
-                            message = getResources().getString(R.string.labelImportFailed);
-                        }
-                        // show result
-                        SimpleMessageDialog simpleMessageDialog = SimpleMessageDialog.newInstance(message);
-                        simpleMessageDialog.setTargetFragment(ImportSettingsDialog.this, 1);
-                        simpleMessageDialog.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
-                    }
-                });
-
-                // negative button
-                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                buttonNegative.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        dialog.dismiss();
-                    }
-                });
-
-                // check for import data availibility
-                buttonPositive.setVisibility(View.GONE);
-                if (! GlobalInstance.getExportFolder().exists()) {
-                    labelImport.setText(
-                            String.format(
-                                getResources().getString(R.string.labelImportDataNotFound),
-                                GlobalInstance.getExportFolder().getAbsolutePath())
-                            );
-                } else if (! GlobalInstance.getExportSettingsFile().exists()) {
-                    labelImport.setText(
-                            String.format(
-                                getResources().getString(R.string.labelImportDataNotFound),
-                                GlobalInstance.getExportSettingsFile().getAbsolutePath())
-                            );
-                } else if (! GlobalInstance.getExportDatabaseFile().exists()) {
-                    labelImport.setText(
-                            String.format(
-                                getResources().getString(R.string.labelImportDataNotFound),
-                                GlobalInstance.getExportDatabaseFile().getAbsolutePath())
-                            );
-                } else {
-                    labelImport.setText(
-                            getResources().getString(R.string.labelImportReady));
-                    buttonPositive.setVisibility(View.VISIBLE);
-                }
-            }
-        }
-
-        @Override public void childDialogClosed() {
-            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-            dismiss();
-        }
-
-        private boolean importSettingsAndDatabase() {
-            // import settings
-            boolean settingsImportSuccessful = settingsManagerInstance.importSettings(
-                    GlobalInstance.getExportSettingsFile());
-            Timber.d("settings import: %1$s", settingsImportSuccessful);
-            if (! settingsImportSuccessful) {
-                return false;
-            }
-            // restore database
-            boolean copyDatabaseSuccessful = FileUtility.copyFile(
-                    GlobalInstance.getExportDatabaseFile(), GlobalInstance.getTempDatabaseFile());
-            Timber.d("copy database successful: %1$s", copyDatabaseSuccessful);
-            if (! copyDatabaseSuccessful) {
-                return false;
-            }
-            // close database
-            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
-            accessDatabaseInstance.close();
-            // remove old database
-            File databaseFileToBeReplaced = GlobalInstance.getInternalDatabaseFile();
-            if (databaseFileToBeReplaced.exists()) {
-                databaseFileToBeReplaced.delete();
-            }
-            // rename temp database file and open again
-            GlobalInstance.getTempDatabaseFile().renameTo(GlobalInstance.getInternalDatabaseFile());
-            accessDatabaseInstance.open();
-            return true;
-        }
-    }
 
     public int getLayoutResourceId() {
 		return R.layout.activity_settings;

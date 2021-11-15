@@ -26,14 +26,18 @@ import org.json.JSONArray;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.segment.Segment;
+import org.walkersguide.android.util.GlobalInstance;
+import java.io.File;
 
 
 public class SQLiteHelper extends SQLiteOpenHelper {
+    private static final String INTERNAL_DATABASE_NAME = BuildConfig.DATABASE_NAME;
+    private static final int DATABASE_VERSION = BuildConfig.DATABASE_VERSION;
 
-    public static final String INTERNAL_DATABASE_NAME = BuildConfig.DATABASE_NAME;
-    public static final String INTERNAL_TEMP_DATABASE_NAME = BuildConfig.DATABASE_NAME + ".tmp";
-    public static final String INTERNAL_OLD_DATABASE_NAME = BuildConfig.DATABASE_NAME + ".old";
-    public static final int DATABASE_VERSION = BuildConfig.DATABASE_VERSION;
+
+    public static File getDatabaseFile() {
+        return GlobalInstance.getContext().getDatabasePath(INTERNAL_DATABASE_NAME);
+    }
 
     public static String buildDropTableQuery(String tableName) {
         return String.format("DROP TABLE IF EXISTS %1$s;", tableName);
