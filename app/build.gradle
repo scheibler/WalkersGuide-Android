@@ -20,13 +20,16 @@ if (keystoreProperties.isEmpty()) {
 }
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 31
+    buildToolsVersion "31.0.0"
 
     defaultConfig {
         resConfigs "en", "de"
-        minSdkVersion 16
-        targetSdkVersion 29
+        minSdkVersion 19
+        targetSdkVersion 31
+        // contact data
+        buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
+        buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
     }
 
     compileOptions {
@@ -59,9 +62,6 @@ android {
             versionCode 1
             versionName '2.0.0-b1'
             signingConfig signingConfigs.beta
-            // personal data
-            buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
-            buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
             // internal
             // database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
@@ -78,9 +78,6 @@ android {
             versionCode 17
             versionName '1.2.0'
             signingConfig signingConfigs.prod
-            // personal data
-            buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
-            buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
             // internal
             // database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'

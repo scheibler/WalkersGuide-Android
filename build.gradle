@@ -6,8 +6,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.0'
-        classpath 'com.cesarferreira:android-rocket-launcher:0.9.1'
+        classpath 'com.android.tools.build:gradle:7.0.2'
+        classpath 'com.cesarferreira:android-rocket-launcher:1.0.0'
     }
 }
 

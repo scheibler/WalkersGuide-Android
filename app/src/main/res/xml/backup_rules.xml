@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<full-backup-content>
-    <include
-        domain="root"
-        path="."
-        requireFlags="clientSideEncryption|deviceToDeviceTransfer" />
-</full-backup-content>
+<data-extraction-rules>
+
+    <!--
+        If there are no rules for a particular backup mode, such as if the <device-transfer> section
+        is missing, that mode is fully enabled for all content except for no-backup
+        and cache directories, as described in Files that are backed up.
+
+        https://developer.android.com/guide/topics/data/autobackup
+    -->
+
+    <cloud-backup
+        disableIfNoEncryptionCapabilities="true" >
+        <include
+            domain="root"
+            path="." />
+    </cloud-backup>
+
+</data-extraction-rules>

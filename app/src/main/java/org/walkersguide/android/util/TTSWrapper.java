@@ -22,9 +22,6 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 
 
 public class TTSWrapper extends UtteranceProgressListener {
-
-    private static final int MAX_TEXT_LENGTH = 500;
-    private static final String DELIMITER = ". ";
     private static final String UTTERANCE_ID_SPEAK = "utteranceidspeak";
 
     private static TTSWrapper managerInstance;
@@ -67,7 +64,7 @@ public class TTSWrapper extends UtteranceProgressListener {
     }
 
     public boolean isSpeaking() {
-        if (tts != null) {
+    if (isInitialized()) {
             return tts.isSpeaking();
         }
         return false;
@@ -93,24 +90,24 @@ public class TTSWrapper extends UtteranceProgressListener {
                 tts.stop();
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                ttsGreater21(message);
+                ttsAtLeastApi21(message);
             } else {
-                ttsUnder20(message);
+                ttsUnderApi20(message);
             }
         }
     }
 
     @SuppressWarnings("deprecation")
-    private void ttsUnder20(String text) {
+    private void ttsUnderApi20(String message) {
         HashMap<String,String> map = new HashMap<String,String>();
         map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID_SPEAK);
-        for (String part : splitText(text)) {
-            tts.speak(part, TextToSpeech.QUEUE_ADD, map);
+        for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
+            tts.speak(chunk, TextToSpeech.QUEUE_ADD, map);
         }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void ttsGreater21(String text) {
+    private void ttsAtLeastApi21(String message) {
         // set audio attributes
         AudioAttributes.Builder audioAttributesBuilder = new AudioAttributes.Builder()
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
@@ -120,38 +117,11 @@ public class TTSWrapper extends UtteranceProgressListener {
             audioAttributesBuilder.setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE);
         }
         tts.setAudioAttributes(audioAttributesBuilder.build());
+
         // speak
-        for (String part : splitText(text)) {
-            tts.speak(part, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
+        for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
+            tts.speak(chunk, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
         }
-    }
-
-
-    /**
-     * split text which is longer than MAX_TEXT_LENGTH by DELIMITER
-     * if the text String doesn't contain the DELIMITER, split by MAX_TEXT_LENGTH directly
-     * return list of substrings
-     */
-
-    private List<String> splitText(String text) {
-        List<String> chunks;
-        try {
-            chunks = new ArrayList<String>();
-            int startIndex = 0;
-            int endIndex = text.lastIndexOf(DELIMITER, MAX_TEXT_LENGTH);
-
-            while (text.substring(startIndex).length() > MAX_TEXT_LENGTH) {
-                chunks.add(text.substring(startIndex, endIndex + 1));
-                startIndex = endIndex + DELIMITER.length();
-                endIndex = text.lastIndexOf(DELIMITER, MAX_TEXT_LENGTH + startIndex);
-            }
-
-            // add the last part
-            chunks.add(text.substring(startIndex));
-        } catch (IndexOutOfBoundsException e) {
-            chunks = Splitter.fixedLength(MAX_TEXT_LENGTH).splitToList(text);
-        }
-        return chunks;
     }
 
 

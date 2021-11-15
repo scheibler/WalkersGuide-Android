@@ -259,7 +259,9 @@ public abstract class AbstractToolbarActivity extends AppCompatActivity {
                 // ask for location permission
                 ActivityCompat.requestPermissions(
                         AbstractToolbarActivity.this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        new String[] {
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION },
                         ASK_FOR_LOCATION_PERMISSION_ID);
             } else if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
                 if (! toolbarMenuIsOpen) {
