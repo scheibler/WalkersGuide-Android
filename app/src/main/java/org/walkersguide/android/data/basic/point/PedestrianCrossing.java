@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.HashMap;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 
 
 public class PedestrianCrossing extends Point implements Serializable {

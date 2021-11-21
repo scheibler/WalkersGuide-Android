@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.selectors;
 
+import androidx.appcompat.app.AppCompatActivity;
 import org.walkersguide.android.R;
 import org.walkersguide.android.database.SortMethod;
 import android.app.AlertDialog;
@@ -26,16 +27,11 @@ import java.util.Arrays;
 
 
 public class SelectSortMethodDialog extends DialogFragment {
-    private static final String KEY_SELECTED_SORT_METHOD = "selectedSortMethod";
-
-    public interface SelectSortMethodListener {
-        public void sortMethodSelected(SortMethod newSortMethod);
-    }
+    public static final String REQUEST_SELECT_SORT_METHOD = "selectSortMethod";
+    public static final String EXTRA_SORT_METHOD = "sortMethod";
 
 
-    // Store instance variables
-    private SelectSortMethodListener listener;
-    private SortMethod selectedSortMethod;
+    // instance constructors
 
     public static SelectSortMethodDialog newInstance(SortMethod selectedSortMethod) {
         SelectSortMethodDialog dialog= new SelectSortMethodDialog();
@@ -46,16 +42,10 @@ public class SelectSortMethodDialog extends DialogFragment {
     }
 
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof SelectSortMethodListener) {
-            listener = (SelectSortMethodListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof SelectSortMethodListener) {
-            listener = (SelectSortMethodListener) context;
-                }
-    }
+    // dialog
+    private static final String KEY_SELECTED_SORT_METHOD = "selectedSortMethod";
+
+    private SortMethod selectedSortMethod;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         selectedSortMethod = (SortMethod) getArguments().getSerializable(KEY_SELECTED_SORT_METHOD);
@@ -90,9 +80,9 @@ public class SelectSortMethodDialog extends DialogFragment {
                 @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                     SortMethod newSortMethod = (SortMethod) parent.getItemAtPosition(position);
                     if (newSortMethod != null) {
-                        if (listener != null) {
-                            listener.sortMethodSelected(newSortMethod);
-                        }
+                        Bundle result = new Bundle();
+                        result.putSerializable(EXTRA_SORT_METHOD, newSortMethod);
+                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_SORT_METHOD, result);
                     }
                     dismiss();
                 }
@@ -110,11 +100,6 @@ public class SelectSortMethodDialog extends DialogFragment {
                         sortMethodList.indexOf(selectedSortMethod), true);
             }
         }
-    }
-
-    @Override public void onStop() {
-        super.onStop();
-        listener = null;
     }
 
 }

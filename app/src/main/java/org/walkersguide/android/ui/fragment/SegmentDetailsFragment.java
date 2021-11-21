@@ -15,7 +15,7 @@ import org.walkersguide.android.ui.builder.TextViewBuilder;
 import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.segment.RouteSegment;
 import org.walkersguide.android.data.basic.segment.Segment;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 
 

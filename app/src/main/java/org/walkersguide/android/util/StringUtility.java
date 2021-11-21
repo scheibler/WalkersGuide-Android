@@ -1,4 +1,4 @@
-package org.walkersguide.android.helper;
+package org.walkersguide.android.util;
 
 import androidx.core.content.ContextCompat;
 import android.content.Context;

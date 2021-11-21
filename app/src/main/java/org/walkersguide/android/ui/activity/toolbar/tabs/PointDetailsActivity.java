@@ -33,8 +33,7 @@ import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
 import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
 import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
-import org.walkersguide.android.helper.PointUtility;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
@@ -134,15 +133,6 @@ public class PointDetailsActivity extends AbstractTabsActivity {
                     initialTabIndex);
         }
     }
-
-    /*
-    @Override public boolean onMenuItemClick(MenuItem item) {
-        PointUtility.putNewPoint(
-                PointDetailsActivity.this, pointWrapper, item.getItemId());
-        PlanRouteDialog.newInstance()
-            .show(getSupportFragmentManager(), "PlanRouteDialog");
-        return true;
-    }*/
 
     @Override public void onPause() {
         super.onPause();

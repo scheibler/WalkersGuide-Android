@@ -3,18 +3,13 @@ package org.walkersguide.android.ui.dialog.selectors;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
-import org.walkersguide.android.ui.fragment.ObjectListFragment.SelectObjectListener;
 import org.walkersguide.android.ui.fragment.object_list.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.ui.fragment.object_list.PoiListFromServerFragment;
 import org.walkersguide.android.ui.dialog.creators.EnterAddressDialog;
-import org.walkersguide.android.ui.dialog.creators.EnterAddressDialog.EnterAddressListener;
 import org.walkersguide.android.ui.dialog.creators.EnterCoordinatesDialog;
-import org.walkersguide.android.ui.dialog.creators.EnterCoordinatesDialog.EnterCoordinatesListener;
 import org.walkersguide.android.server.poi.PoiProfile;
 import org.walkersguide.android.server.poi.PoiProfileRequest;
 import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.ui.dialog.selectors.SelectDatabaseProfileDialog.SelectDatabaseProfileListener;
-import org.walkersguide.android.ui.dialog.selectors.SelectPoiProfileDialog.SelectPoiProfileListener;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -44,25 +39,19 @@ import org.walkersguide.android.data.basic.point.StreetAddress;
 import android.app.Activity;
 import java.util.Arrays;
 import org.walkersguide.android.util.GlobalInstance;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.ui.fragment.ObjectListFragment;
 
 
 
-public class SelectRouteOrSimulationPointDialog extends DialogFragment
-        implements EnterAddressListener, EnterCoordinatesListener,
-                   SelectDatabaseProfileListener, SelectPoiProfileListener, SelectObjectListener {
-    private static final String KEY_WHERE_TO_PUT = "whereToPut";
-
-    public interface SelectRouteOrSimulationPointListener {
-        public void routeOrSimulationPointSelected(Point point, WhereToPut whereToPut);
-    }
-
-    public enum WhereToPut {
-        ROUTE_START_POINT, ROUTE_VIA_POINT_1, ROUTE_VIA_POINT_2, ROUTE_VIA_POINT_3, ROUTE_DESTINATION_POINT, SIMULATION_POINT
-    }
+public class SelectRouteOrSimulationPointDialog extends DialogFragment implements FragmentResultListener {
+    public static final String REQUEST_SELECT_POINT = "selectPoint";
+    public static final String EXTRA_WHERE_TO_PUT = "whereToPut";
+    public static final String EXTRA_POINT = "point";
 
 
-    private SelectRouteOrSimulationPointListener listener;
-    private WhereToPut whereToPut;
+    // instance constructors
 
     public static SelectRouteOrSimulationPointDialog newInstance(WhereToPut whereToPut) {
         SelectRouteOrSimulationPointDialog dialog = new SelectRouteOrSimulationPointDialog();
@@ -72,20 +61,57 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment
         return dialog;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof SelectRouteOrSimulationPointListener) {
-            listener = (SelectRouteOrSimulationPointListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof SelectRouteOrSimulationPointListener) {
-            listener = (SelectRouteOrSimulationPointListener) context;
-        }
+    // dialog
+    private static final String KEY_WHERE_TO_PUT = "whereToPut";
+
+    public enum WhereToPut {
+        ROUTE_START_POINT, ROUTE_VIA_POINT_1, ROUTE_VIA_POINT_2, ROUTE_VIA_POINT_3, ROUTE_DESTINATION_POINT, SIMULATION_POINT
     }
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
+    private WhereToPut whereToPut;
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    EnterAddressDialog.REQUEST_ENTER_ADDRESS, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectDatabaseProfileDialog.REQUEST_SELECT_DATABASE_PROFILE, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectPoiProfileDialog.REQUEST_SELECT_POI_PROFILE, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ObjectListFragment.REQUEST_SELECT_OBJECT, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
+            pointSelected(
+                    (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS));
+        } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
+            pointSelected(
+                    (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES));
+        } else if (requestKey.equals(SelectDatabaseProfileDialog.REQUEST_SELECT_DATABASE_PROFILE)) {
+            DatabaseProfile newDatabaseProfile = (DatabaseProfile) bundle.getSerializable(SelectDatabaseProfileDialog.EXTRA_DATABASE_PROFILE);
+            ObjectListFromDatabaseFragment.createDialog(
+                    new DatabaseProfileRequest(newDatabaseProfile), false)
+                .show(getChildFragmentManager(), "SelectPointDialog");
+        } else if (requestKey.equals(SelectPoiProfileDialog.REQUEST_SELECT_POI_PROFILE)) {
+            PoiProfile newPoiProfile = (PoiProfile) bundle.getSerializable(SelectPoiProfileDialog.EXTRA_POI_PROFILE);
+            PoiListFromServerFragment.createDialog(
+                    new PoiProfileRequest(newPoiProfile), false)
+                .show(getChildFragmentManager(), "SelectPointDialog");
+        } else if (requestKey.equals(ObjectListFragment.REQUEST_SELECT_OBJECT)) {
+            ObjectWithId newObject = (ObjectWithId) bundle.getSerializable(ObjectListFragment.EXTRA_OBJECT_WITH_ID);
+            if (newObject instanceof Point) {
+                pointSelected((Point) newObject);
+            }
+        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -193,72 +219,35 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment
             case CLOSEST_ADDRESS:
                 break;
             case ENTER_ADDRESS:
-                EnterAddressDialog eaDialog = EnterAddressDialog.newInstance();
-                eaDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-                eaDialog.show(getActivity().getSupportFragmentManager(), "EnterAddressDialog");
+                EnterAddressDialog.newInstance()
+                    .show(getChildFragmentManager(), "EnterAddressDialog");
                 break;
             case ENTER_COORDINATES:
-                EnterCoordinatesDialog ecDialog = EnterCoordinatesDialog.newInstance();
-                ecDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-                ecDialog.show(getActivity().getSupportFragmentManager(), "EnterCoordinatesDialog");
+                EnterCoordinatesDialog.newInstance()
+                    .show(getChildFragmentManager(), "EnterCoordinatesDialog");
                 break;
             case FAVORITES:
-                ObjectListFromDatabaseFragment sfDialog = ObjectListFromDatabaseFragment.createDialog(
-                        new DatabaseProfileRequest(DatabasePointProfile.FAVORITES), false);
-                sfDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-                sfDialog.show(getActivity().getSupportFragmentManager(), "SelectFavoriteDialog");
+                ObjectListFromDatabaseFragment.createDialog(
+                        new DatabaseProfileRequest(DatabasePointProfile.FAVORITES), false)
+                    .show(getChildFragmentManager(), "SelectFavoriteDialog");
                 break;
             case HISTORY:
-                SelectDatabaseProfileDialog sdpDialog = SelectDatabaseProfileDialog.pointProfiles(null);
-                sdpDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-                sdpDialog.show(getActivity().getSupportFragmentManager(), "SelectDatabaseProfileDialog");
+                SelectDatabaseProfileDialog.pointProfiles(null)
+                    .show(getChildFragmentManager(), "SelectDatabaseProfileDialog");
                 break;
             case POI:
-                SelectPoiProfileDialog sppDialog = SelectPoiProfileDialog.newInstance(null);
-                sppDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-                sppDialog.show(getActivity().getSupportFragmentManager(), "SelectPoiProfileDialog");
+                SelectPoiProfileDialog.newInstance(null)
+                    .show(getChildFragmentManager(), "SelectPoiProfileDialog");
                 break;
         }
     }
 
     private void pointSelected(Point point) {
-        if (listener != null) {
-            listener.routeOrSimulationPointSelected(point, whereToPut);
-            dismiss();
-        }
-    }
-
-
-    // listeners
-
-    @Override public void addressPointCreated(StreetAddress address) {
-        pointSelected(address);
-    }
-
-    @Override public void coordinatesPointCreated(GPS coordinates) {
-        pointSelected(coordinates);
-    }
-
-    @Override public void objectSelected(ObjectWithId object) {
-        if (object instanceof Point) {
-            pointSelected((Point) object);
-        }
-    }
-
-    // select profile sublisteners
-
-    @Override public void databaseProfileSelected(DatabaseProfile newProfile) {
-        ObjectListFromDatabaseFragment spDialog = ObjectListFromDatabaseFragment.createDialog(
-                new DatabaseProfileRequest(newProfile), false);
-        spDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-        spDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
-    }
-
-    @Override public void poiProfileSelected(PoiProfile newProfile) {
-        PoiListFromServerFragment spDialog = PoiListFromServerFragment.createDialog(
-                new PoiProfileRequest(newProfile), false);
-        spDialog.setTargetFragment(SelectRouteOrSimulationPointDialog.this, 1);
-        spDialog.show(getActivity().getSupportFragmentManager(), "SelectPointDialog");
+        Bundle result = new Bundle();
+        result.putSerializable(EXTRA_WHERE_TO_PUT, whereToPut);
+        result.putSerializable(EXTRA_POINT, point);
+        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POINT, result);
+        dismiss();
     }
 
 }

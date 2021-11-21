@@ -19,8 +19,9 @@ import java.util.ArrayList;
 import timber.log.Timber;
 import android.text.TextUtils;
 import java.util.Date;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.util.GlobalInstance;
+import de.schildbach.pte.NetworkId;
 
 
 public class DepartureManager {
@@ -53,11 +54,11 @@ public class DepartureManager {
     }
 
 
-    public void requestDeparture(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date departureDate) {
+    public void requestDeparture(DepartureListener listener, NetworkId networkId, Location station, Date departureDate) {
         if (departureRequestTaskInProgress()) {
             if (listener == null) {
                 return;
-            } else if (this.departureRequestTask.isSameRequest(provider, station)) {
+            } else if (this.departureRequestTask.isSameRequest(networkId, station)) {
                 this.departureRequestTask.addListener(listener);
                 return;
             } else {
@@ -65,7 +66,7 @@ public class DepartureManager {
             }
         }
         // new request
-        this.departureRequestTask = new DepartureRequestTask(listener, provider, station, departureDate);
+        this.departureRequestTask = new DepartureRequestTask(listener, networkId, station, departureDate);
         this.departureRequestTask.execute();
     }
 
@@ -95,20 +96,17 @@ public class DepartureManager {
         private int returnCode;
         private ArrayList<DepartureListener> departureListenerList;
 
-        private AbstractNetworkProvider provider;
+        private NetworkId networkId;
         private Location station;
         private Date initialDepartureDate;
 
-        public DepartureRequestTask(DepartureListener listener, AbstractNetworkProvider provider, Location station, Date initialDepartureDate) {
+        public DepartureRequestTask(DepartureListener listener, NetworkId networkId, Location station, Date initialDepartureDate) {
             this.returnCode = PTHelper.RC_OK;
             this.departureListenerList = new ArrayList<DepartureListener>();
             if (listener != null) {
                 this.departureListenerList.add(listener);
             }
-            this.provider = provider;
-            if (this.provider != null) {
-                this.provider.setUserAgent(PTHelper.USER_AGENT);
-            }
+            this.networkId = networkId;
             this.station = station;
             this.initialDepartureDate = initialDepartureDate;
         }
@@ -116,7 +114,8 @@ public class DepartureManager {
         @Override protected ArrayList<Departure> doInBackground(Void... params) {
             ArrayList<Departure> departureList = new ArrayList<Departure>();
 
-            if (this.provider == null) {
+            AbstractNetworkProvider provider = PTHelper.findNetworkProvider(this.networkId);
+            if (provider == null) {
                 this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
             } else if (this.station == null) {
                 this.returnCode = PTHelper.RC_NO_STATION;
@@ -137,7 +136,7 @@ public class DepartureManager {
                     // query departures
                     try {
                         Timber.d("request: stationId=%1$s, date=%2$s", this.station.id, nextDepartureDate.toString());
-                        departuresResult = this.provider.queryDepartures(
+                        departuresResult = provider.queryDepartures(
                                 this.station.id, nextDepartureDate, 100, false);
                     } catch (IOException e) {
                         Timber.e("DepartureManager query error: %1$s", e.getMessage());
@@ -220,18 +219,12 @@ public class DepartureManager {
             }
         }
 
-        public boolean isSameRequest(AbstractNetworkProvider newProvider, Location newStation) {
-            if (this.isSameProvider(newProvider) && this.isSameStation(newStation)) {
+        public boolean isSameRequest(NetworkId newNetworkId, Location newStation) {
+            if (this.networkId == newNetworkId
+                    && this.isSameStation(newStation)) {
                 return true;
             }
             return false;
-        }
-
-        private boolean isSameProvider(AbstractNetworkProvider newProvider) {
-            if (this.provider == null) {
-                return newProvider == null;
-            }
-            return this.provider.equals(newProvider);
         }
 
         private boolean isSameStation(Location newStation) {

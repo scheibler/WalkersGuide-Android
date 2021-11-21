@@ -9,9 +9,7 @@ import org.walkersguide.android.server.poi.PoiProfileRequest;
 import org.walkersguide.android.server.poi.PoiProfileResult;
 
 import org.walkersguide.android.ui.dialog.selectors.SelectPoiCategoriesDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectPoiCategoriesDialog.SelectPoiCategoriesListener;
 import org.walkersguide.android.ui.dialog.selectors.SelectPoiProfileDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectPoiProfileDialog.SelectPoiProfileListener;
 
 import org.walkersguide.android.R;
 
@@ -37,14 +35,20 @@ import java.util.ArrayList;
 import org.walkersguide.android.data.basic.point.Point;
 import android.os.Handler;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.ui.dialog.SelectMapDialog;
+import org.walkersguide.android.ui.dialog.selectors.SelectMapDialog;
+import org.walkersguide.android.server.util.OSMMap;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class PoiListFromServerFragment extends ObjectListFragment
-        implements PoiProfileRequestListener, SelectPoiProfileListener, SelectPoiCategoriesListener {
+        implements FragmentResultListener, PoiProfileRequestListener {
     private static final String KEY_REQUEST = "request";
+
+    protected SettingsManager settingsManagerInstance;
 
     private PoiProfileRequest request;
     private TextView labelMoreResultsFooter;
@@ -72,11 +76,39 @@ public class PoiListFromServerFragment extends ObjectListFragment
 		return fragment;
 	}
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        settingsManagerInstance = SettingsManager.getInstance();
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
+        // fragment result listener
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectPoiProfileDialog.REQUEST_SELECT_POI_PROFILE, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
+            settingsManagerInstance.setSelectedMap(
+                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
+        } else if (requestKey.equals(SelectPoiProfileDialog.REQUEST_SELECT_POI_PROFILE)) {
+            request.setProfile(
+                    (PoiProfile) bundle.getSerializable(SelectPoiProfileDialog.EXTRA_POI_PROFILE));
+        } else if (requestKey.equals(SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES)) {
+            ArrayList<PoiCategory> newPoiCategoryList = (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST);
+            request.getProfile().setValues(
+                    request.getProfile().getName(), newPoiCategoryList, request.getProfile().getIncludeFavorites());
+        }
+        resetListPosition();
+        requestUiUpdate();
     }
 
 
@@ -142,17 +174,15 @@ public class PoiListFromServerFragment extends ObjectListFragment
     }
 
     @Override public void clickedButtonSelectProfile() {
-        SelectPoiProfileDialog dialog = SelectPoiProfileDialog.newInstance(request.getProfile());
-        dialog.setTargetFragment(PoiListFromServerFragment.this, 1);
-        dialog.show(getActivity().getSupportFragmentManager(), "SelectPoiProfileDialog");
+        SelectPoiProfileDialog.newInstance(request.getProfile())
+            .show(getChildFragmentManager(), "SelectPoiProfileDialog");
     }
 
     @Override public void longClickedButtonSelectProfile() {
         PoiProfile profile = request.getProfile();
         if (profile != null) {
-            SelectPoiCategoriesDialog dialog = SelectPoiCategoriesDialog.newInstance(profile.getPoiCategoryList());
-            dialog.setTargetFragment(PoiListFromServerFragment.this, 1);
-            dialog.show(getActivity().getSupportFragmentManager(), "SelectPoiCategoriesDialog");
+            SelectPoiCategoriesDialog.newInstance(profile.getPoiCategoryList())
+                .show(getChildFragmentManager(), "SelectPoiCategoriesDialog");
         }
     }
 
@@ -171,24 +201,6 @@ public class PoiListFromServerFragment extends ObjectListFragment
         } else {
             return getResources().getString(R.string.fragmentPOIName);
         }
-    }
-
-
-    /*
-     * listener
-     */
-
-    @Override public void poiProfileSelected(PoiProfile newProfile) {
-        request.setProfile(newProfile);
-        resetListPosition();
-        requestUiUpdate();
-    }
-
-    @Override public void poiCategoriesSelected(ArrayList<PoiCategory> newPoiCategoryList) {
-        request.getProfile().setValues(
-                request.getProfile().getName(), newPoiCategoryList, request.getProfile().getIncludeFavorites());
-        resetListPosition();
-        requestUiUpdate();
     }
 
 
@@ -286,8 +298,9 @@ public class PoiListFromServerFragment extends ObjectListFragment
                 && (
                        returnCode == Constants.RC.MAP_LOADING_FAILED
                     || returnCode == Constants.RC.WRONG_MAP_SELECTED)) {
-            SelectMapDialog.newInstance()
-                .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
+            SelectMapDialog.newInstance(
+                    settingsManagerInstance.getSelectedMap())
+                .show(getChildFragmentManager(), "SelectMapDialog");
         }
     }
 

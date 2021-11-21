@@ -30,18 +30,11 @@ import java.util.Arrays;
 
 
 public class SelectDatabaseProfileDialog extends DialogFragment {
-    private static final String KEY_PROFILE_LIST = "profileList";
-    private static final String KEY_SELECTED_PROFILE = "selectedProfile";
-
-    public interface SelectDatabaseProfileListener {
-        public void databaseProfileSelected(DatabaseProfile newProfile);
-    }
+    public static final String REQUEST_SELECT_DATABASE_PROFILE = "selectDatabaseProfile";
+    public static final String EXTRA_DATABASE_PROFILE = "databaseProfile";
 
 
-    // Store instance variables
-    private SelectDatabaseProfileListener listener;
-    private ArrayList<DatabaseProfile> profileList;
-    private DatabaseProfile selectedProfile;
+    // instance constructors
 
     public static SelectDatabaseProfileDialog pointProfiles(DatabaseProfile selectedProfile) {
         ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>(Arrays.asList(DatabasePointProfile.values()));
@@ -69,21 +62,12 @@ public class SelectDatabaseProfileDialog extends DialogFragment {
     }
 
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof SelectDatabaseProfileListener) {
-            listener = (SelectDatabaseProfileListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof SelectDatabaseProfileListener) {
-            listener = (SelectDatabaseProfileListener) context;
-                }
-    }
+    // dialog
+    private static final String KEY_PROFILE_LIST = "profileList";
+    private static final String KEY_SELECTED_PROFILE = "selectedProfile";
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
+    private ArrayList<DatabaseProfile> profileList;
+    private DatabaseProfile selectedProfile;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         profileList = (ArrayList<DatabaseProfile>) getArguments().getSerializable(KEY_PROFILE_LIST);
@@ -119,9 +103,9 @@ public class SelectDatabaseProfileDialog extends DialogFragment {
                 @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                     DatabaseProfile newProfile = (DatabaseProfile) parent.getItemAtPosition(position);
                     if (newProfile != null) {
-                        if (listener != null) {
-                            listener.databaseProfileSelected(newProfile);
-                        }
+                        Bundle result = new Bundle();
+                        result.putSerializable(EXTRA_DATABASE_PROFILE, newProfile);
+                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_DATABASE_PROFILE, result);
                     }
                     dismiss();
                 }

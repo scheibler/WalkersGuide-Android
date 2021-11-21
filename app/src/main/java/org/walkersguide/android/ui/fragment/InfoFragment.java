@@ -5,12 +5,9 @@ import android.widget.TextView;
 import java.util.Date;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.util.OSMMap;
+import org.walkersguide.android.server.util.ServerInstance;
 import org.walkersguide.android.R;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import org.walkersguide.android.util.Constants;
 import android.content.Context;
 
@@ -29,13 +26,27 @@ import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.SettingsManager;
 
+import java.util.concurrent.ExecutorService;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-public class InfoFragment extends Fragment implements ServerStatusListener {
+import org.walkersguide.android.server.util.ServerCommunicationException;
+import org.walkersguide.android.server.util.ServerUtility;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+
+
+public class InfoFragment extends Fragment {
 
 	public static InfoFragment newInstance() {
 		InfoFragment fragment = new InfoFragment();
 		return fragment;
 	}
+
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Future getServerInstanceRequest;
 
     private TextView labelServerName, labelServerVersion, labelSelectedMapName, labelSelectedMapCreated;
 
@@ -78,12 +89,10 @@ public class InfoFragment extends Fragment implements ServerStatusListener {
 
     @Override public void onPause() {
         super.onPause();
-        ServerStatusManager.getInstance(getActivity()).invalidateServerStatusRequest(this);
     }
 
     @Override public void onResume() {
         super.onResume();
-        ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
 
         labelServerName.setText(
                 GlobalInstance.getStringResource(R.string.labelServerName));
@@ -94,47 +103,59 @@ public class InfoFragment extends Fragment implements ServerStatusListener {
         labelSelectedMapCreated.setText(
                 GlobalInstance.getStringResource(R.string.labelSelectedMapCreated));
 
-        ServerStatusManager.getInstance(getActivity()).requestServerStatus(
-                InfoFragment.this, serverSettings.getServerURL());
-    }
+        // request server instance
+        if (getServerInstanceRequest == null || getServerInstanceRequest.isDone()) {
+            getServerInstanceRequest = this.executorService.submit(() -> {
+                try {
+                    final ServerInstance serverInstance = ServerUtility.getServerInstance(
+                                SettingsManager.getInstance().getServerURL());
 
-	@Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
-        if (returnCode == Constants.RC.OK
-                && serverInstance != null) {
-            // server name and version
-	    	labelServerName.setText(
-                    String.format(
-                        "%1$s: %2$s",
-    			    	GlobalInstance.getStringResource(R.string.labelServerName),
-                        serverInstance.getServerName())
-                    );
-	    	labelServerVersion.setText(
-                    String.format(
-                        "%1$s: %2$s",
-    			    	GlobalInstance.getStringResource(R.string.labelServerVersion),
-                        serverInstance.getServerVersion())
-                    );
+                    handler.post(() -> {
+                        // server name and version
+                        labelServerName.setText(
+                                String.format(
+                                    "%1$s: %2$s",
+                                    GlobalInstance.getStringResource(R.string.labelServerName),
+                                    serverInstance.getServerName())
+                                );
+                        labelServerVersion.setText(
+                                String.format(
+                                    "%1$s: %2$s",
+                                    GlobalInstance.getStringResource(R.string.labelServerVersion),
+                                    serverInstance.getServerVersion())
+                                );
 
-            // selected map data
-            OSMMap selectedMap = SettingsManager.getInstance().getServerSettings().getSelectedMap();
-            if (selectedMap != null) {
-                // map name
-                labelSelectedMapName.setText(
-                        String.format(
-                            "%1$s: %2$s",
-                            GlobalInstance.getStringResource(R.string.labelSelectedMapName),
-                            selectedMap.getName())
-                        );
-                // map creation date
-                String formattedDate = DateFormat.getMediumDateFormat(GlobalInstance.getContext()).format(
-                        new Date(selectedMap.getCreated()));
-                labelSelectedMapCreated.setText(
-                        String.format(
-                            "%1$s: %2$s",
-                            GlobalInstance.getStringResource(R.string.labelSelectedMapCreated),
-                            formattedDate)
-                        );
-            }
+                        // selected map data
+                        OSMMap selectedMap = SettingsManager.getInstance().getSelectedMap();
+                        if (selectedMap != null) {
+                            // map name
+                            labelSelectedMapName.setText(
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        GlobalInstance.getStringResource(R.string.labelSelectedMapName),
+                                        selectedMap.getName())
+                                    );
+                            // map creation date
+                            String formattedDate = DateFormat.getMediumDateFormat(GlobalInstance.getContext()).format(
+                                    new Date(selectedMap.getCreated()));
+                            labelSelectedMapCreated.setText(
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        GlobalInstance.getStringResource(R.string.labelSelectedMapCreated),
+                                        formattedDate)
+                                    );
+                        }
+                    });
+
+                } catch (ServerCommunicationException e) {
+                    final ServerCommunicationException scException = e;
+                    handler.post(() -> {
+                        SimpleMessageDialog.newInstance(
+                                ServerUtility.getErrorMessageForReturnCode(scException.getReturnCode()))
+                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                    });
+                }
+            });
         }
     }
 

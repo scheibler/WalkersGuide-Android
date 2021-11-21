@@ -1,4 +1,4 @@
-package org.walkersguide.android.server;
+package org.walkersguide.android.server.address;
 
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.DatabaseProfileRequest;
@@ -34,9 +34,9 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.point.StreetAddress;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
-import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.helper.ServerUtility;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.server.util.ServerCommunicationException;
+import org.walkersguide.android.server.util.ServerUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
@@ -251,8 +251,7 @@ public class AddressManager extends AsyncTask<Void, Void, Integer> {
         int returnCode = Constants.RC.OK;
         try {
             // create connection
-            connection = ServerUtility.getHttpsURLConnectionObject(
-                    GlobalInstance.getContext(), queryURL, null);
+            connection = ServerUtility.getHttpsURLConnectionObject(queryURL, null);
             cancelConnectionHandler.postDelayed(cancelConnection, 100);
             connection.connect();
             returnCode = connection.getResponseCode();
@@ -287,8 +286,7 @@ public class AddressManager extends AsyncTask<Void, Void, Integer> {
         int returnCode = Constants.RC.OK;
         try {
             // create connection
-            connection = ServerUtility.getHttpsURLConnectionObject(
-                    GlobalInstance.getContext(), queryURL, null);
+            connection = ServerUtility.getHttpsURLConnectionObject(queryURL, null);
             cancelConnectionHandler.postDelayed(cancelConnection, 100);
             connection.connect();
             returnCode = connection.getResponseCode();

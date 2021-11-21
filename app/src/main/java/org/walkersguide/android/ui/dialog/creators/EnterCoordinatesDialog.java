@@ -35,35 +35,20 @@ import org.walkersguide.android.util.GlobalInstance;
 
 
 public class EnterCoordinatesDialog extends DialogFragment {
-
-    public interface EnterCoordinatesListener {
-        public void coordinatesPointCreated(GPS coordinates);
-    }
+    public static final String REQUEST_ENTER_COORDINATES = "enterCoordinates";
+    public static final String EXTRA_COORDINATES = "coordinates";
 
 
-    private EnterCoordinatesListener listener;
-    private EditText editLatitude, editLongitude, editName;
+    // instance constructors
 
     public static EnterCoordinatesDialog newInstance() {
         EnterCoordinatesDialog dialog = new EnterCoordinatesDialog();
         return dialog;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof EnterCoordinatesListener) {
-            listener = (EnterCoordinatesListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof EnterCoordinatesListener) {
-            listener = (EnterCoordinatesListener) context;
-        }
-    }
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
+    // dialog
+    private EditText editLatitude, editLongitude, editName;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         // custom view
@@ -173,9 +158,9 @@ public class EnterCoordinatesDialog extends DialogFragment {
         if (newLocation != null) {
             AccessDatabase.getInstance().addObjectToDatabaseProfile(
                     newLocation, DatabasePointProfile.GPS_POINTS);
-            if (listener != null) {
-                listener.coordinatesPointCreated(newLocation);
-            }
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_COORDINATES, newLocation);
+            getParentFragmentManager().setFragmentResult(REQUEST_ENTER_COORDINATES, result);
             return true;
         }
         return false;

@@ -10,6 +10,7 @@ import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
 import org.walkersguide.android.ui.activity.AbstractToolbarActivity;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.ui.fragment.InfoFragment;
+import org.walkersguide.android.ui.fragment.SettingsFragment;
 import org.walkersguide.android.ui.fragment.pt.DeparturesFragment;
 import org.walkersguide.android.ui.fragment.pt.TripDetailsFragment;
 
@@ -29,13 +30,10 @@ import android.widget.TextView;
 import java.util.Date;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.util.OSMMap;
+import org.walkersguide.android.server.util.ServerInstance;
 import org.walkersguide.android.R;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
 import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import android.content.Intent;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.pt.PTHelper;
@@ -173,9 +171,9 @@ public class FragmentContainerActivity extends AbstractToolbarActivity {
                 break;
 
             case SETTINGS:
-                fragment = InfoFragment.newInstance();
+                fragment = SettingsFragment.newInstance();
                 FragmentContainerActivity.this.setToolbarTitle(
-                        GlobalInstance.getStringResource(R.string.fragmentInfoName));
+                        GlobalInstance.getStringResource(R.string.fragmentSettingsName));
                 break;
 
             case INFO:

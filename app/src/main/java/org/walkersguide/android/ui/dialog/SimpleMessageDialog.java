@@ -24,51 +24,30 @@ import android.content.Intent;
 import org.walkersguide.android.util.Constants;
 
 public class SimpleMessageDialog extends DialogFragment {
+    public static final String REQUEST_DIALOG_CLOSED = "dialogClosed";
 
-    public interface ChildDialogCloseListener {
-        public void childDialogClosed();
-    }
 
-    private ChildDialogCloseListener childDialogCloseListener;
-    private boolean reloadUi;
+    // instance constructors
 
     public static SimpleMessageDialog newInstance(String message) {
-        return newInstance(message, false);
-    }
-
-    public static SimpleMessageDialog newInstance(String message, boolean reloadUi) {
-        SimpleMessageDialog simpleMessageDialogInstance = new SimpleMessageDialog();
+        SimpleMessageDialog dialog = new SimpleMessageDialog();
         Bundle args = new Bundle();
-        args.putString("message", message);
-        args.putBoolean("reloadUi", reloadUi);
-        simpleMessageDialogInstance.setArguments(args);
-        return simpleMessageDialogInstance;
+        args.putString(KEY_MESSAGE, message);
+        dialog.setArguments(args);
+        return dialog;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof ChildDialogCloseListener) {
-            childDialogCloseListener = (ChildDialogCloseListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof ChildDialogCloseListener) {
-            childDialogCloseListener = (ChildDialogCloseListener) context;
-        }
-    }
 
-    @Override public void onDetach() {
-        super.onDetach();
-        childDialogCloseListener = null;
-    }
+    // dialog
+    private static final String KEY_MESSAGE = "message";
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        reloadUi = getArguments().getBoolean("reloadUi");
-
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
 		TextView labelSimpleMessage = (TextView) view.findViewById(R.id.label);
-        labelSimpleMessage.setText(getArguments().getString("message"));
+        labelSimpleMessage.setText(
+                getArguments().getString(KEY_MESSAGE));
 
         return new AlertDialog.Builder(getActivity())
             .setView(view)
@@ -93,13 +72,8 @@ public class SimpleMessageDialog extends DialogFragment {
     }
 
     private void close() {
-        if (childDialogCloseListener != null) {
-            childDialogCloseListener.childDialogClosed();
-        }
-        if (reloadUi) {
-            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-        }
+        Bundle result = new Bundle();
+        getParentFragmentManager().setFragmentResult(REQUEST_DIALOG_CLOSED, result);
         dismiss();
     }
 

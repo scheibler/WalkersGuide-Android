@@ -2,7 +2,6 @@
 
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
     import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
-import org.walkersguide.android.ui.dialog.LocationSensorDetailsDialog;
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -40,15 +39,16 @@ import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog.SelectRouteOrSimulationPointListener;
 import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog.WhereToPut;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.creators.SaveCurrentLocationDialog;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.data.basic.point.Point;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
 
 
-public class LocationDetailsDialog extends DialogFragment implements SelectRouteOrSimulationPointListener {
+public class LocationDetailsDialog extends DialogFragment implements FragmentResultListener {
 
     private PositionManager positionManagerInstance;
 
@@ -59,6 +59,29 @@ public class LocationDetailsDialog extends DialogFragment implements SelectRoute
     public static LocationDetailsDialog newInstance() {
         LocationDetailsDialog dialog = new LocationDetailsDialog();
         return dialog;
+    }
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
+            WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
+            Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
+            if (whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT) {
+                positionManagerInstance.setSimulatedLocation(point);
+                updateSimulationPoint();
+                // add to history
+                if (point != null) {
+                    AccessDatabase.getInstance().addObjectToDatabaseProfile(
+                            point, DatabasePointProfile.SIMULATED_POINTS);
+                }
+            }
+        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -74,14 +97,14 @@ public class LocationDetailsDialog extends DialogFragment implements SelectRoute
         buttonWhereAmI.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 WhereAmIDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "WhereAmIDialog");
+                    .show(getChildFragmentManager(), "WhereAmIDialog");
             }
         });
         Button buttonSaveCurrentLocation = (Button) view.findViewById(R.id.buttonSaveCurrentLocation);
         buttonSaveCurrentLocation.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 SaveCurrentLocationDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "SaveCurrentLocationDialog");
+                    .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
             }
         });
 
@@ -93,7 +116,7 @@ public class LocationDetailsDialog extends DialogFragment implements SelectRoute
         buttonLocationSensorDetails.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 LocationSensorDetailsDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "LocationSensorDetailsDialog");
+                    .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
             }
         });
 
@@ -121,10 +144,9 @@ public class LocationDetailsDialog extends DialogFragment implements SelectRoute
         layoutSimulationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutSimulationPoint);
         layoutSimulationPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
             @Override public void onLabelClick(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog dialog = SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT);
-                dialog.setTargetFragment(LocationDetailsDialog.this, 1);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
 
@@ -159,18 +181,6 @@ public class LocationDetailsDialog extends DialogFragment implements SelectRoute
     @Override public void onStop() {
         super.onStop();
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
-    }
-
-    @Override public void routeOrSimulationPointSelected(Point point, WhereToPut whereToPut) {
-        if (whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT) {
-            positionManagerInstance.setSimulatedLocation(point);
-            updateSimulationPoint();
-            // add to history
-            if (point != null) {
-                AccessDatabase.getInstance().addObjectToDatabaseProfile(
-                        point, DatabasePointProfile.SIMULATED_POINTS);
-            }
-        }
     }
 
     private void updateSimulationPoint() {

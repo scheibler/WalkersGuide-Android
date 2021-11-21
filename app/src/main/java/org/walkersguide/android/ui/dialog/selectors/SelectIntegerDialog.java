@@ -24,27 +24,17 @@ import android.view.View;
 import java.util.Collections;
 import java.util.Calendar;
 import java.util.Arrays;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import java.util.List;
 
 
 public class SelectIntegerDialog extends DialogFragment {
-    private static final String KEY_TOKEN = "token";
-    private static final String KEY_SELECTED_INTEGER = "selectedInteger";
-
-    public interface IntegerSelector {
-        public void integerSelected(Token token, Integer newInteger);
-    }
-
-    public enum Token {
-        COMPASS_DIRECTION
-    }
+    public static final String REQUEST_SELECT_INTEGER = "selectInteger";
+    public static final String EXTRA_TOKEN = "token";
+    public static final String EXTRA_INTEGER = "integer";
 
 
-    // Store instance variables
-    private IntegerSelector selector;
-    private Token token;
-    private List<Integer> integerList;
+    // instance constructors
 
     public static SelectIntegerDialog newInstance(Token token, Integer selectedInteger) {
         SelectIntegerDialog dialog = new SelectIntegerDialog();
@@ -55,16 +45,16 @@ public class SelectIntegerDialog extends DialogFragment {
         return dialog;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof IntegerSelector) {
-            selector = (IntegerSelector) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof IntegerSelector) {
-            selector = (IntegerSelector) context;
-        }
+    // dialog
+    private static final String KEY_TOKEN = "token";
+    private static final String KEY_SELECTED_INTEGER = "selectedInteger";
+
+    public enum Token {
+        COMPASS_DIRECTION
     }
+
+    private Token token;
+    private List<Integer> integerList;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         token = (Token) getArguments().getSerializable(KEY_TOKEN);
@@ -113,10 +103,12 @@ public class SelectIntegerDialog extends DialogFragment {
                     indexOfSelectedValue,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            if (selector != null
+                            if (which >= 0
                                     && which < integerList.size()) {
-                                selector.integerSelected(
-                                        token, integerList.get(which));
+                                Bundle result = new Bundle();
+                                result.putSerializable(EXTRA_TOKEN, token);
+                                result.putInt(EXTRA_INTEGER, integerList.get(which));
+                                getParentFragmentManager().setFragmentResult(REQUEST_SELECT_INTEGER, result);
                             }
                             dismiss();
                         }

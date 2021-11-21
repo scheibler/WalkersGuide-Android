@@ -21,7 +21,8 @@ import java.util.ArrayList;
 
 import timber.log.Timber;
 import android.text.TextUtils;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
+import de.schildbach.pte.NetworkId;
 
 
 public class StationManager {
@@ -55,11 +56,11 @@ public class StationManager {
 
 
     public void requestStationList(StationListener listener,
-            AbstractNetworkProvider provider, Point position, String searchTerm) {
+            NetworkId networkId, Point position, String searchTerm) {
         if (stationRequestTaskInProgress()) {
             if (listener == null) {
                 return;
-            } else if (this.stationRequestTask.isSameRequest(provider, position, searchTerm)) {
+            } else if (this.stationRequestTask.isSameRequest(networkId, position, searchTerm)) {
                 this.stationRequestTask.addListener(listener);
                 return;
             } else {
@@ -68,7 +69,7 @@ public class StationManager {
         }
         // new request
         this.stationRequestTask = new StationRequestTask(
-                listener, provider, position, searchTerm);
+                listener, networkId, position, searchTerm);
         this.stationRequestTask.execute();
     }
 
@@ -98,21 +99,18 @@ public class StationManager {
         private int returnCode;
         private ArrayList<StationListener> stationListenerList;
 
-        private AbstractNetworkProvider provider;
+        private NetworkId networkId;
         private Point position;
         private String searchTerm;
 
         public StationRequestTask(StationListener listener,
-                AbstractNetworkProvider provider, Point position, String searchTerm) {
+                NetworkId networkId, Point position, String searchTerm) {
             this.returnCode = PTHelper.RC_OK;
             this.stationListenerList = new ArrayList<StationListener>();
             if (listener != null) {
                 this.stationListenerList.add(listener);
             }
-            this.provider = provider;
-            if (this.provider != null) {
-                this.provider.setUserAgent(PTHelper.USER_AGENT);
-            }
+            this.networkId = networkId;
             this.position = position;
             this.searchTerm = searchTerm;
         }
@@ -120,7 +118,8 @@ public class StationManager {
         @Override protected ArrayList<Location> doInBackground(Void... params) {
             ArrayList<Location> stationList = new ArrayList<Location>();
 
-            if (this.provider == null) {
+            AbstractNetworkProvider provider = PTHelper.findNetworkProvider(this.networkId);
+            if (provider == null) {
                 this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
             } else if (this.position == null) {
                 this.returnCode = PTHelper.RC_NO_COORDINATES;
@@ -130,7 +129,7 @@ public class StationManager {
             } else if (! TextUtils.isEmpty(this.searchTerm)) {
                 SuggestLocationsResult searchResult = null;
                 try {
-                    searchResult = this.provider.suggestLocations(
+                    searchResult = provider.suggestLocations(
                             this.searchTerm, EnumSet.of(LocationType.STATION), 0);
                 } catch (IOException e) {
                     searchResult = null;
@@ -153,7 +152,7 @@ public class StationManager {
             } else {
                 NearbyLocationsResult nearbyResult = null;
                 try {
-                    nearbyResult = this.provider.queryNearbyLocations(
+                    nearbyResult = provider.queryNearbyLocations(
                             EnumSet.of(LocationType.STATION),
                             new Location(LocationType.COORD, null, this.position),
                             1000, 0);
@@ -216,19 +215,13 @@ public class StationManager {
             }
         }
 
-        public boolean isSameRequest(AbstractNetworkProvider newProvider, Point newPosition, String newSearchTerm) {
-            if (this.isSameProvider(newProvider) && this.isSameSearchTerm(newSearchTerm)
+        public boolean isSameRequest(NetworkId newNetworkId, Point newPosition, String newSearchTerm) {
+            if (this.networkId == newNetworkId
+                    && this.isSameSearchTerm(newSearchTerm)
                     && PTHelper.distanceBetweenTwoPoints(this.position, newPosition) < 100) {
                 return true;
             }
             return false;
-        }
-
-        private boolean isSameProvider(AbstractNetworkProvider newProvider) {
-            if (this.provider == null) {
-                return newProvider == null;
-            }
-            return this.provider.equals(newProvider);
         }
 
         private boolean isSameSearchTerm(String newSearchTerm) {

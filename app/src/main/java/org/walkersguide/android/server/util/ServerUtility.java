@@ -1,4 +1,4 @@
-package org.walkersguide.android.helper;
+package org.walkersguide.android.server.util;
 
 import android.content.Context;
 
@@ -31,34 +31,29 @@ import org.json.JSONObject;
 
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.server.poi.PoiCategory;
-import org.walkersguide.android.data.server.OSMMap;
-import org.walkersguide.android.data.server.ServerInstance;
-import org.walkersguide.android.exception.ServerCommunicationException;
 import org.walkersguide.android.R;
-import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
+import java.net.CookieManager;
+import java.net.CookieHandler;
+import timber.log.Timber;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 
 
 public class ServerUtility {
     private static final int CONNECT_TIMEOUT = 10000;
     private static final int READ_TIMEOUT = 180000;
 
-
-    /**
-     * get server instance
-     */
-
-    public static ServerInstance getServerInstance(Context context, String serverURL) throws ServerCommunicationException {
+    public static ServerInstance getServerInstance(String serverURL) throws ServerCommunicationException {
         // check server url
         if (TextUtils.isEmpty(serverURL)) {
-            throw new ServerCommunicationException(context, Constants.RC.NO_SERVER_URL);
+            throw new ServerCommunicationException(Constants.RC.NO_SERVER_URL);
         }
 
         // server instance from cache
-        ServerInstance cachedServerInstance = ServerStatusManager.getInstance(context).getCachedServerInstance();
+        ServerInstance cachedServerInstance = GlobalInstance.getInstance().getCachedServerInstance();
         if (cachedServerInstance != null
                 && cachedServerInstance.getServerURL().equals(serverURL)) {
             return cachedServerInstance;
@@ -67,35 +62,34 @@ public class ServerUtility {
         // create server param list
         JSONObject jsonServerParams = null;
         try {
-            jsonServerParams = createServerParamList(context);
+            jsonServerParams = createServerParamList();
         } catch (JSONException e) {
-            jsonServerParams = new JSONObject();
+            throw new ServerCommunicationException(Constants.RC.BAD_REQUEST);
         }
 
         HttpsURLConnection connection = null;
+        InputStream in = null;
+        ServerCommunicationException scException = null;
         JSONObject jsonServerResponse = null;
-        int returnCode = Constants.RC.OK;
         try {
-            connection = ServerUtility.getHttpsURLConnectionObject(
-                    context,
+            connection = connectToServer(
                     String.format(
                         "%1$s/%2$s", serverURL, Constants.SERVER_COMMAND.GET_STATUS),
                     jsonServerParams);
-            connection.connect();
-            returnCode = connection.getResponseCode();
-            if (returnCode == Constants.RC.OK) {
-                jsonServerResponse = processServerResponseAsJSONObject(connection);
-            }
+            in = getInputStream(connection);
+            jsonServerResponse = new JSONObject(getServerResponse(in));
+        } catch (ServerCommunicationException e) {
+            scException = e;
         } catch (IOException e) {
-            returnCode = Constants.RC.CONNECTION_FAILED;
+            Timber.e("ioError: %1$s", e.getMessage());
+            scException = new ServerCommunicationException(Constants.RC.CONNECTION_FAILED);
         } catch (JSONException e) {
-            returnCode = Constants.RC.BAD_RESPONSE;
+            Timber.e("JSONException: %1$s", e.getMessage());
+            scException = new ServerCommunicationException(Constants.RC.BAD_RESPONSE);
         } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-            if (returnCode != Constants.RC.OK) {
-                throw new ServerCommunicationException(context, returnCode);
+            cleanUp(connection, in);
+            if (scException != null) {
+                throw scException;
             }
         }
 
@@ -116,19 +110,19 @@ public class ServerUtility {
             }
         }
         if (supportedAPIVersionList.isEmpty()) {
-            throw new ServerCommunicationException(context, Constants.RC.BAD_RESPONSE);
+            throw new ServerCommunicationException(Constants.RC.BAD_RESPONSE);
         } else {
             // check for server api version
             Collections.sort(supportedAPIVersionList);
             // check if app is outdated
             int minServerApiVersion = supportedAPIVersionList.get(0);
             if (BuildConfig.SUPPORTED_API_VERSION_LIST[BuildConfig.SUPPORTED_API_VERSION_LIST.length-1] < minServerApiVersion) {
-                throw new ServerCommunicationException(context, Constants.RC.API_CLIENT_OUTDATED);
+                throw new ServerCommunicationException(Constants.RC.API_CLIENT_OUTDATED);
             }
             // check if server is outdated
             int maxServerApiVersion = supportedAPIVersionList.get(supportedAPIVersionList.size()-1);
             if (BuildConfig.SUPPORTED_API_VERSION_LIST[0] > maxServerApiVersion) {
-                throw new ServerCommunicationException(context, Constants.RC.API_SERVER_OUTDATED);
+                throw new ServerCommunicationException(Constants.RC.API_SERVER_OUTDATED);
             }
         }
 
@@ -137,13 +131,13 @@ public class ServerUtility {
         try {
             serverName = jsonServerResponse.getString("server_name");
         } catch (JSONException e) {
-            throw new ServerCommunicationException(context, Constants.RC.BAD_RESPONSE);
+            throw new ServerCommunicationException(Constants.RC.BAD_RESPONSE);
         }
         String serverVersion;
         try {
             serverVersion = jsonServerResponse.getString("server_version");
         } catch (JSONException e) {
-            throw new ServerCommunicationException(context, Constants.RC.BAD_RESPONSE);
+            throw new ServerCommunicationException(Constants.RC.BAD_RESPONSE);
         }
 
         ArrayList<OSMMap> availableMapList = new ArrayList<OSMMap>();
@@ -170,7 +164,7 @@ public class ServerUtility {
             }
         }
         if (availableMapList.isEmpty()) {
-            throw new ServerCommunicationException(context, Constants.RC.NO_MAP_LIST);
+            throw new ServerCommunicationException(Constants.RC.NO_MAP_LIST);
         }
 
         ArrayList<PoiCategory> supportedPoiCategoryList = new ArrayList<PoiCategory>();
@@ -185,7 +179,7 @@ public class ServerUtility {
             }
         }
         if (supportedPoiCategoryList.isEmpty()) {
-            throw new ServerCommunicationException(context, Constants.RC.BAD_RESPONSE);
+            throw new ServerCommunicationException(Constants.RC.BAD_RESPONSE);
         }
 
         // create server instance object
@@ -194,132 +188,175 @@ public class ServerUtility {
                 supportedPoiCategoryList, supportedAPIVersionList);
 
         // update server settings
-        ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
-        if (! serverInstance.getServerURL().equals(serverSettings.getServerURL())) {
-            serverSettings.setServerURL(serverInstance.getServerURL());
+        SettingsManager settingsManagerInstance = SettingsManager.getInstance();
+        if (! serverInstance.getServerURL().equals(settingsManagerInstance.getServerURL())) {
+            settingsManagerInstance.setServerURL(serverInstance.getServerURL());
         }
-        if (serverSettings.getSelectedMap() != null) {
-            int indexOfSelectedMap = serverInstance.getAvailableMapList().indexOf(serverSettings.getSelectedMap());
+        if (settingsManagerInstance.getSelectedMap() != null) {
+            int indexOfSelectedMap = serverInstance.getAvailableMapList().indexOf(
+                    settingsManagerInstance.getSelectedMap());
             if (indexOfSelectedMap == -1) {
                 // reset
-                serverSettings.setSelectedMap(null);
+                settingsManagerInstance.setSelectedMap(null);
             } else {
                 // update
-                serverSettings.setSelectedMap(serverInstance.getAvailableMapList().get(indexOfSelectedMap));
+                settingsManagerInstance.setSelectedMap(
+                        serverInstance.getAvailableMapList().get(indexOfSelectedMap));
             }
         }
 
         // cache new server instance object and return
-        ServerStatusManager.getInstance(context).setCachedServerInstance(serverInstance);
+        GlobalInstance.getInstance().setCachedServerInstance(serverInstance);
         return serverInstance;
     }
 
+    public static void cancelRunningRequest() throws ServerCommunicationException {
+        JSONObject jsonServerParams = null;
+        try {
+            jsonServerParams = createServerParamList();
+        } catch (JSONException e) {
+            throw new ServerCommunicationException(Constants.RC.BAD_REQUEST);
+        }
 
-    /** helper functions
+        HttpsURLConnection connection = null;
+        ServerCommunicationException scException = null;
+        try {
+            ServerInstance serverInstance = getServerInstance(
+                        SettingsManager.getInstance().getServerURL());
+            connection = connectToServer(
+                    String.format(
+                        "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.CANCEL_REQUEST),
+                    jsonServerParams);
+
+        } catch (ServerCommunicationException e) {
+            scException = e;
+        } finally {
+            cleanUp(connection, null);
+            if (scException != null) {
+                throw scException;
+            }
+        }
+    }
+
+
+    /**
+     * helper functions
      */
 
-    public static HttpsURLConnection getHttpsURLConnectionObject(Context context, String queryURL,
-            JSONObject postParameters) throws IOException, ServerCommunicationException {
-        // check for internet connection
-        if (! isInternetAvailable()) {
-            throw new ServerCommunicationException(context, Constants.RC.NO_INTERNET_CONNECTION);
-        }
-
-        // prepare connection object
-        URL url = new URL(queryURL);
-        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-        connection.setConnectTimeout(CONNECT_TIMEOUT);
-        connection.setReadTimeout(READ_TIMEOUT);
-        connection.setRequestProperty("Accept-Encoding", "gzip");
-        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        connection.setRequestProperty(
-                "User-agent",
-                String.format(
-                    "%1$s/%2$s (Android:%3$s; Contact:%4$s)",
-                    context.getResources().getString(R.string.app_name),
-                    BuildConfig.VERSION_NAME,
-                    android.os.Build.VERSION.RELEASE,
-                    BuildConfig.CONTACT_EMAIL)
-                );
-
-        // load additional parameters via post method, if given
-        if (postParameters != null) {
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            OutputStream os = connection.getOutputStream();
-            os.write(postParameters.toString().getBytes("UTF-8"));
-            os.close();
-        }
-        return connection;
-    }
-
-    public static boolean isInternetAvailable() {
-        ConnectivityManager connMgr = (ConnectivityManager) GlobalInstance.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = connMgr.getActiveNetworkInfo();
-        if (activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED) {
-            return true;
-        }
-        return false;
-    }
-
-    public static JSONObject createServerParamList(Context context) throws JSONException {
-        ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
+    public static JSONObject createServerParamList() throws JSONException {
         JSONObject requestJson = new JSONObject();
         // session id and language
-        requestJson.put("session_id", ((GlobalInstance) context.getApplicationContext()).getSessionId());
+        requestJson.put("session_id", GlobalInstance.getInstance().getSessionId());
         requestJson.put("language", Locale.getDefault().getLanguage());
         // selected map id
-        if (serverSettings.getSelectedMap() != null) {
-            requestJson.put("map_id", serverSettings.getSelectedMap().getId());
+        OSMMap selectedMap = SettingsManager.getInstance().getSelectedMap();
+        if (selectedMap != null) {
+            requestJson.put("map_id", selectedMap.getId());
         }
         return requestJson;
     }
 
-    public static JSONArray processServerResponseAsJSONArray(
-            HttpsURLConnection connection) throws IOException, JSONException {
-        return new JSONArray(processServerResponseAsString(connection));
+    public static HttpsURLConnection connectToServer(String queryURL, JSONObject postParameters) throws ServerCommunicationException {
+        // remove all cookies from cookie manager, if available
+        // just a precaution
+        CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+        if (cookieManager != null
+                && cookieManager.getCookieStore() != null
+                && cookieManager.getCookieStore().getCookies() != null
+                && ! cookieManager.getCookieStore().getCookies().isEmpty()) {
+            cookieManager.getCookieStore().removeAll();
+        }
+
+        HttpsURLConnection connection = null;
+        int returnCode = 0;
+        try {
+            URL url = new URL(queryURL);
+            connection = (HttpsURLConnection) url.openConnection();
+            connection.setConnectTimeout(CONNECT_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
+            connection.setRequestProperty("Accept-Encoding", "gzip");
+            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            connection.setRequestProperty(
+                    "User-agent",
+                    String.format(
+                        "%1$s/%2$s (Android:%3$s; Contact:%4$s)",
+                        GlobalInstance.getStringResource(R.string.app_name),
+                        BuildConfig.VERSION_NAME,
+                        android.os.Build.VERSION.RELEASE,
+                        BuildConfig.CONTACT_EMAIL)
+                    );
+
+            // load additional parameters via post method, if given
+            if (postParameters != null) {
+                connection.setRequestMethod("POST");
+                connection.setDoOutput(true);
+                OutputStream os = connection.getOutputStream();
+                os.write(postParameters.toString().getBytes("UTF-8"));
+                os.close();
+            }
+
+            connection.connect();
+            returnCode = connection.getResponseCode();
+            Timber.d("%1$d -- Request: %2$s", returnCode, url.toString());
+        } catch (UnknownHostException e) {
+            Timber.e("Server connection timeout: %1$s", e.getMessage());
+            returnCode = Constants.RC.NO_INTERNET_CONNECTION;
+        } catch (IOException e) {
+            Timber.e("Server connection failed: %1$s", e.getMessage());
+            returnCode = Constants.RC.CONNECTION_FAILED;
+        } finally {
+            if (returnCode != HttpsURLConnection.HTTP_OK) {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                throw new ServerCommunicationException(returnCode);
+            }
+        }
+        return connection;
     }
 
-    public static JSONObject processServerResponseAsJSONObject(
-            HttpsURLConnection connection) throws IOException, JSONException {
-        return new JSONObject(processServerResponseAsString(connection));
-    }
-
-    private static String processServerResponseAsString(
-            HttpsURLConnection connection) throws IOException, JSONException {
-        BufferedReader reader;
-        StringBuilder sb = new StringBuilder();
+    public static InputStream getInputStream(HttpsURLConnection connection) throws IOException {
         InputStream in = connection.getInputStream();
         if (
                    (   // new variant: cherrypy build-in gzip
                        connection.getContentEncoding() != null
                     && connection.getContentEncoding().equalsIgnoreCase("gzip"))
-                || (   // legacy
+                || (   // default gzip mime type
                        connection.getContentType() != null
                     && connection.getContentType().equalsIgnoreCase("application/gzip"))
                 ) {
-            reader = new BufferedReader(new InputStreamReader(
-                        new GZIPInputStream(in), "utf-8"), 8);
+            return new GZIPInputStream(in);
         } else {
-            reader = new BufferedReader(new InputStreamReader(in, "utf-8"), 8);
+            return in;
         }
+    }
+
+    public static String getServerResponse(InputStream in) throws IOException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(in, StandardCharsets.UTF_8), 8);
+        StringBuilder sb = new StringBuilder();
         String line = null;
         while ((line = reader.readLine()) != null) {
             sb.append(line + "\n");
         }
-        in.close();
-        // convert to json
         return sb.toString();
+    }
+
+    public static void cleanUp(HttpsURLConnection connection, InputStream in) {
+        if (in != null) {
+            try {
+                in.close();
+            } catch (IOException e) {}
+        }
+        if (connection != null) {
+            connection.disconnect();
+        }
     }
 
 
     /**
      * return codes
      */
-
-    public static String getErrorMessageForReturnCode(Context context, int returnCode) {
-        return getErrorMessageForReturnCode(returnCode);
-    }
 
     public static String getErrorMessageForReturnCode(int returnCode) {
         switch (returnCode) {
@@ -410,5 +447,75 @@ public class ServerUtility {
                         GlobalInstance.getStringResource(R.string.messageUnknownError), returnCode);
         }
     }
+
+    // begin deprecated
+
+    public static ServerInstance getServerInstance(Context context, String serverURL) throws ServerCommunicationException {
+        return getServerInstance(serverURL);
+    }
+
+    public static HttpsURLConnection getHttpsURLConnectionObject(String queryURL, JSONObject postParameters)
+            throws IOException, ServerCommunicationException {
+        // check for internet connection
+        if (! isInternetAvailable()) {
+            throw new ServerCommunicationException(Constants.RC.NO_INTERNET_CONNECTION);
+        }
+
+        // prepare connection object
+        URL url = new URL(queryURL);
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        connection.setConnectTimeout(CONNECT_TIMEOUT);
+        connection.setReadTimeout(READ_TIMEOUT);
+        connection.setRequestProperty("Accept-Encoding", "gzip");
+        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        connection.setRequestProperty(
+                "User-agent",
+                String.format(
+                    "%1$s/%2$s (Android:%3$s; Contact:%4$s)",
+                    GlobalInstance.getStringResource(R.string.app_name),
+                    BuildConfig.VERSION_NAME,
+                    android.os.Build.VERSION.RELEASE,
+                    BuildConfig.CONTACT_EMAIL)
+                );
+
+        // load additional parameters via post method, if given
+        if (postParameters != null) {
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            OutputStream os = connection.getOutputStream();
+            os.write(postParameters.toString().getBytes("UTF-8"));
+            os.close();
+        }
+        return connection;
+    }
+
+    public static boolean isInternetAvailable() {
+        ConnectivityManager connMgr = (ConnectivityManager) GlobalInstance.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connMgr.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.getState() == NetworkInfo.State.CONNECTED) {
+            return true;
+        }
+        return false;
+    }
+
+    public static JSONArray processServerResponseAsJSONArray(
+            HttpsURLConnection connection) throws IOException, JSONException {
+        return new JSONArray(processServerResponseAsString(connection));
+    }
+
+    public static JSONObject processServerResponseAsJSONObject(
+            HttpsURLConnection connection) throws IOException, JSONException {
+        return new JSONObject(processServerResponseAsString(connection));
+    }
+
+    private static String processServerResponseAsString(HttpsURLConnection connection) throws IOException {
+        return getServerResponse(getInputStream(connection));
+    }
+
+    public static String getErrorMessageForReturnCode(Context context, int returnCode) {
+        return getErrorMessageForReturnCode(returnCode);
+    }
+
+    // end deprecated
 
 }

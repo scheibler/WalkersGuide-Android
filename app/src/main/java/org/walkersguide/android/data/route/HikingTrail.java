@@ -1,7 +1,7 @@
 package org.walkersguide.android.data.route;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 import org.json.JSONException;

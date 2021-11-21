@@ -8,7 +8,7 @@ import org.walkersguide.android.util.Constants;
 import java.io.Serializable;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.segment.RouteSegment;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 

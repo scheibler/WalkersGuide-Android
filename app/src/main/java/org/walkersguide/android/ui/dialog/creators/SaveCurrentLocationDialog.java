@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.dialog.creators;
 
-import org.walkersguide.android.ui.dialog.LocationSensorDetailsDialog;
+import org.walkersguide.android.ui.dialog.toolbar.LocationSensorDetailsDialog;
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -42,7 +42,7 @@ import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.ui.listener.TextChangedListener;
 import android.text.Editable;
 import android.text.TextUtils;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 
 public class SaveCurrentLocationDialog extends DialogFragment {
 
@@ -77,7 +77,7 @@ public class SaveCurrentLocationDialog extends DialogFragment {
         buttonLocationSensorDetails.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 LocationSensorDetailsDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "LocationSensorDetailsDialog");
+                    .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
             }
         });
 

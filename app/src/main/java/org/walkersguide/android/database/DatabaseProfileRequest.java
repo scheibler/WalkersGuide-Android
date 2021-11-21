@@ -1,6 +1,6 @@
 package org.walkersguide.android.database;
 
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import java.io.Serializable;
 import android.text.TextUtils;
 

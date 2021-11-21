@@ -5,7 +5,7 @@ import java.util.Comparator;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import java.io.Serializable;
 
 

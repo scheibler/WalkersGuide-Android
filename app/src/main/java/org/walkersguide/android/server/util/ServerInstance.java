@@ -1,11 +1,13 @@
-package org.walkersguide.android.data.server;
+package org.walkersguide.android.server.util;
 
 import java.util.ArrayList;
 
 import org.walkersguide.android.server.poi.PoiCategory;
+import java.io.Serializable;
 
 
-public class ServerInstance {
+public class ServerInstance implements Serializable {
+    private static final long serialVersionUID = 1l;
 
     private String serverName, serverURL, serverVersion;
     private ArrayList<OSMMap> availableMapList;

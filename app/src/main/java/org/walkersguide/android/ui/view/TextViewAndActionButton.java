@@ -4,7 +4,6 @@ import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
 import org.walkersguide.android.database.profiles.DatabaseSegmentProfile;
 import androidx.appcompat.app.AppCompatActivity;
 import org.walkersguide.android.ui.dialog.creators.RenameObjectDialog;
-import org.walkersguide.android.ui.dialog.creators.RenameObjectDialog.RenameObjectListener;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.view.MenuItem;
@@ -53,9 +52,10 @@ import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
 import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
+import android.widget.Toast;
 
 
-public class TextViewAndActionButton extends LinearLayout implements RenameObjectListener {
+public class TextViewAndActionButton extends LinearLayout {
 
 
     /**
@@ -305,10 +305,6 @@ public class TextViewAndActionButton extends LinearLayout implements RenameObjec
         }
     }
 
-    @Override public void renameObjectSuccessful() {
-        updateUI();
-    }
-
     @Override public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         Timber.d("onDetachedFromWindow");
@@ -318,10 +314,10 @@ public class TextViewAndActionButton extends LinearLayout implements RenameObjec
     @Override public void onAttachedToWindow() {
         super.onAttachedToWindow();
         Timber.d("onAttachedToWindow");
-        // listen for new location broadcasts
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.ACTION_NEW_DIRECTION);
         filter.addAction(Constants.ACTION_NEW_LOCATION);
+        filter.addAction(RenameObjectDialog.REQUEST_RENAME_OBJECT);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(mMessageReceiver, filter);
     }
 
@@ -343,6 +339,16 @@ public class TextViewAndActionButton extends LinearLayout implements RenameObjec
                         && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.TEN_METERS)
                         && labelTextConfig != null) {
                     updateUI();
+                }
+
+            } else if (intent.getAction().equals(RenameObjectDialog.REQUEST_RENAME_OBJECT)) {
+                if (intent.getBooleanExtra(RenameObjectDialog.EXTRA_SUCCESSFUL, false)) {
+                    updateUI();
+                } else {
+                    Toast.makeText(
+                            context,
+                            context.getResources().getString(R.string.messageRenameObjectFailed),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -471,7 +477,6 @@ public class TextViewAndActionButton extends LinearLayout implements RenameObjec
 
                     case MENU_ITEM_RENAME:
                         RenameObjectDialog roDialog = RenameObjectDialog.newInstance(point);
-                        roDialog.setRenameObjectListener(TextViewAndActionButton.this);
                         if (getContext() instanceof AppCompatActivity) {
                             roDialog.show(
                                     ((AppCompatActivity)getContext()).getSupportFragmentManager(), "RenameObjectDialog");
@@ -672,7 +677,6 @@ public class TextViewAndActionButton extends LinearLayout implements RenameObjec
 
                     case MENU_ITEM_RENAME:
                         RenameObjectDialog roDialog = RenameObjectDialog.newInstance(segment);
-                        roDialog.setRenameObjectListener(TextViewAndActionButton.this);
                         if (getContext() instanceof AppCompatActivity) {
                             roDialog.show(
                                     ((AppCompatActivity)getContext()).getSupportFragmentManager(), "RenameObjectDialog");

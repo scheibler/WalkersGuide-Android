@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import android.annotation.TargetApi;
 
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 

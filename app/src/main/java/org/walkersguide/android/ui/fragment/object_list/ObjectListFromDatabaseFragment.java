@@ -2,19 +2,15 @@ package org.walkersguide.android.ui.fragment.object_list;
 
 import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
 import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.database.DatabaseProfileManager;
 import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.database.SortMethod;
-import org.walkersguide.android.database.DatabaseProfileManager.DatabaseProfileRequestListener;
 import org.walkersguide.android.ui.dialog.selectors.SelectDatabaseProfileDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectDatabaseProfileDialog.SelectDatabaseProfileListener;
 
 import org.walkersguide.android.data.ObjectWithId;
 
 import org.walkersguide.android.ui.dialog.selectors.SelectDatabaseProfileDialog;
 
 import org.walkersguide.android.ui.dialog.selectors.SelectSortMethodDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectSortMethodDialog.SelectSortMethodListener;
 import org.walkersguide.android.R;
 
 import android.view.Menu;
@@ -34,15 +30,27 @@ import android.view.View;
 
 import java.util.ArrayList;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.ui.fragment.ObjectListFragment;
 import org.walkersguide.android.database.profiles.DatabaseSegmentProfile;
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
+
+import java.util.concurrent.ExecutorService;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import org.walkersguide.android.database.util.AccessDatabase;
 
 
-public class ObjectListFromDatabaseFragment extends ObjectListFragment
-        implements DatabaseProfileRequestListener, SelectDatabaseProfileListener, SelectSortMethodListener {
+public class ObjectListFromDatabaseFragment extends ObjectListFragment implements FragmentResultListener {
     private static final String KEY_REQUEST = "request";
+
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Future databaseFuture;
 
     private DatabaseProfileRequest request;
 
@@ -66,6 +74,29 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
 	}
 
 
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectDatabaseProfileDialog.REQUEST_SELECT_DATABASE_PROFILE, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectDatabaseProfileDialog.REQUEST_SELECT_DATABASE_PROFILE)) {
+            request.setProfile(
+                    (DatabaseProfile) bundle.getSerializable(SelectDatabaseProfileDialog.EXTRA_DATABASE_PROFILE));
+        } else if (requestKey.equals(SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD)) {
+            request.setSortMethod(
+                    (SortMethod) bundle.getSerializable(SelectSortMethodDialog.EXTRA_SORT_METHOD));
+        }
+        resetListPosition();
+        requestUiUpdate();
+    }
+
+
     /**
      * menu
      */
@@ -78,9 +109,8 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menuItemSortMethod:
-                SelectSortMethodDialog dialog = SelectSortMethodDialog.newInstance(request.getSortMethod());
-                dialog.setTargetFragment(ObjectListFromDatabaseFragment.this, 1);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectSortMethodDialog");
+                SelectSortMethodDialog.newInstance(request.getSortMethod())
+                    .show(getChildFragmentManager(), "SelectSortMethodDialog");
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -102,6 +132,11 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
         return view;
     }
 
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_REQUEST, request);
+    }
+
     @Override public void clickedButtonSelectProfile() {
         SelectDatabaseProfileDialog dialog = null;
         if (request.getProfile() instanceof DatabasePointProfile) {
@@ -115,8 +150,7 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
                     (DatabaseSegmentProfile) request.getProfile());
         }
         if (dialog != null) {
-            dialog.setTargetFragment(ObjectListFromDatabaseFragment.this, 1);
-            dialog.show(getActivity().getSupportFragmentManager(), "SelectDatabaseProfileDialog");
+            dialog.show(getChildFragmentManager(), "SelectDatabaseProfileDialog");
         }
     }
 
@@ -147,44 +181,15 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
 
 
     /**
-     * listeners
-     */
-
-    @Override public void databaseProfileSelected(DatabaseProfile newProfile) {
-        if (newProfile != null) {
-            request.setProfile(newProfile);
-            resetListPosition();
-            requestUiUpdate();
-        }
-    }
-
-    @Override public void sortMethodSelected(SortMethod newSortMethod) {
-        if (newSortMethod != null) {
-            request.setSortMethod(newSortMethod);
-            resetListPosition();
-            requestUiUpdate();
-        }
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putSerializable(KEY_REQUEST, request);
-    }
-
-
-    /**
      * pause and resume
      */
 
     @Override public void onPause() {
         super.onPause();
-        Timber.d("onPause");
-        DatabaseProfileManager.getInstance().invalidateDatabaseProfileRequest((ObjectListFromDatabaseFragment) this);
     }
 
     @Override public void onResume() {
         super.onResume();
-        Timber.d("onResume");
         requestUiUpdate();
     }
 
@@ -192,11 +197,6 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
     /**
      * point list request and response
      */
-
-    public void requestUiUpdate() {
-        prepareRequest();
-        DatabaseProfileManager.getInstance().startDatabaseProfileRequest((ObjectListFromDatabaseFragment) this, request);
-    }
 
     @Override public void prepareRequest() {
         super.prepareRequest();
@@ -207,7 +207,21 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
                 );
     }
 
-    @Override public void databaseProfileRequestSuccessful(ArrayList<ObjectWithId> objectList) {
+    public void requestUiUpdate() {
+        prepareRequest();
+        if (databaseFuture == null || databaseFuture.isDone()) {
+            databaseFuture = this.executorService.submit(() -> {
+                final ArrayList<ObjectWithId> objectList = AccessDatabase
+                    .getInstance()
+                    .getObjectWithIdListFor(request);
+                handler.post(() -> {
+                    databaseProfileRequestFinished(objectList);
+                });
+            });
+        }
+    }
+
+    private void databaseProfileRequestFinished(ArrayList<ObjectWithId> objectList) {
         super.updateRefreshButtonAfterRequestWasFinished();
         super.updateListViewAfterRequestWasSuccessful(objectList);
 
@@ -227,14 +241,6 @@ public class ObjectListFromDatabaseFragment extends ObjectListFragment
         }
         heading += String.format("\n%1$s", request.getSortMethod().toString());
         labelHeading.setText(heading);
-    }
-
-    @Override public void databaseProfileRequestFailed(int returnCode) {
-        super.updateRefreshButtonAfterRequestWasFinished();
-        ViewCompat.setAccessibilityLiveRegion(
-                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
-        labelEmptyListView.setText(
-                ServerUtility.getErrorMessageForReturnCode(returnCode));
     }
 
 }

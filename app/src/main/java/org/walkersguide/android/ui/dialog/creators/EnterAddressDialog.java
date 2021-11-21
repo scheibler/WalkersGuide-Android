@@ -1,7 +1,7 @@
 package org.walkersguide.android.ui.dialog.creators;
 
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
-import org.walkersguide.android.server.AddressManager.AddressRequestListener;
+import org.walkersguide.android.server.address.AddressManager.AddressRequestListener;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -33,9 +33,9 @@ import java.util.ArrayList;
 
 
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.R;
-import org.walkersguide.android.server.AddressManager;
+import org.walkersguide.android.server.address.AddressManager;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.data.basic.point.StreetAddress;
 import android.app.Activity;
@@ -45,40 +45,22 @@ import android.widget.EditText;
 
 
 public class EnterAddressDialog extends DialogFragment implements AddressRequestListener {
+    public static final String REQUEST_ENTER_ADDRESS = "enterAddress";
+    public static final String EXTRA_STREET_ADDRESS = "streetAddress";
 
 
-    public interface EnterAddressListener {
-        public void addressPointCreated(StreetAddress address);
-    }
-
-
-    // Store instance variables
-    private EnterAddressListener listener;
-    private AddressManager addressManagerRequest;
-
-    private EditText editAddress;
-    private Switch buttonNearbyCurrentLocation;
+    // instance constructors
 
     public static EnterAddressDialog newInstance() {
         EnterAddressDialog dialog = new EnterAddressDialog();
         return dialog;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof EnterAddressListener) {
-            listener = (EnterAddressListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof EnterAddressListener) {
-            listener = (EnterAddressListener) context;
-        }
-    }
+    // dialog
+    private AddressManager addressManagerRequest;
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
+    private EditText editAddress;
+    private Switch buttonNearbyCurrentLocation;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         // custom view
@@ -190,9 +172,9 @@ public class EnterAddressDialog extends DialogFragment implements AddressRequest
         //if (addressPointList.size() == 1) {
             AccessDatabase.getInstance().addObjectToDatabaseProfile(
                     addressPointList.get(0), DatabasePointProfile.ADDRESS_POINTS);
-            if (listener != null) {
-                listener.addressPointCreated(addressPointList.get(0));
-            }
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_STREET_ADDRESS, addressPointList.get(0));
+            getParentFragmentManager().setFragmentResult(REQUEST_ENTER_ADDRESS, result);
             dismiss();
         //}
     }
@@ -201,7 +183,7 @@ public class EnterAddressDialog extends DialogFragment implements AddressRequest
         if (isAdded()) {
             SimpleMessageDialog.newInstance(
                     ServerUtility.getErrorMessageForReturnCode(returnCode))
-                .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                .show(getChildFragmentManager(), "SimpleMessageDialog");
         }
     }
 

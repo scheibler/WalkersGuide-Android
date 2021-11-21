@@ -1,11 +1,9 @@
 package org.walkersguide.android.ui.dialog.selectors;
 
 import org.walkersguide.android.ui.dialog.creators.ManagePoiProfileDialog;
-import org.walkersguide.android.ui.dialog.creators.ManagePoiProfileDialog.ManagePoiProfileListener;
+import org.walkersguide.android.ui.dialog.creators.ManagePoiProfileDialog.Action;
 import org.walkersguide.android.server.poi.PoiCategory;
 
-import org.walkersguide.android.ui.dialog.selectors.SelectPoiCategoriesDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectPoiCategoriesDialog.SelectPoiCategoriesListener;
 import org.walkersguide.android.server.poi.PoiProfile;
 import org.walkersguide.android.R;
 import android.app.AlertDialog;
@@ -50,21 +48,16 @@ import android.widget.CompoundButton;
 import android.text.TextUtils;
 import android.widget.Toast;
 import android.widget.CheckedTextView;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
 
 
-public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiProfileListener {
-    private static final String KEY_SELECTED_PROFILE = "selectedProfile";
-    private static final String KEY_SELECTED_PROFILE_MODIFIED = "selectedProfileModified";
-
-    public interface SelectPoiProfileListener {
-        public void poiProfileSelected(PoiProfile newProfile);
-    }
+public class SelectPoiProfileDialog extends DialogFragment implements FragmentResultListener {
+    public static final String REQUEST_SELECT_POI_PROFILE = "selectPoiProfile";
+    public static final String EXTRA_POI_PROFILE = "poiProfile";
 
 
-    // Store instance variables
-    private SelectPoiProfileListener listener;
-    private PoiProfile selectedProfile;
-    private boolean selectedProfileModified;
+    // instance constructors
 
     public static SelectPoiProfileDialog newInstance(PoiProfile selectedProfile) {
         SelectPoiProfileDialog dialog= new SelectPoiProfileDialog();
@@ -75,24 +68,46 @@ public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiP
     }
 
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof SelectPoiProfileListener) {
-            listener = (SelectPoiProfileListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof SelectPoiProfileListener) {
-            listener = (SelectPoiProfileListener) context;
-                }
+    // dialog
+    private static final String KEY_SELECTED_PROFILE = "selectedProfile";
+    private static final String KEY_SELECTED_PROFILE_MODIFIED = "selectedProfileModified";
+
+    private PoiProfile selectedProfile;
+    private boolean selectedProfileModified;
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ManagePoiProfileDialog.REQUEST_MANAGE_POI_PROFILE, this, this);
     }
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(ManagePoiProfileDialog.REQUEST_MANAGE_POI_PROFILE)) {
+            Action action = (Action) bundle.getSerializable(ManagePoiProfileDialog.EXTRA_ACTION);
+            PoiProfile newProfile = (PoiProfile) bundle.getSerializable(ManagePoiProfileDialog.EXTRA_POI_PROFILE);
+            if (action == Action.CREATE) {
+                if (selectedProfile == null) {
+                    selectedProfile = newProfile;
+                    selectedProfileModified = true;
+                }
+            } else if (action == Action.MODIFY) {
+                if (newProfile != null
+                        && newProfile.equals(selectedProfile)) {
+                    selectedProfileModified = true;
+                }
+            } else if (action == Action.REMOVE) {
+                if (newProfile != null
+                        && newProfile.equals(selectedProfile)) {
+                    selectedProfile = null;
+                    selectedProfileModified = true;
+                }
+            }
+            fillProfilesListView();
+        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // set attributes
         selectedProfile = (PoiProfile) getArguments().getSerializable(KEY_SELECTED_PROFILE);
         if(savedInstanceState != null) {
             selectedProfileModified = savedInstanceState.getBoolean(KEY_SELECTED_PROFILE_MODIFIED);
@@ -143,9 +158,8 @@ public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiP
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    ManagePoiProfileDialog npDialog = ManagePoiProfileDialog.newProfile();
-                    npDialog.setTargetFragment(SelectPoiProfileDialog.this, 1);
-                    npDialog.show(getActivity().getSupportFragmentManager(), "ManagePoiProfileDialog");
+                    ManagePoiProfileDialog.createProfile()
+                        .show(getChildFragmentManager(), "ManagePoiProfileDialog");
                 }
             });
 
@@ -161,8 +175,10 @@ public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiP
             listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                     PoiProfile newProfile = (PoiProfile) parent.getItemAtPosition(position);
-                    if (newProfile != null && listener != null) {
-                        listener.poiProfileSelected(newProfile);
+                    if (newProfile != null) {
+                        Bundle result = new Bundle();
+                        result.putSerializable(EXTRA_POI_PROFILE, newProfile);
+                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POI_PROFILE, result);
                     }
                     dismiss();
                 }
@@ -200,9 +216,12 @@ public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiP
     }
 
     private void closeDialog() {
-        if (listener != null && selectedProfileModified) {
-            listener.poiProfileSelected(selectedProfile);
+        if (selectedProfileModified) {
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_POI_PROFILE, selectedProfile);
+            getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POI_PROFILE, result);
         }
+        dismiss();
     }
 
 
@@ -223,14 +242,12 @@ public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiP
             @Override public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case MENU_ITEM_EDIT_PROFILE:
-                        ManagePoiProfileDialog mpDialog = ManagePoiProfileDialog.modifyProfile(profile);
-                        mpDialog.setTargetFragment(SelectPoiProfileDialog.this, 1);
-                        mpDialog.show(getActivity().getSupportFragmentManager(), "ManagePoiProfileDialog");
+                        ManagePoiProfileDialog.modifyProfile(profile)
+                            .show(getChildFragmentManager(), "ManagePoiProfileDialog");
                         return true;
                     case MENU_ITEM_REMOVE_PROFILE:
-                        ManagePoiProfileDialog rpDialog = ManagePoiProfileDialog.removeProfile(profile);
-                        rpDialog.setTargetFragment(SelectPoiProfileDialog.this, 1);
-                        rpDialog.show(getActivity().getSupportFragmentManager(), "ManagePoiProfileDialog");
+                        ManagePoiProfileDialog.removeProfile(profile)
+                            .show(getChildFragmentManager(), "ManagePoiProfileDialog");
                         return true;
                     default:
                         return false;
@@ -239,34 +256,6 @@ public class SelectPoiProfileDialog extends DialogFragment implements ManagePoiP
         });
 
         profileContextMenu.show();
-    }
-
-
-    /**
-     * ManagePoiProfileListener
-     */
-
-    @Override public void poiProfileCreated(PoiProfile profile) {
-        if (selectedProfile == null) {
-            selectedProfile = profile;
-            selectedProfileModified = true;
-        }
-        fillProfilesListView();
-    }
-
-    @Override public void poiProfileModified(PoiProfile profile) {
-        if (profile.equals(selectedProfile)) {
-            selectedProfileModified = true;
-        }
-        fillProfilesListView();
-    }
-
-    @Override public void poiProfileRemoved(PoiProfile profile) {
-        if (profile.equals(selectedProfile)) {
-            selectedProfile = null;
-            selectedProfileModified = true;
-        }
-        fillProfilesListView();
     }
 
 

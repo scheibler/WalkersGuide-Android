@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.data.sensor.ShakeIntensity;
 import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
 import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import org.walkersguide.android.server.poi.PoiProfile;
@@ -23,8 +24,7 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.server.route.WayClass;
 import org.walkersguide.android.data.sensor.Direction;
-import org.walkersguide.android.data.server.AddressProvider;
-import org.walkersguide.android.data.server.OSMMap;
+import org.walkersguide.android.server.util.OSMMap;
 
 import org.walkersguide.android.pt.PTHelper;
 import org.walkersguide.android.pt.PTHelper.Country;
@@ -45,8 +45,9 @@ import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.point.Point;
 import java.util.List;
 import android.text.TextUtils;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.data.route.Route;
+import de.schildbach.pte.NetworkId;
 
 
 public class SettingsManager {
@@ -57,7 +58,7 @@ public class SettingsManager {
     public static final int DEFAULT_SELECTED_POI_PROFILE_ID = 1;
     public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
     public static final int DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = 0;
-    public static final int DEFAULT_SHAKE_INTENSITY = Constants.SHAKE_INTENSITY.DISABLED;
+    public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.DISABLED;
     public static final boolean DEFAULT_ENABLE_SEARCH_TERM_HISTORY = true;
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final boolean DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT = true;
@@ -71,6 +72,11 @@ public class SettingsManager {
     private static final String KEY_ENABLE_SEARCH_TERM_HISTORY = "enableSearchTermHistory";
     private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
+    // WalkersGuide server
+    private static final String KEY_WG_SERVER_URL = "wgServerUrl";
+    private static final String KEY_SELECTED_MAP = "selectedMap";
+    // public transport
+    private static final String KEY_SELECTED_NETWORK_ID = "selectedNetworkId";
     // subclasses
     private static final String KEY_DIRECTION_SETTINGS = "directionSettings";
     private static final String KEY_LOCATION_SETTINGS = "locationSettings";
@@ -160,24 +166,19 @@ public class SettingsManager {
         editor.apply();
     }
 
-    public int getSelectedShakeIntensity() {
-        int intensity = settings.getInt(KEY_SHAKE_INTENSITY, DEFAULT_SHAKE_INTENSITY);
-        return Ints.contains(Constants.ShakeIntensityValueArray, intensity) ? intensity : DEFAULT_SHAKE_INTENSITY;
+    public ShakeIntensity getSelectedShakeIntensity() {
+        Gson gson = new Gson();
+        ShakeIntensity shakeIntensity = gson.fromJson(
+                settings.getString(KEY_SHAKE_INTENSITY, ""),
+                ShakeIntensity.class);
+        return shakeIntensity != null ? shakeIntensity : DEFAULT_SHAKE_INTENSITY;
     }
 
-    public void setSelectedShakeIntensity(int newIntensity) {
+    public void setSelectedShakeIntensity(ShakeIntensity newShakeIntensity) {
         Editor editor = settings.edit();
-        editor.putInt(KEY_SHAKE_INTENSITY, newIntensity);
-        editor.apply();
-    }
-
-    public boolean getEnableSearchTermHistory() {
-        return settings.getBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, DEFAULT_ENABLE_SEARCH_TERM_HISTORY);
-    }
-
-    public void setEnableSearchTermHistory(boolean enableSearchTermHistory) {
-        Editor editor = settings.edit();
-        editor.putBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, enableSearchTermHistory);
+        Gson gson = new Gson();
+        editor.putString(
+                KEY_SHAKE_INTENSITY, gson.toJson(newShakeIntensity));
         editor.apply();
     }
 
@@ -203,8 +204,69 @@ public class SettingsManager {
 
 
     /**
+     * WalkersGuide server
+     */
+
+    public String getServerURL() {
+        return settings.getString(KEY_WG_SERVER_URL, BuildConfig.SERVER_URL);
+    }
+
+    public void setServerURL(String newServerURL) {
+        Editor editor = settings.edit();
+        editor.putString(KEY_WG_SERVER_URL, newServerURL);
+        editor.apply();
+    }
+
+    public OSMMap getSelectedMap() {
+        Gson gson = new Gson();
+        return gson.fromJson(
+                settings.getString(KEY_SELECTED_MAP, ""),
+                OSMMap.class);
+    }
+
+    public void setSelectedMap(OSMMap newMap) {
+        Editor editor = settings.edit();
+        Gson gson = new Gson();
+        editor.putString(
+                KEY_SELECTED_MAP, gson.toJson(newMap));
+        editor.apply();
+    }
+
+
+    /**
+     * public transport
+     */
+
+    public NetworkId getSelectedNetworkId() {
+        Gson gson = new Gson();
+        NetworkId networkId = gson.fromJson(
+                settings.getString(KEY_SELECTED_NETWORK_ID, ""),
+                NetworkId.class);
+        return PTHelper.findNetworkProvider(networkId) != null ? networkId : null;
+    }
+
+    public void setSelectedNetworkId(NetworkId newId) {
+        Editor editor = settings.edit();
+        Gson gson = new Gson();
+        editor.putString(
+                KEY_SELECTED_NETWORK_ID, gson.toJson(newId));
+        editor.apply();
+    }
+
+
+    /**
      * search term history
      */
+
+    public boolean getEnableSearchTermHistory() {
+        return settings.getBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, DEFAULT_ENABLE_SEARCH_TERM_HISTORY);
+    }
+
+    public void setEnableSearchTermHistory(boolean enableSearchTermHistory) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, enableSearchTermHistory);
+        editor.apply();
+    }
 
     public ArrayList<String> getSearchTermHistory() {
         Gson gson = new Gson();
@@ -636,143 +698,6 @@ public class SettingsManager {
             } catch (JSONException e) {}
     		// save settings
             setPlanRouteSettings(jsonPlanRouteSettings);
-        }
-    }
-
-
-    /**
-     * server settings
-     */
-
-    public ServerSettings getServerSettings() {
-        JSONObject jsonServerSettings = new JSONObject();
-        try {
-            jsonServerSettings = new JSONObject(
-                    settings.getString(KEY_SERVER_SETTINGS, "{}"));
-    	} catch (JSONException e) {}
-        return new ServerSettings(jsonServerSettings);
-    }
-
-    public void setServerSettings(JSONObject jsonServerSettings) {
-        Editor editor = settings.edit();
-        editor.putString(KEY_SERVER_SETTINGS, jsonServerSettings.toString());
-        editor.apply();
-    }
-
-
-    public class ServerSettings {
-
-        private String serverURL;
-        private OSMMap selectedMap;
-        private AbstractNetworkProvider selectedPublicTransportProvider;
-        private AddressProvider selectedAddressProvider;
-
-        public ServerSettings(JSONObject jsonObject) {
-            this.serverURL = BuildConfig.SERVER_URL;
-            try {
-                this.serverURL = jsonObject.getString("serverURL");
-            } catch (JSONException e) {}
-            if (this.serverURL.contains("scheibler-dresden")) {
-                this.serverURL = BuildConfig.SERVER_URL;
-            }
-            // map
-            this.selectedMap = null;
-            try {
-                this.selectedMap = new OSMMap(jsonObject.getJSONObject("selectedMap"));
-            } catch (JSONException e) {
-            }
-            // public transport provider
-            String networkProviderId = null;
-            try {
-                networkProviderId = jsonObject.getString("networkProviderId");
-            } catch (JSONException e) {
-                networkProviderId = null;
-            } finally {
-                this.selectedPublicTransportProvider = null;
-                if (networkProviderId != null) {
-                    for( Map.Entry<Country,ArrayList<AbstractNetworkProvider>> entry : PTHelper.supportedNetworkProviderMap.entrySet()){
-                        for (AbstractNetworkProvider provider : entry.getValue()) {
-                            if (networkProviderId.equals(provider.id().name())) {
-                                this.selectedPublicTransportProvider = provider;
-                                break;
-                            }
-                        }
-                        if (this.selectedPublicTransportProvider != null) {
-                            break;
-                        }
-                    }
-                }
-            }
-            // address provider
-            this.selectedAddressProvider = new AddressProvider(context, Constants.ADDRESS_PROVIDER.OSM);
-            try {
-                String addressProviderIdFromJson = jsonObject.getString("selectedAddressProviderId");
-                if (Arrays.asList(Constants.AddressProviderValueArray).contains(addressProviderIdFromJson)) {
-                    this.selectedAddressProvider = new AddressProvider(context, addressProviderIdFromJson);
-                }
-            } catch (JSONException e) {}
-        }
-
-        public String getServerURL() {
-            return this.serverURL;
-        }
-
-        public void setServerURL(String newServerURL) {
-            this.serverURL = newServerURL;
-            storeServerSettings();
-        }
-
-        public OSMMap getSelectedMap() {
-            return this.selectedMap;
-        }
-
-        public void setSelectedMap(OSMMap newMap) {
-            this.selectedMap = newMap;
-            storeServerSettings();
-        }
-
-        public AbstractNetworkProvider getSelectedPublicTransportProvider() {
-            return this.selectedPublicTransportProvider;
-        }
-
-        public void setSelectedPublicTransportProvider(AbstractNetworkProvider newProvider) {
-            this.selectedPublicTransportProvider = newProvider;
-            storeServerSettings();
-        }
-
-        public AddressProvider getSelectedAddressProvider() {
-            return this.selectedAddressProvider;
-        }
-
-        public void setSelectedAddressProvider(AddressProvider newAddressProvider) {
-            if (Arrays.asList(Constants.AddressProviderValueArray).contains(newAddressProvider.getId())) {
-                this.selectedAddressProvider = newAddressProvider;
-                storeServerSettings();
-            }
-        }
-
-        public void storeServerSettings() {
-            JSONObject jsonServerSettings = new JSONObject();
-            try {
-                jsonServerSettings.put("serverURL", this.serverURL);
-            } catch (JSONException e) {}
-            if (this.selectedMap != null) {
-                try {
-                    jsonServerSettings.put("selectedMap", this.selectedMap.toJson());
-                } catch (JSONException e) {}
-            }
-            if (this.selectedPublicTransportProvider != null) {
-                try {
-    	    		jsonServerSettings.put("networkProviderId", this.selectedPublicTransportProvider.id().name());
-                } catch (JSONException e) {}
-            }
-            if (this.selectedAddressProvider != null) {
-                try {
-                    jsonServerSettings.put("selectedAddressProviderId", this.selectedAddressProvider.getId());
-                } catch (JSONException e) {}
-            }
-    		// save settings
-            setServerSettings(jsonServerSettings);
         }
     }
 

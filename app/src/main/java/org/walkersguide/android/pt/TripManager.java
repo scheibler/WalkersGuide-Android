@@ -1,6 +1,6 @@
 package org.walkersguide.android.pt;
 
-import org.walkersguide.android.exception.ServerCommunicationException;
+import org.walkersguide.android.server.util.ServerCommunicationException;
 import de.schildbach.pte.NetworkProvider.Optimize;
 import java.util.EnumSet;
 
@@ -26,7 +26,8 @@ import java.util.ArrayList;
 import timber.log.Timber;
 import android.text.TextUtils;
 import java.util.Date;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
+import de.schildbach.pte.NetworkId;
 
 
 public class TripManager {
@@ -60,11 +61,11 @@ public class TripManager {
 
 
     public void requestTrip(TripListener listener,
-            AbstractNetworkProvider provider, Location station, Departure departure) {
+            NetworkId networkId, Location station, Departure departure) {
         if (tripRequestTaskInProgress()) {
             if (listener == null) {
                 return;
-            } else if (this.tripRequestTask.isSameRequest(provider, station, departure)) {
+            } else if (this.tripRequestTask.isSameRequest(networkId, station, departure)) {
                 this.tripRequestTask.addListener(listener);
                 return;
             } else {
@@ -72,7 +73,7 @@ public class TripManager {
             }
         }
         // new request
-        this.tripRequestTask = new TripRequestTask(listener, provider, station, departure);
+        this.tripRequestTask = new TripRequestTask(listener, networkId, station, departure);
         this.tripRequestTask.execute();
     }
 
@@ -102,20 +103,17 @@ public class TripManager {
         private int returnCode;
         private ArrayList<TripListener> tripListenerList;
 
-        private AbstractNetworkProvider provider;
+        private NetworkId networkId;
         private Location station;
         private Departure departure;
 
-        public TripRequestTask(TripListener listener, AbstractNetworkProvider provider, Location station, Departure departure) {
+        public TripRequestTask(TripListener listener, NetworkId networkId, Location station, Departure departure) {
             this.returnCode = PTHelper.RC_OK;
             this.tripListenerList = new ArrayList<TripListener>();
             if (listener != null) {
                 this.tripListenerList.add(listener);
             }
-            this.provider = provider;
-            if (this.provider != null) {
-                this.provider.setUserAgent(PTHelper.USER_AGENT);
-            }
+            this.networkId = networkId;
             this.station = station;
             this.departure = departure;
         }
@@ -123,7 +121,8 @@ public class TripManager {
         @Override protected ArrayList<Stop> doInBackground(Void... params) {
             ArrayList<Stop> stopList = null;
 
-            if (this.provider == null) {
+            AbstractNetworkProvider provider = PTHelper.findNetworkProvider(this.networkId);
+            if (provider == null) {
                 this.returnCode = PTHelper.RC_NO_NETWORK_PROVIDER;
             } else if (this.station == null) {
                 this.returnCode = PTHelper.RC_NO_STATION;
@@ -144,7 +143,7 @@ public class TripManager {
 
                 QueryTripsResult tripsResult = null;
                 try {
-                    tripsResult = this.provider.queryTrips(
+                    tripsResult = provider.queryTrips(
                             this.station, null, this.departure.destination, departureTime, true, options);
                     stopList = parseTripsResult(lineLabel, departureTime, tripsResult);
                 } catch (IOException e) {
@@ -177,7 +176,7 @@ public class TripManager {
                             stopList = parseTripsResult(
                                     lineLabel,
                                     departureTime,
-                                    this.provider.queryTrips(
+                                    provider.queryTrips(
                                         this.station, null, ambiguousDestinationStation, departureTime, true, options));
                         } catch (IOException e) {
                             this.returnCode = PTHelper.RC_REQUEST_FAILED;
@@ -234,20 +233,13 @@ public class TripManager {
             }
         }
 
-        public boolean isSameRequest(AbstractNetworkProvider newProvider, Location newStation, Departure newDeparture) {
-            if (this.isSameProvider(newProvider)
+        public boolean isSameRequest(NetworkId newNetworkId, Location newStation, Departure newDeparture) {
+            if (this.networkId == newNetworkId
                     && this.isSameStation(newStation)
                     && this.isSameDeparture(newDeparture)) {
                 return true;
             }
             return false;
-        }
-
-        private boolean isSameProvider(AbstractNetworkProvider newProvider) {
-            if (this.provider == null) {
-                return newProvider == null;
-            }
-            return this.provider.equals(newProvider);
         }
 
         private boolean isSameStation(Location newStation) {

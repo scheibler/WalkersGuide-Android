@@ -2,7 +2,7 @@ package org.walkersguide.android.pt;
 
 import de.schildbach.pte.DbProvider;
 import org.walkersguide.android.R;
-import org.walkersguide.android.helper.FileUtility;
+import org.walkersguide.android.util.FileUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 import android.content.Context;
@@ -40,6 +40,7 @@ import java.io.File;
 import org.json.JSONObject;
 import java.io.IOException;
 import org.json.JSONException;
+import de.schildbach.pte.NetworkId;
 
 
 public class PTHelper {
@@ -47,7 +48,7 @@ public class PTHelper {
     /**
      * network provider
      */
-    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36";
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36";
 
     public enum Country {
         EUROPE, GERMANY, SWITZERLAND
@@ -86,28 +87,41 @@ public class PTHelper {
         supportedNetworkProviderMap = Collections.unmodifiableMap(staticMap);
     }
 
-    public static String getNetworkProviderName(Context context, AbstractNetworkProvider provider) {
-        if (provider != null) {
-            switch (provider.id()) {
+    public static AbstractNetworkProvider findNetworkProvider(NetworkId id) {
+        for (Map.Entry<Country,ArrayList<AbstractNetworkProvider>> entry : supportedNetworkProviderMap.entrySet()) {
+            for (AbstractNetworkProvider provider : entry.getValue()) {
+                if (id == provider.id()) {
+                    provider.setUserAgent(USER_AGENT);
+                    return provider;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String getNameForNetworkId(NetworkId id) {
+        if (id != null) {
+            switch (id) {
                 // europe
                 case RT:
-                    return context.getResources().getString(R.string.publicTransportProviderRT);
+                    return GlobalInstance.getStringResource(R.string.publicTransportProviderRT);
                 // germany
                 case DB:
-                    return context.getResources().getString(R.string.publicTransportProviderDB);
+                    return GlobalInstance.getStringResource(R.string.publicTransportProviderDB);
                 case VVO:
-                    return context.getResources().getString(R.string.publicTransportProviderVVO);
+                    return GlobalInstance.getStringResource(R.string.publicTransportProviderVVO);
                 // switzerland
                 case VBL:
-                    return context.getResources().getString(R.string.publicTransportProviderVBL);
+                    return GlobalInstance.getStringResource(R.string.publicTransportProviderVBL);
                 // default provider name
                 default:
-                    return provider.id().name();
+                    return id.name();
             }
         } else {
             return "";
         }
     }
+
 
     // credentials
     //

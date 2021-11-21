@@ -3,7 +3,6 @@ package org.walkersguide.android.ui.dialog.creators;
 import org.walkersguide.android.server.poi.PoiCategory;
 
 import org.walkersguide.android.ui.dialog.selectors.SelectPoiCategoriesDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectPoiCategoriesDialog.SelectPoiCategoriesListener;
 import org.walkersguide.android.server.poi.PoiProfile;
 import org.walkersguide.android.R;
 import android.app.AlertDialog;
@@ -35,43 +34,22 @@ import android.widget.Switch;
 import android.widget.CompoundButton;
 import android.text.TextUtils;
 import android.widget.Toast;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
 
 
-public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiCategoriesListener {
-    private static final String KEY_ACTION = "action";
-    private static final String KEY_PROFILE = "profile";
-    //
-    private static final String KEY_PROFILE_NAME = "profileName";
-    private static final String KEY_POI_CATEGORY_LIST = "poiCategoryList";
-    private static final String KEY_INCLUDE_FAVORITES = "includeFavorites";
+public class ManagePoiProfileDialog extends DialogFragment implements FragmentResultListener {
+    public static final String REQUEST_MANAGE_POI_PROFILE = "managePoiProfile";
+    public static final String EXTRA_ACTION = "action";
+    public static final String EXTRA_POI_PROFILE = "poiProfile";
 
 
-    public interface ManagePoiProfileListener {
-        public void poiProfileCreated(PoiProfile profile);
-        public void poiProfileModified(PoiProfile profile);
-        public void poiProfileRemoved(PoiProfile profile);
-    }
+    // instance constructors
 
-
-    private enum Action {
-        NEW, MODIFY, REMOVE
-    }
-
-
-    private ManagePoiProfileListener listener;
-    private Action action;
-    private PoiProfile profile;
-
-    private String profileName;
-    private ArrayList<PoiCategory> poiCategoryList;
-    private boolean includeFavorites;
-
-    private Button buttonSelectPoiCategories;
-
-    public static ManagePoiProfileDialog newProfile() {
+    public static ManagePoiProfileDialog createProfile() {
         ManagePoiProfileDialog dialog = new ManagePoiProfileDialog();
         Bundle args = new Bundle();
-        args.putSerializable(KEY_ACTION, Action.NEW);
+        args.putSerializable(KEY_ACTION, Action.CREATE);
         args.putSerializable(KEY_PROFILE, null);
         dialog.setArguments(args);
         return dialog;
@@ -96,22 +74,40 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
     }
 
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof ManagePoiProfileListener) {
-            listener = (ManagePoiProfileListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof ManagePoiProfileListener) {
-            listener = (ManagePoiProfileListener) context;
+    // dialog
+    private static final String KEY_ACTION = "action";
+    private static final String KEY_PROFILE = "profile";
+    //
+    private static final String KEY_PROFILE_NAME = "profileName";
+    private static final String KEY_POI_CATEGORY_LIST = "poiCategoryList";
+    private static final String KEY_INCLUDE_FAVORITES = "includeFavorites";
+
+    public enum Action {
+        CREATE, MODIFY, REMOVE
+    }
+
+    private Action action;
+    private PoiProfile profile;
+
+    private String profileName;
+    private ArrayList<PoiCategory> poiCategoryList;
+    private boolean includeFavorites;
+
+    private Button buttonSelectPoiCategories;
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES)) {
+            poiCategoryList = (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST);
+            updateSelectPoiCategoriesButton();
         }
     }
-
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
-
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         action = (Action) getArguments().getSerializable(KEY_ACTION);
@@ -122,7 +118,7 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
         includeFavorites = true;
 
         switch (action) {
-            case NEW:
+            case CREATE:
             case MODIFY:
                 if(savedInstanceState != null) {
                     profileName = savedInstanceState.getString(KEY_PROFILE_NAME);
@@ -161,9 +157,8 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
                 updateSelectPoiCategoriesButton();
                 buttonSelectPoiCategories.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View view) {
-                        SelectPoiCategoriesDialog dialog = SelectPoiCategoriesDialog.newInstance(poiCategoryList);
-                        dialog.setTargetFragment(ManagePoiProfileDialog.this, 1);
-                        dialog.show(getActivity().getSupportFragmentManager(), "SelectPoiCategoriesDialog");
+                        SelectPoiCategoriesDialog.newInstance(poiCategoryList)
+                            .show(getChildFragmentManager(), "SelectPoiCategoriesDialog");
                     }
                 });
 
@@ -178,7 +173,7 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
                 // create dialog
                 return new AlertDialog.Builder(getActivity())
                     .setTitle(
-                            action == Action.NEW
+                            action == Action.CREATE
                             ? getResources().getString(R.string.newProfileDialogTitle)
                             : getResources().getString(R.string.modifyProfileDialogTitle))
                     .setView(view)
@@ -228,15 +223,21 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
         super.onStart();
         final AlertDialog dialog = (AlertDialog) getDialog();
         if (dialog != null) {
+
             // positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     if (executeAction()) {
+                        Bundle result = new Bundle();
+                        result.putSerializable(EXTRA_ACTION, action);
+                        result.putSerializable(EXTRA_POI_PROFILE, profile);
+                        getParentFragmentManager().setFragmentResult(REQUEST_MANAGE_POI_PROFILE, result);
                         dismiss();
                     }
                 }
             });
+
             // negative button
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -254,13 +255,6 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
         savedInstanceState.putBoolean(KEY_INCLUDE_FAVORITES, includeFavorites);
     }
 
-    @Override public void poiCategoriesSelected(ArrayList<PoiCategory> newPoiCategoryList) {
-        if (newPoiCategoryList != null) {
-            poiCategoryList = newPoiCategoryList;
-            updateSelectPoiCategoriesButton();
-        }
-    }
-
     private void updateSelectPoiCategoriesButton() {
         buttonSelectPoiCategories.setText(
                 String.format(
@@ -271,7 +265,7 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
 
     private boolean executeAction() {
         switch (action) {
-            case NEW:
+            case CREATE:
             case MODIFY:
                 // empty profile name
                 if (TextUtils.isEmpty(profileName)) {
@@ -297,7 +291,7 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
                     }
                 }
 
-                if (action == Action.NEW) {
+                if (action == Action.CREATE) {
                     profile = PoiProfile.create(
                             this.profileName, this.poiCategoryList, this.includeFavorites);
                     if (profile == null) {
@@ -306,8 +300,6 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
                                 getResources().getString(R.string.messageCouldNotCreateProfile),
                                 Toast.LENGTH_LONG).show();
                         return false;
-                    } else if (listener != null) {
-                        listener.poiProfileCreated(profile);
                     }
 
                 } else {
@@ -319,12 +311,9 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
                                 getResources().getString(R.string.messageCouldNotModifyProfile),
                                 Toast.LENGTH_LONG).show();
                         return false;
-                    } else if (listener != null) {
-                        listener.poiProfileModified(profile);
                     }
                 }
-
-                return true;
+                break;
 
             case REMOVE:
                 boolean removedSuccessfully = profile.removeFromDatabase();
@@ -334,14 +323,14 @@ public class ManagePoiProfileDialog extends DialogFragment implements SelectPoiC
                             getResources().getString(R.string.messageCouldNotRemoveProfile),
                             Toast.LENGTH_LONG).show();
                     return false;
-                } else if (listener != null) {
-                    listener.poiProfileRemoved(profile);
                 }
-                return true;
+                break;
 
             default:
                 return false;
         }
+
+        return true;
     }
 
 }

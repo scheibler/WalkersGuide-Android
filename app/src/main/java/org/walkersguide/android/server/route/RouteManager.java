@@ -25,19 +25,17 @@ import org.walkersguide.android.data.basic.wrapper.SegmentWrapper;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.route.RouteObject;
 import org.walkersguide.android.server.route.WayClass;
-import org.walkersguide.android.data.server.ServerInstance;
-import org.walkersguide.android.exception.ServerCommunicationException;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerInstance;
+import org.walkersguide.android.server.util.ServerCommunicationException;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.PlanRouteSettings;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
 
 import timber.log.Timber;
 import org.walkersguide.android.data.basic.segment.Segment;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.data.basic.segment.RouteSegment;
 
 
@@ -127,11 +125,10 @@ public class RouteManager {
             Context context = GlobalInstance.getContext();
 
             // server instance
-            ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
             ServerInstance serverInstance = null;
             try {
                 serverInstance = ServerUtility.getServerInstance(
-                        context, serverSettings.getServerURL());
+                        context, SettingsManager.getInstance().getServerURL());
             } catch (ServerCommunicationException e) {
                 this.returnCode = e.getReturnCode();
             } finally {
@@ -155,7 +152,7 @@ public class RouteManager {
             // create server param list
             JSONObject jsonServerParams = null;
             try {
-                jsonServerParams = ServerUtility.createServerParamList(context);
+                jsonServerParams = ServerUtility.createServerParamList();
 
                 // start, via and destination points
                 JSONArray jsonSourcePoints = new JSONArray();
@@ -197,7 +194,6 @@ public class RouteManager {
             JSONArray jsonRouteObjectList = null;
             try {
                 connection = ServerUtility.getHttpsURLConnectionObject(
-                        context,
                         String.format(
                             "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_ROUTE),
                         jsonServerParams);
@@ -302,7 +298,9 @@ public class RouteManager {
                         } catch (Exception e) {}
                     }
                     // send cancel request
-                    ServerStatusManager.getInstance(GlobalInstance.getContext()).cancelRunningRequestOnServer();
+                    try {
+                        ServerUtility.cancelRunningRequest();
+                    } catch (ServerCommunicationException e) {}
                     return;
                 }
                 cancelConnectionHandler.postDelayed(this, 100);
@@ -381,13 +379,12 @@ public class RouteManager {
 
         @Override protected Route doInBackground(Void... params) {
             Context context = GlobalInstance.getContext();
-            ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
 
             // server instance
             ServerInstance serverInstance = null;
             try {
                 serverInstance = ServerUtility.getServerInstance(
-                        context, serverSettings.getServerURL());
+                        context, SettingsManager.getInstance().getServerURL());
             } catch (ServerCommunicationException e) {
                 this.returnCode = e.getReturnCode();
             } finally {
@@ -399,7 +396,7 @@ public class RouteManager {
             // create server param list
             JSONObject jsonServerParams = null;
             try {
-                jsonServerParams = ServerUtility.createServerParamList(context);
+                jsonServerParams = ServerUtility.createServerParamList();
                 jsonServerParams.put("node_id", this.request.getNodeId());
                 jsonServerParams.put("way_id", request.getWayId());
                 jsonServerParams.put("next_node_id", request.getNextNodeId());
@@ -411,7 +408,6 @@ public class RouteManager {
             ArrayList<Point> pointList = new ArrayList<Point>();
             try {
                 connection = ServerUtility.getHttpsURLConnectionObject(
-                        context,
                         String.format(
                             "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_NEXT_INTERSECTIONS_FOR_WAY),
                         jsonServerParams);
@@ -535,7 +531,9 @@ public class RouteManager {
                         } catch (Exception e) {}
                     }
                     // send cancel request
-                    ServerStatusManager.getInstance(GlobalInstance.getContext()).cancelRunningRequestOnServer();
+                    try {
+                        ServerUtility.cancelRunningRequest();
+                    } catch (ServerCommunicationException e) {}
                     return;
                 }
                 cancelConnectionHandler.postDelayed(this, 100);

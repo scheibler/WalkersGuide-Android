@@ -47,21 +47,11 @@ import timber.log.Timber;
 import android.text.InputType;
 
 public class RenameObjectDialog extends DialogFragment {
-    private static final String KEY_SELECTED_OBJECT = "selectedObject";
-    private static final String KEY_CUSTOM_NAME = "customName";
-
-    public interface RenameObjectListener {
-        public void renameObjectSuccessful();
-    }
-
-    public void setRenameObjectListener(RenameObjectListener listener) {
-        this.listener = listener;
-    }
+    public static final String REQUEST_RENAME_OBJECT = "renameObject";
+    public static final String EXTRA_SUCCESSFUL = "successful";
 
 
-    private RenameObjectListener listener;
-    private ObjectWithId selectedObject;
-    private String customName;
+    // instance constructors
 
     public static RenameObjectDialog newInstance(ObjectWithId selectedObject) {
         RenameObjectDialog dialog = new RenameObjectDialog();
@@ -72,22 +62,12 @@ public class RenameObjectDialog extends DialogFragment {
     }
 
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof RenameObjectListener) {
-            listener = (RenameObjectListener) getTargetFragment();
-        } else if (context instanceof AppCompatActivity
-                && (AppCompatActivity) context instanceof RenameObjectListener) {
-            listener = (RenameObjectListener) context;
-        }
-    }
+    // dialog
+    private static final String KEY_SELECTED_OBJECT = "selectedObject";
+    private static final String KEY_CUSTOM_NAME = "customName";
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
-
+    private ObjectWithId selectedObject;
+    private String customName;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         selectedObject = (ObjectWithId) getArguments().getSerializable(KEY_SELECTED_OBJECT);
@@ -177,29 +157,22 @@ public class RenameObjectDialog extends DialogFragment {
     }
 
     private void tryToRenameObject() {
-        if (selectedObject != null
-                && selectedObject.getName().equals(customName)) {
-            Timber.d("nothing changed");
-            dismiss();
-        } else {
-            boolean successful = false;
-            if (selectedObject instanceof Point) {
-                successful = AccessDatabase.getInstance().addPoint((Point) selectedObject, customName);
-            } else if (selectedObject instanceof Segment) {
-                successful = AccessDatabase.getInstance().addSegment((Segment) selectedObject, customName);
-            }
-            if (successful) {
-                if (listener != null) {
-                    listener.renameObjectSuccessful();
-                }
-                dismiss();
-            } else {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageRenameObjectFailed),
-                        Toast.LENGTH_LONG).show();
-            }
+        boolean successful = false;
+        if (selectedObject instanceof Point) {
+            successful = AccessDatabase.getInstance().addPoint((Point) selectedObject, customName);
+        } else if (selectedObject instanceof Segment) {
+            successful = AccessDatabase.getInstance().addSegment((Segment) selectedObject, customName);
         }
+        // send result via fragment result api
+        Bundle result = new Bundle();
+        result.putBoolean(EXTRA_SUCCESSFUL, successful);
+        getParentFragmentManager().setFragmentResult(REQUEST_RENAME_OBJECT, result);
+        // additionally send a broadcast (required by TextViewAndActionButton)
+        Intent intent = new Intent(REQUEST_RENAME_OBJECT);
+        intent.putExtra(EXTRA_SUCCESSFUL, successful);
+        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+        // disniss dialog
+        dismiss();
     }
 
 }

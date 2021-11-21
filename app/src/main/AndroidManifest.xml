@@ -49,11 +49,6 @@
             android:name=".ui.activity.toolbar.FragmentContainerActivity"
             android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
 
-        <activity
-            android:name=".ui.activity.SettingsActivity"
-            android:label="@string/settingsActivityTitle"
-            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
-
         <!--
         <service
             android:name=".util.LocationService" />

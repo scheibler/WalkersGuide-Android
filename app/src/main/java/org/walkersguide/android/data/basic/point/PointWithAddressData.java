@@ -10,7 +10,7 @@ import java.util.Locale;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.Serializable;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 
 
 public abstract class PointWithAddressData extends Point implements Serializable {

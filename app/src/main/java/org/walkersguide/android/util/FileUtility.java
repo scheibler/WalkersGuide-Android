@@ -1,4 +1,4 @@
-package org.walkersguide.android.helper;
+package org.walkersguide.android.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

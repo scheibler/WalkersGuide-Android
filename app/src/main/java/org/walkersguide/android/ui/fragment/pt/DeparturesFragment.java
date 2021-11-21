@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.pt;
 
+import timber.log.Timber;
 import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.sensor.PositionManager;
@@ -54,7 +55,7 @@ import de.schildbach.pte.dto.Location;
 
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.dialog.SelectPublicTransportProviderDialog;
+import org.walkersguide.android.ui.dialog.selectors.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.pt.PTHelper;
 import org.walkersguide.android.pt.StationManager;
@@ -69,12 +70,16 @@ import android.widget.HeaderViewListAdapter;
 import android.widget.TimePicker;
 import android.widget.LinearLayout;
 import androidx.fragment.app.Fragment;
+import de.schildbach.pte.NetworkId;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
 
 
-public class DeparturesFragment extends Fragment implements StationListener, DepartureListener, Runnable {
+public class DeparturesFragment extends Fragment 
+    implements FragmentResultListener, StationListener, DepartureListener, Runnable {
     private static final String KEY_LIST_POSITION = "listPosition";
 
-	// Store instance variables
+    private SettingsManager settingsManagerInstance;
     private DepartureManager departureManagerInstance;
     private StationManager stationManagerInstance;
     private int listPosition;
@@ -119,10 +124,51 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        settingsManagerInstance = SettingsManager.getInstance();
         departureManagerInstance = DepartureManager.getInstance();
         stationManagerInstance = StationManager.getInstance();
         nextDeparturesHandler= new Handler(Looper.getMainLooper());
+
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectPtStationDialog.REQUEST_SELECT_STATION, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectDepartureDateAndTimeDialog.REQUEST_SELECT_DATE_AND_TIME, this, this);
 	}
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
+        if (coordinatesForStationRequest == null) {
+            return;
+        }
+        if (departureManagerInstance.departureRequestTaskInProgress()) {
+            departureManagerInstance.cancelDepartureRequestTask();
+        } else if (stationManagerInstance.stationRequestTaskInProgress()) {
+            stationManagerInstance.cancelStationRequestTask();
+        }
+
+        if (requestKey.equals(SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER)) {
+            settingsManagerInstance.setSelectedNetworkId(
+                    (NetworkId) bundle.getSerializable(SelectPublicTransportProviderDialog.EXTRA_NETWORK_ID));
+            station = null;
+            departureTime = null;
+
+        } else if (requestKey.equals(SelectPtStationDialog.REQUEST_SELECT_STATION)) {
+            station = (Location) bundle.getSerializable(SelectPtStationDialog.EXTRA_STATION);
+            departureTime = new Date();
+
+        } else if (requestKey.equals(SelectDepartureDateAndTimeDialog.REQUEST_SELECT_DATE_AND_TIME)) {
+            departureTime = (Date) bundle.getSerializable(SelectDepartureDateAndTimeDialog.EXTRA_DEPARTURE_TIME);
+        }
+
+        listPosition = 0;
+        prepareRequest();
+    }
+
 
     /**
      * menu
@@ -136,12 +182,13 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menuItemPublicTransportProvider:
-                SelectPublicTransportProviderDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
+                SelectPublicTransportProviderDialog.newInstance(
+                        settingsManagerInstance.getSelectedNetworkId())
+                    .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
                 return true;
             case R.id.menuItemSelectDepartureDateAndTime:
                 SelectDepartureDateAndTimeDialog.newInstance(departureTime)
-                    .show(getActivity().getSupportFragmentManager(), "SelectDepartureDateAndTimeDialog");
+                    .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
                 return true;
             default:
                 return false;
@@ -272,7 +319,6 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
 
     @Override public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
         if (station != null) {
             nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
             departureManagerInstance.invalidateDepartureRequestTask(DeparturesFragment.this);
@@ -283,11 +329,6 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
 
     @Override public void onResume() {
         super.onResume();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(SelectPublicTransportProviderDialog.NEW_NETWORK_PROVIDER);
-        filter.addAction(SelectPtStationDialog.PT_STATION_SELECTED);
-        filter.addAction(SelectDepartureDateAndTimeDialog.NEW_DEPARTURE_SELECTED);
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // prepare request
         if (coordinatesForStationRequest != null || station != null) {
             prepareRequest();
@@ -315,13 +356,13 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
         if (station != null) {
             departureManagerInstance.requestDeparture(
                     DeparturesFragment.this,
-                    SettingsManager.getInstance().getServerSettings().getSelectedPublicTransportProvider(),
+                    settingsManagerInstance.getSelectedNetworkId(),
                     station,
                     departureTime);
         } else {
             stationManagerInstance.requestStationList(
                     DeparturesFragment.this,
-                    SettingsManager.getInstance().getServerSettings().getSelectedPublicTransportProvider(),
+                    settingsManagerInstance.getSelectedNetworkId(),
                     coordinatesForStationRequest,
                     null);
         }
@@ -361,35 +402,6 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
 
 
     /**
-     * local broadcasts
-     */
-
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (coordinatesForStationRequest == null) {
-                return;
-            }
-            if (departureManagerInstance.departureRequestTaskInProgress()) {
-                departureManagerInstance.cancelDepartureRequestTask();
-            } else if (stationManagerInstance.stationRequestTaskInProgress()) {
-                stationManagerInstance.cancelStationRequestTask();
-            }
-            if (intent.getAction().equals(SelectPublicTransportProviderDialog.NEW_NETWORK_PROVIDER)) {
-                station = null;
-                departureTime = null;
-            } else if (intent.getAction().equals(SelectPtStationDialog.PT_STATION_SELECTED)) {
-                station = (Location) intent.getExtras().getSerializable("station");
-                departureTime = new Date();
-            } else if (intent.getAction().equals(SelectDepartureDateAndTimeDialog.NEW_DEPARTURE_SELECTED)) {
-                departureTime = (Date) intent.getExtras().getSerializable("departureTime");
-            }
-            listPosition = 0;
-            prepareRequest();
-        }
-    };
-
-
-    /**
      * stationListener
      */
 
@@ -419,7 +431,7 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
             default:
                 if (isAdded()) {
                     SelectPtStationDialog.newInstance(currentPosition, nearbyStationList)
-                        .show(getActivity().getSupportFragmentManager(), "SelectPtStationDialog");
+                        .show(getChildFragmentManager(), "SelectPtStationDialog");
                 }
                 labelEmptyListView.setText("");
                 break;
@@ -431,8 +443,9 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
         // show select network provider dialog
         if (isAdded()
                 && returnCode == PTHelper.RC_NO_NETWORK_PROVIDER) {
-            SelectPublicTransportProviderDialog.newInstance()
-                .show(getActivity().getSupportFragmentManager(), "SelectPublicTransportProviderDialog");
+            SelectPublicTransportProviderDialog.newInstance(
+                    settingsManagerInstance.getSelectedNetworkId())
+                .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
         } else {
             ViewCompat.setAccessibilityLiveRegion(
                     labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -443,10 +456,8 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
 
 
     public static class SelectPtStationDialog extends DialogFragment {
-        public static final String PT_STATION_SELECTED = "org.walkersguide.android.intent.pt_station_selected";
-
-        private Point currentPosition;
-        private ArrayList<Location> stationList;
+        public static final String REQUEST_SELECT_STATION = "selectStation";
+        public static final String EXTRA_STATION = "station";
 
         public static SelectPtStationDialog newInstance(Point currentPosition, ArrayList<Location> stationList) {
             SelectPtStationDialog selectPtStationDialogInstance = new SelectPtStationDialog();
@@ -456,6 +467,10 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
             selectPtStationDialogInstance.setArguments(args);
             return selectPtStationDialogInstance;
         }
+
+
+        private Point currentPosition;
+        private ArrayList<Location> stationList;
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
             currentPosition = (Point) getArguments().getSerializable("currentPosition");
@@ -490,19 +505,21 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
                         dialog.dismiss();
                     }
                 });
+
                 // list view
                 ListView listViewItems = (ListView) dialog.getListView();
                 listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                         Location station = (Location) parent.getItemAtPosition(position);
                         if (station != null) {
-                            Intent intent = new Intent(PT_STATION_SELECTED);
-                            intent.putExtra("station", station);
-                            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                            Bundle result = new Bundle();
+                            result.putSerializable(EXTRA_STATION, station);
+                            getParentFragmentManager().setFragmentResult(REQUEST_SELECT_STATION, result);
                             dismiss();
                         }
                     }
                 });
+
                 // fill listview
                 listViewItems.setAdapter(
                         new StationAdapter(getActivity(), currentPosition, stationList));
@@ -727,10 +744,8 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
 
     public static class SelectDepartureDateAndTimeDialog extends DialogFragment
             implements OnDateSetListener, OnTimeSetListener {
-        public static final String NEW_DEPARTURE_SELECTED = "org.walkersguide.android.intent.new_departure_selected";
-
-        private Calendar calendar;
-        private Button buttonSelectDate, buttonSelectTime;
+        public static final String REQUEST_SELECT_DATE_AND_TIME = "selectDateAndTime";
+        public static final String EXTRA_DEPARTURE_TIME = "departureTime";
 
         public static SelectDepartureDateAndTimeDialog newInstance(Date preSelectedDepartureDate) {
             // create calendar object
@@ -747,6 +762,9 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
             dialog.setArguments(args);
             return dialog;
         }
+
+        private Calendar calendar;
+        private Button buttonSelectDate, buttonSelectTime;
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
             if (savedInstanceState != null) {
@@ -818,9 +836,9 @@ public class DeparturesFragment extends Fragment implements StationListener, Dep
                 Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 buttonPositive.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-                        Intent intent = new Intent(NEW_DEPARTURE_SELECTED);
-                        intent.putExtra("departureTime", calendar.getTime());
-                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                        Bundle result = new Bundle();
+                        result.putSerializable(EXTRA_DEPARTURE_TIME, calendar.getTime());
+                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_DATE_AND_TIME, result);
                         dismiss();
                     }
                 });

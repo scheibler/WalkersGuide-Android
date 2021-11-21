@@ -10,7 +10,7 @@ import java.lang.System;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Constants;
 

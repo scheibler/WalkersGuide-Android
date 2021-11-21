@@ -1,7 +1,7 @@
 package org.walkersguide.android.server.poi;
 
 import java.io.Serializable;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.util.SettingsManager;
 import android.text.TextUtils;

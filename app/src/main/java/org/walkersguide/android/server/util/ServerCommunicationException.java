@@ -1,9 +1,8 @@
-package org.walkersguide.android.exception;
+package org.walkersguide.android.server.util;
 
 import android.content.Context;
 import android.content.Context;
 
-import org.walkersguide.android.helper.ServerUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 

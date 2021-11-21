@@ -15,7 +15,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.util.Constants;

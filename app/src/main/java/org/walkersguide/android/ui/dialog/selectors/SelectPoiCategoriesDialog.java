@@ -1,46 +1,43 @@
 package org.walkersguide.android.ui.dialog.selectors;
 
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.server.ServerStatusManager.ServerStatusListener;
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.poi.PoiCategory;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 
 import android.os.Bundle;
 
 import androidx.fragment.app.DialogFragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.view.View;
 
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import android.app.Activity;
-import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.util.ServerInstance;
 import android.widget.Button;
 import org.walkersguide.android.util.SettingsManager;
 
+import java.util.concurrent.ExecutorService;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-public class SelectPoiCategoriesDialog extends DialogFragment implements ServerStatusListener {
-    private static final String KEY_SELECTED_POI_CATEGORY_LIST = "selectedPoiCategoryList";
-
-    public interface SelectPoiCategoriesListener {
-        public void poiCategoriesSelected(ArrayList<PoiCategory> newPoiCategoryList);
-    }
+import org.walkersguide.android.server.util.ServerCommunicationException;
+import org.walkersguide.android.server.util.ServerUtility;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 
 
-    // Store instance variables
-    private ServerStatusManager serverStatusManagerInstance;
-    private SelectPoiCategoriesListener listener;
-    private ArrayList<PoiCategory> supportedPoiCategoryList, selectedPoiCategoryList;
+public class SelectPoiCategoriesDialog extends DialogFragment {
+    public static final String REQUEST_SELECT_POI_CATEGORIES = "selectPoiCategories";
+    public static final String EXTRA_POI_CATEGORY_LIST = "poiCategoryList";
+
+
+    // instance constructors
 
     public static SelectPoiCategoriesDialog newInstance(ArrayList<PoiCategory> selectedPoiCategoryList) {
         SelectPoiCategoriesDialog dialog= new SelectPoiCategoriesDialog();
@@ -51,22 +48,14 @@ public class SelectPoiCategoriesDialog extends DialogFragment implements ServerS
     }
 
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        serverStatusManagerInstance = ServerStatusManager.getInstance(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof SelectPoiCategoriesListener) {
-            listener = (SelectPoiCategoriesListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof SelectPoiCategoriesListener) {
-            listener = (SelectPoiCategoriesListener) context;
-                }
-    }
+    // dialog
+    private static final String KEY_SELECTED_POI_CATEGORY_LIST = "selectedPoiCategoryList";
 
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Future getServerInstanceRequest;
+
+    private ArrayList<PoiCategory> supportedPoiCategoryList, selectedPoiCategoryList;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         supportedPoiCategoryList = null;
@@ -139,21 +128,37 @@ public class SelectPoiCategoriesDialog extends DialogFragment implements ServerS
             buttonPositive.setVisibility(View.GONE);
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setVisibility(View.GONE);
-            // request server status
-            serverStatusManagerInstance.requestServerStatus(
-                    (SelectPoiCategoriesDialog) this,
-                    SettingsManager.getInstance().getServerSettings().getServerURL());
+        }
+
+        // request server status
+        if (getServerInstanceRequest == null || getServerInstanceRequest.isDone()) {
+            getServerInstanceRequest = this.executorService.submit(() -> {
+                try {
+                    final ServerInstance serverInstance = ServerUtility.getServerInstance(
+                                SettingsManager.getInstance().getServerURL());
+                    handler.post(() -> {
+                        initializeDialog(serverInstance);
+                    });
+
+                } catch (ServerCommunicationException e) {
+                    final ServerCommunicationException scException = e;
+                    handler.post(() -> {
+                        SimpleMessageDialog.newInstance(
+                                ServerUtility.getErrorMessageForReturnCode(scException.getReturnCode()))
+                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                    });
+                }
+            });
         }
     }
 
     @Override public void onStop() {
         super.onStop();
-        serverStatusManagerInstance.invalidateServerStatusRequest(this);
     }
 
-    @Override public void serverStatusRequestFinished(Context context, int returnCode, ServerInstance serverInstance) {
+    private void initializeDialog(ServerInstance serverInstance) {
         final AlertDialog dialog = (AlertDialog) getDialog();
-        if (dialog != null && serverInstance != null) {
+        if (dialog != null) {
             supportedPoiCategoryList = serverInstance.getSupportedPoiCategoryList();
 
             // positive button
@@ -161,9 +166,10 @@ public class SelectPoiCategoriesDialog extends DialogFragment implements ServerS
             buttonPositive.setVisibility(View.VISIBLE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    if (listener != null) {
-                        listener.poiCategoriesSelected(selectedPoiCategoryList);
-                    }
+                    Bundle result = new Bundle();
+                    result.putSerializable(EXTRA_POI_CATEGORY_LIST, selectedPoiCategoryList);
+                    getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POI_CATEGORIES, result);
+                    dismiss();
                 }
             });
 

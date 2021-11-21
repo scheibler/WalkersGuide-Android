@@ -19,6 +19,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import org.walkersguide.android.server.util.ServerInstance;
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.R;
@@ -78,6 +79,24 @@ public class GlobalInstance extends Application {
 
     public String getSessionId() {
         return this.sessionId;
+    }
+
+
+    /**
+     * server instance cache
+     */
+    private ServerInstance cachedServerInstance = null;
+
+    public ServerInstance getCachedServerInstance() {
+        return this.cachedServerInstance;
+    }
+
+    public void setCachedServerInstance(ServerInstance newServerInstance) {
+        this.cachedServerInstance = newServerInstance;
+    }
+
+    public void clearServerInstanceCache() {
+        this.cachedServerInstance = null;
     }
 
 

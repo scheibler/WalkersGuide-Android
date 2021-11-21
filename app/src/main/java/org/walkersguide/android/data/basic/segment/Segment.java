@@ -10,7 +10,7 @@ import org.walkersguide.android.data.TactilePaving;
 import org.walkersguide.android.data.Wheelchair;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.sensor.DirectionManager;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 import java.util.HashMap;
 import java.util.Map;

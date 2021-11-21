@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.dialog;
+package org.walkersguide.android.ui.dialog.toolbar;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

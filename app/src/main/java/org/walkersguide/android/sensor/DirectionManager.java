@@ -1,5 +1,6 @@
 package org.walkersguide.android.sensor;
 
+import org.walkersguide.android.data.sensor.ShakeIntensity;
 import org.walkersguide.android.util.GlobalInstance;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -472,7 +473,7 @@ public class DirectionManager implements SensorEventListener {
                     newAccelerometerValues[0] + newAccelerometerValues[1]
                     + newAccelerometerValues[2] - valuesAccelerometer[0]
                     - valuesAccelerometer[1] - valuesAccelerometer[2]) / diff * 10000;
-            if (speed > settingsManagerInstance.getSelectedShakeIntensity()) {
+            if (speed > settingsManagerInstance.getSelectedShakeIntensity().threshold) {
                 if ((++mShakeCount >= SHAKE_COUNT)
                         && (now - mLastShake > SHAKE_DURATION)) {
                     mLastShake = now;

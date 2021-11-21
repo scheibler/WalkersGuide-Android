@@ -13,7 +13,7 @@ import org.walkersguide.android.util.Constants;
 import java.lang.StringBuilder;
 import java.io.Serializable;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 
 
 public class GPS extends Point {

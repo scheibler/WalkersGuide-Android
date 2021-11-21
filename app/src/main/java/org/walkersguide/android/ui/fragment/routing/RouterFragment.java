@@ -34,7 +34,7 @@ import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
 import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;

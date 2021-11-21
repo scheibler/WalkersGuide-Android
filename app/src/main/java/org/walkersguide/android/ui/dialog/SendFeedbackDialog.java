@@ -1,44 +1,30 @@
 package org.walkersguide.android.ui.dialog;
 
-import timber.log.Timber;
+import org.walkersguide.android.server.util.ServerInstance;
+import org.walkersguide.android.server.util.ServerCommunicationException;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
 
 import androidx.fragment.app.DialogFragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 
-import org.walkersguide.android.helper.ServerUtility;
-import org.walkersguide.android.server.ServerStatusManager;
-import org.walkersguide.android.server.ServerStatusManager.SendFeedbackListener;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import android.view.inputmethod.InputMethodManager;
@@ -46,17 +32,30 @@ import android.widget.EditText;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.text.InputType;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.util.GlobalInstance;
+
+import java.util.concurrent.ExecutorService;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import javax.net.ssl.HttpsURLConnection;
+import org.json.JSONObject;
+import android.text.TextUtils;
 
 
-public class SendFeedbackDialog extends DialogFragment
-    implements ChildDialogCloseListener, SendFeedbackListener {
+public class SendFeedbackDialog extends DialogFragment implements FragmentResultListener {
 
     public enum Token {
         QUESTION, MAP_REQUEST, PT_PROVIDER_REQUEST
     }
 
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Future sendFeedbackRequest;
     private InputMethodManager imm;
-    private ServerStatusManager serverStatusManagerInstance;
 
     private Token token;
     private boolean closeDialog;
@@ -72,10 +71,21 @@ public class SendFeedbackDialog extends DialogFragment
         return sendFeedbackDialogInstance;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        serverStatusManagerInstance = ServerStatusManager.getInstance(context);
-        imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        imm = (InputMethodManager) GlobalInstance.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SimpleMessageDialog.REQUEST_DIALOG_CLOSED, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SimpleMessageDialog.REQUEST_DIALOG_CLOSED)) {
+            if (closeDialog) {
+                dismiss();
+            }
+        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -169,7 +179,6 @@ public class SendFeedbackDialog extends DialogFragment
 
     @Override public void onStop() {
         super.onStop();
-        serverStatusManagerInstance.invalidateSendFeedbackRequest(SendFeedbackDialog.this);
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -178,34 +187,62 @@ public class SendFeedbackDialog extends DialogFragment
         savedInstanceState.putBoolean("closeDialog", closeDialog);
     }
 
-    @Override public void childDialogClosed() {
-        if (closeDialog) {
-            dismiss();
-        }
-    }
-
     private void tryToSendFeedback() {
-        serverStatusManagerInstance.requestSendFeedback(
-                SendFeedbackDialog.this,
-                this.token.name().toLowerCase(),
-                editMessage.getText().toString().trim(),
-                editSenderEmailAddress.getText().toString().trim());
-    }
+        if (sendFeedbackRequest == null || sendFeedbackRequest.isDone()) {
+            sendFeedbackRequest = this.executorService.submit(() -> {
+                try {
+                    JSONObject jsonServerParams = null;
+                    try {
+                        jsonServerParams = ServerUtility.createServerParamList();
+                        // mandatory
+                        jsonServerParams.put(
+                                "token", this.token.name().toLowerCase());
+                        jsonServerParams.put(
+                                "message", editMessage.getText().toString().trim());
+                        // optional
+                        String sender = editSenderEmailAddress.getText().toString().trim();
+                        if (! TextUtils.isEmpty(sender)) {
+                            jsonServerParams.put("sender", sender);
+                        }
+                    } catch (JSONException e) {
+                        throw new ServerCommunicationException(Constants.RC.BAD_REQUEST);
+                    }
 
-	@Override public void sendFeedbackRequestFinished(int returnCode) {
-        String returnMessage = null;
-        if (returnCode == Constants.RC.OK) {
-            closeDialog = true;
-            returnMessage = getResources().getString(R.string.messageSendFeedbackSuccessful);
-        } else {
-            returnMessage = ServerUtility.getErrorMessageForReturnCode(
-                    SendFeedbackDialog.this.getContext(), returnCode);
-        }
-        // show dialog
-        if (isAdded()) {
-            SimpleMessageDialog simpleMessageDialogInstance = SimpleMessageDialog.newInstance(returnMessage);
-            simpleMessageDialogInstance.setTargetFragment(SendFeedbackDialog.this, 1);
-            simpleMessageDialogInstance.show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                    HttpsURLConnection connection = null;
+                    ServerCommunicationException scException = null;
+                    try {
+                        ServerInstance serverInstance = ServerUtility.getServerInstance(
+                                SettingsManager.getInstance().getServerURL());
+                        connection = ServerUtility.connectToServer(
+                                String.format(
+                                    "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.SEND_FEEDBACK),
+                                jsonServerParams);
+
+                    } catch (ServerCommunicationException e) {
+                        scException = e;
+                    } finally {
+                        ServerUtility.cleanUp(connection, null);
+                        if (scException != null) {
+                            throw scException;
+                        }
+                    }
+
+                    closeDialog = true;
+                    handler.post(() -> {
+                        SimpleMessageDialog.newInstance(
+                                getResources().getString(R.string.messageSendFeedbackSuccessful))
+                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                    });
+
+                } catch (ServerCommunicationException e) {
+                    final ServerCommunicationException scException = e;
+                    handler.post(() -> {
+                        SimpleMessageDialog.newInstance(
+                                ServerUtility.getErrorMessageForReturnCode(scException.getReturnCode()))
+                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                    });
+                }
+            });
         }
     }
 

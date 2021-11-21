@@ -2,7 +2,6 @@
 
 import org.walkersguide.android.ui.dialog.selectors.SelectIntegerDialog;
 import org.walkersguide.android.ui.dialog.selectors.SelectIntegerDialog.Token;
-import org.walkersguide.android.ui.dialog.selectors.SelectIntegerDialog.IntegerSelector;
 import android.os.Build;
 import java.lang.System;
 import android.app.AlertDialog;
@@ -42,9 +41,11 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
 
 
-public class DirectionDetailsDialog extends DialogFragment implements IntegerSelector {
+public class DirectionDetailsDialog extends DialogFragment implements FragmentResultListener {
 
     private DirectionManager directionManagerInstance;
     private RadioButton radioCompassDirection;
@@ -57,6 +58,28 @@ public class DirectionDetailsDialog extends DialogFragment implements IntegerSel
     public static DirectionDetailsDialog newInstance() {
         DirectionDetailsDialog dialog = new DirectionDetailsDialog();
         return dialog;
+    }
+
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectIntegerDialog.REQUEST_SELECT_INTEGER, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectIntegerDialog.REQUEST_SELECT_INTEGER)) {
+            Token token = (Token) bundle.getSerializable(SelectIntegerDialog.EXTRA_TOKEN);
+            int newInteger = bundle.getInt(SelectIntegerDialog.EXTRA_INTEGER);
+            switch (token) {
+                case COMPASS_DIRECTION:
+                    directionManagerInstance.setSimulatedDirection(
+                            new Direction.Builder(GlobalInstance.getContext(), newInteger).build());
+                    updateSimulationDirection();
+                    break;
+            }
+        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -123,11 +146,10 @@ public class DirectionDetailsDialog extends DialogFragment implements IntegerSel
         buttonSimulatedDirection = (Button) view.findViewById(R.id.buttonSimulatedDirection);
         buttonSimulatedDirection.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectIntegerDialog dialog = SelectIntegerDialog.newInstance(
+                SelectIntegerDialog.newInstance(
                         SelectIntegerDialog.Token.COMPASS_DIRECTION,
-                        (Integer) view.getTag());
-                dialog.setTargetFragment(DirectionDetailsDialog.this, 1);
-                dialog.show(getActivity().getSupportFragmentManager(), "DirectionDetailsDialog");
+                        (Integer) view.getTag())
+                    .show(getChildFragmentManager(), "DirectionDetailsDialog");
             }
         });
 
@@ -161,16 +183,6 @@ public class DirectionDetailsDialog extends DialogFragment implements IntegerSel
     @Override public void onStop() {
         super.onStop();
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
-    }
-
-    @Override public void integerSelected(Token token, Integer newInteger) {
-        switch (token) {
-            case COMPASS_DIRECTION:
-                directionManagerInstance.setSimulatedDirection(
-                        new Direction.Builder(GlobalInstance.getContext(), newInteger).build());
-                updateSimulationDirection();
-                break;
-        }
     }
 
     private void updateSimulationDirection() {

@@ -10,7 +10,7 @@ import org.walkersguide.android.data.basic.segment.IntersectionSegment;
 import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.R;
 import java.io.Serializable;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 

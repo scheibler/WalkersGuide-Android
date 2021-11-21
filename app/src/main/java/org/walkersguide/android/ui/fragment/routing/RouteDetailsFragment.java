@@ -26,9 +26,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.dialog.SelectMapDialog;
+import org.walkersguide.android.ui.dialog.selectors.SelectMapDialog;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import androidx.fragment.app.Fragment;
@@ -39,15 +39,20 @@ import android.widget.BaseAdapter;
 import org.walkersguide.android.data.route.RouteObject;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.database.util.AccessDatabase;
+import org.walkersguide.android.server.util.OSMMap;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.util.SettingsManager;
+import androidx.annotation.NonNull;
 
 
-public class RouteDetailsFragment extends Fragment implements StreetCourseRequestListener {
+public class RouteDetailsFragment extends Fragment implements FragmentResultListener, StreetCourseRequestListener {
     private static final String KEY_ROUTE = "route";
     private static final String KEY_STREET_COURSE_REQUEST = "streetCourseRequest";
     private static final String KEY_LIST_POSITION = "listPosition";
 
 	// Store instance variables
     private RouteManager routeManagerInstance;
+    private SettingsManager settingsManagerInstance;
     private StreetCourseRequest request;
     private Route route;
     private int listPosition;
@@ -82,14 +87,27 @@ public class RouteDetailsFragment extends Fragment implements StreetCourseReques
 	}
 
 
-	@Override public void onAttach(Context context) {
-		super.onAttach(context);
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         routeManagerInstance = RouteManager.getInstance();
+        settingsManagerInstance = SettingsManager.getInstance();
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
-        this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-	}
+        this.vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        // fragment result listener
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
+            settingsManagerInstance.setSelectedMap(
+                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
+            requestStreetCourse();
+        }
+    }
 
 
     /**
@@ -313,8 +331,9 @@ public class RouteDetailsFragment extends Fragment implements StreetCourseReques
                     returnCode == Constants.RC.MAP_LOADING_FAILED
                     || returnCode == Constants.RC.WRONG_MAP_SELECTED)
            ) {
-            SelectMapDialog.newInstance()
-                .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
+            SelectMapDialog.newInstance(
+                    settingsManagerInstance.getSelectedMap())
+                .show(getChildFragmentManager(), "SelectMapDialog");
            }
     }
 

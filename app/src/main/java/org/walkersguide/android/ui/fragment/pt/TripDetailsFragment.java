@@ -180,7 +180,7 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
         nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
         tripManagerInstance.requestTrip(
                 TripDetailsFragment.this,
-                SettingsManager.getInstance().getServerSettings().getSelectedPublicTransportProvider(),
+                SettingsManager.getInstance().getSelectedNetworkId(),
                 station, departure);
     }
 

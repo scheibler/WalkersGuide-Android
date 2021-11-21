@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/activityMargin"
+        android:orientation="vertical">
+
+        <!-- server settings -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelServerSettingsHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <Button
+            android:id="@+id/buttonServerURL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonServerURLNoSelection" />
+
+        <Button
+            android:id="@+id/buttonServerMap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonServerMapNoSelection" />
+
+        <Button
+            android:id="@+id/buttonPublicTransportProvider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonPublicTransportProviderNoSelection" />
+
+
+        <!-- interface settings -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:focusable="true"
+            android:text="@string/labelInterfaceSettingsHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <Switch
+            android:id="@+id/buttonEnableTextInputHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonEnableTextInputHistory" />
+
+        <Button
+            android:id="@+id/buttonShakeIntensity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonShakeIntensity" />
+
+
+        <!-- import and export settings -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:focusable="true"
+            android:text="@string/labelImportAndExportSettingsHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <Button
+            android:id="@+id/buttonImportSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonImportSettings" />
+
+        <Button
+            android:id="@+id/buttonExportSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonExportSettings" />
+
+    </LinearLayout>
+</ScrollView>

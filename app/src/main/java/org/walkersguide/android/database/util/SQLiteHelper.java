@@ -21,7 +21,7 @@ import timber.log.Timber;
 import java.util.ArrayList;
 import android.content.ContentValues;
 import java.util.HashMap;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.json.JSONArray;
 import org.walkersguide.android.data.route.Route;
 import org.walkersguide.android.data.basic.point.Point;

@@ -33,7 +33,6 @@ import org.walkersguide.android.data.sensor.Direction;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DirectionManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.ServerStatusManager;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
@@ -230,7 +229,7 @@ public abstract class AbstractToolbarActivity extends AppCompatActivity {
             positionManagerInstance.startGPS();
             directionManagerInstance.startSensors();
             // reset server status request
-            ServerStatusManager.getInstance(this).setCachedServerInstance(null);
+            globalInstance.clearServerInstanceCache();
         }
     }
 

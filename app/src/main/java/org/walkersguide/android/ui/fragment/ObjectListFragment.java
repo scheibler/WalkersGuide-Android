@@ -69,9 +69,9 @@ import android.os.Build;
 
 
 public abstract class ObjectListFragment extends DialogFragment {
-    private static final String KEY_IS_DIALOG = "isDialog";
-    private static final String KEY_SHOW_SELECT_PROFILE_BUTTON = "showSelectProfileButton";
-    private static final String KEY_SHOW_SEARCH_FIELD = "showSearchField";
+    public static final String REQUEST_SELECT_OBJECT = "selectObject";
+    public static final String EXTRA_OBJECT_WITH_ID = "objectWithId";
+
 
     public abstract void clickedButtonSelectProfile();
     public abstract void longClickedButtonSelectProfile();
@@ -81,14 +81,13 @@ public abstract class ObjectListFragment extends DialogFragment {
     public abstract void requestUiUpdate();
 
 
-    public interface SelectObjectListener {
-        public void objectSelected(ObjectWithId object);
-    }
-
+    // dialog
+    private static final String KEY_IS_DIALOG = "isDialog";
+    private static final String KEY_SHOW_SELECT_PROFILE_BUTTON = "showSelectProfileButton";
+    private static final String KEY_SHOW_SEARCH_FIELD = "showSearchField";
 
     protected Vibrator vibrator;
-
-    private SelectObjectListener listener;
+    private boolean isDialog;
     private int listPosition;
 
 	// ui components
@@ -104,25 +103,9 @@ public abstract class ObjectListFragment extends DialogFragment {
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        Timber.d("isDialog: %1$s", getArguments().getBoolean(KEY_IS_DIALOG, false));
-        setShowsDialog(getArguments().getBoolean(KEY_IS_DIALOG, false));
-    }
-
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (getTargetFragment() != null
-                && getTargetFragment() instanceof SelectObjectListener) {
-            listener = (SelectObjectListener) getTargetFragment();
-        } else if (context instanceof Activity
-                && (Activity) context instanceof SelectObjectListener) {
-            listener = (SelectObjectListener) context;
-        }
-        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-    }
-
-    @Override public void onDetach() {
-        super.onDetach();
-        listener = null;
+        isDialog = getArguments().getBoolean(KEY_IS_DIALOG, false);
+        setShowsDialog(isDialog);
+        vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     public static Bundle createArgsBundle(boolean isDialog, boolean showSelectProfileButton, boolean showSearchField) {
@@ -411,26 +394,6 @@ public abstract class ObjectListFragment extends DialogFragment {
             }
         }
 
-        /*
-            EntryHolder holder;
-            if (convertView == null) {
-                holder = new EntryHolder();
-                holder.layoutTextViewAndActionButton = new TextViewAndActionButton(this.context);
-                LayoutParams lp = new LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                holder.layoutTextViewAndActionButton.setLayoutParams(lp);
-                if (listener != null) {
-                    holder.layoutTextViewAndActionButton.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-                        @Override public void onLabelClick(TextViewAndActionButton view) {
-                            listener.objectSelected(view.getObject());
-                        }
-                    });
-                }
-                convertView.setTag(holder);
-            } else {
-                holder = (EntryHolder) convertView.getTag();
-            }*/
-
         @Override public View getView(int position, View convertView, ViewGroup parent) {
             TextViewAndActionButton layoutTextViewAndActionButton = null;
             if (convertView == null) {
@@ -438,10 +401,12 @@ public abstract class ObjectListFragment extends DialogFragment {
                 LayoutParams lp = new LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 layoutTextViewAndActionButton.setLayoutParams(lp);
-                if (listener != null) {
+                if (isDialog) {
                     layoutTextViewAndActionButton.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
                         @Override public void onLabelClick(TextViewAndActionButton view) {
-                            listener.objectSelected(view.getObject());
+                            Bundle result = new Bundle();
+                            result.putSerializable(EXTRA_OBJECT_WITH_ID, view.getObject());
+                            getParentFragmentManager().setFragmentResult(REQUEST_SELECT_OBJECT, result);
                             dismiss();
                         }
                     });

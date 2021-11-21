@@ -3,13 +3,10 @@ package org.walkersguide.android.ui.dialog;
 import org.walkersguide.android.database.profiles.DatabaseSegmentProfile;
 import org.walkersguide.android.ui.fragment.object_list.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.database.DatabaseProfileRequest;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
     import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
 import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog.SelectRouteOrSimulationPointListener;
 import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog.WhereToPut;
-import timber.log.Timber;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -19,7 +16,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -33,7 +29,6 @@ import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -42,35 +37,32 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.basic.point.GPS;
 import org.walkersguide.android.data.basic.point.Point;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
 import org.walkersguide.android.server.route.WayClass;
-import org.walkersguide.android.helper.PointUtility;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.server.route.RouteManager;
 import org.walkersguide.android.server.route.RouteManager.RouteCalculationListener;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 import org.walkersguide.android.ui.adapter.WayClassAdapter;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog.ChildDialogCloseListener;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.SettingsManager.PlanRouteSettings;
 import org.walkersguide.android.util.GlobalInstance;
-import android.view.MenuItem;
 import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
 import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.view.KeyEvent;
 import org.walkersguide.android.data.route.Route;
+import org.walkersguide.android.ui.dialog.selectors.SelectMapDialog;
+import org.walkersguide.android.server.util.OSMMap;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
 
 
-public class PlanRouteDialog extends DialogFragment
-        implements SelectRouteOrSimulationPointListener, RouteCalculationListener {
+public class PlanRouteDialog extends DialogFragment implements FragmentResultListener, RouteCalculationListener {
     private static final String KEY_SHOW_VIA_POINTS = "showViaPoints";
 
     private PositionManager positionManagerInstance;
@@ -93,15 +85,52 @@ public class PlanRouteDialog extends DialogFragment
         return dialog;
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-		positionManagerInstance = PositionManager.getInstance(context);
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+		positionManagerInstance = PositionManager.getInstance(GlobalInstance.getContext());
         routeManagerInstance = RouteManager.getInstance();
         settingsManagerInstance = SettingsManager.getInstance();
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
-        this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        this.vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        // fragment result listener
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
+            settingsManagerInstance.setSelectedMap(
+                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
+            startRouteCalculation();
+        } else if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
+            PlanRouteSettings planRouteSettings = settingsManagerInstance.getPlanRouteSettings();
+            WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
+            Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
+            switch (whereToPut) {
+                case ROUTE_START_POINT:
+                    planRouteSettings.setStartPoint(point);
+                    break;
+                case ROUTE_DESTINATION_POINT:
+                    planRouteSettings.setDestinationPoint(point);
+                    break;
+                case ROUTE_VIA_POINT_1:
+                    planRouteSettings.setViaPoint1(point);
+                    break;
+                case ROUTE_VIA_POINT_2:
+                    planRouteSettings.setViaPoint2(point);
+                    break;
+                case ROUTE_VIA_POINT_3:
+                    planRouteSettings.setViaPoint3(point);
+                    break;
+            }
+            updateUI();
+        }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -113,20 +142,18 @@ public class PlanRouteDialog extends DialogFragment
         layoutStartPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutStartPoint);
         layoutStartPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
             @Override public void onLabelClick(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog dialog = SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_START_POINT);
-                dialog.setTargetFragment(PlanRouteDialog.this, 1);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_START_POINT)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
 
         layoutDestinationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutDestinationPoint);
         layoutDestinationPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
             @Override public void onLabelClick(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog dialog = SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_DESTINATION_POINT);
-                dialog.setTargetFragment(PlanRouteDialog.this, 1);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_DESTINATION_POINT)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
 
@@ -166,10 +193,9 @@ public class PlanRouteDialog extends DialogFragment
         layoutViaPoint1 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint1);
         layoutViaPoint1.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
             @Override public void onLabelClick(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog dialog = SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_1);
-                dialog.setTargetFragment(PlanRouteDialog.this, 1);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_1)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
         layoutViaPoint1.setOnMenuItemRemoveClickListener(new TextViewAndActionButton.OnMenuItemRemoveClickListener() {
@@ -181,10 +207,9 @@ public class PlanRouteDialog extends DialogFragment
         layoutViaPoint2 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint2);
         layoutViaPoint2.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
             @Override public void onLabelClick(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog dialog = SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_2);
-                dialog.setTargetFragment(PlanRouteDialog.this, 2);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_2)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
         layoutViaPoint2.setOnMenuItemRemoveClickListener(new TextViewAndActionButton.OnMenuItemRemoveClickListener() {
@@ -196,10 +221,9 @@ public class PlanRouteDialog extends DialogFragment
         layoutViaPoint3 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint3);
         layoutViaPoint3.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
             @Override public void onLabelClick(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog dialog = SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_3);
-                dialog.setTargetFragment(PlanRouteDialog.this, 3);
-                dialog.show(getActivity().getSupportFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_3)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
         layoutViaPoint3.setOnMenuItemRemoveClickListener(new TextViewAndActionButton.OnMenuItemRemoveClickListener() {
@@ -213,15 +237,15 @@ public class PlanRouteDialog extends DialogFragment
             public void onClick(View view) {
                 ObjectListFromDatabaseFragment.createDialog(
                         new DatabaseProfileRequest(DatabaseSegmentProfile.EXCLUDED_FROM_ROUTING), false)
-                    .show(getActivity().getSupportFragmentManager(), "ExcludedWaysDialog");
+                    .show(getChildFragmentManager(), "ExcludedWaysDialog");
             }
         });
 
         Button buttonRoutingWayClasses = (Button) view.findViewById(R.id.buttonRoutingWayClasses);
         buttonRoutingWayClasses.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                SelectRoutingWayClassesDialog.newInstance().show(
-                        getActivity().getSupportFragmentManager(), "SelectRoutingWayClassesDialog");
+                SelectRoutingWayClassesDialog.newInstance()
+                    .show(getChildFragmentManager(), "SelectRoutingWayClassesDialog");
             }
         });
 
@@ -271,10 +295,7 @@ public class PlanRouteDialog extends DialogFragment
                     if (routeManagerInstance.routeCalculationInProgress()) {
                         routeManagerInstance.cancelRouteCalculation();
                     } else {
-                        routeManagerInstance.startRouteCalculation(PlanRouteDialog.this);
-                        progressHandler.postDelayed(progressUpdater, 2000);
-                        Button buttonPositive = (Button) view;
-                        buttonPositive.setText(getResources().getString(R.string.dialogCancel));
+                        startRouteCalculation();
                     }
                 }
             });
@@ -305,26 +326,15 @@ public class PlanRouteDialog extends DialogFragment
         progressHandler.removeCallbacks(progressUpdater);
     }
 
-    @Override public void routeOrSimulationPointSelected(Point point, WhereToPut whereToPut) {
-        PlanRouteSettings planRouteSettings = settingsManagerInstance.getPlanRouteSettings();
-        switch (whereToPut) {
-            case ROUTE_START_POINT:
-                planRouteSettings.setStartPoint(point);
-                break;
-            case ROUTE_DESTINATION_POINT:
-                planRouteSettings.setDestinationPoint(point);
-                break;
-            case ROUTE_VIA_POINT_1:
-                planRouteSettings.setViaPoint1(point);
-                break;
-            case ROUTE_VIA_POINT_2:
-                planRouteSettings.setViaPoint2(point);
-                break;
-            case ROUTE_VIA_POINT_3:
-                planRouteSettings.setViaPoint3(point);
-                break;
+    private void startRouteCalculation() {
+        routeManagerInstance.startRouteCalculation(PlanRouteDialog.this);
+        progressHandler.postDelayed(progressUpdater, 2000);
+        // change button label
+        final AlertDialog dialog = (AlertDialog)getDialog();
+        if (dialog != null) {
+            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            buttonPositive.setText(getResources().getString(R.string.dialogCancel));
         }
-        updateUI();
     }
 
     @Override public void routeCalculationSuccessful(Route route) {
@@ -351,12 +361,13 @@ public class PlanRouteDialog extends DialogFragment
         if (isAdded()) {
             if (returnCode == Constants.RC.MAP_LOADING_FAILED
                     || returnCode == Constants.RC.WRONG_MAP_SELECTED) {
-                SelectMapDialog.newInstance()
-                    .show(getActivity().getSupportFragmentManager(), "SelectMapDialog");
+                SelectMapDialog.newInstance(
+                        settingsManagerInstance.getSelectedMap())
+                    .show(getChildFragmentManager(), "SelectMapDialog");
             } else {
                 SimpleMessageDialog.newInstance(
                         ServerUtility.getErrorMessageForReturnCode(returnCode))
-                    .show(getActivity().getSupportFragmentManager(), "SimpleMessageDialog");
+                    .show(getChildFragmentManager(), "SimpleMessageDialog");
             }
         }
     }
@@ -418,12 +429,8 @@ public class PlanRouteDialog extends DialogFragment
             return selectRoutingWayClassesDialog;
         }
 
-        @Override public void onAttach(Context context){
-            super.onAttach(context);
-            settingsManagerInstance = SettingsManager.getInstance();
-        }
-
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            settingsManagerInstance = SettingsManager.getInstance();
             ArrayList<WayClass> wayClassList = new ArrayList<WayClass>();
             if (savedInstanceState != null) {
                 JSONArray jsonWayClassList = null;

@@ -5,7 +5,7 @@ import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.data.basic.segment.Segment;
 
 import java.io.Serializable;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import java.util.Random;
 import java.lang.Math;
 import android.text.TextUtils;

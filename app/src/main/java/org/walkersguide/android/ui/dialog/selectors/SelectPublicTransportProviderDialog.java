@@ -1,15 +1,13 @@
-package org.walkersguide.android.ui.dialog;
+package org.walkersguide.android.ui.dialog.selectors;
 
 
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import de.schildbach.pte.AbstractNetworkProvider;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 
 import android.os.Bundle;
 
@@ -29,45 +27,52 @@ import android.widget.TextView;
 import org.walkersguide.android.R;
 import org.walkersguide.android.pt.PTHelper;
 import org.walkersguide.android.pt.PTHelper.Country;
-import org.walkersguide.android.util.SettingsManager;
 
 import java.util.ArrayList;
 import android.widget.ListView;
 import android.widget.CheckedTextView;
+import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
+import de.schildbach.pte.NetworkId;
 
 
 public class SelectPublicTransportProviderDialog extends DialogFragment {
+    public static final String REQUEST_SELECT_PT_PROVIDER = "selectPtProvider";
+    public static final String EXTRA_NETWORK_ID = "networkId";
 
-    public static final String NEW_NETWORK_PROVIDER = "org.walkersguide.android.intent.new_network_provider";
 
-    // Store instance variables
-    private SettingsManager settingsManagerInstance;
+    // instance constructors
+
+    public static SelectPublicTransportProviderDialog newInstance(NetworkId selectedId) {
+        SelectPublicTransportProviderDialog dialog = new SelectPublicTransportProviderDialog();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_SELECTED_ID, selectedId);
+        dialog.setArguments(args);
+        return dialog;
+    }
+
+
+    // dialog
+    private static final String KEY_SELECTED_ID = "selectedId";
+    private static final String KEY_LISTPOSITION = "listPosition";
+
+    private NetworkId selectedId;
     private int listPosition;
 
-    // ui components
     private ExpandableListView listViewNetworkProvider;
 
-    public static SelectPublicTransportProviderDialog newInstance() {
-        SelectPublicTransportProviderDialog selectPublicTransportProviderDialogInstance = new SelectPublicTransportProviderDialog();
-        return selectPublicTransportProviderDialogInstance;
-    }
-
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        settingsManagerInstance = SettingsManager.getInstance();
-    }
-
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        selectedId = (NetworkId) getArguments().getSerializable(KEY_SELECTED_ID);
         if (savedInstanceState != null) {
-            listPosition = savedInstanceState.getInt("listPosition");
+            listPosition = savedInstanceState.getInt(KEY_LISTPOSITION);
         } else {
-            listPosition = -1;
+            listPosition = 0;
         }
 
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_select_network_provider, nullParent);
+
         listViewNetworkProvider = (ExpandableListView) view.findViewById(R.id.expandableListView);
         listViewNetworkProvider.setOnChildClickListener(new OnChildClickListener() {
             @Override public boolean onChildClick(ExpandableListView parent, View v,
@@ -75,9 +80,9 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
                 AbstractNetworkProvider provider = ((NetworkProviderAdapter) parent.getExpandableListAdapter())
                     .getChild(groupPosition, childPosition);
                 if (provider != null) {
-                    settingsManagerInstance.getServerSettings().setSelectedPublicTransportProvider(provider);
-                    Intent intent = new Intent(NEW_NETWORK_PROVIDER);
-                    LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+                    Bundle result = new Bundle();
+                    result.putSerializable(EXTRA_NETWORK_ID, provider.id());
+                    getParentFragmentManager().setFragmentResult(REQUEST_SELECT_PT_PROVIDER, result);
                     dismiss();
                     return true;
                 }
@@ -116,7 +121,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
                 @Override public void onClick(View view) {
                     SendFeedbackDialog.newInstance(
                             SendFeedbackDialog.Token.PT_PROVIDER_REQUEST)
-                        .show(getActivity().getSupportFragmentManager(), "SendFeedbackDialog");
+                        .show(getChildFragmentManager(), "SendFeedbackDialog");
                 }
             });
             // negative button
@@ -127,6 +132,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
                 }
             });
         }
+
         // fill list
         NetworkProviderAdapter adapter = new NetworkProviderAdapter(getActivity());
         listViewNetworkProvider.setAdapter(adapter);
@@ -136,8 +142,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
         // list selection
         listViewNetworkProvider.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listViewNetworkProvider.setItemChecked(
-                adapter.getIndexOfNetworkProvider(
-                    settingsManagerInstance.getServerSettings().getSelectedPublicTransportProvider()), true);
+                adapter.getIndexOfNetworkProvider(selectedId), true);
         // list position
         listViewNetworkProvider.setSelection(listPosition);
         listViewNetworkProvider.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -152,7 +157,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt("listPosition",  listPosition);
+        savedInstanceState.putInt(KEY_LISTPOSITION,  listPosition);
     }
 
 
@@ -231,8 +236,8 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             holder.labelProvider.setPadding(
                     context.getResources().getDimensionPixelOffset(R.dimen.smallPadding), 0, 0, 0);
             holder.labelProvider.setText(
-                    PTHelper.getNetworkProviderName(
-                        context, getChild(groupPosition, childPosition)));
+                    PTHelper.getNameForNetworkId(
+                        getChild(groupPosition, childPosition).id()));
             return convertView;
         }
 
@@ -256,12 +261,12 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             return true;
         }
 
-        public int getIndexOfNetworkProvider(AbstractNetworkProvider selectedProvider) {
+        public int getIndexOfNetworkProvider(NetworkId selectedId) {
             int index = 0;
             for (Country country : PTHelper.supportedNetworkProviderMap.keySet()) { 
                 index += 1;
                 for (AbstractNetworkProvider provider : PTHelper.supportedNetworkProviderMap.get(country)) {
-                    if (provider.equals(selectedProvider)) {
+                    if (selectedId == provider.id()) {
                         return index;
                     }
                     index += 1;

@@ -1,12 +1,14 @@
-package org.walkersguide.android.data.server;
+package org.walkersguide.android.server.util;
 
 import android.text.TextUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.io.Serializable;
 
 
-public class OSMMap {
+public class OSMMap implements Serializable {
+    private static final long serialVersionUID = 1l;
 
     private String id, name, description;
     private long created;
@@ -16,13 +18,6 @@ public class OSMMap {
         this.name = name;
         this.description = description;
         this.created = created;
-    }
-
-    public OSMMap(JSONObject inputData) throws JSONException {
-        this.id = inputData.getString("id");
-        this.name = inputData.getString("name");
-        this.description = inputData.getString("description");
-        this.created = inputData.getLong("created");
     }
 
     public String getId() {
@@ -39,15 +34,6 @@ public class OSMMap {
 
     public long getCreated() {
         return this.created;
-    }
-
-    public JSONObject toJson() throws JSONException {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", this.id);
-        jsonObject.put("name", this.name);
-        jsonObject.put("description", this.description);
-        jsonObject.put("created", this.created);
-        return jsonObject;
     }
 
     @Override public String toString() {

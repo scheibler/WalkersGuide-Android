@@ -18,7 +18,7 @@ import java.io.Serializable;
 import org.walkersguide.android.data.sensor.Direction;
 import java.util.Map;
 import java.util.HashMap;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import android.text.TextUtils;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.sensor.DirectionManager;

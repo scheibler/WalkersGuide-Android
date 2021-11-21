@@ -28,12 +28,12 @@ import android.widget.TextView;
 import org.json.JSONException;
 
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.helper.ServerUtility;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.server.util.ServerUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.AddressManager;
-import org.walkersguide.android.server.AddressManager.AddressRequestListener;
+import org.walkersguide.android.server.address.AddressManager;
+import org.walkersguide.android.server.address.AddressManager.AddressRequestListener;
 import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;

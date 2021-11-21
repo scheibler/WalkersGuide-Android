@@ -5,7 +5,7 @@ import android.content.Context;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 
 

@@ -7,7 +7,6 @@ import android.app.Dialog;
 
 import android.content.DialogInterface;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.fragment.app.DialogFragment;
@@ -30,15 +29,14 @@ import android.view.ViewGroup;
 import android.view.LayoutInflater;
 import androidx.core.view.ViewCompat;
 import android.widget.AbsListView;
-import org.walkersguide.android.helper.ServerUtility;
+import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.ServerSettings;
 import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.sensor.PositionManager;
 import javax.net.ssl.HttpsURLConnection;
-import org.walkersguide.android.data.server.ServerInstance;
+import org.walkersguide.android.server.util.ServerInstance;
 import org.json.JSONObject;
-import org.walkersguide.android.exception.ServerCommunicationException;
+import org.walkersguide.android.server.util.ServerCommunicationException;
 import org.json.JSONArray;
 import java.io.IOException;
 import org.json.JSONException;
@@ -46,11 +44,24 @@ import android.view.MenuItem;
 import timber.log.Timber;
 import org.walkersguide.android.data.basic.point.Point;
 
+import java.util.concurrent.ExecutorService;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import javax.net.ssl.HttpsURLConnection;
+import org.json.JSONObject;
+import java.io.InputStream;
+
 
 public class HikingTrailsDialog extends DialogFragment {
+    private static final int DEFAULT_TRAIL_RADIUS = 25000;
 
     // Store instance variables
-    private HikingTrailsLoader hikingTrailsLoaderInstance;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Future hikingTrailsRequest;
+
     private int listPosition;
 
 	// ui components
@@ -78,12 +89,8 @@ public class HikingTrailsDialog extends DialogFragment {
         buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
         buttonRefresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                if (hikingTrailsRequestIsRunning()) {
-                    hikingTrailsLoaderInstance.cancel();
-                } else {
-                    listPosition = 0;
-                    prepareRequest();
-                }
+                listPosition = 0;
+                prepareRequest();
             }
         });
 
@@ -92,7 +99,7 @@ public class HikingTrailsDialog extends DialogFragment {
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 TrailDetailsDialog.newInstance(
                         (HikingTrail) parent.getItemAtPosition(position))
-                    .show(getActivity().getSupportFragmentManager(), "TrailDetailsDialog");
+                    .show(getChildFragmentManager(), "TrailDetailsDialog");
             }
         });
 
@@ -131,14 +138,23 @@ public class HikingTrailsDialog extends DialogFragment {
 
     @Override public void onStop() {
         super.onStop();
-        if (hikingTrailsRequestIsRunning()) {
-            hikingTrailsLoaderInstance.cancel();
-        }
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putInt("listPosition",  listPosition);
+    }
+
+    private void updateRefreshButton(boolean showCancel) {
+        if (showCancel) {
+            buttonRefresh.setContentDescription(
+                    getResources().getString(R.string.buttonCancel));
+            buttonRefresh.setImageResource(R.drawable.cancel);
+        } else {
+            buttonRefresh.setContentDescription(
+                    getResources().getString(R.string.buttonRefresh));
+            buttonRefresh.setImageResource(R.drawable.refresh);
+        }
     }
 
     private void prepareRequest() {
@@ -159,58 +175,99 @@ public class HikingTrailsDialog extends DialogFragment {
                 getResources().getString(R.string.messagePleaseWait));
 
         // query hiking trails
-        //
-        // cancel previous request
-        if (hikingTrailsRequestIsRunning()) {
-            hikingTrailsLoaderInstance.cancel();
+        if (hikingTrailsRequest == null || hikingTrailsRequest.isDone()) {
+            hikingTrailsRequest = this.executorService.submit(() -> {
+                try {
+                    // get current location
+                    PositionManager positionManagerInstance = PositionManager.getInstance();
+                    Point currentLocation = positionManagerInstance.getCurrentLocation();
+                    if (currentLocation == null) {
+                        throw new ServerCommunicationException(Constants.RC.NO_LOCATION_FOUND);
+                    }
+
+                    JSONObject jsonServerParams = null;
+                    try {
+                        jsonServerParams = ServerUtility.createServerParamList();
+                        jsonServerParams.put("lat", currentLocation.getLatitude());
+                        jsonServerParams.put("lon", currentLocation.getLongitude());
+                        jsonServerParams.put("radius", DEFAULT_TRAIL_RADIUS);
+                    } catch (JSONException e) {
+                        throw new ServerCommunicationException(Constants.RC.BAD_REQUEST);
+                    }
+
+                    HttpsURLConnection connection = null;
+                    InputStream in = null;
+                    ServerCommunicationException scException = null;
+                    ArrayList<HikingTrail> hikingTrailList = null;
+                    try {
+                        ServerInstance serverInstance = ServerUtility.getServerInstance(
+                                SettingsManager.getInstance().getServerURL());
+                        connection = ServerUtility.connectToServer(
+                                String.format(
+                                    "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_HIKING_TRAILS),
+                                jsonServerParams);
+                        in = ServerUtility.getInputStream(connection);
+                        JSONArray jsonHikingTrailList = new JSONObject(
+                                ServerUtility.getServerResponse(in))
+                            .getJSONArray("hiking_trails");
+
+                        // parse trails
+                        hikingTrailList = new ArrayList<HikingTrail>();
+                        for (int i=0; i<jsonHikingTrailList.length(); i++) {
+                            hikingTrailList.add(
+                                    new HikingTrail(
+                                        jsonHikingTrailList.getJSONObject(i)));
+                        }
+                    } catch (ServerCommunicationException e) {
+                        scException = e;
+                    } catch (IOException e) {
+                        Timber.e("ioError: %1$s", e.getMessage());
+                        scException = new ServerCommunicationException(Constants.RC.CONNECTION_FAILED);
+                    } catch (JSONException e) {
+                        Timber.e("JSONException: %1$s", e.getMessage());
+                        scException = new ServerCommunicationException(Constants.RC.BAD_RESPONSE);
+                    } finally {
+                        ServerUtility.cleanUp(connection, in);
+                        if (scException != null) {
+                            throw scException;
+                        }
+                    }
+
+                    final ArrayList<HikingTrail> finalHikingTrailList = hikingTrailList;
+                    handler.post(() -> {
+                        hikingTrailsRequestSuccessful(finalHikingTrailList);
+                    });
+
+                } catch (ServerCommunicationException e) {
+                    final ServerCommunicationException scException = e;
+                    handler.post(() -> {
+                        updateRefreshButton(false);
+                        ViewCompat.setAccessibilityLiveRegion(
+                                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
+                        labelEmptyListView.setText(
+                                ServerUtility.getErrorMessageForReturnCode(scException.getReturnCode()));
+                    });
+                }
+            });
         }
-        // new request
-        hikingTrailsLoaderInstance = new HikingTrailsLoader();
-        hikingTrailsLoaderInstance.execute();
     }
 
-    private void updateRefreshButton(boolean showCancel) {
-        if (showCancel) {
-            buttonRefresh.setContentDescription(
-                    getResources().getString(R.string.buttonCancel));
-            buttonRefresh.setImageResource(R.drawable.cancel);
-        } else {
-            buttonRefresh.setContentDescription(
-                    getResources().getString(R.string.buttonRefresh));
-            buttonRefresh.setImageResource(R.drawable.refresh);
-        }
-    }
-
-
-    /**
-     * trails server request
-     */
-
-    private  boolean hikingTrailsRequestIsRunning() {
-        if (hikingTrailsLoaderInstance != null
-                && hikingTrailsLoaderInstance.getStatus() != AsyncTask.Status.FINISHED) {
-            return true;
-        }
-        return false;
-    }
-
-    public void hikingTrailsRequestSuccessful(ArrayList<HikingTrail> hikingTrailList) {
+    private void hikingTrailsRequestSuccessful(ArrayList<HikingTrail> hikingTrailList) {
         // heading
         updateRefreshButton(false);
         ViewCompat.setAccessibilityLiveRegion(
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
         labelHeading.setText(
                 String.format(
-                    getResources().getString(R.string.labelHikingTrailsHeading),
-                    getResources().getQuantityString(
-                        R.plurals.hikingTrail, hikingTrailList.size(), hikingTrailList.size()),
-                    HikingTrailsLoader.DEFAULT_TRAIL_RADIUS / 1000)
+                    GlobalInstance.getStringResource(R.string.labelHikingTrailsHeading),
+                    GlobalInstance.getPluralResource(R.plurals.hikingTrail, hikingTrailList.size()),
+                    DEFAULT_TRAIL_RADIUS / 1000)
                 );
 
         // list adapter
         listViewHikingTrails.setAdapter(
                 new ArrayAdapter<HikingTrail>(
-                    GlobalInstance.getContext(),
+                    HikingTrailsDialog.this.getContext(),
                     android.R.layout.simple_list_item_1,
                     hikingTrailList)
                 );
@@ -228,108 +285,7 @@ public class HikingTrailsDialog extends DialogFragment {
 
         // empty view
         labelEmptyListView.setText(
-                getResources().getString(R.string.labelNoHikingTrailsNearby));
-    }
-
-    public void hikingTrailsRequestFailed(int returnCode) {
-        updateRefreshButton(false);
-        ViewCompat.setAccessibilityLiveRegion(
-                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-        labelEmptyListView.setText(
-                ServerUtility.getErrorMessageForReturnCode(GlobalInstance.getContext(), returnCode));
-    }
-
-
-    public class HikingTrailsLoader extends AsyncTask<Void, Void, Integer> {
-        public static final int DEFAULT_TRAIL_RADIUS = 25000;
-
-        private ArrayList<HikingTrail> hikingTrailList;
-
-        public HikingTrailsLoader() {
-            this.hikingTrailList = new ArrayList<HikingTrail>();
-        }
-
-        @Override protected Integer doInBackground(Void... params) {
-            ServerSettings serverSettings = SettingsManager.getInstance().getServerSettings();
-            int returnCode = Constants.RC.OK;
-
-            // get current location
-            PositionManager positionManagerInstance = PositionManager.getInstance();
-            Point currentLocation = positionManagerInstance.getCurrentLocation();
-            if (currentLocation == null) {
-                return Constants.RC.NO_LOCATION_FOUND;
-            }
-
-            HttpsURLConnection connection = null;
-            try {
-
-                // get server instance
-                ServerInstance serverInstance = ServerUtility.getServerInstance(
-                        GlobalInstance.getContext(), serverSettings.getServerURL());
-
-                // create server param list
-                JSONObject jsonServerParams = ServerUtility.createServerParamList(GlobalInstance.getContext());
-                jsonServerParams.put("lat", currentLocation.getLatitude());
-                jsonServerParams.put("lon", currentLocation.getLongitude());
-                jsonServerParams.put("radius", DEFAULT_TRAIL_RADIUS);
-
-                // start request
-                connection = ServerUtility.getHttpsURLConnectionObject(
-                        GlobalInstance.getContext(),
-                        String.format(
-                            "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.GET_HIKING_TRAILS),
-                        jsonServerParams);
-                connection.connect();
-                if (connection.getResponseCode() != Constants.RC.OK) {
-                    throw new ServerCommunicationException(
-                            GlobalInstance.getContext(), connection.getResponseCode());
-                }
-
-                // parse trails
-                JSONArray jsonHikingTrailList = ServerUtility.processServerResponseAsJSONObject(connection)
-                    .getJSONArray("hiking_trails");
-                for (int i=0; i<jsonHikingTrailList.length(); i++) {
-                    hikingTrailList.add(
-                            new HikingTrail(
-                                jsonHikingTrailList.getJSONObject(i)));
-                }
-
-            } catch (IOException e) {
-                returnCode = Constants.RC.CONNECTION_FAILED;
-            } catch (JSONException e) {
-                returnCode = Constants.RC.BAD_RESPONSE;
-            } catch (ServerCommunicationException e) {
-                returnCode = e.getReturnCode();
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-
-            return returnCode;
-        }
-
-        @Override protected void onPostExecute(Integer returnCode) {
-            Timber.d("onPost: %1$d", returnCode);
-            if (isAdded()) {
-                if (returnCode == Constants.RC.OK) {
-                    hikingTrailsRequestSuccessful(hikingTrailList);
-                } else {
-                    hikingTrailsRequestFailed(returnCode);
-                }
-            }
-        }
-
-        @Override protected void onCancelled(Integer returnCode) {
-            Timber.d("onCancelled");
-            if (isAdded()) {
-                hikingTrailsRequestFailed(Constants.RC.CANCELLED);
-            }
-        }
-
-        public void cancel() {
-            this.cancel(true);
-        }
+                GlobalInstance.getStringResource(R.string.labelNoHikingTrailsNearby));
     }
 
 

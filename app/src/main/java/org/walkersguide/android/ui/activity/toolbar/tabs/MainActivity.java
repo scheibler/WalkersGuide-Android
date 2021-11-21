@@ -5,7 +5,7 @@ import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.server.poi.PoiProfileRequest;
 import org.walkersguide.android.ui.fragment.object_list.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.ui.fragment.object_list.PoiListFromServerFragment;
-import org.walkersguide.android.ui.activity.SettingsActivity;
+import org.walkersguide.android.ui.fragment.SettingsFragment;
 import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import org.walkersguide.android.ui.activity.toolbar.AbstractTabsActivity;
 import org.walkersguide.android.ui.activity.toolbar.AbstractTabsActivity.AbstractTabAdapter;
@@ -88,8 +88,7 @@ public class MainActivity extends AbstractTabsActivity {
                             .show(getSupportFragmentManager(), "HikingTrailsDialog");
                         break;
                     case R.id.menuItemSettings:
-                        Intent intentStartSettingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
-                        startActivity(intentStartSettingsActivity);
+                        FragmentContainerActivity.showSettings(MainActivity.this);
                         break;
                     case R.id.menuItemInfo:
                         FragmentContainerActivity.showInfo(MainActivity.this);

@@ -15,7 +15,7 @@ import java.io.Serializable;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.data.basic.point.Point;
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.helper.StringUtility;
+import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.util.GlobalInstance;
 import timber.log.Timber;
 import org.walkersguide.android.data.basic.segment.Segment;
