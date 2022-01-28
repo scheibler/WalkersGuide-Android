@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/radioCompass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/bearingSensorCompass" />
+
+        <TextView
+            android:id="@+id/labelCompassDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/minHeight"
+            android:layout_marginTop="2dp"
+            android:focusable="true" />
+
+        <RadioButton
+            android:id="@+id/radioSatellite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/bearingSensorSatellite" />
+
+        <TextView
+            android:id="@+id/labelSatelliteDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/minHeight"
+            android:layout_marginTop="2dp"
+            android:focusable="true" />
+
+
+        <!-- simulation -->
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/buttonEnableSimulation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/minHeight"
+            android:layout_marginTop="30dp"
+            android:text="@string/buttonEnableBearingSimulation"
+            android:theme="@style/HeadingTextView" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/buttonDecreaseSimulatedBearing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:labelFor="@+id/editDegree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:text="@string/labelForDegreeEditText" />
+
+            <EditText
+                android:id="@+id/editDegree"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:minHeight="@dimen/minHeight"
+                android:inputType="numberDecimal"
+                android:digits="0123456789"
+                android:imeOptions="actionDone" />
+
+            <Button
+                android:id="@+id/buttonIncreaseSimulatedBearing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -75,7 +75,7 @@ public class FileUtility {
                 out.write(buffer, 0, length);
             }
         } catch(IOException e) {
-            Timber.e("file copy failed: " + e.getMessage());
+            Timber.e("file copy failed: %1$s", e.getMessage());
             success = false;
         }
 

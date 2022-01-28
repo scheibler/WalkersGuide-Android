@@ -1,6 +1,9 @@
 package org.walkersguide.android.sensor;
 
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
+import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
+
 import org.walkersguide.android.util.GlobalInstance;
 import android.annotation.TargetApi;
 
@@ -8,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
-import android.hardware.GeomagneticField;
 
 import android.location.Location;
 import android.location.LocationManager;
@@ -28,63 +30,116 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
-import java.util.HashMap;
 
 import org.json.JSONException;
 
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.basic.point.Point;
-import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
-import org.walkersguide.android.data.sensor.Direction;
-import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
-import org.walkersguide.android.data.sensor.threshold.SpeedThreshold;
-import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.LocationSettings;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import android.annotation.SuppressLint;
+import java.util.Locale;
 
 
 public class PositionManager implements android.location.LocationListener {
     private DateFormat timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
     private DateFormat dateAndTimeFormatter = SimpleDateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
 
-    private Context context;
+
+    /**
+     * singleton
+     */
+
     private static PositionManager positionManagerInstance;
     private SettingsManager settingsManagerInstance;
-    private Vibrator vibrator;
 
     public static PositionManager getInstance() {
-        if(positionManagerInstance == null){
-            positionManagerInstance = new PositionManager(GlobalInstance.getContext());
+        if (positionManagerInstance == null){
+            positionManagerInstance = getInstanceSynchronized();
         }
         return positionManagerInstance;
     }
 
-    public static PositionManager getInstance(Context context) {
-        if(positionManagerInstance == null){
-            positionManagerInstance = new PositionManager(context.getApplicationContext());
+    private static synchronized PositionManager getInstanceSynchronized() {
+        if (positionManagerInstance == null){
+            positionManagerInstance = new PositionManager();
         }
         return positionManagerInstance;
     }
 
-    private PositionManager(Context context) {
-        this.context = context;
+    private PositionManager() {
         this.settingsManagerInstance = SettingsManager.getInstance();
-        this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
 
     /**
-     * gps management
+     * start and stop location updates
      */
+    public static final String ACTION_LOCATION_PROVIDER_DISABLED = "action.LocationProviderDisabled";
+    public static final String ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED = "action.foregroundLocationPermissionDenied";
+
+    public static boolean locationServiceEnabled() {
+        Context context = GlobalInstance.getContext();
+        if (! ((LocationManager) context.getSystemService(Context.LOCATION_SERVICE)).isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean foregroundLocationPermissionGranted() {
+        Context context = GlobalInstance.getContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean backgroundLocationPermissionGranted() {
+        Context context = GlobalInstance.getContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        return true;
+    }
+
     private LocationManager locationManager = null;
     private boolean gpsFixFound = false;
-    private boolean simulationEnabled = false;
+
+    @SuppressLint("MissingPermission")
+    public void startGPS() {
+        if (locationManager == null) {
+            locationManager = (LocationManager) GlobalInstance.getContext().getSystemService(Context.LOCATION_SERVICE);
+
+            if (! locationServiceEnabled()) {
+                locationManager = null;
+                Intent locationProviderDisabledIntent = new Intent(ACTION_LOCATION_PROVIDER_DISABLED);
+                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(locationProviderDisabledIntent);
+
+            } else if (! foregroundLocationPermissionGranted()) {
+                locationManager = null;
+                Intent locationPermissionDeniedIntent = new Intent(ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED);
+                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(locationPermissionDeniedIntent);
+
+            } else {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+                gpsFixFound = false;
+            }
+
+            if (BuildConfig.DEBUG) {
+                appendToLog(
+                        "newLocationAttributes",
+                        dateAndTimeFormatter.format(new Date(System.currentTimeMillis())));
+            }
+        }
+    }
 
     public void stopGPS() {
         if (locationManager != null) {
@@ -93,55 +148,23 @@ public class PositionManager implements android.location.LocationListener {
         }
     }
 
-    public void startGPS() {
-        if (locationManager == null) {
-            locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            if (! locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager = null;
-                Intent locationProviderDisabledIntent = new Intent(Constants.ACTION_LOCATION_PROVIDER_DISABLED);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(locationProviderDisabledIntent);
-            } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                locationManager = null;
-                Intent locationPermissionDeniedIntent = new Intent(Constants.ACTION_LOCATION_PERMISSION_DENIED);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(locationPermissionDeniedIntent);
-            } else {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);
-                gpsFixFound = false;
-            }
-            if (BuildConfig.DEBUG) {
-                appendToLog(
-                        context,
-                        "newLocationAttributes",
-                        dateAndTimeFormatter.format(new Date(System.currentTimeMillis())));
-            }
-        }
-    }
-
-    public boolean getSimulationEnabled() {
-        return this.simulationEnabled;
-    }
-
-    public void setSimulationEnabled(boolean enabled) {
-        this.simulationEnabled = enabled;
-        broadcastCurrentLocation();
-    }
-
 
     /**
      * current location
      */
-    private HashMap<DistanceThreshold,Point> lastAggregatingLocationMap = null;
-    private Point lastImmediateLocation = null;
-    private float[] travelingSpeedArray = null;
+    public static final String ACTION_NEW_LOCATION = "new_location";
+    public static final String EXTRA_NEW_LOCATION = "newLocation";
 
     public Point getCurrentLocation() {
-        LocationSettings locationSettings = settingsManagerInstance.getLocationSettings();
         if (this.simulationEnabled) {
-            return locationSettings.getSimulatedLocation();
+            return getSimulatedLocation();
         } else {
-            return locationSettings.getGPSLocation();
+            return getGPSLocation();
         }
+    }
+
+    public boolean hasCurrentLocation() {
+        return getCurrentLocation() != null;
     }
 
     public void requestCurrentLocation() {
@@ -149,113 +172,35 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastCurrentLocation() {
-        Point currentLocation = getCurrentLocation();
-        NewLocationAttributes.Builder newLocationAttributesBuilder = new NewLocationAttributes.Builder(currentLocation);
-
-        // add optional attributes
-        if (currentLocation != null) {
-
-            // aggregating threshold
-            if (lastAggregatingLocationMap == null) {
-                // initialize
-                lastAggregatingLocationMap = new HashMap<DistanceThreshold,Point>();;
-                for (DistanceThreshold distanceThreshold : DistanceThreshold.values()) {
-                    lastAggregatingLocationMap.put(distanceThreshold, currentLocation);
-                }
-                newLocationAttributesBuilder.setAggregatingDistanceThreshold(DistanceThreshold.ZERO_METERS);
-            } else {
-                for (DistanceThreshold distanceThreshold : DistanceThreshold.values()) {
-                    if (lastAggregatingLocationMap.get(distanceThreshold).distanceTo(currentLocation) > distanceThreshold.getDistanceThresholdInMeters()) {
-                        lastAggregatingLocationMap.put(distanceThreshold, currentLocation);
-                        newLocationAttributesBuilder.setAggregatingDistanceThreshold(distanceThreshold);
-                    }
-                }
-            }
-
-            // immediate threshold
-            if (lastImmediateLocation == null) {
-                // initialize
-                lastImmediateLocation = currentLocation;
-                newLocationAttributesBuilder.setImmediateDistanceThreshold(DistanceThreshold.ZERO_METERS);
-            } else {
-                for (DistanceThreshold distanceThreshold : DistanceThreshold.values()) {
-                    if (lastImmediateLocation.distanceTo(currentLocation) > distanceThreshold.getDistanceThresholdInMeters()) {
-                        newLocationAttributesBuilder.setImmediateDistanceThreshold(distanceThreshold);
-                    }
-                }
-                lastImmediateLocation = currentLocation;
-            }
-
-            // speed threshold
-            if (travelingSpeedArray == null) {
-                // initialize
-                travelingSpeedArray = new float[]{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-                newLocationAttributesBuilder.setSpeedThreshold(SpeedThreshold.ZERO_KMH);
-            } else {
-                // get average speed
-                float speedSum = 0.0f;
-                for (int i=0; i<travelingSpeedArray.length; i++) {
-                    speedSum += travelingSpeedArray[i];
-                }
-                float averageSpeedinKMH = speedSum / travelingSpeedArray.length;
-                if (! this.simulationEnabled) {
-                    for (SpeedThreshold speedThreshold : SpeedThreshold.values()) {
-                        if (averageSpeedinKMH > speedThreshold.getSpeedThresholdInKMH()) {
-                            newLocationAttributesBuilder.setSpeedThreshold(speedThreshold);
-                        }
-                    }
-                }
-            }
-        }
-
-        // send intent
-        Intent intent = new Intent(Constants.ACTION_NEW_LOCATION);
-        intent.putExtra(
-                Constants.ACTION_NEW_LOCATION_ATTRIBUTES, newLocationAttributesBuilder.toJson().toString());
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-
-        // debug: log to file
-        if (BuildConfig.DEBUG) {
-            NewLocationAttributes nla = newLocationAttributesBuilder.build();
-            appendToLog(
-                    context,
-                    "newLocationAttributes",
-                    String.format(
-                        "%1$s\tAgg:%2$3d\tImm:%3$3d\tspeed:%4$3d",
-                        timeFormatter.format(new Date(System.currentTimeMillis())),
-                        nla.getAggregatingDistanceThreshold().getDistanceThresholdInMeters(),
-                        nla.getImmediateDistanceThreshold().getDistanceThresholdInMeters(),
-                        nla.getSpeedThreshold().getSpeedThresholdInKMH())
-                    );
-        }
+        Intent intent = new Intent(ACTION_NEW_LOCATION);
+        intent.putExtra(EXTRA_NEW_LOCATION, getCurrentLocation());
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
 
     /**
      * location from gps
      */
+    public static final String ACTION_NEW_GPS_LOCATION = "new_gps_location";
 
     public void requestGPSLocation() {
         broadcastGPSLocation();
     }
 
     private void broadcastGPSLocation() {
-        Intent intent = new Intent(Constants.ACTION_NEW_GPS_LOCATION);
-        try {
-            intent.putExtra(
-                    Constants.ACTION_NEW_GPS_LOCATION_OBJECT, getGPSLocation().toJson().toString());
-        } catch (JSONException | NullPointerException e) {}
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        Intent intent = new Intent(ACTION_NEW_GPS_LOCATION);
+        intent.putExtra(EXTRA_NEW_LOCATION, getGPSLocation());
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
-    public Point getGPSLocation() {
-        return settingsManagerInstance.getLocationSettings().getGPSLocation();
+    public GPS getGPSLocation() {
+        return settingsManagerInstance.getGPSLocation();
     }
 
     @Override public void onLocationChanged(Location newLocationObject) {
         // try to create gps point from location object
         GPS.Builder gpsBuilder = new GPS.Builder(
-                newLocationObject.getLatitude(), newLocationObject.getLongitude(), newLocationObject.getTime());
+                newLocationObject.getLatitude(), newLocationObject.getLongitude());
 
         // optional args
         if (newLocationObject.getProvider() != null) {
@@ -276,48 +221,27 @@ public class PositionManager implements android.location.LocationListener {
         }
         if (newLocationObject.hasSpeed()) {
             // convert from m/s into km/h
-            float speedInKMH = newLocationObject.getSpeed() * 3.6f;
-            // add to builder
-            gpsBuilder.setSpeed(speedInKMH);
-            // traveling speed array update
-            if (travelingSpeedArray != null) {
-                System.arraycopy(travelingSpeedArray, 0, travelingSpeedArray, 1, travelingSpeedArray.length-1);
-                travelingSpeedArray[0] = speedInKMH;
-            }
+            gpsBuilder.setSpeed(newLocationObject.getSpeed() * 3.6f);
         }
 
-        // direction sub object
+        // bearing sub object
         if (newLocationObject.hasBearing()) {
-            Direction.Builder directionBuilder = new Direction.Builder(
-                    context, Math.round(newLocationObject.getBearing()))
-                .setTime(newLocationObject.getTime());
-            // accuracy rating
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                directionBuilder.setAccuracyRating(
-                        getGPSBearingAccuracyRating(newLocationObject));
-            }
-            // add direction object
-            Direction gpsDirection = directionBuilder.build();
-            if (gpsDirection != null) {
-                gpsBuilder.setDirection(gpsDirection);
-                // debug: log to file
-                if (BuildConfig.DEBUG) {
-                    appendToLog(
-                            context,
-                            "gpsBearing",
-                            String.format(
-                                "new: bearing=%1$d, accuracy=%2$d\n",
-                                gpsDirection.getBearing(),
-                                gpsDirection.getAccuracyRating())
-                            );
-                }
-            }
+            gpsBuilder.setBearing(
+                    new BearingSensorValue(
+                        Math.round(newLocationObject.getBearing()),
+                        newLocationObject.getTime(),
+                        extractBearingSensorAccuracyRating(newLocationObject)));
         }
 
-        GPS currentLocation = settingsManagerInstance.getLocationSettings().getGPSLocation();
-        GPS newLocation = gpsBuilder.build();
-        if (isBetterLocation(currentLocation, newLocation)) {
-            settingsManagerInstance.getLocationSettings().setGPSLocation(newLocation);
+        // build
+        GPS newLocation = null;
+        try {
+            newLocation = gpsBuilder.build();
+        } catch (JSONException e) {}
+
+        // compare
+        if (isBetterLocation(getGPSLocation(), newLocation)) {
+            settingsManagerInstance.setGPSLocation(newLocation);
 
             // broadcast new gps position action
             broadcastGPSLocation();
@@ -330,16 +254,8 @@ public class PositionManager implements android.location.LocationListener {
             if (! gpsFixFound) {
                 gpsFixFound = true;
                 // notify user about first gps fix after app start
-                vibrator.vibrate(new long[]{250, 50, 250, 50}, -1);
-                // obtain the diff to true north
-                if (newLocationObject.hasAltitude()) {
-                    GeomagneticField geoField = new GeomagneticField(
-                            Double.valueOf(newLocationObject.getLatitude()).floatValue(),
-                            Double.valueOf(newLocationObject.getLongitude()).floatValue(),
-                            Double.valueOf(newLocationObject.getAltitude()).floatValue(),
-                            System.currentTimeMillis());
-                    DirectionManager.getInstance(context).setDifferenceToTrueNorth(geoField.getDeclination());
-                }
+                ((Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE))
+                    .vibrate(new long[]{250, 50, 250, 50}, -1);
             }
         }
     }
@@ -398,26 +314,20 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     @TargetApi(Build.VERSION_CODES.O)
-    private int getGPSBearingAccuracyRating(Location location) {
-        if (location.hasBearingAccuracy()) {
+    private BearingSensorAccuracyRating extractBearingSensorAccuracyRating(Location location) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O
+                && location.hasBearingAccuracy()) {
             int bearingAccuracyDegrees = Math.round(location.getBearingAccuracyDegrees());
-            // debug: log to file
-            if (BuildConfig.DEBUG) {
-                appendToLog(
-                        context,
-                        "gpsBearing",
-                        String.format("bearingAccuracyDegrees: %1$d", bearingAccuracyDegrees));
-            }
             // return accuracy rating value
-            if (bearingAccuracyDegrees < Direction.GPS_DIRECTION_HIGH_ACCURACY_THRESHOLD) {
-                return Constants.DIRECTION_ACCURACY_RATING.HIGH;
-            } else if (bearingAccuracyDegrees > Direction.GPS_DIRECTION_LOW_ACCURACY_THRESHOLD) {
-                return Constants.DIRECTION_ACCURACY_RATING.LOW;
+            if (bearingAccuracyDegrees < 10) {
+                return BearingSensorAccuracyRating.HIGH;
+            } else if (bearingAccuracyDegrees < 20) {
+                return BearingSensorAccuracyRating.MEDIUM;
             } else {
-                return Constants.DIRECTION_ACCURACY_RATING.MEDIUM;
+                return BearingSensorAccuracyRating.LOW;
             }
         } else {
-            return Constants.DIRECTION_ACCURACY_RATING.UNKNOWN;
+            return null;
         }
     }
 
@@ -426,29 +336,48 @@ public class PositionManager implements android.location.LocationListener {
      * location from simulation
      */
 
+    // enable / disable simulation
+    public static final String ACTION_LOCATION_SIMULATION_STATE_CHANGED = "action.locationSimulationStateChanged";
+    public static final String EXTRA_SIMULATION_ENABLED = "simulationEnabled.locationSimulationStateChanged";
+
+    private boolean simulationEnabled = false;
+
+    public boolean getSimulationEnabled() {
+        return this.simulationEnabled;
+    }
+
+    public void setSimulationEnabled(boolean enabled) {
+        this.simulationEnabled = enabled;
+
+        Intent intent = new Intent(ACTION_LOCATION_SIMULATION_STATE_CHANGED);
+        intent.putExtra(EXTRA_SIMULATION_ENABLED, enabled);
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
+
+        broadcastCurrentLocation();
+    }
+
+    // change simulated location
+    public static final String ACTION_NEW_SIMULATED_LOCATION = "new_simulated_location";
+
     public void requestSimulatedLocation() {
         broadcastSimulatedLocation();
     }
 
     private void broadcastSimulatedLocation() {
-        Intent intent = new Intent(Constants.ACTION_NEW_SIMULATED_LOCATION);
-        try {
-            intent.putExtra(
-                    Constants.ACTION_NEW_SIMULATED_LOCATION_OBJECT, getSimulatedLocation().toJson().toString());
-        } catch (JSONException | NullPointerException e) {}
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        Intent intent = new Intent(ACTION_NEW_SIMULATED_LOCATION);
+        intent.putExtra(EXTRA_NEW_LOCATION, getSimulatedLocation());
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
     public Point getSimulatedLocation() {
-        return settingsManagerInstance.getLocationSettings().getSimulatedLocation();
+        return settingsManagerInstance.getSimulatedPoint();
     }
 
-    public void setSimulatedLocation(Point newLocation) {
-        if (newLocation != null) {
-            settingsManagerInstance.getLocationSettings().setSimulatedLocation(newLocation);
-            // add to simulated points profile
-            AccessDatabase.getInstance().addObjectToDatabaseProfile(
-                    newLocation, DatabasePointProfile.SIMULATED_POINTS);
+    public void setSimulatedLocation(Point newPoint) {
+        if (newPoint != null) {
+            settingsManagerInstance.setSimulatedPoint(newPoint);
+            // add to history
+            DatabaseProfile.simulatedPoints().add(newPoint);
             // broadcast new simulated location action
             broadcastSimulatedLocation();
             // broadcast new location action
@@ -462,11 +391,11 @@ public class PositionManager implements android.location.LocationListener {
     /**
      * log to text file
      */
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.ROOT);
 
-    private static void appendToLog(Context context, String fileName, String message) {
+    private static void appendToLog(String fileName, String message) {
         File file = new File(
-                context.getApplicationContext().getExternalFilesDir(null),
+                GlobalInstance.getContext().getExternalFilesDir(null),
                 String.format("%1$s.log", fileName));
         try {
             FileWriter fw = new FileWriter(file, true);

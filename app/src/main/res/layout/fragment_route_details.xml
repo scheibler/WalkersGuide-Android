@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -8,31 +8,19 @@
         android:id="@+id/layoutTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginBottom="10dp"
         android:orientation="vertical" >
-
-        <org.walkersguide.android.ui.view.TextViewAndActionButton
-            android:id="@+id/layoutStartPoint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <org.walkersguide.android.ui.view.TextViewAndActionButton
-            android:id="@+id/layoutDestinationPoint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/labelDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true" />
+
+        <include
+            layout="@layout/layout_default_divider" />
     </LinearLayout>
 
     <include
-        layout="@layout/layout_heading_and_list_view_with_refresh_button"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/layoutTop" />
+        layout="@layout/layout_heading_and_list_view_with_refresh_button" />
 
-</RelativeLayout>
+</LinearLayout>

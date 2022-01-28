@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="match_parent" >
 
-    <EditText
-        android:id="@+id/editAddress"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/editHintAddress"
-        android:inputType="text"
-        android:imeOptions="actionDone" />
+        android:orientation="vertical" >
 
-    <Switch
-        android:id="@+id/buttonNearbyCurrentLocation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="5dp"
-        android:text="@string/buttonNearbyCurrentLocation" />
+        <org.walkersguide.android.ui.view.EditTextAndClearInputButton
+            android:id="@+id/layoutAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
-</LinearLayout>
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/buttonNearbyCurrentLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/minHeight"
+            android:layout_marginTop="10dp"
+            android:text="@string/buttonNearbyCurrentLocation" />
+
+    </LinearLayout>
+</ScrollView>

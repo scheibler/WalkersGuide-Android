@@ -1,8 +1,6 @@
     package org.walkersguide.android.ui.dialog.toolbar;
 
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -27,25 +25,30 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog.WhereToPut;
+import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
+import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
-import org.walkersguide.android.ui.dialog.creators.SaveCurrentLocationDialog;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
+import org.walkersguide.android.data.object_with_id.Point;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
+import org.walkersguide.android.util.GlobalInstance;
+import androidx.appcompat.widget.SwitchCompat;
+import android.widget.ImageButton;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SubMenu;
 
 
 public class LocationDetailsDialog extends DialogFragment implements FragmentResultListener {
@@ -53,7 +56,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
     private PositionManager positionManagerInstance;
 
     private TextView labelGPSCoordinates, labelGPSAccuracy, labelGPSTime;
-    private Switch buttonEnableSimulation;
+    private SwitchCompat buttonEnableSimulation;
     private TextViewAndActionButton layoutSimulationPoint;
 
     public static LocationDetailsDialog newInstance() {
@@ -63,6 +66,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        positionManagerInstance = PositionManager.getInstance();
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
@@ -74,37 +78,31 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
             Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
             if (whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT) {
                 positionManagerInstance.setSimulatedLocation(point);
+                buttonEnableSimulation.setChecked(true);
                 updateSimulationPoint();
-                // add to history
-                if (point != null) {
-                    AccessDatabase.getInstance().addObjectToDatabaseProfile(
-                            point, DatabasePointProfile.SIMULATED_POINTS);
-                }
             }
         }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        positionManagerInstance = PositionManager.getInstance();
-
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_location_details, nullParent);
 
-        // top layout
-        Button buttonWhereAmI = (Button) view.findViewById(R.id.buttonWhereAmI);
-        buttonWhereAmI.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                WhereAmIDialog.newInstance()
-                    .show(getChildFragmentManager(), "WhereAmIDialog");
-            }
-        });
-        Button buttonSaveCurrentLocation = (Button) view.findViewById(R.id.buttonSaveCurrentLocation);
-        buttonSaveCurrentLocation.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                SaveCurrentLocationDialog.newInstance()
-                    .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+        ImageButton buttonActionForCurrentLocation = (ImageButton) view.findViewById(R.id.buttonActionForCurrentLocation);
+        buttonActionForCurrentLocation.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                Point currentSensorLocation = positionManagerInstance.getGPSLocation();
+                if (currentSensorLocation != null) {
+                    showContextMenuForCurrentLocation(view, currentSensorLocation);
+                } else {
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getString(R.string.errorNoLocationFound),
+                            Toast.LENGTH_LONG)
+                        .show();
+                }
             }
         });
 
@@ -112,16 +110,9 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         labelGPSCoordinates = (TextView) view.findViewById(R.id.labelGPSCoordinates);
         labelGPSAccuracy = (TextView) view.findViewById(R.id.labelGPSAccuracy);
         labelGPSTime = (TextView) view.findViewById(R.id.labelGPSTime);
-        Button buttonLocationSensorDetails = (Button) view.findViewById(R.id.buttonLocationSensorDetails);
-        buttonLocationSensorDetails.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                LocationSensorDetailsDialog.newInstance()
-                    .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
-            }
-        });
 
         // simulated point
-        buttonEnableSimulation = (Switch) view.findViewById(R.id.buttonEnableSimulation);
+        buttonEnableSimulation = (SwitchCompat) view.findViewById(R.id.buttonEnableSimulation);
         buttonEnableSimulation.setChecked(positionManagerInstance.getSimulationEnabled());
         buttonEnableSimulation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
@@ -132,7 +123,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                         // no simulated point selected
                         Toast.makeText(
                                 getActivity(),
-                                getResources().getString(R.string.labelNoPointSelected),
+                                getResources().getString(R.string.labelNothingSelected),
                                 Toast.LENGTH_LONG).show();
                         positionManagerInstance.setSimulationEnabled(false);
                         buttonEnableSimulation.setChecked(false);
@@ -142,8 +133,8 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         });
 
         layoutSimulationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutSimulationPoint);
-        layoutSimulationPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-            @Override public void onLabelClick(TextViewAndActionButton view) {
+        layoutSimulationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT)
                     .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
@@ -154,14 +145,16 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         return new AlertDialog.Builder(getActivity())
             .setTitle(getResources().getString(R.string.locationDetailsDialogTitle))
             .setView(view)
+            .setNeutralButton(
+                    getResources().getString(R.string.menuItemWhereAmI),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
             .setNegativeButton(
                     getResources().getString(R.string.dialogClose),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            // update ui
-                            Intent intent = new Intent(Constants.ACTION_UPDATE_UI);
-                            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-                            dismiss();
                         }
                     })
             .create();
@@ -169,8 +162,27 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
 
     @Override public void onStart() {
         super.onStart();
+        final AlertDialog dialog = (AlertDialog)getDialog();
+        if(dialog != null) {
+
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    WhereAmIDialog.newInstance()
+                        .show(getChildFragmentManager(), "WhereAmIDialog");
+                }
+            });
+
+            Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            buttonNegative.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    dismiss();
+                }
+            });
+        }
+
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_NEW_GPS_LOCATION);
+        filter.addAction(PositionManager.ACTION_NEW_GPS_LOCATION);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request location
         positionManagerInstance.requestGPSLocation();
@@ -184,26 +196,22 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
     }
 
     private void updateSimulationPoint() {
-        layoutSimulationPoint.configureView(
-                positionManagerInstance.getSimulatedLocation(),
-                LabelTextConfig.simulation(false));
+        layoutSimulationPoint.configureAsSingleObject(positionManagerInstance.getSimulatedLocation());
     }
 
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_GPS_LOCATION)) {
+            if (intent.getAction().equals(PositionManager.ACTION_NEW_GPS_LOCATION)) {
+
                 // clear fields
                 labelGPSCoordinates.setText(context.getResources().getString(R.string.labelGPSCoordinates));
                 labelGPSAccuracy.setText(context.getResources().getString(R.string.labelGPSAccuracy));
                 labelGPSTime.setText(context.getResources().getString(R.string.labelGPSTime));
 
                 // get gps location
-                PointWrapper pointWrapper = PointWrapper.fromString(
-                        context, intent.getStringExtra(Constants.ACTION_NEW_GPS_LOCATION_OBJECT));
-                if (pointWrapper  != null
-                        && pointWrapper.getPoint() instanceof GPS) {
-                    GPS gpsLocation = (GPS) pointWrapper.getPoint();
+                GPS gpsLocation = (GPS) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
+                if (gpsLocation != null) {
 
                     // fill labels
                     labelGPSCoordinates.setText(gpsLocation.formatCoordinates());
@@ -213,5 +221,53 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
             }
         }
     };
+
+
+    /**
+     * current location context menu
+     */
+    private static final int MENU_ITEM_DETAILS = 1;
+    private static final int MENU_ITEM_SAVE = 2;
+    private static final int MENU_ITEM_SHARE = 3;
+
+    private void showContextMenuForCurrentLocation(final View view, final Point currentLocation) {
+        PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
+        // details
+        contextMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_DETAILS, 1, GlobalInstance.getStringResource(R.string.objectMenuItemDetails));
+        // save
+        contextMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_SAVE, 2, GlobalInstance.getStringResource(R.string.objectMenuItemSave));
+        // share
+        SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
+                Menu.NONE, Menu.NONE, 3, GlobalInstance.getStringResource(R.string.objectMenuItemShareCoordinates));
+        Point.populateShareCoordinatesSubMenuEntries(shareCoordinatesSubMenu);
+
+        contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+            @Override public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == MENU_ITEM_DETAILS) {
+                    LocationSensorDetailsDialog.newInstance()
+                        .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
+                } else if (item.getItemId() == MENU_ITEM_SAVE) {
+                    SaveCurrentLocationDialog.newInstance()
+                        .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                } else if (item.getItemId() == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {
+                    currentLocation.startShareCoordinatesChooserActivity(
+                            getActivity(), Point.SharingService.APPLE_MAPS);
+                } else if (item.getItemId() == Point.MENU_ITEM_SHARE_GOOGLE_MAPS_LINK) {
+                    currentLocation.startShareCoordinatesChooserActivity(
+                            getActivity(), Point.SharingService.GOOGLE_MAPS);
+                } else if (item.getItemId() == Point.MENU_ITEM_SHARE_OSM_ORG_LINK) {
+                    currentLocation.startShareCoordinatesChooserActivity(
+                            getActivity(), Point.SharingService.OSM_ORG);
+                } else {
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        contextMenu.show();
+    }
 
 }

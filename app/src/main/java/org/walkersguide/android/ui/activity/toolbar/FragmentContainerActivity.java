@@ -1,61 +1,85 @@
 package org.walkersguide.android.ui.activity.toolbar;
 
+import org.walkersguide.android.data.object_with_id.HikingTrail;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
 
-import org.walkersguide.android.ui.fragment.object_list.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.ui.fragment.object_list.extended.HikingTrailListFromServerFragment;
 import org.walkersguide.android.database.DatabaseProfileRequest;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
-import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
-import org.walkersguide.android.ui.activity.AbstractToolbarActivity;
+import org.walkersguide.android.ui.activity.ToolbarActivity;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.ui.fragment.InfoFragment;
 import org.walkersguide.android.ui.fragment.SettingsFragment;
 import org.walkersguide.android.ui.fragment.pt.DeparturesFragment;
 import org.walkersguide.android.ui.fragment.pt.TripDetailsFragment;
 
-import androidx.fragment.app.FragmentContainerView;
 import android.content.Context;
 
 import android.os.Bundle;
 
-import androidx.appcompat.widget.Toolbar;
 
-import android.text.format.DateFormat;
 
-import android.view.Menu;
 
-import android.widget.TextView;
 
 import java.util.Date;
 
-import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.server.util.OSMMap;
-import org.walkersguide.android.server.util.ServerInstance;
 import org.walkersguide.android.R;
-import org.walkersguide.android.util.Constants;
 import android.content.Intent;
 import androidx.fragment.app.Fragment;
-import org.walkersguide.android.pt.PTHelper;
-import org.walkersguide.android.ui.fragment.routing.RouteDetailsFragment;
-import org.walkersguide.android.data.route.Route;
+import org.walkersguide.android.server.pt.PtUtility;
+import org.walkersguide.android.ui.fragment.details.HikingTrailDetailsFragment;
+import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
+import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.ui.fragment.details.PointDetailsFragment;
+import org.walkersguide.android.data.object_with_id.Segment;
+import org.walkersguide.android.ui.fragment.details.SegmentDetailsFragment;
 
 
-public class FragmentContainerActivity extends AbstractToolbarActivity {
-    private static final String KEY_SHOW_FRAGMENT = "show";
+public class FragmentContainerActivity extends ToolbarActivity {
+
+    // fragment with extra data
+    //
     // showRouteDetails
-    private static final String KEY_ROUTE = "route";
-    // showDepartures and showTripDetails
-    private static final String KEY_STATION = "station";
+    private static final String KEY_OBJECT_WITH_ID = "objectWithId";
+
+    public static void showDetailsForObjectWithId(Context packageContext, ObjectWithId objectWithId) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.DETAILS_FOR_OBJECT_WITH_ID);
+        intent.putExtra(KEY_OBJECT_WITH_ID, objectWithId);
+        packageContext.startActivity(intent);
+    }
+
     // showDepartures
+    private static final String KEY_STATION = "station";
     private static final String KEY_DEPARTURE_TIME = "departureTime";
+
+    public static void showDepartures(Context packageContext, Location station, Date departureTime) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.DEPARTURES);
+        intent.putExtra(KEY_STATION, station);
+        intent.putExtra(KEY_DEPARTURE_TIME, departureTime);
+        packageContext.startActivity(intent);
+    }
+
     // showTripDetails
     private static final String KEY_DEPARTURE = "departure";
 
-
-    public static void showFavorites(Context packageContext) {
+    public static void showTripDetails(Context packageContext, Location station, Departure departure) {
         Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.FAVORITES);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.TRIP_DETAILS);
+        intent.putExtra(KEY_STATION, station);
+        intent.putExtra(KEY_DEPARTURE, departure);
+        packageContext.startActivity(intent);
+    }
+
+    // other fragments
+
+    public static void showHikingTrails(Context packageContext) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.HIKING_TRAILS);
         packageContext.startActivity(intent);
     }
 
@@ -68,29 +92,6 @@ public class FragmentContainerActivity extends AbstractToolbarActivity {
     public static void showRouteHistory(Context packageContext) {
         Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
         intent.putExtra(KEY_SHOW_FRAGMENT, Show.ROUTE_HISTORY);
-        packageContext.startActivity(intent);
-    }
-
-    public static void showRouteDetails(Context packageContext, Route route) {
-        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.ROUTE_DETAILS);
-        intent.putExtra(KEY_ROUTE, route);
-        packageContext.startActivity(intent);
-    }
-
-    public static void showDepartures(Context packageContext, Location station, Date departureTime) {
-        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.DEPARTURES);
-        intent.putExtra(KEY_STATION, station);
-        intent.putExtra(KEY_DEPARTURE_TIME, departureTime);
-        packageContext.startActivity(intent);
-    }
-
-    public static void showTripDetails(Context packageContext, Location station, Departure departure) {
-        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.TRIP_DETAILS);
-        intent.putExtra(KEY_STATION, station);
-        intent.putExtra(KEY_DEPARTURE, departure);
         packageContext.startActivity(intent);
     }
 
@@ -107,100 +108,111 @@ public class FragmentContainerActivity extends AbstractToolbarActivity {
     }
 
 
-    private enum Show {
-        FAVORITES, POINT_HISTORY, ROUTE_HISTORY, ROUTE_DETAILS, DEPARTURES, TRIP_DETAILS, SETTINGS, INFO
-    }
-    private Show showFragment;
+    // activity
+    private static final String KEY_SHOW_FRAGMENT = "show";
 
+    private enum Show {
+        HIKING_TRAILS, POINT_HISTORY, ROUTE_HISTORY, DETAILS_FOR_OBJECT_WITH_ID, DEPARTURES, TRIP_DETAILS, SETTINGS, INFO
+    }
+
+
+    @Override public int getLayoutResourceId() {
+		return R.layout.activity_fragment_container;
+    }
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        showFragment = (Show) getIntent().getExtras().getSerializable(KEY_SHOW_FRAGMENT);
+        Show showFragment = (Show) getIntent().getExtras().getSerializable(KEY_SHOW_FRAGMENT);
 
         Fragment fragment = null;
-        switch (showFragment) {
+        if (showFragment != null) {
+            switch (showFragment) {
 
-            case FAVORITES:
-                fragment = ObjectListFromDatabaseFragment.createFragment(
-                        new DatabaseProfileRequest(DatabasePointProfile.FAVORITES), false);
-                FragmentContainerActivity.this.setToolbarTitle(
-                        DatabasePointProfile.FAVORITES.getName());
-                break;
+                case HIKING_TRAILS:
+                    fragment = HikingTrailListFromServerFragment.newInstance();
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            GlobalInstance.getStringResource(R.string.fragmentHikingTrailListName));
+                    break;
 
-            case POINT_HISTORY:
-                fragment = ObjectListFromDatabaseFragment.createFragment(
-                        new DatabaseProfileRequest(DatabasePointProfile.ALL_POINTS), true);
-                FragmentContainerActivity.this.setToolbarTitle(
-                        GlobalInstance.getStringResource(R.string.fragmentPointHistoryName));
-                break;
+                case POINT_HISTORY:
+                    fragment = ObjectListFromDatabaseFragment.createPointHistoryFragment();
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            GlobalInstance.getStringResource(R.string.fragmentPointHistoryName));
+                    break;
 
-            case ROUTE_HISTORY:
-                fragment = ObjectListFromDatabaseFragment.createFragment(
-                        new DatabaseProfileRequest(DatabaseRouteProfile.ALL_ROUTES), true);
-                FragmentContainerActivity.this.setToolbarTitle(
-                        GlobalInstance.getStringResource(R.string.fragmentRouteHistoryName));
-                break;
+                case ROUTE_HISTORY:
+                    fragment = ObjectListFromDatabaseFragment.createRouteHistoryFragment();
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            GlobalInstance.getStringResource(R.string.fragmentRouteHistoryName));
+                    break;
 
-            case ROUTE_DETAILS:
-                fragment = RouteDetailsFragment.newInstance(
-                        (Route) getIntent().getExtras().getSerializable(KEY_ROUTE));
-                FragmentContainerActivity.this.setToolbarTitle(
-                        GlobalInstance.getStringResource(R.string.routeDetailsFragmentTitle));
-                break;
+                case DETAILS_FOR_OBJECT_WITH_ID:
+                    ObjectWithId objectWithId = (ObjectWithId) getIntent().getExtras().getSerializable(KEY_OBJECT_WITH_ID);
+                    if (objectWithId instanceof Point) {
+                        fragment = PointDetailsFragment.newInstance((Point) objectWithId);
+                        FragmentContainerActivity.this.setToolbarTitle(
+                                GlobalInstance.getStringResource(R.string.fragmentPointDetailsName));
+                    } else if (objectWithId instanceof HikingTrail) {
+                        fragment = HikingTrailDetailsFragment.newInstance((HikingTrail) objectWithId);
+                        FragmentContainerActivity.this.setToolbarTitle(
+                                GlobalInstance.getStringResource(R.string.fragmentHikingTrailDetailsName));
+                    } else if (objectWithId instanceof Route) {
+                        fragment = RouteDetailsFragment.newInstance((Route) objectWithId);
+                        FragmentContainerActivity.this.setToolbarTitle(
+                                GlobalInstance.getStringResource(R.string.fragmentRouteDetailsName));
+                    } else if (objectWithId instanceof Segment) {
+                        fragment = SegmentDetailsFragment.newInstance((Segment) objectWithId);
+                        FragmentContainerActivity.this.setToolbarTitle(
+                                GlobalInstance.getStringResource(R.string.fragmentSegmentDetailsName));
+                    }
+                    break;
 
-            case DEPARTURES:
-                Location departureStation = (Location) getIntent().getExtras().getSerializable(KEY_STATION);
-                Date departureTime = (Date) getIntent().getExtras().getSerializable(KEY_DEPARTURE_TIME);
-                fragment = DeparturesFragment.newInstance(departureStation, departureTime);
-                FragmentContainerActivity.this.setToolbarTitle(
-                        PTHelper.getLocationName(departureStation));
-                break;
+                case DEPARTURES:
+                    Location departureStation = (Location) getIntent().getExtras().getSerializable(KEY_STATION);
+                    Date departureTime = (Date) getIntent().getExtras().getSerializable(KEY_DEPARTURE_TIME);
+                    fragment = DeparturesFragment.newInstance(departureStation, departureTime);
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            PtUtility.getLocationName(departureStation));
+                    break;
 
-            case TRIP_DETAILS:
-                Location tripStation = (Location) getIntent().getExtras().getSerializable(KEY_STATION);
-                Departure tripDeparture = (Departure) getIntent().getExtras().getSerializable(KEY_DEPARTURE);
-                fragment = TripDetailsFragment.newInstance(tripStation, tripDeparture);
-                FragmentContainerActivity.this.setToolbarTitle(
-                        String.format(
-                            "%1$s%2$s, %3$s",
-                            tripDeparture.line.product.code,
-                            tripDeparture.line.label,
-                            PTHelper.getLocationName(tripDeparture.destination))
-                        );
-                break;
+                case TRIP_DETAILS:
+                    Location tripStation = (Location) getIntent().getExtras().getSerializable(KEY_STATION);
+                    Departure tripDeparture = (Departure) getIntent().getExtras().getSerializable(KEY_DEPARTURE);
+                    fragment = TripDetailsFragment.newInstance(tripStation, tripDeparture);
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            String.format(
+                                "%1$s%2$s, %3$s",
+                                tripDeparture.line.product.code,
+                                tripDeparture.line.label,
+                                PtUtility.getLocationName(tripDeparture.destination))
+                            );
+                    break;
 
-            case SETTINGS:
-                fragment = SettingsFragment.newInstance();
-                FragmentContainerActivity.this.setToolbarTitle(
-                        GlobalInstance.getStringResource(R.string.fragmentSettingsName));
-                break;
+                case SETTINGS:
+                    fragment = SettingsFragment.newInstance();
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            GlobalInstance.getStringResource(R.string.fragmentSettingsName));
+                    break;
 
-            case INFO:
-                fragment = InfoFragment.newInstance();
-                FragmentContainerActivity.this.setToolbarTitle(
-                        GlobalInstance.getStringResource(R.string.fragmentInfoName));
-                break;
+                case INFO:
+                    fragment = InfoFragment.newInstance();
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            GlobalInstance.getStringResource(R.string.fragmentInfoName));
+                    break;
+            }
         }
 
         if (fragment != null) {
-            getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragmentContainerView, fragment)
-                .commit();
+            String tag = showFragment.name();
+            // only replace, if the fragment is not already attached
+            if (getSupportFragmentManager().findFragmentByTag(tag) == null) {
+                getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainerView, fragment, tag)
+                    .commit();
+            }
         }
-    }
-
-
-    /**
-     * implement AbstractToolbarActivity and AbstractViewPagerActivity functions
-     */
-
-    public int getLayoutResourceId() {
-		return R.layout.activity_fragment_container;
-    }
-
-    public void tabSelected(int tabIndex) {
     }
 
 }

@@ -5,13 +5,11 @@ import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.Stop;
 import java.util.ListIterator;
-import android.os.Handler;
 import android.os.Looper;
 import androidx.core.view.ViewCompat;
 import android.content.Context;
 
 import android.os.Bundle;
-import android.os.Handler;
 
 
 import android.view.LayoutInflater;
@@ -27,32 +25,28 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.pt.PTHelper;
-import org.walkersguide.android.pt.TripManager;
-import org.walkersguide.android.pt.TripManager.TripListener;
+import org.walkersguide.android.server.pt.PtException;
+import org.walkersguide.android.server.pt.PtUtility;
 import java.util.Date;
 import android.widget.AdapterView;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.SettingsManager;
+import android.os.Handler;
+import android.os.Looper;
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.pt.TripDetailsTask;
+import org.walkersguide.android.server.pt.PtException;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.content.Intent;
+import org.walkersguide.android.util.GlobalInstance;
 
 
-public class TripDetailsFragment extends Fragment implements TripListener, Runnable {
-    private static final String KEY_STATION = "station";
-    private static final String KEY_DEPARTURE = "departure";
-    private static final String KEY_LIST_POSITION = "listPosition";
+public class TripDetailsFragment extends Fragment implements Runnable {
 
-	// Store instance variables
-    private TripManager tripManagerInstance;
-	private Handler nextDeparturesHandler;
 
-    private Location station;
-    private Departure departure;
-    private int listPosition;
-
-	// ui components
-    private ImageButton buttonRefresh;
-    private ListView listViewTrip;
-    private TextView labelHeading, labelEmptyListView;
+    // instance constructors
 
 	public static TripDetailsFragment newInstance(Location station, Departure departure) {
 		TripDetailsFragment fragment = new TripDetailsFragment();
@@ -64,11 +58,29 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
 	}
 
 
+    // fragment
+    private static final String KEY_TASK_ID = "taskId";
+    private static final String KEY_STATION = "station";
+    private static final String KEY_DEPARTURE = "departure";
+    private static final String KEY_LIST_POSITION = "listPosition";
+
+    private ServerTaskExecutor serverTaskExecutorInstance;
+    private long taskId;
+	private Handler nextDeparturesHandler = new Handler(Looper.getMainLooper());
+
+    private Location station;
+    private Departure departure;
+    private int listPosition;
+
+	// ui components
+    private ImageButton buttonRefresh;
+    private ListView listViewTrip;
+    private TextView labelHeading, labelEmptyListView;
+
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        tripManagerInstance = TripManager.getInstance();
-        nextDeparturesHandler= new Handler(Looper.getMainLooper());
-	}
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+    }
 
 
     /**
@@ -85,8 +97,10 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
         station = (Location) getArguments().getSerializable(KEY_STATION);
         departure = (Departure) getArguments().getSerializable(KEY_DEPARTURE);
         if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
             listPosition = 0;
         }
 
@@ -97,8 +111,8 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
         buttonRefresh.setVisibility(View.GONE);
         buttonRefresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                if (tripManagerInstance.tripRequestTaskInProgress()) {
-                    tripManagerInstance.cancelTripRequestTask();
+                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                    serverTaskExecutorInstance.cancelTask(taskId);
                 } else if (listViewTrip.getAdapter() != null) {
                     updateListView();
                 } else if (station != null && departure != null) {
@@ -117,7 +131,7 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
                     FragmentContainerActivity.showDepartures(
                             TripDetailsFragment.this.getContext(),
                             selectedStop.location,
-                            PTHelper.getDepartureTime(selectedStop));
+                            PtUtility.getDepartureTime(selectedStop));
                 }
             }
         });
@@ -136,31 +150,41 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
         }
     }
 
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
-    }
-
-
-    /**
-     * pause and resume
-     */
-
-    @Override public void onPause() {
-        super.onPause();
-        if (station != null && departure != null) {
-            nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
-            tripManagerInstance.invalidateTripRequestTask((TripDetailsFragment) this);
-        }
-    }
-
     @Override public void onResume() {
         super.onResume();
         // prepare request
         if (station != null && departure != null) {
             prepareRequest();
         }
+
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_TRIP_DETAILS_TASK_SUCCESSFUL);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
     }
+
+    @Override public void onPause() {
+        super.onPause();
+        if (station != null && departure != null) {
+            nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
+        }
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
+    }
+
+    @Override public void onDestroy() {
+        super.onDestroy();
+        if (! getActivity().isChangingConfigurations()) {
+            serverTaskExecutorInstance.cancelTask(taskId);
+        }
+    }
+
 
     private void prepareRequest() {
         // heading
@@ -169,6 +193,7 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
         labelHeading.setText(
                 getResources().getQuantityString(R.plurals.station, 0, 0));
         updateRefreshButton(true);
+
         // list view
         listViewTrip.setAdapter(null);
         listViewTrip.setOnScrollListener(null);
@@ -176,22 +201,57 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
                 labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelEmptyListView.setText(
                 getResources().getString(R.string.messagePleaseWait));
-        // request departure
+
         nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
-        tripManagerInstance.requestTrip(
-                TripDetailsFragment.this,
-                SettingsManager.getInstance().getSelectedNetworkId(),
-                station, departure);
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            taskId = serverTaskExecutorInstance.executeTask(
+                    new TripDetailsTask(
+                        SettingsManager.getInstance().getSelectedNetworkId(),
+                        station, departure));
+        }
     }
 
-    private void updateRefreshButton(boolean showCancel) {
-        if (showCancel) {
+    // background task results
+
+    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_TRIP_DETAILS_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                    return;
+                }
+
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_TRIP_DETAILS_TASK_SUCCESSFUL)) {
+                    tripTaskWasSuccessful(
+                            (ArrayList<Stop>) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_STOP_LIST));
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+                    labelEmptyListView.setText(
+                            GlobalInstance.getStringResource(R.string.errorReqRequestCancelled));
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    PtException ptException = (PtException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (ptException != null) {
+                        ViewCompat.setAccessibilityLiveRegion(
+                                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
+                        labelEmptyListView.setText(ptException.getMessage());
+                    }
+                }
+
+                updateRefreshButton(false);
+            }
+        }
+    };
+
+    private void updateRefreshButton(boolean requestInProgress) {
+        if (requestInProgress) {
             buttonRefresh.setContentDescription(
-                    getResources().getString(R.string.buttonCancel));
+                    GlobalInstance.getStringResource(R.string.buttonCancel));
             buttonRefresh.setImageResource(R.drawable.cancel);
         } else {
             buttonRefresh.setContentDescription(
-                    getResources().getString(R.string.buttonRefresh));
+                    GlobalInstance.getStringResource(R.string.buttonRefresh));
             buttonRefresh.setImageResource(R.drawable.refresh);
         }
     }
@@ -208,10 +268,10 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
 
 
     /**
-     * trip request interface
+     * trip details
      */
 
-    @Override public void tripRequestTaskSuccessful(ArrayList<Stop> stopList) {
+    private void tripTaskWasSuccessful(ArrayList<Stop> stopList) {
         // listview
         listViewTrip.setAdapter(
                 new TripAdapter(TripDetailsFragment.this.getContext(), stopList));
@@ -241,18 +301,7 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
         nextDeparturesHandler.postDelayed(TripDetailsFragment.this, 60000);
     }
 
-    @Override public void tripRequestTaskFailed(int returnCode) {
-        updateRefreshButton(false);
-        ViewCompat.setAccessibilityLiveRegion(
-                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-        labelEmptyListView.setText(
-                PTHelper.getErrorMessageForReturnCode(TripDetailsFragment.this.getContext(), returnCode));
-    }
-
-
-    /**
-     * update trip every 60 seconds
-     */
+    // update trip every 60 seconds
 
     @Override public void run() {
         ViewCompat.setAccessibilityLiveRegion(
@@ -295,21 +344,21 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
             holder.label.setText(
                     String.format(
                         context.getResources().getString(R.string.labelTripAdapter),
-                        PTHelper.getLocationName(stop.location),
-                        PTHelper.formatRelativeDepartureTime(
-                            context, PTHelper.getDepartureTime(stop), false),
-                        PTHelper.formatAbsoluteDepartureTime(
-                            context, PTHelper.getDepartureTime(stop)))
+                        PtUtility.getLocationName(stop.location),
+                        PtUtility.formatRelativeDepartureTime(
+                            context, PtUtility.getDepartureTime(stop), false),
+                        PtUtility.formatAbsoluteDepartureTime(
+                            context, PtUtility.getDepartureTime(stop)))
                     );
 
             holder.label.setContentDescription(
                     String.format(
                         context.getResources().getString(R.string.labelTripAdapterCD),
-                        PTHelper.getLocationName(stop.location),
-                        PTHelper.formatRelativeDepartureTime(
-                            context, PTHelper.getDepartureTime(stop), true),
-                        PTHelper.formatAbsoluteDepartureTime(
-                            context, PTHelper.getDepartureTime(stop)))
+                        PtUtility.getLocationName(stop.location),
+                        PtUtility.formatRelativeDepartureTime(
+                            context, PtUtility.getDepartureTime(stop), true),
+                        PtUtility.formatAbsoluteDepartureTime(
+                            context, PtUtility.getDepartureTime(stop)))
                     );
 
             return convertView;
@@ -330,7 +379,7 @@ public class TripDetailsFragment extends Fragment implements TripListener, Runna
             ListIterator<Stop> stopListIterator = this.stopList.listIterator();
             while(stopListIterator.hasNext()){
                 Stop stop = stopListIterator.next();
-                if (PTHelper.getDepartureTime(stop).before(new Date())) {
+                if (PtUtility.getDepartureTime(stop).before(new Date())) {
                     stopListIterator.remove();
                 }
             }

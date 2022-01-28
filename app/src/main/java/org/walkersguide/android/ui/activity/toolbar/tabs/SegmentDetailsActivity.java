@@ -1,12 +1,10 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
-import org.walkersguide.android.server.route.StreetCourseRequest;
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.sensor.bearing.AcceptNewQuadrant;
+import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;
 import androidx.core.view.ViewCompat;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
-import org.walkersguide.android.ui.activity.toolbar.AbstractTabsActivity;
-import org.walkersguide.android.ui.activity.toolbar.AbstractTabsActivity.AbstractTabAdapter;
-
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,63 +18,60 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 
-import android.view.View;
 
 import android.widget.TextView;
 
 
-import org.walkersguide.android.data.basic.segment.IntersectionSegment;
-import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
-import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
-import org.walkersguide.android.util.StringUtility;
+import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.DirectionManager;
-import org.walkersguide.android.ui.fragment.routing.RouteDetailsFragment;
-import org.walkersguide.android.ui.fragment.SegmentDetailsFragment;
-import org.walkersguide.android.util.Constants;
+import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
+import org.walkersguide.android.ui.fragment.details.SegmentDetailsFragment;
 import java.util.ArrayList;
-import org.walkersguide.android.data.basic.segment.Segment;
+import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
 
 
-public class SegmentDetailsActivity extends AbstractTabsActivity {
+public class SegmentDetailsActivity extends TabLayoutActivity {
     private static final String KEY_SEGMENT = "segment";
-
-    public enum Tab {
-        DETAILS, STREET_COURSE
-    }
 
 
     public static void start(Context packageContext, Segment segment) {
+        startAtTab(packageContext, segment, null);
+    }
+
+    public static void startAtTab(Context packageContext, Segment segment, Tab tab) {
         // start activity
         Intent intent = new Intent(packageContext, SegmentDetailsActivity.class);
         intent.putExtra(KEY_SEGMENT, segment);
+        intent.putExtra(KEY_SELECTED_TAB, tab);
         packageContext.startActivity(intent);
     }
 
 
-	// instance variables
-    private DirectionManager directionManagerInstance;
     private Segment segment;
 
-    // activity ui components
     private TextView labelSegmentDirection;
+
+    @Override public int getLayoutResourceId() {
+		return R.layout.activity_segment_details;
+    }
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        directionManagerInstance = DirectionManager.getInstance(this);
 
         // load segment
         segment = (Segment) getIntent().getExtras().getSerializable(KEY_SEGMENT);
         if (segment != null) {
             TextViewAndActionButton layoutSelectedSegment = (TextViewAndActionButton) findViewById(R.id.layoutSelectedSegment);
-            layoutSelectedSegment.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-                @Override public void onLabelClick(TextViewAndActionButton view) {
+            layoutSelectedSegment.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+                @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                     // nothing should happen here
                 }
-            });
-            layoutSelectedSegment.configureView(segment, LabelTextConfig.empty(true));
+            }, false);
+            layoutSelectedSegment.configureAsSingleObject(segment, segment.getName());
 
             // type and bearing
     		TextView labelSegmentType = (TextView) findViewById(R.id.labelSegmentType);
@@ -90,16 +85,14 @@ public class SegmentDetailsActivity extends AbstractTabsActivity {
                     labelSegmentDirection, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
 
             // prepare tab list
-            ArrayList<SegmentDetailsActivity.Tab> tabList = new ArrayList<SegmentDetailsActivity.Tab>();
+            ArrayList<Tab> tabList = new ArrayList<Tab>();
             tabList.add(Tab.DETAILS);
-            int initialTabIndex = 0;
             if (segment instanceof IntersectionSegment) {
                 tabList.add(Tab.STREET_COURSE);
             }
 
             initializeViewPagerAndTabLayout(
-                    new TabAdapter(SegmentDetailsActivity.this, tabList),
-                    initialTabIndex);
+                    new TabAdapter(SegmentDetailsActivity.this, tabList));
         }
     }
 
@@ -114,7 +107,7 @@ public class SegmentDetailsActivity extends AbstractTabsActivity {
         super.onResume();
         if (segment != null) {
             IntentFilter filter = new IntentFilter();
-            filter.addAction(Constants.ACTION_NEW_DIRECTION);
+            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(this).registerReceiver(newLocationAndDirectionReceiver, filter);
             // update ui
             updateDirectionLabel();
@@ -125,20 +118,8 @@ public class SegmentDetailsActivity extends AbstractTabsActivity {
         labelSegmentDirection.setText(
                 String.format(
                     GlobalInstance.getStringResource(R.string.labelSegmentDirection),
-                    StringUtility.formatRelativeViewingDirection(segment.bearingFromCurrentDirection()))
+                    segment.getBearing().relativeToCurrentBearing().getDirection())
                 );
-    }
-
-
-    /**
-     * implement AbstractToolbarActivity and AbstractTabsActivity functions
-     */
-
-    public int getLayoutResourceId() {
-		return R.layout.activity_segment_details;
-    }
-
-    public void tabSelected(int tabIndex) {
     }
 
 
@@ -147,16 +128,15 @@ public class SegmentDetailsActivity extends AbstractTabsActivity {
      */
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
+        private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
-                NewDirectionAttributes newDirectionAttributes = NewDirectionAttributes.fromString(
-                        context, intent.getStringExtra(Constants.ACTION_NEW_DIRECTION_ATTRIBUTES));
-                if (newDirectionAttributes != null
-                        && newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TEN_DEGREES)) {
-                    if (newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TWENTY_DEGREES)) {
-                        ViewCompat.setAccessibilityLiveRegion(
-                                labelSegmentDirection, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-                    }
+            if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
+                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
+                if (currentBearing != null
+                        && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
+                    ViewCompat.setAccessibilityLiveRegion(
+                            labelSegmentDirection, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                     updateDirectionLabel();
                 }
             }
@@ -170,47 +150,49 @@ public class SegmentDetailsActivity extends AbstractTabsActivity {
      * fragment management
      */
 
+    public enum Tab {
+        DETAILS, STREET_COURSE
+    }
+
 
 	private class TabAdapter extends AbstractTabAdapter {
-        private ArrayList<SegmentDetailsActivity.Tab> tabList;
 
-        public TabAdapter(FragmentActivity activity, ArrayList<SegmentDetailsActivity.Tab> tabList) {
-            super(activity);
-            this.tabList = tabList;
+        public TabAdapter(FragmentActivity activity, ArrayList<Tab> tabList) {
+            super(activity, tabList);
         }
 
         @Override public Fragment createFragment(int position) {
-            switch (this.tabList.get(position)) {
-                case DETAILS:
-                    return SegmentDetailsFragment.newInstance(segment);
-                case STREET_COURSE:
-                    if (segment instanceof IntersectionSegment) {
-                        IntersectionSegment intersectionSegment = (IntersectionSegment) segment;
-                        return RouteDetailsFragment.streetCourse(
-                                new StreetCourseRequest(
-                                    intersectionSegment.getIntersectionNodeId(),
-                                    intersectionSegment.getId(),
-                                    intersectionSegment.getNextNodeId()));
-                    }
-                    return null;
-                default:
-                    return null;
+            Tab tab = getTab(position);
+            if (tab != null) {
+                switch (tab) {
+                    case DETAILS:
+                        return SegmentDetailsFragment.newInstance(segment);
+                    case STREET_COURSE:
+                        if (segment instanceof IntersectionSegment) {
+                            IntersectionSegment intersectionSegment = (IntersectionSegment) segment;
+                            return RouteDetailsFragment.streetCourse(
+                                    new StreetCourseRequest(
+                                        intersectionSegment.getIntersectionNodeId(),
+                                        intersectionSegment.getId(),
+                                        intersectionSegment.getNextNodeId()));
+                        }
+                        break;
+                }
             }
+            return null;
         }
 
-		@Override public int getItemCount() {
-			return this.tabList.size();
-		}
-
         @Override public String getFragmentName(int position) {
-            switch (this.tabList.get(position)) {
-                case DETAILS:
-    				return getResources().getString(R.string.fragmentSegmentDetailsName);
-                case STREET_COURSE:
-    				return getResources().getString(R.string.fragmentNextIntersectionsName);
-                default:
-                    return "";
+            Tab tab = getTab(position);
+            if (tab != null) {
+                switch (tab) {
+                    case DETAILS:
+                        return getResources().getString(R.string.fragmentSegmentDetailsName);
+                    case STREET_COURSE:
+                        return getResources().getString(R.string.fragmentStreetCourseDetailsName);
+                }
             }
+            return "";
         }
 	}
 

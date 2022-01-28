@@ -1,35 +1,30 @@
 package org.walkersguide.android.util;
 
-import org.walkersguide.android.data.sensor.ShakeIntensity;
-import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
-import org.walkersguide.android.server.poi.PoiProfile;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.server.wg.poi.PoiProfile;
+
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
+import org.walkersguide.android.sensor.bearing.BearingSensor;
+import org.walkersguide.android.sensor.shake.ShakeIntensity;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-import com.google.common.primitives.Ints;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
-import org.walkersguide.android.server.route.WayClass;
-import org.walkersguide.android.data.sensor.Direction;
-import org.walkersguide.android.server.util.OSMMap;
+import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
+import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
+import org.walkersguide.android.server.wg.status.OSMMap;
 
-import org.walkersguide.android.pt.PTHelper;
-import org.walkersguide.android.pt.PTHelper.Country;
+import org.walkersguide.android.server.pt.PtUtility;
 
-import de.schildbach.pte.AbstractNetworkProvider;
 import java.util.Map;
 import timber.log.Timber;
 import java.io.File;
@@ -41,13 +36,14 @@ import java.io.ObjectInputStream;
 import java.util.Set;
 import java.lang.Long;
 import java.lang.ClassNotFoundException;
-import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.data.object_with_id.point.GPS;
+import org.walkersguide.android.data.object_with_id.Point;
 import java.util.List;
 import android.text.TextUtils;
-import org.walkersguide.android.util.StringUtility;
-import org.walkersguide.android.data.route.Route;
+import org.walkersguide.android.data.object_with_id.Route;
 import de.schildbach.pte.NetworkId;
+import com.google.gson.GsonBuilder;
+import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 
 
 public class SettingsManager {
@@ -55,39 +51,52 @@ public class SettingsManager {
     private static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
 	// defaults
-    public static final int DEFAULT_SELECTED_POI_PROFILE_ID = 1;
-    public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
-    public static final int DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = 0;
-    public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.DISABLED;
-    public static final boolean DEFAULT_ENABLE_SEARCH_TERM_HISTORY = true;
+    // ui settings
+    public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.ROUTER;
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
+    public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
+    public static final boolean DEFAULT_ENABLE_SEARCH_TERM_HISTORY = true;
+    // bearing sensor
+    public static final BearingSensor DEFAULT_BEARING_SENSOR = BearingSensor.COMPASS;
+    // poi settings
+    public static final int DEFAULT_SELECTED_POI_PROFILE_ID = 1;
+    // p2p route settings
+    public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
     public static final boolean DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT = true;
 
     // keys
-    private static final String KEY_SELECTED_POI_PROFILE_ID = "selectedPoiProfileId";
-    private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
+    // ui settings
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
-    private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
+    private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
     private static final String KEY_ENABLE_SEARCH_TERM_HISTORY = "enableSearchTermHistory";
-    private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
     // WalkersGuide server
     private static final String KEY_WG_SERVER_URL = "wgServerUrl";
     private static final String KEY_SELECTED_MAP = "selectedMap";
     // public transport
     private static final String KEY_SELECTED_NETWORK_ID = "selectedNetworkId";
-    // subclasses
-    private static final String KEY_DIRECTION_SETTINGS = "directionSettings";
-    private static final String KEY_LOCATION_SETTINGS = "locationSettings";
-    private static final String KEY_PLAN_ROUTE_SETTINGS = "planRouteSettings";
-    private static final String KEY_SERVER_SETTINGS = "serverSettings";
+    // bearing sensor
+    private static final String KEY_SELECTED_BEARING_SENSOR = "selectedBearingSensor";
+    private static final String KEY_BEARING_SENSOR_VALUE_FROM_COMPASS = "bearingSensorValueFromCompass";
+    private static final String KEY_BEARING_SENSOR_VALUE_FROM_SATELLITE = "bearingSensorValueFromSatellite";
+    private static final String KEY_SIMULATED_BEARING = "simulatedBearing";
+    // location sensor
+    private static final String KEY_GPS_LOCATION = "gpsLocation";
+    private static final String KEY_SIMULATED_POINT = "simulatedPoint";
+    // poi settings
+    private static final String KEY_SELECTED_POI_PROFILE_ID = "selectedPoiProfileId";
+    // p2p route settings
+    private static final String KEY_P2P_ROUTE_REQUEST = "p2pRouteRequest";
+    private static final String KEY_WAY_CLASS_SETTINGS = "wayClassWeightSettings";
+    private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
+    private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
 
 
     // class variables
     private static SettingsManager managerInstance;
-    private Context context;
     private SharedPreferences settings;
+    private Gson gson;
 
     public static SettingsManager getInstance() {
         if (managerInstance == null){
@@ -104,8 +113,10 @@ public class SettingsManager {
     }
 
     private SettingsManager() {
-		this.context = GlobalInstance.getContext();
 		this.settings = GlobalInstance.getContext().getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE);
+        this.gson = new GsonBuilder()
+            .enableComplexMapKeySerialization()
+            .create();
 
         // remove deprecated settings
         if (settings.contains("generalSettings")) {
@@ -122,63 +133,23 @@ public class SettingsManager {
 
 
     /**
-     * main settings
+     * ui settings
      */
 
-    public PoiProfile getSelectedPoiProfile() {
-        return PoiProfile.load(
-                settings.getLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID));
+    public MainActivity.Tab getSelectedTabForMainActivity() {
+        MainActivity.Tab selectedTab = null;
+        try {
+            selectedTab = gson.fromJson(
+                    settings.getString(KEY_SELECTED_TAB_MAIN_ACTIVITY, ""),
+                    MainActivity.Tab.class);
+        } catch (ClassCastException e) {}
+        return selectedTab != null ? selectedTab : DEFAULT_SELECTED_TAB_MAIN_ACTIVITY;
     }
 
-    public void setSelectedPoiProfile(PoiProfile newProfile) {
+    public void setSelectedTabForMainActivity(MainActivity.Tab newTab) {
         Editor editor = settings.edit();
-        if (newProfile != null) {
-            editor.putLong(KEY_SELECTED_POI_PROFILE_ID, newProfile.getId());
-        } else {
-            editor.putLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID);
-        }
-        editor.apply();
-    }
-
-    public Route getSelectedRoute() {
-        return Route.load(
-                settings.getLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID));
-    }
-
-    public void setSelectedRoute(Route newRoute) {
-        Editor editor = settings.edit();
-        if (newRoute != null
-                && AccessDatabase.getInstance().addObjectToDatabaseProfile(newRoute, DatabaseRouteProfile.PLANNED_ROUTES)) {
-            editor.putLong(KEY_SELECTED_ROUTE_ID, newRoute.getId());
-        } else {
-            editor.putLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID);
-        }
-        editor.apply();
-    }
-
-    public int getSelectedTabForMainActivity() {
-        return settings.getInt(KEY_SELECTED_TAB_MAIN_ACTIVITY, DEFAULT_SELECTED_TAB_MAIN_ACTIVITY);
-    }
-
-    public void setSelectedTabForMainActivity(int newTab) {
-        Editor editor = settings.edit();
-        editor.putInt(KEY_SELECTED_TAB_MAIN_ACTIVITY, newTab);
-        editor.apply();
-    }
-
-    public ShakeIntensity getSelectedShakeIntensity() {
-        Gson gson = new Gson();
-        ShakeIntensity shakeIntensity = gson.fromJson(
-                settings.getString(KEY_SHAKE_INTENSITY, ""),
-                ShakeIntensity.class);
-        return shakeIntensity != null ? shakeIntensity : DEFAULT_SHAKE_INTENSITY;
-    }
-
-    public void setSelectedShakeIntensity(ShakeIntensity newShakeIntensity) {
-        Editor editor = settings.edit();
-        Gson gson = new Gson();
         editor.putString(
-                KEY_SHAKE_INTENSITY, gson.toJson(newShakeIntensity));
+                KEY_SELECTED_TAB_MAIN_ACTIVITY, gson.toJson(newTab));
         editor.apply();
     }
 
@@ -192,71 +163,28 @@ public class SettingsManager {
         editor.apply();
     }
 
-    public boolean getAutoSkipToNextRoutePoint() {
-        return settings.getBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT);
+    public ShakeIntensity getSelectedShakeIntensity() {
+        ShakeIntensity shakeIntensity = null;
+        try {
+            shakeIntensity = gson.fromJson(
+                settings.getString(KEY_SHAKE_INTENSITY, ""),
+                ShakeIntensity.class);
+        } catch (ClassCastException e) {
+            // convert legacy value
+            shakeIntensity = ShakeIntensity.getShakeIntensityForThreshold(
+                    settings.getInt(KEY_SHAKE_INTENSITY, DEFAULT_SHAKE_INTENSITY.threshold));
+        }
+        return shakeIntensity != null ? shakeIntensity : DEFAULT_SHAKE_INTENSITY;
     }
 
-    public void setAutoSkipToNextRoutePoint(boolean newValue) {
+    public void setSelectedShakeIntensity(ShakeIntensity newShakeIntensity) {
         Editor editor = settings.edit();
-        editor.putBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, newValue);
-        editor.apply();
-    }
-
-
-    /**
-     * WalkersGuide server
-     */
-
-    public String getServerURL() {
-        return settings.getString(KEY_WG_SERVER_URL, BuildConfig.SERVER_URL);
-    }
-
-    public void setServerURL(String newServerURL) {
-        Editor editor = settings.edit();
-        editor.putString(KEY_WG_SERVER_URL, newServerURL);
-        editor.apply();
-    }
-
-    public OSMMap getSelectedMap() {
-        Gson gson = new Gson();
-        return gson.fromJson(
-                settings.getString(KEY_SELECTED_MAP, ""),
-                OSMMap.class);
-    }
-
-    public void setSelectedMap(OSMMap newMap) {
-        Editor editor = settings.edit();
-        Gson gson = new Gson();
         editor.putString(
-                KEY_SELECTED_MAP, gson.toJson(newMap));
+                KEY_SHAKE_INTENSITY, gson.toJson(newShakeIntensity));
         editor.apply();
     }
 
-
-    /**
-     * public transport
-     */
-
-    public NetworkId getSelectedNetworkId() {
-        Gson gson = new Gson();
-        NetworkId networkId = gson.fromJson(
-                settings.getString(KEY_SELECTED_NETWORK_ID, ""),
-                NetworkId.class);
-        return PTHelper.findNetworkProvider(networkId) != null ? networkId : null;
-    }
-
-    public void setSelectedNetworkId(NetworkId newId) {
-        Editor editor = settings.edit();
-        Gson gson = new Gson();
-        editor.putString(
-                KEY_SELECTED_NETWORK_ID, gson.toJson(newId));
-        editor.apply();
-    }
-
-
-    /**
-     * search term history
-     */
+    // search term history
 
     public boolean getEnableSearchTermHistory() {
         return settings.getBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, DEFAULT_ENABLE_SEARCH_TERM_HISTORY);
@@ -269,7 +197,6 @@ public class SettingsManager {
     }
 
     public ArrayList<String> getSearchTermHistory() {
-        Gson gson = new Gson();
         ArrayList<String> searchTermHistory = gson.fromJson(
                 settings.getString(KEY_SEARCH_TERM_HISTORY, "[]"),
                 new TypeToken<List<String>>() {}.getType());
@@ -306,7 +233,6 @@ public class SettingsManager {
             }
 
             // save
-            Gson gson = new Gson();
             Editor editor = settings.edit();
             editor.putString(
                     KEY_SEARCH_TERM_HISTORY,
@@ -327,378 +253,228 @@ public class SettingsManager {
 
 
     /**
-     * direction settings
+     * WalkersGuide server
      */
 
-    public DirectionSettings getDirectionSettings() {
-        JSONObject jsonDirectionSettings = new JSONObject();
-        try {
-            jsonDirectionSettings = new JSONObject(
-                    settings.getString(KEY_DIRECTION_SETTINGS, "{}"));
-    	} catch (JSONException e) {}
-        return new DirectionSettings(jsonDirectionSettings);
+    public String getServerURL() {
+        return settings.getString(KEY_WG_SERVER_URL, BuildConfig.SERVER_URL);
     }
 
-    public void setDirectionSettings(JSONObject jsonDirectionSettings) {
+    public void setServerURL(String newServerURL) {
         Editor editor = settings.edit();
-        editor.putString(KEY_DIRECTION_SETTINGS, jsonDirectionSettings.toString());
+        editor.putString(KEY_WG_SERVER_URL, newServerURL);
         editor.apply();
     }
 
+    public OSMMap getSelectedMap() {
+        return gson.fromJson(
+                settings.getString(KEY_SELECTED_MAP, ""),
+                OSMMap.class);
+    }
 
-    public class DirectionSettings {
-
-        private int selectedDirectionSource;
-        private Direction compassDirection, gpsDirection, simulatedDirection;
-
-        public DirectionSettings(JSONObject jsonObject) {
-            this.selectedDirectionSource = Constants.DIRECTION_SOURCE.COMPASS;
-            try {
-                int directionSource = jsonObject.getInt("selectedDirectionSource");
-                if (Ints.contains(Constants.DirectionSourceValueArray, directionSource)) {
-                    this.selectedDirectionSource = directionSource;
-                }
-            } catch (JSONException e) {}
-            // compass direction
-            this.compassDirection = null;
-            try {
-                this.compassDirection= new Direction(
-                        context, jsonObject.getJSONObject("compassDirection"));
-            } catch (JSONException e) {}
-            // gps direction
-            this.gpsDirection = null;
-            try {
-                this.gpsDirection= new Direction(
-                        context, jsonObject.getJSONObject("gpsDirection"));
-            } catch (JSONException e) {}
-            this.simulatedDirection = null;
-            try {
-                this.simulatedDirection= new Direction(
-                        context, jsonObject.getJSONObject("simulatedDirection"));
-            } catch (JSONException e) {}
-        }
-
-        public int getSelectedDirectionSource() {
-            return this.selectedDirectionSource;
-        }
-
-        public void setSelectedDirectionSource(int newDirectionSource) {
-            if (Ints.contains(Constants.DirectionSourceValueArray, newDirectionSource)) {
-                this.selectedDirectionSource = newDirectionSource;
-                storeDirectionSettings();
-            }
-        }
-
-        public Direction getCompassDirection() {
-            return this.compassDirection;
-        }
-
-        public void setCompassDirection(Direction newCompassDirection) {
-            if (newCompassDirection != null) {
-                this.compassDirection = newCompassDirection;
-                storeDirectionSettings();
-            }
-        }
-
-        public Direction getGPSDirection() {
-            return this.gpsDirection;
-        }
-
-        public void setGPSDirection(Direction newGPSDirection) {
-            if (newGPSDirection != null) {
-                this.gpsDirection = newGPSDirection;
-                storeDirectionSettings();
-            }
-        }
-
-        public Direction getSimulatedDirection() {
-            return this.simulatedDirection;
-        }
-
-        public void setSimulatedDirection(Direction newSimulatedDirection) {
-            if (newSimulatedDirection != null) {
-                this.simulatedDirection = newSimulatedDirection;
-                storeDirectionSettings();
-            }
-        }
-
-        public void storeDirectionSettings() {
-            JSONObject jsonDirectionSettings = new JSONObject();
-            try {
-                jsonDirectionSettings.put("selectedDirectionSource", this.selectedDirectionSource);
-            } catch (JSONException e) {}
-            if (this.compassDirection != null) {
-                try {
-                    jsonDirectionSettings.put("compassDirection", this.compassDirection.toJson());
-                } catch (JSONException e) {}
-            }
-            if (this.gpsDirection != null) {
-                try {
-                    jsonDirectionSettings.put("gpsDirection", this.gpsDirection.toJson());
-                } catch (JSONException e) {}
-            }
-            if (this.simulatedDirection != null) {
-                try {
-                    jsonDirectionSettings.put("simulatedDirection", this.simulatedDirection.toJson());
-                } catch (JSONException e) {}
-            }
-    		// save settings
-            setDirectionSettings(jsonDirectionSettings);
-        }
+    public void setSelectedMap(OSMMap newMap) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_SELECTED_MAP, gson.toJson(newMap));
+        editor.apply();
     }
 
 
     /**
-     * location settings
+     * public transport
      */
 
-    public LocationSettings getLocationSettings() {
-        JSONObject jsonLocationSettings = new JSONObject();
-        try {
-            jsonLocationSettings = new JSONObject(
-                    settings.getString(KEY_LOCATION_SETTINGS, "{}"));
-    	} catch (JSONException e) {}
-        return new LocationSettings(jsonLocationSettings);
+    public NetworkId getSelectedNetworkId() {
+        NetworkId networkId = gson.fromJson(
+                settings.getString(KEY_SELECTED_NETWORK_ID, ""),
+                NetworkId.class);
+        return PtUtility.findNetworkProvider(networkId) != null ? networkId : null;
     }
 
-    public void setLocationSettings(JSONObject jsonLocationSettings) {
+    public void setSelectedNetworkId(NetworkId newId) {
         Editor editor = settings.edit();
-        editor.putString(KEY_LOCATION_SETTINGS, jsonLocationSettings.toString());
+        editor.putString(
+                KEY_SELECTED_NETWORK_ID, gson.toJson(newId));
         editor.apply();
-    }
-
-
-    public class LocationSettings {
-
-        private GPS gpsLocation;
-        private Point simulatedLocation;
-
-        public LocationSettings(JSONObject jsonObject) {
-            // gps location
-            this.gpsLocation = null;
-            try {
-                this.gpsLocation = (GPS) Point.create(
-                        jsonObject.getJSONObject("gpsLocation"));
-            } catch (JSONException e) {}
-            // simulated location
-            this.simulatedLocation = null;
-            try {
-                this.simulatedLocation = Point.create(
-                        jsonObject.getJSONObject("simulatedLocation"));
-            } catch (JSONException e) {}
-        }
-
-        public GPS getGPSLocation() {
-            return this.gpsLocation;
-        }
-
-        public void setGPSLocation(GPS newLocation) {
-            this.gpsLocation = newLocation;
-            storeLocationSettings();
-        }
-
-        public Point getSimulatedLocation() {
-            return this.simulatedLocation;
-        }
-
-        public void setSimulatedLocation(Point newLocation) {
-            this.simulatedLocation = newLocation;
-            storeLocationSettings();
-        }
-
-        public void storeLocationSettings() {
-            JSONObject jsonLocationSettings = new JSONObject();
-            if (this.gpsLocation != null) {
-                try {
-                    jsonLocationSettings.put("gpsLocation", this.gpsLocation.toJson());
-                } catch (JSONException e) {}
-            }
-            if (this.simulatedLocation != null) {
-                try {
-                    jsonLocationSettings.put("simulatedLocation", this.simulatedLocation.toJson());
-                } catch (JSONException e) {}
-            }
-    		// save settings
-            setLocationSettings(jsonLocationSettings);
-        }
     }
 
 
     /**
-     * plan route settings
+     * sensor settings
      */
 
+    // bearing
 
-    public PlanRouteSettings getPlanRouteSettings() {
-        JSONObject jsonPlanRouteSettings = new JSONObject();
-        try {
-            jsonPlanRouteSettings = new JSONObject(
-                    settings.getString(KEY_PLAN_ROUTE_SETTINGS, "{}"));
-    	} catch (JSONException e) {}
-        return new PlanRouteSettings(jsonPlanRouteSettings);
+    public BearingSensor getSelectedBearingSensor() {
+        BearingSensor selectedBearingSensor  = gson.fromJson(
+                settings.getString(KEY_SELECTED_BEARING_SENSOR, ""),
+                BearingSensor.class);
+        return selectedBearingSensor != null ? selectedBearingSensor : DEFAULT_BEARING_SENSOR;
     }
 
-    public void setPlanRouteSettings(JSONObject jsonPlanRouteSettings) {
+    public void setSelectedBearingSensor(BearingSensor newBearingSensor) {
         Editor editor = settings.edit();
-        editor.putString(KEY_PLAN_ROUTE_SETTINGS, jsonPlanRouteSettings.toString());
+        editor.putString(
+                KEY_SELECTED_BEARING_SENSOR, gson.toJson(newBearingSensor));
+        editor.apply();
+    }
+
+    public BearingSensorValue getBearingSensorValue(BearingSensor sensor) {
+        if (sensor == BearingSensor.COMPASS) {
+            return gson.fromJson(
+                    settings.getString(KEY_BEARING_SENSOR_VALUE_FROM_COMPASS, ""),
+                    BearingSensorValue.class);
+        } else if (sensor == BearingSensor.SATELLITE) {
+            return gson.fromJson(
+                    settings.getString(KEY_BEARING_SENSOR_VALUE_FROM_SATELLITE, ""),
+                    BearingSensorValue.class);
+        } else {
+            return null;
+        }
+    }
+
+    public void setBearingSensorValue(BearingSensor sensor, BearingSensorValue newValue) {
+        Editor editor = settings.edit();
+        if (sensor == BearingSensor.COMPASS) {
+            editor.putString(
+                    KEY_BEARING_SENSOR_VALUE_FROM_COMPASS, gson.toJson(newValue));
+        } else if (sensor == BearingSensor.SATELLITE) {
+            editor.putString(
+                    KEY_BEARING_SENSOR_VALUE_FROM_SATELLITE, gson.toJson(newValue));
+        }
+        editor.apply();
+    }
+
+    public Bearing getSimulatedBearing() {
+        return gson.fromJson(
+                settings.getString(KEY_SIMULATED_BEARING, ""),
+                Bearing.class);
+    }
+
+    public void setSimulatedBearing(Bearing newValue) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_SIMULATED_BEARING, gson.toJson(newValue));
         editor.apply();
     }
 
 
-    public class PlanRouteSettings {
-        private static final String KEY_START_POINT_ID = "startPointId";
-        private static final String KEY_DESTINATION_POINT_ID = "destinationPointId";
-        private static final String KEY_VIA_POINT_1_ID = "viaPoint1Id";
-        private static final String KEY_VIA_POINT_2_ID = "viaPoint2Id";
-        private static final String KEY_VIA_POINT_3_ID = "viaPoint3Id";
+    // location
 
-        private Long startPointId, destinationPointId;
-        private Long viaPoint1Id, viaPoint2Id, viaPoint3Id;
-        private ArrayList<WayClass> wayClassList;
+    public GPS getGPSLocation() {
+        return gson.fromJson(
+                settings.getString(KEY_GPS_LOCATION, ""), GPS.class);
+    }
 
-        public PlanRouteSettings(JSONObject jsonObject) {
-            this.startPointId = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_START_POINT_ID);
-            this.destinationPointId = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_DESTINATION_POINT_ID);
-            this.viaPoint1Id = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_VIA_POINT_1_ID);
-            this.viaPoint2Id = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_VIA_POINT_2_ID);
-            this.viaPoint3Id = StringUtility.getNullableAndPositiveLongFromJsonObject(jsonObject, KEY_VIA_POINT_3_ID);
-            // way classes and weights
-            JSONObject jsonWayClassIdAndWeights = null;
-            try {
-                jsonWayClassIdAndWeights = jsonObject.getJSONObject("wayClassIdAndWeights");
-            } catch (JSONException e) {}
-            this.wayClassList = new ArrayList<WayClass>();
-            for (int i=0; i<Constants.RoutingWayClassIdValueArray.length; i++) {
-                String wayClassId = Constants.RoutingWayClassIdValueArray[i];
-                double wayClassWeight = WayClass.defaultWeightForWayClass(wayClassId);
-                try {
-                    wayClassWeight = jsonWayClassIdAndWeights.getDouble(wayClassId);
-                } catch (JSONException | NullPointerException e) {}
-                wayClassList.add(new WayClass(wayClassId, wayClassWeight));
-            }
+    public void setGPSLocation(GPS newLocation) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_GPS_LOCATION, gson.toJson(newLocation));
+        editor.apply();
+    }
+
+    public Point getSimulatedPoint() {
+        return gson.fromJson(
+                settings.getString(KEY_SIMULATED_POINT, ""), Point.class);
+    }
+
+    public void setSimulatedPoint(Point newPoint) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_SIMULATED_POINT, gson.toJson(newPoint));
+        editor.apply();
+    }
+
+
+    /**
+     * poi settings
+     */
+
+    public PoiProfile getSelectedPoiProfile() {
+        return PoiProfile.load(
+                settings.getLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID));
+    }
+
+    public void setSelectedPoiProfile(PoiProfile newProfile) {
+        Editor editor = settings.edit();
+        if (newProfile != null) {
+            editor.putLong(KEY_SELECTED_POI_PROFILE_ID, newProfile.getId());
+        } else {
+            editor.putLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID);
         }
+        editor.apply();
+    }
 
-        public Point getStartPoint() {
-            return getPoint(startPointId);
-        }
 
-        public void setStartPoint(Point newStartPoint) {
-            this.startPointId = setPoint(newStartPoint);
-            storePlanRouteSettings();
-        }
+    /**
+     * p2p route settings
+     */
 
-        public Point getDestinationPoint() {
-            return getPoint(destinationPointId);
+    public P2pRouteRequest getP2pRouteRequest() {
+        P2pRouteRequest p2pRouteRequest = null;
+        try {
+            p2pRouteRequest = gson.fromJson(
+                    settings.getString(KEY_P2P_ROUTE_REQUEST, ""),
+                    P2pRouteRequest.class);
+        } catch (ClassCastException e) {}
+        if (p2pRouteRequest == null) {
+            p2pRouteRequest = P2pRouteRequest.getDefault();
         }
+        return p2pRouteRequest;
+    }
 
-        public void setDestinationPoint(Point newDestinationPoint) {
-            this.destinationPointId = setPoint(newDestinationPoint);
-            storePlanRouteSettings();
-        }
+    public void setP2pRouteRequest(P2pRouteRequest newP2pRouteRequest) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_P2P_ROUTE_REQUEST, gson.toJson(newP2pRouteRequest));
+        editor.apply();
+    }
 
-        public Point getViaPoint1() {
-            return getPoint(viaPoint1Id);
+    public WayClassWeightSettings getWayClassWeightSettings() {
+        WayClassWeightSettings wayClassWeightSettings = null;
+        try {
+            wayClassWeightSettings = gson.fromJson(
+                    settings.getString(KEY_WAY_CLASS_SETTINGS, ""),
+                    WayClassWeightSettings.class);
+        } catch (ClassCastException e) {}
+        if (wayClassWeightSettings == null) {
+            wayClassWeightSettings = WayClassWeightSettings.getDefault();
         }
+        return wayClassWeightSettings;
+    }
 
-        public void setViaPoint1(Point newViaPoint1) {
-            this.viaPoint1Id = setPoint(newViaPoint1);
-            storePlanRouteSettings();
-        }
+    public void setWayClassWeightSettings(WayClassWeightSettings newWayClassWeightSettings) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_WAY_CLASS_SETTINGS, gson.toJson(newWayClassWeightSettings));
+        editor.apply();
+    }
 
-        public Point getViaPoint2() {
-            return getPoint(viaPoint2Id);
-        }
 
-        public void setViaPoint2(Point newViaPoint2) {
-            this.viaPoint2Id = setPoint(newViaPoint2);
-            storePlanRouteSettings();
-        }
+    public Route getSelectedRoute() {
+        return Route.load(
+                settings.getLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID));
+    }
 
-        public Point getViaPoint3() {
-            return getPoint(viaPoint3Id);
+    public void setSelectedRoute(Route newRoute) {
+        Editor editor = settings.edit();
+        if (newRoute != null
+                && DatabaseProfile.allRoutes().add(newRoute)) {
+            editor.putLong(KEY_SELECTED_ROUTE_ID, newRoute.getId());
+        } else {
+            editor.putLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID);
         }
+        editor.apply();
+    }
 
-        public void setViaPoint3(Point newViaPoint3) {
-            this.viaPoint3Id = setPoint(newViaPoint3);
-            storePlanRouteSettings();
-        }
+    public boolean getAutoSkipToNextRoutePoint() {
+        return settings.getBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT);
+    }
 
-        public boolean hasViaPoint() {
-            return getViaPoint1() != null || getViaPoint2() != null || getViaPoint3() != null;
-        }
-
-        public void clearViaPointList() {
-            setViaPoint1(null);
-            setViaPoint2(null);
-            setViaPoint3(null);
-        }
-
-        private Point getPoint(Long id) {
-            if (id != null) {
-                return Point.load(id);
-            }
-            return null;
-        }
-
-        private Long setPoint(Point newPoint) {
-            if (newPoint != null
-                    && AccessDatabase.getInstance().addObjectToDatabaseProfile(newPoint, DatabasePointProfile.ROUTE_POINTS)) {
-                return newPoint.getId();
-            }
-            return null;
-        }
-
-        public ArrayList<WayClass> getWayClassList() {
-            return this.wayClassList;
-        }
-
-        public void setWayClassList(ArrayList<WayClass> newWayClassList) {
-            if (newWayClassList != null) {
-                this.wayClassList = newWayClassList;
-                storePlanRouteSettings();
-            }
-        }
-
-        private void storePlanRouteSettings() {
-            JSONObject jsonPlanRouteSettings = new JSONObject();
-            if (this.startPointId != null) {
-                try {
-                    jsonPlanRouteSettings.put(KEY_START_POINT_ID, this.startPointId);
-                } catch (JSONException e) {}
-            }
-            if (this.destinationPointId != null) {
-                try {
-                    jsonPlanRouteSettings.put(KEY_DESTINATION_POINT_ID, this.destinationPointId);
-                } catch (JSONException e) {}
-            }
-            if (this.viaPoint1Id != null) {
-                try {
-                    jsonPlanRouteSettings.put(KEY_VIA_POINT_1_ID, this.viaPoint1Id);
-                } catch (JSONException e) {}
-            }
-            if (this.viaPoint2Id != null) {
-                try {
-                    jsonPlanRouteSettings.put(KEY_VIA_POINT_2_ID, this.viaPoint2Id);
-                } catch (JSONException e) {}
-            }
-            if (this.viaPoint3Id != null) {
-                try {
-                    jsonPlanRouteSettings.put(KEY_VIA_POINT_3_ID, this.viaPoint3Id);
-                } catch (JSONException e) {}
-            }
-            // way classes and weights
-            JSONObject jsonWayClassIdAndWeights = new JSONObject();
-            for (WayClass wayClass : this.wayClassList) {
-                try {
-                    jsonWayClassIdAndWeights.put(wayClass.getId(), wayClass.getWeight());
-                } catch (JSONException e) {}
-            }
-            try {
-                jsonPlanRouteSettings.put("wayClassIdAndWeights", jsonWayClassIdAndWeights);
-            } catch (JSONException e) {}
-    		// save settings
-            setPlanRouteSettings(jsonPlanRouteSettings);
-        }
+    public void setAutoSkipToNextRoutePoint(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, newValue);
+        editor.apply();
     }
 
 
@@ -716,7 +492,7 @@ public class SettingsManager {
             ois = new ObjectInputStream(fis);
             map = (Map) ois.readObject();
         } catch(IOException | ClassNotFoundException e) {
-            Timber.e("Settings import failed: " + e.getMessage());
+            Timber.e("Settings import failed: %1$s", e.getMessage());
             success = false;
         } finally {
             if (ois != null) {
@@ -751,7 +527,7 @@ public class SettingsManager {
             } else if (e.getValue() instanceof Set) {
                 editor.putStringSet(e.getKey(), (Set<String>) e.getValue());
             } else {
-                Timber.e("Settings type " + e.getValue().getClass().getName() + " is unknown");
+                Timber.e("Settings type %1$s is unknown", e.getValue().getClass().getName());
             }
         }
         success = editor.commit();
@@ -768,7 +544,7 @@ public class SettingsManager {
             oos = new ObjectOutputStream(fos);
             oos.writeObject(settings.getAll());
         } catch(IOException e) {
-            Timber.e("Settings export failed: " + e.getMessage());
+            Timber.e("Settings export failed: %1$s", e.getMessage());
             success = false;
             if (destinationFile.exists()) {
                 destinationFile.delete();

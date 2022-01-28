@@ -1,10 +1,8 @@
 package org.walkersguide.android.ui.dialog;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
-import android.content.Context;
 import android.content.DialogInterface;
 
 import android.os.Bundle;
@@ -19,9 +17,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.walkersguide.android.R;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import android.content.Intent;
-import org.walkersguide.android.util.Constants;
 
 public class SimpleMessageDialog extends DialogFragment {
     public static final String REQUEST_DIALOG_CLOSED = "dialogClosed";

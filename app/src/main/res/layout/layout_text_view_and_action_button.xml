@@ -9,7 +9,8 @@
         android:id="@+id/imageViewIsFavorite"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:tint="@color/image"
+        android:padding="2dp"
+        app:tint="@color/image"
         android:src="@drawable/favorite"
         android:importantForAccessibility="no" />
 
@@ -17,6 +18,7 @@
         android:id="@+id/label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:minHeight="@dimen/minHeight"
         android:layout_weight="1.0" />
 
     <ImageButton
@@ -26,7 +28,7 @@
         android:minWidth="@dimen/minWidth"
         android:minHeight="@dimen/minHeight"
         android:background="@null"
-        android:tint="@color/image"
+        app:tint="@color/image"
         android:src="@drawable/expand_more"
         android:contentDescription="@string/buttonActionFor" />
 

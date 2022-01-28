@@ -5,41 +5,56 @@
          abstract activity and app wide menu
     -->
 
-    <!-- AbstractActivity -->
+    <!-- ToolbarActivity -->
+    <string name="toolbarSensorPrefixPosition">Position</string>
+    <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">veraltet</string>
-    <string name="toolbarCompassCalibrationRequired">kalibrieren</string>
+    <string name="toolbarSensorCalibrationRequired">kalibrieren</string>
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Route planen</string>
-    <string name="menuItemLastVisitedPoints">Zuletzt besuchte Punkte</string>
-    <string name="menuItemSaveCurrentPosition">Aktuelle Position sichern</string>
-    <string name="menuItemRequestAddress">Wo bin ich?</string>
+    <string name="menuItemWhereAmI">Wo bin ich?</string>
+    <string name="menuItemSaveCurrentLocation">Aktuelle Position sichern</string>
+    <string name="menuItemLastPoints">Letzte Punkte</string>
+    <string name="menuItemLastRoutes">Letzte Routen</string>
     <string name="menuItemHikingTrails">Wanderwege</string>
     <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Kontakt</string>
 
-    <!-- select direction source dialog -->
-    <string name="selectDirectionSourceDialogName">Richtungsdetails</string>
-    <string name="directionSourceCompass">Kompass</string>
-    <string name="directionSourceGPS">Satellit</string>
-    <string name="directionSourceSimulated">Simulation</string>
-    <string name="buttonEnableDirectionSimulation">Richtungssimulation aktivieren</string>
-    <!-- enter direction value dialog -->
-    <string name="enterDirectionValueDialogTitle">Richtungswert angeben</string>
-    <string name="editHintDirectionInDegree">Wert in Grad von 0 bis 359.</string>
+    <!-- enable location dialog -->
+    <string name="enableLocationDialogTitle">Standortdienst einschalten?</string>
+    <string name="enableLocationDialogMessage">Um Positionsupdates erhalten zu können, muss der
+        Standortdienst eingeschaltet sein. Dazu werden Sie in die Einstellungen Ihres Smartphones
+        umgeleitet, wo sie die Option einschalten können. Anschließend gelangen Sie mit einem Klick
+        auf die Zurück-Taste Ihres Geräts in diese App zurück.  </string>
+    <string name="messageLocationProviderDisabled">Die App erhält keine Positionsupdates, da der
+        Standortdienst Ihres Smartphones abgeschaltet ist.</string>
 
-    <!-- select location source dialog -->
-    <string name="selectLocationSourceDialogName">Standortdetails</string>
-    <string name="locationSourceGPS">Position</string>
-    <string name="locationSourceSimulatedPoint">Simulation</string>
-    <string name="buttonGPSAddress">Wo bin ich?</string>
-    <string name="buttonGPSSave">Position sichern</string>
-    <string name="buttonGPSDetails">Mehr Details anzeigen</string>
-    <string name="buttonEnableLocationSimulation">Standortsimulation aktivieren</string>
+    <!-- app info dialog -->
+    <string name="appInfoDialogTitle">Standortfreigabe erteilen?</string>
+    <string name="appInfoDialogMessage">Die App benötigt den Zugriff auf Ihren Standort,
+        um Positionsupdates erhalten zu können.\n\nBitte klicken Sie auf OK, wählen in der folgenden Ansicht
+        den Punkt "Berechtigungen" und anschließend "Standort". Danach können Sie wählen, ob die App
+        immer oder nur im Vordergrund auf Ihren Standort zugreifen darf. Schließlich gelangen Sie mit
+        mehrfachem Klicken auf die Zurück-Taste Ihres Geräts zu dieser Ansicht zurück.</string>
+    <string name="messageLocationPermissionDenied">Die App erhält keine Positionsupdates, da Sie ihr
+        nicht erlaubt haben, Ihren aktuellen Standort zu bestimmen.</string>
 
-    <!-- gps details dialog -->
-    <string name="gpsDetailsDialogName">Positionsdetails</string>
+    <!-- BearingDetailsDialog -->
+    <string name="bearingDetailsDialogTitle">Richtungsdetails</string>
+    <string name="buttonEnableBearingSimulation">Simulation aktivieren</string>
+    <string name="labelForDegreeEditText">Grad:</string>
+
+    <!-- LocationDetailsDialog -->
+    <string name="locationDetailsDialogTitle">Standortdetails</string>
+    <string name="labelCurrentLocationHeading">Aktuelle Position</string>
+    <string name="buttonActionForCurrentLocation">Aktionen für die aktuelle Position</string>
+    <string name="buttonEnableLocationSimulation">Simulation aktivieren</string>
+
+    <!-- LocationSensorDetailsDialog -->
+    <string name="locationSensorDetailsDialogTitle">Positionsdetails</string>
+    <string name="labelGPSCoordinates">Koordinaten</string>
     <string name="labelGPSLatitude">Breitengrad</string>
     <string name="labelGPSLongitude">Längengrad</string>
     <string name="labelGPSProvider">Provider</string>
@@ -49,47 +64,23 @@
     <string name="labelGPSSpeed">Geschwindigkeit</string>
     <string name="labelGPSTime">Letzte Position um</string>
 
-    <!-- plan route dialog -->
-    <string name="planRouteDialogTitle">Route planen</string>
-    <string name="buttonStartPoint">Start</string>
-    <string name="buttonViaPoint">Via</string>
-    <string name="buttonDestinationPoint">Ziel</string>
-    <string name="buttonSimulationPoint">Simulation</string>
-    <string name="labelNoPointSelected">Kein Punkt ausgewählt</string>
-    <string name="buttonNewRoute">Neu</string>
-    <string name="buttonNewRouteCD">Neue Route</string>
-    <string name="buttonAddViaPoint">Über</string>
-    <string name="buttonAddViaPointCD">Zwischenziel hinzufügen</string>
-    <string name="buttonSwapRoute">Tausch</string>
-    <string name="buttonSwapRouteCD">Start und Ziel tauschen</string>
-    <string name="labelRouteOptions">Routeroptionen:</string>
-    <string name="buttonExcludedWays">Ausgeschlossene Wege</string>
-    <string name="buttonRoutingWayClasses">Wegeklassen</string>
-    <string name="buttonGetRoute">Berechnen</string>
-
-    <!-- select point dialog -->
-    <string name="pointInputDialogNameStart">Startpunkt auswählen:</string>
-    <string name="pointInputDialogNameDestination">Zielpunkt auswählen:</string>
-    <string name="pointInputDialogNameVia">Zwischenziel %1$d auswählen:</string>
-    <string name="pointInputDialogNameSimulation">Punkt für Simulation auswählen:</string>
-    <string name="labelSelectedPointHeading">Aktuell:</string>
-    <string name="buttonSelectedPointDetails">Details</string>
-    <string name="buttonSelectedPointRemove">Entfernen</string>
-    <string name="labelInputCategoryHeading">Kategorien:</string>
+    <!-- SelectRouteOrSimulationPointDialog -->
+    <!-- dialog titles -->
+    <string name="selectRouteOrSimulationPointDialogTitleRouteStartPoint">Startpunkt auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleRouteFirstViaPoint">Via 1 auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleRouteSecondViaPoint">Via 2 auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleRouteThirdViaPoint">Via 3 auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleRouteDestinationPoint">Zielpunkt auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleSimulationPoint">Punkt für Simulation auswählen:</string>
+    <!-- list items -->
     <string name="pointSelectFromCurrentLocation">Aktuelle Position</string>
+    <string name="pointSelectFromClosestAddress">Nächstgelegene Adresse</string>
     <string name="pointSelectFromEnterAddress">Adresse eingeben</string>
     <string name="pointSelectFromEnterCoordinates">Koordinaten eingeben</string>
-    <string name="pointSelectFromHistoryPoints">Zuletzt besuchte Punkte</string>
-    <string name="pointSelectFromPOI">POI auswählen</string>
-    <!-- menu_list_view_select_point_dialog -->
-    <string name="menuItemSelect">Auswählen</string>
-    <string name="menuItemShowDetails">Details anzeigen</string>
-    <string name="menuItemRemove">Löschen</string>
-
-    <!-- get current position dialog -->
-    <string name="radioGPSCoordinates">Exakte Position</string>
-    <string name="labelNearby">In der Nähe von %1$s</string>
-    <string name="radioNearestAddress">Nächstliegende Adresse</string>
+    <string name="pointSelectFromFavoritePoints">Favoriten</string>
+    <string name="pointSelectFromHistoryPoints">Letzte Punkte</string>
+    <string name="pointSelectFromPOI">POI</string>
+    <string name="pointSelectFromCoordinatesLink">Aus Link importieren</string>
 
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Adresse eingeben:</string>
@@ -100,30 +91,40 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Koordinaten eingeben:</string>
-    <string name="labelName">Name</string>
-    <string name="hintNameIsOptional">Name ist optional</string>
     <string name="messageLatitudeMissing">Breitengrad fehlt oder ist ungültig.</string>
     <string name="messageLongitudeMissing">Längengrad fehlt oder ist ungültig.</string>
-    <string name="messageCantCreatePointFromCoordinates">Aus den gegebenen Koordinaten konnte kein Punkt erstellt werden.</string>
 
-    <!-- ExcludedWaysDialog -->
-    <string name="excludedWaysDialogTitle">Diese Wege wurden vom Routing ausgeschlossen:</string>
+    <!-- point from coordinates link dialog -->
+    <string name="pointFromCoordinatesLinkDialogTitle">Koordinaten-Url eingeben:</string>
+    <string name="editHintMapLinkURL">Google maps, Apple maps oder OSM Url</string>
+    <string name="messageLinkUrlMissing">Koordinaten-Url fehlt.</string>
+    <string name="messageAppleMapsUrlFormatUnknown">Konnte die Koordinaten nicht extrahieren. Das Apple Maps Url format ist unbekannt.</string>
+    <string name="messageGoogleMapsUrlFormatUnknown">Konnte die Koordinaten nicht extrahieren. Das Google Maps Url format ist unbekannt.</string>
+    <string name="messageOsmOrgUrlFormatUnknown">Konnte die Koordinaten nicht extrahieren. Das OpenStreetMap Url format ist unbekannt.</string>
+    <string name="messageOsmAndUrlFormatUnknown">Konnte die Koordinaten nicht extrahieren. Das OsmAnd Url format ist unbekannt.</string>
+    <string name="messageLinkContainsInvalidCoordinates">Ungültige Koordinaten gefunden.</string>
+    <string name="messageLinkUrlFormatUnknown">Das Koordinaten-Url Format ist unbekannt. Bitte gib entweder eine OpenStreetMap, Google Maps oder Apple Maps Url an.</string>
 
-    <!-- SelectRoutingWayClassesDialog -->
-    <string name="selectRoutingWayClassesDialogTitle">Wegeklassen priorisieren:</string>
+    <!-- plan route dialog -->
+    <string name="planRouteDialogTitle">Route planen</string>
+    <string name="switchShowViaPointList">Zwischenziele anzeigen</string>
+    <!-- options menu -->
+    <string name="planRouteMenuItemSwap">Start und Ziel tauschen</string>
+    <string name="planRouteMenuItemExcludedWays">Ausgeschlossene Wege</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Wegeklassengewichtung</string>
+    <string name="planRouteMenuItemClear">Neue Route</string>
 
-    <!-- request address dialog -->
-    <string name="requestAddressDialogName">Wo bin ich?</string>
-    <string name="messageNoAddressSelected">Keine Adresse verfügbar.</string>
-    <string name="messageAddressRequestSuccessful">Du befindest dich hier:\n\n%1$s\n\n%2$s</string>
-    <string name="messageAddressRequestFailed">Fehler:\n\n%1$s</string>
+    <!-- ConfigureWayClassWeightsDialog -->
+    <string name="configureWayClassWeightsDialogTitle">Wegeklassen gewichten:</string>
 
-    <!-- save current position dialog -->
-    <string name="saveCurrentPositionDialogName">Aktuelle Position sichern</string>
-    <string name="labelPointNameToSave">Name des Punktes:</string>
-    <string name="editHintSaveCurrentPointName">Name</string>
-    <string name="labelCheckFavoritesProfiles">POI Profile auswählen:</string>
-    <string name="buttonAddPOIProfile">Hinzufügen</string>
+    <!-- WhereAmIDialog -->
+    <string name="whereAmIDialogTitle">Wo bin ich?</string>
+
+    <!-- SaveCurrentLocationDialog -->
+    <string name="saveCurrentLocationDialogTitle">Aktuelle Position sichern</string>
+    <string name="labelName">Name</string>
+    <string name="buttonLocationSensorDetails">Standortsensordetails</string>
+    <string name="messageNameMissing">Bitte gib einen Namen ein.</string>
 
 
     <!--
@@ -134,169 +135,114 @@
     <string name="app_name">WalkersGuide</string>
     <string name="openNavigationDrawer">Menü öffnen</string>
     <string name="closeNavigationDrawer">Menü schließen</string>
-    <!-- fragment names -->
-    <string name="fragmentRouterName">Router</string>
-    <string name="fragmentPOIName">POI</string>
 
     <!-- router fragment -->
-    <string name="buttonRouteCommandList">Routenüberblick</string>
+    <string name="fragmentRouterName">Router</string>
     <string name="labelRoutePosition">Anweisung %1$d von %2$d</string>
     <string name="buttonPreviousRouteObject">Vorheriger</string>
     <string name="buttonPreviousRouteObjectCD">Vorheriger Routenpunkt</string>
     <string name="buttonNextRouteObject">Nächster</string>
     <string name="buttonNextRouteObjectCD">Nächster Routenpunkt</string>
-    <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s</string>
-    <string name="messageArrivedAtRoutePoint">Punkt %1$d erreicht: %2$s</string>
-    <string name="messageArrivedAtRouteStart">Startpunkt der Route erreicht.</string>
-    <string name="messageArrivedAtRouteDestination">Zielpunkt der Route erreicht.</string>
     <!-- more options menu -->
-    <string name="menuItemRouteHistory">Letzte Routen</string>
     <string name="menuItemRecalculate">Neu berechnen</string>
     <string name="menuItemRecalculateWithCurrentPosition">Mit aktueller Position neu berechnen</string>
     <string name="menuItemRecalculateReturnRoute">Rückweg berechnen</string>
     <string name="menuItemSkipToFirstRoutePoint">Zum Routenanfang springen</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. weiterschalten</string>
 
-    <!-- route commands dialog -->
-    <string name="routeCommandsDialogTitle">Überblick über die Route</string>
-    <!-- route object list menu -->
-    <string name="menuItemJumpToRouteObject">Zum ausgewählten Punkt springen</string>
-    <string name="menuItemShowPointDetails">Punktdetails</string>
-    <string name="menuItemShowSegmentDetails">Segmentdetails</string>
-
-    <!-- route history dialog -->
-    <string name="routeHistoryDialogTitle">Letzte Routen</string>
-
-
-    <!--
-        poi
-    --> 
-
-    <!-- AbstractPointProfileFragment -->
+    <!-- ObjectListFragment -->
     <!-- toolbar menu -->
     <string name="menuItemJumpToTop">An den Listenanfang springen</string>
     <string name="menuItemFilterResult">Nach Blickrichtung filtern</string>
     <string name="menuItemSortMethod">Sortieren</string>
-    <!-- SelectDatabasePointProfileDialog / SelectServerPointProfileDialog -->
-    <string name="selectPointProfileDialogTitle">Profil auswählen:</string>
 
-    <!-- DatabasePointProfileFragment -->
-    <string name="fragmentFavoritesName">Favoriten</string>
-    <string name="fragmentPointHistoryName">Verlauf</string>
+    <!-- SimpleObjectListFragment -->
+    <string name="fragmentEntrancesName">Eingänge</string>
+    <string name="fragmentPedestrianCrossingsName">Querungen</string>
 
-    <!-- poi fragment -->
+    <!-- IntersectionStructureFragment -->
+    <string name="fragmentIntersectionStructureName">Kreuzungsstruktur</string>
+    <string name="labelNumberOfIntersectionWaysAndBearing">Kreuzung mit %1$s\nBlickrichtung: %2$s</string>
+    <string name="labelPartOfPreviousRouteSegment">Vorheriges Teilstück der Route</string>
+    <string name="labelPartOfNextRouteSegment">Nächstes Teilstück der Route</string>
+
+    <!-- ExtendedObjectListFragment -->
     <string name="buttonSelectProfile">Profil: %1$s</string>
     <string name="buttonSelectProfileNone">Profil: Keins ausgewählt</string>
-    <string name="buttonSelectProfileCD">Profil: %1$s.\nAusgewählte Kategorien: %2$s</string>
+    <string name="hintSearch">Suche</string>
     <string name="buttonClearSearch">Suche zurücksetzen</string>
-    <!-- dialog titles -->
-    <string name="poiFragmentHistoryPointProfileDialogTitle">Aus den zuletzt besuchten Punkten auswählen:</string>
-    <string name="poiFragmentPOIProfileDialogTitle">POI auswählen:</string>
-    <!-- ContentType HISTORY_POINTS-->
-    <string name="labelSelectHistoryPointDialogHeaderSuccess">%1$s\nSortiert nach %2$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSuccessFiltered">Gefiltert: %1$s\nSortiert nach %2$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSearch">%1$s\nFür: %2$s\nSortiert nach %3$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSearchFiltered">Gefiltert: %1$s\nFür: %2$s\nSortiert nach %3$s</string>
-    <!-- ContentType POI-->
+
+    <!-- HikingTrailListFromServerFragment -->
+    <string name="fragmentHikingTrailListName">Wanderwege</string>
+    <string name="labelHikingTrailsHeading">%1$s im Umkreis von %2$s</string>
+    <string name="labelNoHikingTrailsNearby">Keine Wanderwege gefunden.</string>
+
+    <!-- ObjectListFromDatabaseFragment -->
+    <string name="fragmentFavoritesName">Favoriten</string>
+    <string name="fragmentPointHistoryName">Letzte Punkte</string>
+    <string name="fragmentRouteHistoryName">Letzte Routen</string>
+
+    <!-- PoiFromServerFragment -->
+    <string name="fragmentPOIName">POI</string>
+    <string name="buttonSelectProfileWithPoiCategories">Profil: %1$s.\nAusgewählte Kategorien: %2$s</string>
     <string name="labelPOIFragmentHeaderSuccess">%1$s\nRadius: %2$s</string>
-    <string name="labelPOIFragmentHeaderSuccessFiltered">Gefiltert: %1$s\nRadius: %2$s</string>
-    <string name="labelPOIFragmentHeaderSearch">%1$s\nFür: %2$s\nRadius: %3$s</string>
-    <string name="labelPOIFragmentHeaderSearchFiltered">Gefiltert: %1$s\nFür: %2$s\nRadius: %3$s</string>
     <string name="labelMoreResults">Weitere POI laden</string>
 
-    <!-- select history point profile dialog -->
-    <string name="selectHistoryPointProfileDialogTitle">Letzte-Punkte Profil auswählen</string>
+    <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
+    <string name="selectProfileDialogTitle">Profil auswählen:</string>
+    <!-- poi profile menu -->
+    <string name="poiProfileMenuItemEdit">Bearbeiten</string>
+    <string name="poiProfileMenuItemRemove">Löschen</string>
 
-    <!-- select poi profile dialog -->
-    <string name="selectPOIProfileDialogTitle">POI Profil auswählen:</string>
-    <string name="buttonActionFor">Aktionen für</string>
-    <string name="menuItemEditProfile">Profil bearbeiten</string>
-    <string name="menuItemRemoveProfile">Profil löschen</string>
+    <!-- SelectPoiCategoriesDialog -->
+    <string name="selectPoiCategoriesDialogTitle">POI Kategorien auswählen:</string>
 
-    <!-- POIProfilePointAdapter -->
-    <string name="imageViewIsFavorite">Favorit</string>
-    <string name="imagePointIsFavorite">Favorit</string>
-
-    <!-- new / edit poi profile dialog -->
-    <string name="newProfileDialogTitle">Profil erstellen</string>
-    <string name="editProfileDialogTitle">Profil bearbeiten</string>
+    <!-- ManagePoiProfileDialog -->
+    <string name="newProfileDialogTitle">Profil erstellen:</string>
+    <string name="modifyProfileDialogTitle">Profil Bearbeiten:</string>
+    <string name="removeProfileDialogTitle">Möchtest du das Profil %1$s löschen?</string>
     <string name="labelProfileName">Name:</string>
-    <string name="labelPOIProfileFavoritesAndHistory">Favoriten:</string>
-    <string name="buttonPOIProfileIncludeFavorites">Lokale Favoriten einbeziehen</string>
-    <string name="labelPOIProfileCategories">POI Kategorien:</string>
+    <string name="switchIncludeFavorites">Favoriten einbeziehen</string>
+    <string name="buttonSelectPoiCategories">POI Kategorien: %1$d selected</string>
     <string name="messageProfileNameMissing">Bitte gib einen Profilnamen ein.</string>
     <string name="messageProfileExists">Das Profil namens %1$s existiert bereits.</string>
     <string name="messageCouldNotCreateProfile">Das Profil konnte nicht angelegt werden.</string>
-    <string name="messageCouldNotEditProfile">Das Profil konnte nicht bearbeitet werden.</string>
+    <string name="messageCouldNotModifyProfile">Das Profil konnte nicht bearbeitet werden.</string>
+    <string name="messageCouldNotRemoveProfile">Das Profil konnte nicht gelöscht werden.</string>
 
-    <!-- remove poi profile dialog -->
-    <string name="removeProfileDialogTitle">Möchtest du das Profil %1$s löschen?</string>
+    <!-- SelectSortMethodDialog -->
+    <string name="selectSortMethodDialogTitle">Sortiermethode auswählen:</string>
 
 
     <!--
-         other activities
+         details activities and fragments
     -->
 
     <!-- point details activity -->
     <string name="pointDetailsActivityTitle">Details</string>
-    <string name="labelPointName">Name: %1$s</string>
     <string name="labelPointType">Typ: %1$s</string>
-    <string name="labelPointDistanceAndBearing">Entfernung: %1$s, %2$s</string>
-    <string name="buttonPointFavorite">Favorit</string>
-    <string name="buttonPointSimulateLocation">Simulieren</string>
-    <string name="buttonAddToRoute">Route</string>
-    <string name="menuItemAsRouteStartPoint">Als Startpunkt verwenden</string>
-    <string name="menuItemAsRouteViaPoint">Als Zwischenziel %1$d verwenden</string>
-    <string name="menuItemAsRouteDestinationPoint">Als Zielpunkt verwenden</string>
+    <string name="labelPointDistanceAndBearing">Entfernung: %1$s</string>
 
-    <!-- select poi profiles for point dialog -->
-    <string name="selectPOIProfilesForPointDialogName">Punkt als Favorit zu POI Profil hinzufügen:</string>
+    <!-- segment details activity -->
+    <string name="segmentDetailsActivityTitle">Details</string>
+    <string name="labelSegmentType">Typ: %1$s</string>
+    <string name="labelSegmentDirection">Richtung: %1$s</string>
 
-    <!-- DeparturesFragment -->
-    <string name="fragmentDeparturesName">Abfahrten</string>
-    <string name="menuItemPublicTransportProvider">ÖPNV Betreiber</string>
-    <string name="menuItemSelectDepartureDateAndTime">Abfahrtszeit</string>
-    <string name="labelNoPtStationsNearby">Der ausgewählte ÖPNV Provider konnte keine Haltestelle finden.</string>
-    <!-- DepartureAdapter -->
-    <string name="labelDepartureAdapter">%1$s %2$s\nnach %3$s\n%4$s %5$s</string>
-    <string name="labelDepartureAdapterCD">%1$s %2$s,\nnach %3$s,\n%4$s, %5$s</string>
-    <string name="labelFromPlatform">Von Gleis %1$s</string>
-
-    <!-- SelectPtStationDialog -->
-    <string name="selectPtStationDialogTitle">Haltestelle auswählen:</string>
-
-    <!-- SelectDepartureDateAndTimeDialog -->
-    <string name="selectDepartureDateAndTimeDialogTitle">Abfahrtsdatum und -zeit wählen:</string>
-
-    <!-- TripDetailsFragment -->
-    <string name="tripDetailsFragmentTitle">Fahrtdetails</string>
-    <string name="labelDepartureDetails">Haltestelle: %1$s\n%2$s %3$s nach %4$s\nAbfahrt %5$s %6$s</string>
-    <string name="switchSimulateNearbyStationLocation">Haltestellenposition simulieren</string>
-    <string name="labelNoMoreStops">Die Linie hat ihre Zielhaltestelle erreicht.</string>
-    <!-- TripAdapter -->
-    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
-    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
-
-    <!-- EntrancesFragment -->
-    <string name="fragmentEntrancesName">Eingänge</string>
-    <string name="labelNumberOfEntrancesSuccess">%1$s gefunden</string>
-
-    <!-- IntersectionWaysFragment -->
-    <string name="fragmentIntersectionWaysName">Wege</string>
-    <string name="labelNumberOfIntersectionWaysAndBearing">Kreuzung mit %1$s\nBlickrichtung: %2$s</string>
-    <string name="labelPartOfPreviousRouteSegment">Vorheriges Teilstück der Route</string>
-    <string name="labelPartOfNextRouteSegment">Nächstes Teilstück der Route</string>
-    <!-- toolbar menu: menu_toolbar_intersection_ways_fragment -->
-    <string name="menuItemRefresh">Aktualisieren</string>
-    <string name="menuItemCancel">Abbrechen</string>
-    <string name="menuItemAutoUpdate">Auto-update</string>
-
-    <!-- PedestrianCrossingsFragment -->
-    <string name="fragmentPedestrianCrossingsName">Querungen</string>
-    <string name="labelNumberOfPedestrianCrossingsSuccess">%1$s in der Nähe</string>
+    <!-- HikingTrailDetailsFragment -->
+    <string name="fragmentHikingTrailDetailsName">Wanderwegdetails</string>
+    <string name="labelTrailName">Name</string>
+    <string name="labelTrailDescription">Beschreibung</string>
+    <string name="labelTrailLength">Länge</string>
+    <string name="labelTrailSymbol">Symbol</string>
+    <!-- distances -->
+    <string name="labelTrailDistancesHeading">Entfernungen von aktueller Position</string>
+    <string name="labelDistanceToTrailStart">Startpunkt</string>
+    <string name="labelDistanceToTrailDestination">Zielpunkt</string>
+    <string name="labelDistanceToTrailClosest">Nächstgelegener Routenpunkt</string>
 
     <!-- PointDetailsFragment -->
     <string name="fragmentPointDetailsName">Details</string>
+    <string name="menuItemOpenOsmWebsite">Auf OpenStreetMap.org anzeigen</string>
     <!-- entrance -->
     <string name="labelPointEntranceAttributesHeading">Eingang</string>
     <string name="labelPointEntranceLabel">Label:</string>
@@ -346,20 +292,11 @@
     <string name="labelPointWheelchair">Zugänglichkeit für Rollstuhlfahrer:</string>
     <!-- point: coordinates and gps -->
     <string name="labelPointCoordinatesHeading">Koordinaten</string>
-    <!-- toolbar menu: menu_toolbar_point_details_fragment -->
-    <string name="menuItemOpenStreetMap">Auf OpenStreetMap.org anzeigen</string>
 
-
-    <!-- segment details activity -->
-    <string name="segmentDetailsActivityTitle">Details</string>
-    <string name="labelSegmentName">Name: %1$s</string>
-    <string name="labelSegmentType">Typ: %1$s</string>
-    <string name="labelSegmentDirection">Richtung: %1$s</string>
-    <string name="buttonSegmentExcludeFromRouting">Ausschließen</string>
-    <string name="buttonSegmentSimulateDirection">Simulieren</string>
-
-    <!-- SetNameForExcludedWayDialog -->
-    <string name="setNameForExcludedWayDialogTitle">Das ausgewählte Wegsegment vom Routing ausschließen:</string>
+    <!-- RouteDetailsFragment -->
+    <string name="fragmentRouteDetailsName">Routendetails</string>
+    <string name="fragmentStreetCourseDetailsName">Wegverlauf</string>
+    <string name="menuItemLoadRoute">Route laden</string>
 
     <!-- SegmentDetailsFragment -->
     <string name="fragmentSegmentDetailsName">Details</string>
@@ -369,72 +306,88 @@
     <!-- route segment -->
     <string name="labelSegmentRouteAttributesHeading">Route</string>
     <string name="labelSegmentRouteDistance">Länge:</string>
-    <!-- footway segment -->
+    <!-- segment attributes -->
     <string name="labelSegmentFootwayAttributesHeading">Attribute</string>
-    <string name="labelSegmentBearing">Kurs: %1$d°, %2$s</string>
+    <string name="labelSegmentBearing">Kurs</string>
+    <string name="labelSegmentFootwayDescription">Beschreibung</string>
+    <string name="labelSegmentFootwaySidewalk">Fußweg</string>
     <string name="labelSegmentFootwaySurface">Oberfläche:</string>
-    <string name="labelSegmentFootwayNumberOfLanes">Anzahl der Spuren:</string>
-    <string name="labelSegmentFootwaySegregated">Getrennter eg:</string>
-    <string name="labelSegmentFootwaySidewalk">Fußweg:</string>
-    <string name="labelSegmentFootwayTram">Straßenbahnschienen:</string>
+    <string name="labelSegmentFootwaySmoothness">Oberflächenbeschaffenheit</string>
     <string name="labelSegmentFootwayWidth">Breite:</string>
-    <!-- user attributes -->
-    <string name="labelSegmentUserAttributesHeading">Nutzerattribute</string>
-    <string name="labelSegmentUserDescription">Beschreibung:</string>
+    <string name="labelSegmentFootwayNumberOfLanes">Anzahl der Spuren:</string>
+    <string name="labelSegmentFootwayMaxSpeed">Max. Geschwindigkeit (standard=km/h)</string>
+    <string name="labelSegmentFootwaySegregated">Getrennter eg:</string>
+    <string name="labelSegmentFootwayTram">Straßenbahnschienen:</string>
 
-    <!-- NextIntersectionsFragment -->
-    <string name="fragmentNextIntersectionsName">Wegverlauf</string>
-    <string name="labelNextIntersectionsSuccess">%1$s gefunden\nGesamtlänge: %2$s</string>
-    <!-- toolbar menu: menu_toolbar_next_intersections_fragment -->
-    <string name="menuItemShowAllPoints">Alle Punkte anzeigen</string>
 
-    <!-- settings activity -->
+    <!--
+         pt departures and trips
+    -->
+
+    <!-- DeparturesFragment -->
+    <string name="fragmentDeparturesName">Abfahrten</string>
+    <string name="menuItemPublicTransportProvider">ÖPNV Betreiber</string>
+    <string name="menuItemSelectDepartureDateAndTime">Abfahrtszeit</string>
+    <string name="labelNearby">In der Nähe von</string>
+    <string name="labelNoPtStationsNearby">Der ausgewählte ÖPNV Provider konnte keine Haltestelle finden.</string>
+    <!-- DepartureAdapter -->
+    <string name="labelDepartureAdapter">%1$s %2$s\nnach %3$s\n%4$s %5$s</string>
+    <string name="labelDepartureAdapterCD">%1$s %2$s,\nnach %3$s,\n%4$s, %5$s</string>
+    <string name="labelFromPlatform">Von Gleis %1$s</string>
+
+    <!-- SelectPtStationDialog -->
+    <string name="selectPtStationDialogTitle">Haltestelle auswählen:</string>
+
+    <!-- select public transport provider  dialog -->
+    <string name="selectPublicTransportProviderDialogTitle">ÖPNV Provider auswählen:</string>
+
+    <!-- SelectDepartureDateAndTimeDialog -->
+    <string name="selectDepartureDateAndTimeDialogTitle">Abfahrtsdatum und -zeit auswählen:</string>
+
+    <!-- TripDetailsFragment -->
+    <string name="labelNoMoreStops">Die Linie hat ihre Zielhaltestelle erreicht.</string>
+    <!-- TripAdapter -->
+    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
+    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
+
+
+    <!--
+         info and settings
+    -->
+
+    <!-- settings fragment -->
     <string name="fragmentSettingsName">Einstellungen</string>
-    <string name="settingsActivityTitle">Einstellungen</string>
-    <string name="labelServerSettingsHeader">Server:</string>
+    <string name="labelServerSettingsHeader">WalkersGuide server:</string>
     <string name="buttonServerURL">URL: %1$s</string>
     <string name="buttonServerURLNoSelection">URL: Keine ausgewählt</string>
     <string name="buttonServerMap">Karte: %1$s</string>
     <string name="buttonServerMapNoSelection">Karte: Keine ausgewählt</string>
     <string name="buttonPublicTransportProvider">ÖPNV Betreiber: %1$s</string>
     <string name="buttonPublicTransportProviderNoSelection">ÖPNV Betreiber: Keiner ausgewählt</string>
-    <string name="buttonAddressProvider">Adressauflösung: %1$s</string>
-    <string name="buttonAddressProviderNoSelection">Adressauflösung: Keine ausgewählt</string>
     <string name="labelInterfaceSettingsHeader">Benutzungsoberfläche:</string>
+    <string name="buttonShowActionButton">Aktion-Button anzeigen</string>
     <string name="buttonEnableTextInputHistory">Lokalen Suchverlauf aktivieren</string>
     <string name="buttonShakeIntensity">Schüttelintensität</string>
     <string name="labelImportAndExportSettingsHeader">Import und Export:</string>
     <string name="buttonImportSettings">Einstellungen importieren</string>
     <string name="buttonExportSettings">Einstellungen exportieren</string>
+    <!-- import messages -->
+    <string name="labelProceedWithImport">Möchtest du mit dem Importieren fortfahren?</string>
+    <string name="labelImportSuccessful">Import war erfolgreich.</string>
+    <string name="labelImportFailed">Import ist fehlgeschlagen.</string>
     <!-- export messages -->
-    <string name="labelWriteExternalStoragePermissionDenied">Berechtigung nicht erteilt: Import und export nicht möglich.</string>
-    <string name="labelOverwriteExistingSettings">Importeinstellungen bereits vorhanden. Möchtest du diese wirklich überschreiben?</string>
-    <string name="labelExportSuccessful">Export erfolgreich. Bitte kopiere den Ordner %1$s auf dein neues Gerät.</string>
+    <string name="labelExportSuccessful">Export erfolgreich.</string>
     <string name="labelExportFailed">Export fehlgeschlagen.</string>
 
-    <!-- new server dialog -->
-    <string name="newServerDialogTitle">Neuer Server:</string>
+    <!-- ChangeServerUrlDialog -->
+    <string name="changeServerUrlDialogTitle">Neuer WalkersGuide Server:</string>
     <string name="editHintServerURL">Server URL</string>
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Karte auswählen:</string>
 
-    <!-- select address provider dialog -->
-    <string name="selectAddressProviderDialogTitle">Adressauflösungsanbieter auswählen:</string>
-    <string name="addressProviderGoogle">Google</string>
-    <string name="addressProviderOSM">OpenStreetMap</string>
-
     <!-- Select shake intentsity Dialog -->
-    <string name="selectShakeIntensityDialogTitle">Schüttelkraft auswählen:</string>
-
-    <!-- import settings dialog -->
-    <string name="importSettingsDialogTitle">Einstellungen importieren:</string>
-    <string name="labelImportReady">Importdaten gefunden: Kann losgehen.\n\nBitte beachte, dass
-        der Importprozess ein experimentelles Feature darstellt. Stelle sicher, dass die
-        WalkersGuide Versionen für Export und Import identisch sind, um Datenverlust zu vermeiden.</string>
-    <string name="labelImportDataNotFound">%1$s nicht gefunden.</string>
-    <string name="labelImportSuccessful">Import erfolgreich.</string>
-    <string name="labelImportFailed">Import fehlgeschlagen.</string>
+    <string name="selectShakeIntensityDialogTitle">Schüttelintensität auswählen:</string>
 
     <!-- info fragment -->
     <string name="fragmentInfoName">Info</string>
@@ -449,37 +402,6 @@
     <string name="labelSelectedMapName">Karte:</string>
     <string name="labelSelectedMapCreated">Erstellt am:</string>
 
-
-    <!-- selector fragments -->
-
-    <!-- SelectSortMethodDialog -->
-    <string name="selectSortMethodDialogTitle">Sortierung auswählen:</string>
-
-
-    <!--
-         other dialogs and layouts
-    -->
-
-    <!-- HikingTrailsDialog -->
-    <string name="hikingTrailsDialogTitle">Wanderwege</string>
-    <string name="labelHikingTrailsHeading">%1$s im Umkreis von %2$d km</string>
-    <string name="labelNoHikingTrailsNearby">Keine Wanderwege gefunden.</string>
-
-    <!-- TrailDetailsDialog -->
-    <string name="trailDetailsDialogTitle">Wanderwegdetails</string>
-    <string name="labelTrailName">Name</string>
-    <string name="labelTrailDescription">Beschreibung</string>
-    <string name="labelTrailLength">Länge</string>
-    <string name="labelTrailSymbol">Symbol</string>
-    <!-- distances -->
-    <string name="labelTrailDistancesHeading">Entfernungen von aktueller Position</string>
-    <string name="labelDistanceToTrailStart">Startpunkt</string>
-    <string name="labelDistanceToTrailDestination">Zielpunkt</string>
-    <string name="labelDistanceToTrailClosest">Nächstgelegener Routenpunkt</string>
-    <!-- menu_button_hiking_trails_dialog -->
-    <string name="menuItemDirectionForwards">Start - Ziel</string>
-    <string name="menuItemDirectionBackwards">Ziel - Start</string>
-
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Feedback senden:</string>
     <string name="sendFeedbackDialogTitleMissingMap">Anfrage: OSM Karte</string>
@@ -489,83 +411,228 @@
     <string name="labelMessageMissingMap">Die Karte welches Landes fehlt?</string>
     <string name="labelMessageMissingPtProvider">Welcher ÖPNV Provider fehlt?</string>
     <string name="messageSendFeedbackSuccessful">Nachricht erfolgreich versendet.</string>
+    <string name="messageFeedbackMessageIsEmpty">Bitte gib eine Nachricht ein.</string>
+
+
+    <!--
+         TextViewAndActionButton
+    -->
+
+    <!-- layout -->
+    <string name="labelIsFavorite">Favorit</string>
+    <string name="buttonActionFor">Aktionen für</string>
+    <string name="labelNothingSelected">Nichts ausgewählt</string>
+
+    <!-- label prefix -->
+    <string name="labelPrefixStart">Start</string>
+    <string name="labelPrefixVia1">Via 1</string>
+    <string name="labelPrefixVia2">Via 2</string>
+    <string name="labelPrefixVia3">Via 3</string>
+    <string name="labelPrefixDestination">Ziel</string>
+    <string name="labelPrefixSimulation">Simulation</string>
+    <string name="labelPrefixYouAreAt">Du befindest dich hier</string>
+
+    <!-- object context menu -->
+    <string name="objectMenuItemDetails">Details</string>
+    <string name="objectMenuItemDepartures">Abfahrten</string>
+    <string name="objectMenuItemLoad">Laden</string>
+    <string name="objectMenuItemStreetCourse">Wegverlauf</string>
+    <string name="objectMenuItemSave">Sichern</string>
+    <string name="objectMenuItemRename">Umbenennen</string>
+    <string name="objectMenuItemResetLayout">Zurücksetzen</string>
+    <string name="objectMenuItemAddToFavorites">Zu Favoriten hinzufügen</string>
+    <string name="objectMenuItemRemoveFromFavorites">Aus Favoriten entfernen</string>
+    <string name="objectMenuItemAddToExcludeFromRouting">Vom Routing ausschließen</string>
+    <string name="objectMenuItemRemoveExcludeFromRouting">Ins Routing einbeziehen</string>
+    <string name="objectMenuItemStartLocationSimulation">Position simulieren</string>
+    <string name="objectMenuItemStartBearingSimulation">Richtung simulieren</string>
+    <string name="objectMenuItemEndSimulation">Simulation beenden</string>
+    <string name="objectMenuItemRoutePlanner">Routenplaner</string>
+    <string name="objectMenuItemShareCoordinates">Koordinaten teilen</string>
+    <!-- routeplanner context submenu -->
+    <string name="objectMenuItemUseAsStartPoint">Als Startpunkt</string>
+    <string name="objectMenuItemUseAsViaPoint1">Als erstes Zwischenziel</string>
+    <string name="objectMenuItemUseAsViaPoint2">Als zweites Zwischenziel</string>
+    <string name="objectMenuItemUseAsViaPoint3">Als drittes Zwischenziel</string>
+    <string name="objectMenuItemUseAsDestinationPoint">Als Zielpunkt</string>
+    <!-- share coordinates context submenu -->
+    <string name="objectMenuItemShareOsmOrgLink">OpenStreetMap</string>
+    <string name="objectMenuItemShareGoogleMapsLink">Google maps</string>
+    <string name="objectMenuItemShareAppleMapsLink">Apple maps</string>
+
+
+    <!--
+         other dialogs and layouts
+    -->
+
+    <!-- RenameObjectDialog -->
+    <string name="renamePointDialogTitle">Punkt umbenennen:</string>
+    <string name="renameRouteDialogTitle">Route umbenennen:</string>
+    <string name="renameSegmentDialogTitle">Wegstück umbenennen:</string>
+    <string name="messageRenameObjectFailed">Umbenennen ist fehlgeschlagen.</string>
 
     <!-- layout_heading_and_list_view_with_refresh_button -->
     <string name="buttonRefresh">Aktualisieren</string>
     <string name="buttonCancel">Abbrechen</string>
 
-    <!-- single edit text layout -->
+    <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Löschen</string>
+    <string name="buttonClearInputWithLabel">Lösche %1$s</string>
+
+    <!-- RouteObjectView -->
+    <string name="labelSelectedRouteObject">Nächstes Wegstück:</string>
+
+    <!-- dialog button labels -->
+    <string name="dialogOK">OK</string>
+    <string name="dialogCancel">Abbrechen</string>
+    <string name="dialogBack">Zurück</string>
+    <string name="dialogClose">Schließen</string>
+    <string name="dialogYes">Ja</string>
+    <string name="dialogNo">Nein</string>
+    <string name="dialogSelectAll">Alles auswählen</string>
+    <string name="dialogClear">Auswahl aufheben</string>
+    <string name="dialogCalculate">Berechnen</string>
+    <string name="dialogDefault">Standard</string>
+    <string name="dialogNew">Neu</string>
+    <string name="dialogNow">Jetzt</string>
+    <string name="dialogOptions">Optionen</string>
+    <string name="dialogRefresh">Aktualisieren</string>
+    <string name="dialogSend">Senden</string>
+    <string name="dialogSomethingMissing">Fehlt etwas?</string>
+    <string name="messagePleaseWait">Bitte warten…</string>
 
 
     <!--
          points
     -->
 
-    <!-- point types -->
-    <string name="pointTypeStation">Station</string>
-    <string name="pointTypeEntrance">Eingang</string>
-    <string name="pointTypePOI">POI</string>
-    <string name="pointTypeStreetAddress">Adresse</string>
-    <string name="pointTypeGPS">GPS</string>
-    <string name="pointTypeIntersection">Kreuzung</string>
-    <string name="pointTypePedestrianCrossing">Querung</string>
-    <string name="pointTypePoint">Wegpunkt</string>
-
     <!-- Point -->
     <!-- TactilePaving -->
     <string name="tactilePavingNo">Nein</string>
     <string name="tactilePavingYes">Ja</string>
-    <string name="tactilePavingIncorrect">Falsch verlegt</string>
+    <string name="tactilePavingIncorrect">Fehlerhaft</string>
     <!-- Wheelchair -->
     <string name="wheelchairNo">Nein</string>
     <string name="wheelchairLimited">Teilweise</string>
     <string name="wheelchairYes">Ja</string>
 
     <!-- gps point -->
-    <string name="currentLocationName">GPS Position</string>
+    <string name="gpsPointSubtype">GPS Position</string>
 
     <!-- intersection point -->
-    <string name="intersectionDescription">%1$s\nKreuzung mit %2$s</string>
+    <string name="intersectionNumberOfStreets">Kreuzung mit %1$s</string>
+
+    <!-- PedestrianCrossing -->
+    <!-- TrafficSignal -->
+    <string name="trafficSignalNo">Nein</string>
+    <string name="trafficSignalYes">Ja</string>
 
     <!-- StationPoint -->
     <string name="stationLines">Linien: %1$s</string>
-    <string name="stationExactStopPosition">Exakte Haltestellenposition verfügbar</string>
-    <string name="stationNoExactStopPosition">Exakte Haltestellenposition nicht verfügbar</string>
+
+    <!-- StreetAddress -->
+    <string name="streetAddressPointSubtype">Adresse</string>
 
 
     <!--
          segments
     -->
 
-    <!-- segment types -->
-    <string name="segmentTypeIntersection">Kreuzungssegment</string>
-    <string name="segmentTypeRoute">Routensegment</string>
-    <string name="segmentTypeFootway">Segment</string>
+    <!-- segment -->
+    <!-- sidewalk -->
+    <string name="sidewalkNo">Nein</string>
+    <string name="sidewalkLeft">Links</string>
+    <string name="sidewalkRight">Rechts</string>
+    <string name="sidewalkBoth">Beidseitig</string>
+
+    <!-- route segment -->
+    <string name="routeSegmentNameUnknown">Unbekanntes Wegstück</string>
+    <string name="routeSegmentToString">%1$s auf %2$s</string>
+
+
+    <!--
+         angles
+    -->
+
+    <!-- Bearing -->
+    <!-- Orientation -->
+    <string name="orientationNorth">Norden</string>
+    <string name="orientationNorthEast">Nordosten</string>
+    <string name="orientationEast">Osten</string>
+    <string name="orientationSouthEast">Südosten</string>
+    <string name="orientationSouth">Süden</string>
+    <string name="orientationSouthWest">Südwesten</string>
+    <string name="orientationWest">Westen</string>
+    <string name="orientationNorthWest">Nordwesten</string>
+
+    <!-- RelativeBearing -->
+    <!-- Direction -->
+    <string name="directionStraightAhead">geradeaus</string>
+    <string name="directionRightSlightly">leicht rechts</string>
+    <string name="directionRight">rechts</string>
+    <string name="directionRightStrongly">scharf rechts</string>
+    <string name="directionBehind">hinter dir</string>
+    <string name="directionLeftStrongly">scharf links</string>
+    <string name="directionLeft">links</string>
+    <string name="directionLeftSlightly">leicht links</string>
+
+    <!-- Turn -->
+    <!-- Instruction -->
+    <string name="instructionCross">geradeaus überqueren</string>
+    <string name="instructionTurnRightSlightly">leicht rechts abbiegen</string>
+    <string name="instructionTurnRight">rechts abbiegen</string>
+    <string name="instructionTurnRightStrongly">scharf rechts abbiegen</string>
+    <string name="instructionTurnRound">Umdrehen</string>
+    <string name="instructionTurnLeftStrongly">scharf links abbiegen</string>
+    <string name="instructionTurnLeft">links abbiegen</string>
+    <string name="instructionTurnLeftSlightly">leicht links abbiegen</string>
+
+    <!-- BearingSensorValue -->
+    <string name="labelBearingAccuracy">Genauigkeit</string>
+    <string name="labelBearingOutdated">Wert ist veraltet</string>
+
+
+    <!--
+         database
+    -->
+
+    <!-- DatabaseProfile -->
+    <!-- point -->
+    <string name="databaseProfileAddressPoints">Adressen</string>
+    <string name="databaseProfileIntersectionPoints">Kreuzungen</string>
+    <string name="databaseProfileStationPoints">Haltestellen</string>
+    <string name="databaseProfileSimulatedPoints">Simulierte Punkte</string>
+    <string name="databaseProfileAllPoints">Alle Punkte</string>
+    <!-- segment -->
+    <string name="databaseProfileExcludedFromRouting">Vom Routing ausgeschlossene Wege</string>
+    <!-- route -->
+    <string name="databaseProfilePlannedRoutes">Geplante Routen</string>
+    <string name="databaseProfileStreetCourses">Wegverläufe</string>
+    <string name="databaseProfileAllRoutes">Alle Routen</string>
+
+    <!-- FavoritesProfile -->
+    <string name="favoritesProfilePoints">Punkte</string>
+    <string name="favoritesProfileRoutes">Routen</string>
+
+    <!-- SortMethod -->
+    <string name="sortAccessedAsc">Zuletzt besucht, aufsteigend</string>
+    <string name="sortAccessedDesc">Zuletzt besucht, absteigend</string>
+    <string name="sortNameAsc">Name, aufsteigend</string>
+    <string name="sortNameDesc">Name, absteigend</string>
+    <string name="sortBearingAsc">Richtung, aufsteigend</string>
+    <string name="sortBearingDesc">Richtung, absteigend</string>
+    <string name="sortDistanceAsc">Entfernung, aufsteigend</string>
+    <string name="sortDistanceDesc">Entfernung, absteigend</string>
+    <string name="sortCreatedAsc">Hinzugefügt, aufsteigend</string>
+    <string name="sortCreatedDesc">Hinzugefügt, absteigend</string>
+    <string name="sortToString">Sortiert nach %1$s</string>
 
 
     <!--
          poi management
     -->
 
-    <!-- DatabasePointProfile -->
-    <string name="databasePointProfileFavorites">Favoriten</string>
-    <string name="databasePointProfileAllPoints">Alle Punkte</string>
-    <string name="databasePointProfileAddressPoints">Adressen</string>
-    <string name="databasePointProfileRoutePoints">Routenpunkte</string>
-    <string name="databasePointProfileSimulatedPoints">Simulierte Punkte</string>
-    <string name="databasePointProfileUserCreatedPoints">Selbst angelegte Punkte</string>
-
-    <!-- HistoryPointProfile (to be removed) -->
-    <string name="fpNameAllPoints">Alle Punkte</string>
-    <string name="fpNameAddressPoints">Adressen</string>
-    <string name="fpNameRoutePoints">Routenpunkte</string>
-    <string name="fpNameSimulatedPoints">Simulierte Punkte</string>
-    <string name="fpNameUserCreatedPoints">Meine selbst angelegten Punkte</string>
-    <string name="fpNameNextIntersections">Nächste Kreuzungen</string>
-
     <!-- POICategory -->
-    <string name="poiCategoryNoneSelected">Keine</string>
     <string name="poiCategoryBusTram">Bus- und Straßenbahnhaltestellen</string>
     <string name="poiCategoryTrain">Bahnhöfe, sowie S- und U-Bahnstationen</string>
     <string name="poiCategoryAirportFerry">Flughafen und Fähren</string>
@@ -589,37 +656,38 @@
     <string name="poiCategoryOtherIntersection">Kreuzungen ohne Name</string>
     <string name="poiCategoryPedestrianCrossings">Fußgängerquerungen</string>
 
-    <!-- PointWrapper Object -->
-    <string name="pointListObjectDescription">%1$s\nIn %2$s, %3$s</string>
-
 
     <!--
          route management
     -->
 
-    <!-- hiking trail -->
+    <!-- HikingTrail -->
     <string name="hikingTrailToString">%1$s\nKürzeste Entfernung: %2$s</string>
 
-    <!-- route object -->
-    <string name="routeObjectToString">%1$d.\n%2$s\n%3$s</string>
-    <string name="proceedToFirstRoutePoint">Begib dich zum ersten Routenpunkt</string>
+    <!-- Route -->
+    <string name="descriptionStreetCourse">Gesamtlänge: %1$s\nAnzahl Kreuzungen: %2$d</string>
+    <string name="messageAlmostArrivedAtRouteStart">Startpunkt der Route beinahe erreicht.</string>
+    <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s</string>
+    <string name="messageAlmostArrivedAtRouteDestination">Zielpunkt der Route beinahe erreicht.</string>
+    <string name="messageArrivedAtRouteStart">Startpunkt der Route erreicht.</string>
+    <string name="messageArrivedAtRoutePoint">Punkt %1$d erreicht: %2$s</string>
+    <string name="messageArrivedAtRouteDestination">Zielpunkt der Route erreicht.</string>
 
-    <!-- route point -->
-    <string name="routePointToString">Dann:\nAn %2$s %1$s</string>
-    <string name="routePointToStringCross">Dann:\n%2$s %1$s</string>
+    <!-- RouteObject -->
+    <string name="routePointInstructionStart">Startpunkt:\n%1$s</string>
+    <string name="routePointInstructionIntermediateTurn">Dann:\nAn %2$s %1$s</string>
+    <string name="routePointInstructionIntermediateCross">Dann:\n%2$s %1$s</string>
+    <string name="routePointInstructionDestination">Zielpunkt:\n%1$s</string>
 
-    <!-- route segment -->
-    <string name="routeSegmentToString">%1$s auf %2$s</string>
+    <!-- WayClassType -->
+    <string name="wayClassTypeBigStreets">Große Straßen</string>
+    <string name="wayClassTypeSmallStreets">Kleine Straßen</string>
+    <string name="wayClassTypePavedWays">Befestigte Wege</string>
+    <string name="wayClassTypeUnpavedWays">Unbefestigte Wege</string>
+    <string name="wayClassTypeSteps">Treppen</string>
+    <string name="wayClassTypeUnclassifiedWays">Unklassifizierte Wege</string>
 
-    <!-- way class names -->
-    <string name="routingWayClassBigStreets">Große Straßen</string>
-    <string name="routingWayClassSmallStreets">Kleine Straßen</string>
-    <string name="routingWayClassPavedWays">Befestigte Wege</string>
-    <string name="routingWayClassUnpavedWays">Unbefestigte Wege</string>
-    <string name="routingWayClassSteps">Treppen</string>
-    <string name="routingWayClassUnclassifiedWays">Unklassifizierte Wege</string>
-
-    <!-- way class weights -->
+    <!-- WayClassWeight -->
     <string name="wayClassWeightVeryPreferable">Stark bevorzugen</string>
     <string name="wayClassWeightPreferable">Bevorzugen</string>
     <string name="wayClassWeightSlightlyPreferable">Etwas bevorzugen</string>
@@ -630,30 +698,13 @@
     <string name="wayClassWeightIgnore">Ignorieren</string>
 
 
-    <!--
+    <!-- 
         public transport
     -->
 
     <!-- PTHelper -->
-    <string name="errorNoNetworkProvider">Kein ÖPNV Provider ausgewählt.</string>
-    <string name="errorNoStation">Keine Haltestelle ausgewählt</string>
-    <string name="errorNoDepartureDate">Kein Abfahrtsdatum ausgewählt</string>
-    <string name="errorNoCoordinates">Die aktuelle Position ist nicht verfügbar.</string>
-    <string name="errorPTRequestFailed">Die Anfrage an den ÖPNV Provider ist fehlgeschlagen.</string>
-    <string name="errorPTServiceDown">Der ÖPNV Provider ist nicht erreichbar.</string>
-    <string name="errorInvalidProvider">Ungültiger ÖPNV Provider.</string>
-    <string name="errorInvalidStation">Ungültige Haltestelle.</string>
-    <string name="errorNoDepartures">Keine Abfahrten gefunden.</string>
-    <string name="errorNoTrips">Keine passende Verbindung gefunden.</string>
-    <string name="errorAmbiguousDestination">Uneindeutige Zielhaltestelle.</string>
-    <string name="errorUnknownServerResponse">Die Antwort des ÖPNV Providers konnte nicht verarbeitet werden.</string>
-    <!-- formatter -->
     <string name="contentDescriptionAbsoluteDepartureTime">um %1$s</string>
     <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
-    <string name="contentDescriptionLineDestination">%1$s</string>
-
-    <!-- select public transport provider  dialog -->
-    <string name="selectPublicTransportProviderDialogTitle">ÖPNV Betreiber auswählen:</string>
 
     <!-- Countries -->
     <string name="countryEurope">Europa</string>
@@ -682,127 +733,20 @@
 
 
     <!--
-         helpers and utils
+         sensors
     -->
 
-    <!-- standard messages, which are used in more than one component -->
-    <string name="contentDescriptionSelected">Ausgewählt</string>
-    <string name="dialogOK">OK</string>
-    <string name="dialogYes">Ja</string>
-    <string name="dialogLimited">Teilweise</string>
-    <string name="dialogNo">Nein</string>
-    <string name="dialogAll">Alle</string>
-    <string name="dialogBack">Zurück</string>
-    <string name="dialogCancel">Abbrechen</string>
-    <string name="dialogClear">Löschen</string>
-    <string name="dialogClose">Schließen</string>
-    <string name="dialogDefault">Standard</string>
-    <string name="dialogDetails">Details</string>
-    <string name="dialogDone">Fertig</string>
-    <string name="dialogExclude">Ausschließen</string>
-    <string name="dialogImport">Importieren</string>
-    <string name="dialogNow">Jetzt</string>
-    <string name="dialogRefresh">Aktualisieren</string>
-    <string name="dialogRemove">Entfernen</string>
-    <string name="dialogSearch">Suchen</string>
-    <string name="dialogSomethingMissing">Fehlt etwas?</string>
-    <string name="messagePleaseWait">Bitte warten…</string>
+    <!-- BearingSensor -->
+    <string name="bearingSensorCompass">Kompass</string>
+    <string name="bearingSensorSatellite">Satellit</string>
 
-    <!-- sidewalk attributes-->
-    <string name="sidewalkNo">Nein</string>
-    <string name="sidewalkLeft">Links</string>
-    <string name="sidewalkRight">Rechts</string>
-    <string name="sidewalkBoth">Beidseitig</string>
+    <!-- BearingSensorAccuracyRating -->
+    <string name="bearingSensorAccuracyLow">Niedrig</string>
+    <string name="bearingSensorAccuracyMedium">Mittel</string>
+    <string name="bearingSensorAccuracyHigh">Hoch</string>
+    <string name="bearingSensorAccuracyUnknown">Unbekannt</string>
 
-    <!-- return code errors -->
-    <!-- walkersguide server errors -->
-    <string name="errorBadRequest">Die Anfrage an den Server kontte nicht verarbeitet werden.</string>
-    <string name="errorRequestInProgress">Eine frühere Anfrage an den Server wird noch verarbeitet. Bitte später erneut versuchen.</string>
-    <string name="errorInternalServerError">Interner Serverfehler.</string>
-    <string name="errorBadGateway">Der ÖPNV Abfrageserver ist nicht erreichbar.</string>
-    <string name="errorServiceUnavailableOrBusy">Der Server ist ausgelastet. Bitte später erneut versuchen.</string>
-    <string name="errorNoPOITagsSelected">Keine POI Kategorien ausgewählt.</string>
-    <string name="errorMapLoadingFailed">Die ausgewählte Karte wird vom Server nicht angeboten oder ist veraltet.</string>
-    <string name="errorWrongMapSelected">Die Region, in der du dich befindest, liegt außerhalb der ausgewählten Karte.</string>
-    <string name="errorMapOutdated">Diese Funktion bietet die ausgewählte Karte noch nicht an.</string>
-    <string name="errorStartOrDestinationMissing">Start- oder Zielpunkt fehlt.</string>
-    <string name="errorStartAndDestinationTooFarAway">Start- und Zielpunkt liegen zu weit auseinander. Bitte füge mindestens ein Zwischenziel ein.</string>
-    <string name="errorTooManyWayClassesIgnored">Du hast zu viele Wegeklassen ausgeschlossen.</string>
-    <string name="errorNoRouteBetweenStartAndDestination">Zwischen dem ausgewählten Start- und Zielpunkt konnte keine Route gefunden werden.</string>
-    <!-- app errors -->
-    <string name="errorCancelled">Abgebrochen.</string>
-    <string name="errorNoLocationFound">Keine position verfügbar</string>
-    <string name="errorNoDirectionFound">Keine Richtungsangabe verfügbar</string>
-    <string name="errorConnectionFailed">Der Kartenserver ist nicht erreichbar.</string>
-    <string name="errorBadResponse">Die Antwort des Kartenservers konnte nicht verarbeitet werden.</string>
-    <string name="errorNoServerURL">Fehlende oder ungültige Server-URL.</string>
-    <string name="errorNoInternetConnection">Keine Internetverbindung verfügbar.</string>
-    <string name="errorAPIClientOutdated">Diese Version der App ist zu alt und wird vom WalkersGuide
-        Server nicht mehr unterstützt. Bitte schau im Play Store oder auf walkersguide.org nach
-        einer aktualisierten Version.</string>
-    <string name="errorAPIServerOutdated">Der ausgewählte Kartenserver ist zu alt und wird von
-        dieser App nicht mehr unterstützt. Bitte wähle eine andere Karte aus oder gib eine neue
-        Server-URL ein.</string>
-    <string name="errorNoMapList">Der Server bietet derzeit keine Karten an.</string>
-    <!-- address lookup -->
-    <string name="errorNoCoordinatesForAddress">Keine Koordinaten für diese Adresse gefunden.</string>
-    <string name="errorNoAddressForCoordinates">Keine Adresse für diese Koordinaten gefunden.</string>
-    <string name="errorGoogleMapsQuotaExceeded">Tägliche Anfragequote der Google Maps API überschritten.</string>
-    <string name="errorNeitherCoordinatesNorAddress">Weder Adresse noch Koordinaten übermittelt.</string>
-    <string name="errorAddressProviderNotSupported">Der ausgewählte adressauflösungsanbieter wird nicht unterstützt.</string>
-    <!-- history and poi -->
-    <string name="errorNoPOIProfileCreated">Bitte erstelle mindestens ein POI Profil.</string>
-    <string name="errorNoPOIProfileSelected">Kein POI Profil ausgewählt.</string>
-    <string name="errorPOIProfileParsing">Das ausgewählte POI Profil konnte nicht geladen werden.</string>
-    <string name="errorUnsupportedPOIRequestAction">Die ausgewählte POI-Abfrageaktion wird nicht unterstützt.</string>
-    <!-- route -->
-    <string name="errorNoRouteCreated">Es wurde noch keine Route geplant.</string>
-    <string name="errorNoRouteSelected">Es wurde noch keine Route ausgewählt.</string>
-    <string name="errorRouteParsing">Die ausgewählte Route konnte nicht geladen werden.</string>
-    <!-- others -->
-    <string name="messageErrorPointDataLoadingFailed">Der ausgewählte Punkt konnte nicht geladen werden.</string>
-    <string name="messageNameMissing">Bitte gib einen Namen ein.</string>
-    <string name="errorDirectionOutOfRange">Der Richtungswert muss zwischen 0 und 359° liegen.</string>
-    <string name="messageUnknownError">Unbekannter Fehler: %1$d</string>
-
-    <!-- instruction directions -->
-    <string name="directionCross">geradeaus überqueren</string>
-    <string name="directionTurnRightSlightly">leicht rechts abbiegen</string>
-    <string name="directionTurnRight">rechts abbiegen</string>
-    <string name="directionTurnRightStrongly">scharf rechts abbiegen</string>
-    <string name="directionTurnRound">Umdrehen</string>
-    <string name="directionTurnLeftStrongly">scharf links abbiegen</string>
-    <string name="directionTurnLeft">links abbiegen</string>
-    <string name="directionTurnLeftSlightly">leicht links abbiegen</string>
-
-    <!-- relative viewing directions -->
-    <string name="directionStraightforward">geradeaus</string>
-    <string name="directionRightSlightly">leicht rechts</string>
-    <string name="directionRight">rechts</string>
-    <string name="directionRightStrongly">scharf rechts</string>
-    <string name="directionBehind">hinter dir</string>
-    <string name="directionLeftStrongly">scharf links</string>
-    <string name="directionLeft">links</string>
-    <string name="directionLeftSlightly">leicht links</string>
-
-    <!-- geographic directions -->
-    <string name="directionNorth">Norden</string>
-    <string name="directionNorthEast">Nordosten</string>
-    <string name="directionEast">Osten</string>
-    <string name="directionSouthEast">Südosten</string>
-    <string name="directionSouth">Süden</string>
-    <string name="directionSouthWest">Südwesten</string>
-    <string name="directionWest">Westen</string>
-    <string name="directionNorthWest">Nordwesten</string>
-
-    <!-- direction accuracy -->
-    <string name="directionAccuracyLabel">Genauigkeit</string>
-    <string name="directionAccuracyOutdated">Wert ist veraltet</string>
-    <string name="directionAccuracyLow">Niedrig</string>
-    <string name="directionAccuracyMedium">Mittel</string>
-    <string name="directionAccuracyHigh">Hoch</string>
-
-    <!-- Class: ShakeIntensity -->
+    <!-- : ShakeIntensity -->
     <string name="shakeIntensityDisabled">Abgeschaltet</string>
     <string name="shakeIntensityVeryWeak">Sehr schwach</string>
     <string name="shakeIntensityWeak">Schwach</string>
@@ -810,16 +754,76 @@
     <string name="shakeIntensityStrong">Stark</string>
     <string name="shakeIntensityVeryStrong">Sehr stark</string>
 
-    <!-- class SortMethod -->
-    <string name="sortAccessedAsc">Zuletzt besucht, aufsteigend</string>
-    <string name="sortAccessedDesc">Zuletzt besucht, absteigend</string>
-    <string name="sortNameAsc">Name, aufsteigend</string>
-    <string name="sortNameDesc">Name, absteigend</string>
-    <string name="sortDistanceAsc">Entfernung, aufsteigend</string>
-    <string name="sortDistanceDesc">Entfernung, absteigend</string>
-    <string name="sortCreatedAsc">Hinzugefügt, aufsteigend</string>
-    <string name="sortCreatedDesc">Hinzugefügt, absteigend</string>
-    <string name="sortToString">Sortiert nach %1$s</string>
+
+    <!--
+        errors and exceptions
+    -->
+
+    <!-- ServerRequestException -->
+    <string name="errorReqRequestFailed">Der Server ist nicht erreichbar.</string>
+    <string name="errorReqNoInternetConnection">Keine Internetverbindung verfügbar.</string>
+    <string name="errorReqBadRequest">Die Anfrage an den Server konnte nicht erstellt werden. Ungültige Parameter.</string>
+    <string name="errorReqBadResponse">Die Antwort des Kartenservers konnte nicht verarbeitet werden.</string>
+    <string name="errorReqRequestCancelled">Die Serveranfrage wurde abgebrochen.</string>
+    <string name="errorReqUnknownReturnCode">Unbekannter Fehler: %1$d</string>
+
+    <!-- WgRequestException -->
+
+    <!-- walkersguide server -->
+    <string name="errorWgReqBadRequest">WalkersGuide server: Ungültige Anfrageparameter</string>
+    <string name="errorWgReqRequestInProgress">Eine frühere Anfrage an den Server wird noch verarbeitet. Bitte später erneut versuchen.</string>
+    <string name="errorWgReqInternalServerError">Interner Serverfehler.</string>
+    <string name="errorWgReqBadGateway">Der ÖPNV Abfrageserver ist nicht erreichbar.</string>
+    <string name="errorWgReqServiceUnavailableOrBusy">Der Server ist ausgelastet. Bitte später erneut versuchen.</string>
+    <string name="errorWgReqNoPOITagsSelected">Keine POI Kategorien ausgewählt.</string>
+    <string name="errorWgReqMapLoadingFailed">Die ausgewählte Karte wird vom Server nicht angeboten oder ist veraltet.</string>
+    <string name="errorWgReqWrongMapSelected">Die Region, in der du dich befindest, liegt außerhalb der ausgewählten Karte.</string>
+    <string name="errorWgReqMapOutdated">Diese Funktion bietet die ausgewählte Karte noch nicht an.</string>
+    <string name="errorWgReqStartOrDestinationMissing">Start- oder Zielpunkt fehlt.</string>
+    <string name="errorWgReqStartAndDestinationTooFarAway">Start- und Zielpunkt liegen zu weit auseinander. Bitte füge mindestens ein Zwischenziel ein.</string>
+    <string name="errorWgReqTooManyWayClassesIgnored">Du hast zu viele Wegeklassen ausgeschlossen.</string>
+    <string name="errorWgReqNoRouteBetweenStartAndDestination">Zwischen dem ausgewählten Start- und Zielpunkt konnte keine Route gefunden werden.</string>
+
+    <!-- app errorWgReqs -->
+    <!-- poi -->
+    <string name="errorWgReqNoPOIProfileCreated">Bitte erstelle mindestens ein POI Profil.</string>
+    <string name="errorWgReqNoPOIProfileSelected">Kein POI Profil ausgewählt.</string>
+    <string name="errorWgReqPOIProfileParsing">Das ausgewählte POI Profil konnte nicht geladen werden.</string>
+    <string name="errorWgReqUnsupportedPOIRequestAction">Die ausgewählte POI-Abfrageaktion wird nicht unterstützt.</string>
+    <!-- route -->
+    <string name="errorWgReqNoRouteCreated">Es wurde noch keine Route geplant.</string>
+    <string name="errorWgReqNoRouteSelected">Es wurde noch keine Route ausgewählt.</string>
+    <string name="errorWgReqRouteParsing">Die ausgewählte Route konnte nicht geladen werden.</string>
+    <!-- status -->
+    <string name="errorWgReqNoServerURL">Fehlende oder ungültige Server-URL.</string>
+    <string name="errorWgReqAPIClientOutdated">Diese Version der App ist zu alt und wird vom WalkersGuide
+        Server nicht mehr unterstützt. Bitte schau im Play Store oder auf walkersguide.org nach
+        einer aktualisierten Version.</string>
+    <string name="errorWgReqAPIServerOutdated">Der ausgewählte Kartenserver ist zu alt und wird von
+        dieser App nicht mehr unterstützt. Bitte wähle eine andere Karte aus oder gib eine neue
+        Server-URL ein.</string>
+    <string name="errorWgReqNoMapList">Der Server bietet derzeit keine Karten an.</string>
+
+    <!-- ptRequestException -->
+    <string name="errorPtReqNoNetworkProvider">Kein ÖPNV Provider ausgewählt.</string>
+    <string name="errorPtReqNoStation">Keine Haltestelle ausgewählt</string>
+    <string name="errorPtReqNoDepartureDate">Kein Abfahrtsdatum ausgewählt</string>
+    <string name="errorPtReqNoCoordinates">Die aktuelle Position ist nicht verfügbar.</string>
+    <string name="errorPtReqPTServiceDown">Der ÖPNV Provider ist nicht erreichbar.</string>
+    <string name="errorPtReqInvalidProvider">Ungültiger ÖPNV Provider.</string>
+    <string name="errorPtReqInvalidStation">Ungültige Haltestelle.</string>
+    <string name="errorPtReqNoDepartures">Keine Abfahrten gefunden.</string>
+    <string name="errorPtReqNoTrips">Keine passende Verbindung gefunden.</string>
+    <string name="errorPtReqAmbiguousDestination">Uneindeutige Zielhaltestelle.</string>
+    <string name="errorPtReqUnknownServerResponse">Die Antwort des ÖPNV Providers konnte nicht verarbeitet werden.</string>
+
+    <!-- AddressRequestException -->
+    <string name="errorAddrReqNoCoordinatesForAddress">Keine Koordinaten für diese Adresse gefunden.</string>
+    <string name="errorAddrReqNoAddressForCoordinates">Keine Adresse für diese Koordinaten gefunden.</string>
+
+    <!-- other errors -->
+    <string name="errorNoLocationFound">Keine position verfügbar</string>
+    <string name="errorNoBearingFound">Keine Richtungsangabe verfügbar</string>
 
 
     <!--
@@ -827,27 +831,9 @@
     -->
 
     <plurals
-        name="crossing">
-        <item quantity="one">1 Querung</item>
-        <item quantity="other">%d Querungen</item>
-    </plurals>
-
-    <plurals
         name="departure">
         <item quantity="one">1 Abfahrt</item>
         <item quantity="other">%d Abfahrten</item>
-    </plurals>
-
-    <plurals
-        name="entrance">
-        <item quantity="one">1 Eingang</item>
-        <item quantity="other">%d Eingänge</item>
-    </plurals>
-
-    <plurals
-        name="hikingTrail">
-        <item quantity="one">1 Wanderweg</item>
-        <item quantity="other">%d Wanderwege</item>
     </plurals>
 
     <plurals
@@ -860,6 +846,24 @@
         name="hourLong">
         <item quantity="one">einer Stunde</item>
         <item quantity="other">%d Stunden</item>
+    </plurals>
+
+    <plurals
+        name="minuteShort">
+        <item quantity="one">1 Min</item>
+        <item quantity="other">%d Min</item>
+    </plurals>
+
+    <plurals
+        name="minuteLong">
+        <item quantity="one">einer Minute</item>
+        <item quantity="other">%d Minuten</item>
+    </plurals>
+
+    <plurals
+        name="kiloMeter">
+        <item quantity="one">1 km</item>
+        <item quantity="other">%d km</item>
     </plurals>
 
     <plurals
@@ -881,21 +885,33 @@
     </plurals>
 
     <plurals
-        name="minuteShort">
-        <item quantity="one">1 Min</item>
-        <item quantity="other">%d Min</item>
+        name="result">
+        <item quantity="one">1 Ergebnis</item>
+        <item quantity="other">%d Ergebnisse</item>
     </plurals>
 
     <plurals
-        name="minuteLong">
-        <item quantity="one">einer Minute</item>
-        <item quantity="other">%d Minuten</item>
+        name="satellite">
+        <item quantity="one">1 Satellit</item>
+        <item quantity="other">%d Satelliten</item>
     </plurals>
 
     <plurals
-        name="poi">
-        <item quantity="one">1 POI</item>
-        <item quantity="other">%d POI</item>
+        name="object">
+        <item quantity="one">1 Objekt</item>
+        <item quantity="other">%d Objekte</item>
+    </plurals>
+
+    <plurals
+        name="favorite">
+        <item quantity="one">1 Favorit</item>
+        <item quantity="other">%d Favoriten</item>
+    </plurals>
+
+    <plurals
+        name="hikingTrail">
+        <item quantity="one">1 Wanderweg</item>
+        <item quantity="other">%d Wanderwege</item>
     </plurals>
 
     <plurals
@@ -905,21 +921,27 @@
     </plurals>
 
     <plurals
-        name="result">
-        <item quantity="one">1 Ergebnis</item>
-        <item quantity="other">%d Ergebnisse</item>
+        name="crossing">
+        <item quantity="one">1 Querung</item>
+        <item quantity="other">%d Querungen</item>
+    </plurals>
+
+    <plurals
+        name="entrance">
+        <item quantity="one">1 Eingang</item>
+        <item quantity="other">%d Eingänge</item>
+    </plurals>
+
+    <plurals
+        name="poi">
+        <item quantity="one">1 POI</item>
+        <item quantity="other">%d POI</item>
     </plurals>
 
     <plurals
         name="route">
         <item quantity="one">1 Route</item>
         <item quantity="other">%d Routen</item>
-    </plurals>
-
-    <plurals
-        name="satellite">
-        <item quantity="one">1 Satellit</item>
-        <item quantity="other">%d Satelliten</item>
     </plurals>
 
     <plurals

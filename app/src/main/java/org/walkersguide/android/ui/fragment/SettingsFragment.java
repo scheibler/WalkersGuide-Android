@@ -1,12 +1,12 @@
 package org.walkersguide.android.ui.fragment;
 
 import timber.log.Timber;
-import org.walkersguide.android.ui.dialog.NewServerUrlDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectPublicTransportProviderDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectShakeIntensityDialog;
-import org.walkersguide.android.data.sensor.ShakeIntensity;
+import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
+import org.walkersguide.android.ui.dialog.select.SelectPublicTransportProviderDialog;
+import org.walkersguide.android.ui.dialog.select.SelectShakeIntensityDialog;
+import org.walkersguide.android.sensor.shake.ShakeIntensity;
 import org.walkersguide.android.util.FileUtility;
-import org.walkersguide.android.pt.PTHelper;
+import org.walkersguide.android.server.pt.PtUtility;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -18,11 +18,10 @@ import android.content.Intent;
 
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.Switch;
 
 import java.io.File;
 
-import org.walkersguide.android.ui.dialog.selectors.SelectMapDialog;
+import org.walkersguide.android.ui.dialog.select.SelectMapDialog;
 import org.walkersguide.android.database.util.SQLiteHelper;
 import org.walkersguide.android.database.util.AccessDatabase;
 import android.net.Uri;
@@ -45,8 +44,8 @@ import de.schildbach.pte.NetworkId;
 
 import java.util.Date;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.server.util.OSMMap;
-import org.walkersguide.android.server.util.ServerInstance;
+import org.walkersguide.android.server.wg.status.OSMMap;
+import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.R;
 
 import android.os.Bundle;
@@ -59,18 +58,23 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.SettingsManager;
 
-import java.util.concurrent.ExecutorService;
-import android.os.Handler;
-import android.os.Looper;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-import org.walkersguide.android.server.util.ServerCommunicationException;
-import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import androidx.appcompat.widget.SwitchCompat;
+
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.wg.status.ServerStatusTask;
+import org.walkersguide.android.server.wg.status.ServerInstance;
+import org.walkersguide.android.server.wg.WgException;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.content.Intent;
+import android.content.Context;
 
 
 public class SettingsFragment extends Fragment implements FragmentResultListener {
+    private static final String KEY_TASK_ID = "taskId";
 
 	public static SettingsFragment newInstance() {
 		SettingsFragment fragment = new SettingsFragment();
@@ -79,22 +83,22 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
 
 
     private SettingsManager settingsManagerInstance;
-
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private Handler handler = new Handler(Looper.getMainLooper());
-    private Future getServerInstanceRequest;
+    private ServerTaskExecutor serverTaskExecutorInstance;
+    private long taskId;
 
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
-    private Switch buttonEnableTextInputHistory;
+    private SwitchCompat buttonShowActionButton, buttonEnableTextInputHistory;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+
         getChildFragmentManager()
             .setFragmentResultListener(
-                    NewServerUrlDialog.REQUEST_NEW_SERVER_URL, this, this);
+                    ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectMapDialog.REQUEST_SELECT_MAP, this, this);
@@ -110,9 +114,9 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(NewServerUrlDialog.REQUEST_NEW_SERVER_URL)) {
+        if (requestKey.equals(ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED)) {
             // new server url is already updated in settings
-            // see ServerUtility#getServerInstance for details
+            // see WgUtility#getServerInstance for details
             //
             // show SelectMapDialog if no map is selected
             if (settingsManagerInstance.getSelectedMap() == null) {
@@ -138,15 +142,20 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+        if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+        } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+        }
 
         // server settings
 
 		buttonServerURL = (Button) view.findViewById(R.id.buttonServerURL);
 		buttonServerURL.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-                NewServerUrlDialog.newInstance(
+                ChangeServerUrlDialog.newInstance(
                         settingsManagerInstance.getServerURL())
-                    .show(getChildFragmentManager(), "NewServerUrlDialog");
+                    .show(getChildFragmentManager(), "ChangeServerUrlDialog");
             }
         });
 
@@ -178,7 +187,16 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         });
 
         // privacy settings
-        buttonEnableTextInputHistory = (Switch) view.findViewById(R.id.buttonEnableTextInputHistory);
+        buttonShowActionButton = (SwitchCompat) view.findViewById(R.id.buttonShowActionButton);
+        buttonShowActionButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked != settingsManagerInstance.getShowActionButton()) {
+                    settingsManagerInstance.setShowActionButton(isChecked);
+                }
+            }
+        });
+
+        buttonEnableTextInputHistory = (SwitchCompat) view.findViewById(R.id.buttonEnableTextInputHistory);
         buttonEnableTextInputHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 if (isChecked != settingsManagerInstance.getEnableSearchTermHistory()) {
@@ -194,25 +212,50 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
 		Button buttonImportSettings = (Button) view.findViewById(R.id.buttonImportSettings);
 		buttonImportSettings.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-                importSettings();
+                startSettingsImport();
             }
         });
 
 		Button buttonExportSettings = (Button) view.findViewById(R.id.buttonExportSettings);
 		buttonExportSettings.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-                exportSettings();
+                if (! startSettingsExport()) {
+                    cleanupCache();
+                    SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.labelExportFailed))
+                        .show(getChildFragmentManager(), "SimpleMessageDialog");
+                }
             }
         });
     }
 
-    @Override public void onPause() {
-        super.onPause();
-    }
-
     @Override public void onResume() {
         super.onResume();
+
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_STATUS_TASK_SUCCESSFUL);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
+
         updateUI();
+    }
+
+    @Override public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+    }
+
+    @Override public void onDestroy() {
+        super.onDestroy();
+        if (! getActivity().isChangingConfigurations()) {
+            serverTaskExecutorInstance.cancelTask(taskId, false);
+        }
     }
 
     private void updateUI() {
@@ -232,7 +275,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             buttonPublicTransportProvider.setText(
                     String.format(
                         getResources().getString(R.string.buttonPublicTransportProvider),
-                        PTHelper.getNameForNetworkId(
+                        PtUtility.getNameForNetworkId(
                             settingsManagerInstance.getSelectedNetworkId())
                         )
                     );
@@ -250,15 +293,30 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                 );
 
         // privacy and development settings
+        buttonShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
         buttonEnableTextInputHistory.setChecked(settingsManagerInstance.getEnableSearchTermHistory());
 
         // request server instance
-        if (getServerInstanceRequest == null || getServerInstanceRequest.isDone()) {
-            getServerInstanceRequest = this.executorService.submit(() -> {
-                try {
-                    final ServerInstance serverInstance = ServerUtility.getServerInstance(
-                                SettingsManager.getInstance().getServerURL());
-                    handler.post(() -> {
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            taskId = serverTaskExecutorInstance.executeTask(new ServerStatusTask());
+        }
+    }
+
+
+    // background task results
+
+    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_STATUS_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                    return;
+                }
+
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_STATUS_TASK_SUCCESSFUL)) {
+                    ServerInstance serverInstance = (ServerInstance) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_SERVER_INSTANCE);
+                    if (serverInstance != null) {
                         if (settingsManagerInstance.getSelectedMap() != null) {
                             buttonServerMap.setText(
                                     String.format(
@@ -266,19 +324,20 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                                         settingsManagerInstance.getSelectedMap().getName())
                                     );
                         }
-                    });
+                    }
 
-                } catch (ServerCommunicationException e) {
-                    final ServerCommunicationException scException = e;
-                    handler.post(() -> {
-                        SimpleMessageDialog.newInstance(
-                                ServerUtility.getErrorMessageForReturnCode(scException.getReturnCode()))
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (wgException != null) {
+                        SimpleMessageDialog.newInstance(wgException.getMessage())
                             .show(getChildFragmentManager(), "SimpleMessageDialog");
-                    });
+                    }
                 }
-            });
+            }
         }
-    }
+    };
 
 
     /**
@@ -294,7 +353,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     private static final int IMPORT_SETTINGS = 13;
     private static final int EXPORT_SETTINGS = 14;
 
-    private void importSettings() {
+    private void startSettingsImport() {
         cleanupCache();
 
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -303,7 +362,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         startActivityForResult(intent, IMPORT_SETTINGS);
     }
 
-    private void exportSettings() {
+    private boolean startSettingsExport() {
         cleanupCache();
 
         ArrayList<File> inputFileList = new ArrayList<File>();
@@ -311,7 +370,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         File settingsFile = getCachedSettingsFile();
         boolean settingsFileCreation = settingsManagerInstance.exportSettings(settingsFile);
         if (! settingsFileCreation || ! settingsFile.exists()) {
-            return;
+            return false;
         } else {
             inputFileList.add(settingsFile);
         }
@@ -320,7 +379,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         boolean databaseFileCreation = FileUtility.copyFile(
                 SQLiteHelper.getDatabaseFile(), databaseFile);
         if (! databaseFileCreation || ! databaseFile.exists()) {
-            return;
+            return false;
         } else {
             inputFileList.add(databaseFile);
         }
@@ -359,11 +418,11 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                 } catch (IOException e) {}
             }
             if (! zipFileCreationSuccessful || ! zipFile.exists()) {
-                return;
+                return false;
             }
         }
 
-        final SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        final SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType(MIME_TYPE_ZIP);
@@ -373,6 +432,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                     Locale.ROOT, "walkersguide_backup_%1$s.zip", isoDateFormat.format(new Date()))
                 );
         startActivityForResult(intent, EXPORT_SETTINGS);
+        return true;
     }
 
     @Override public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
@@ -383,99 +443,133 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             return;
         }
 
-        Uri selectedUri = resultData.getData();
-        File zipFile = getCachedZipFile();
+        final Uri selectedUri = resultData.getData();
+        final File zipFile = getCachedZipFile();
         switch (requestCode) {
 
             case IMPORT_SETTINGS:
-                boolean zipFileCreationSuccessful = FileUtility.copyFile(selectedUri, zipFile);
-                Timber.d("import: zipFileCreationSuccessful = %1$s", zipFileCreationSuccessful);
-                if (! zipFileCreationSuccessful || ! zipFile.exists()) {
-                    SimpleMessageDialog.newInstance(
-                            GlobalInstance.getStringResource(R.string.labelImportFailed))
-                        .show(getChildFragmentManager(), "SimpleMessageDialog");
-                    return;
-                }
-
-                // unzip
-                ZipInputStream zin = null;
-                try {
-                    zin = new ZipInputStream(new FileInputStream(zipFile));
-                    ZipEntry ze = null;
-                    while ((ze = zin.getNextEntry()) != null) {
-                        if (ze.isDirectory()) {
-                            continue;
-                        }
-                        FileOutputStream fout = new FileOutputStream(
-                                new File(getCacheDirectory(), ze.getName()));
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        byte[] buffer = new byte[BUFFER_SIZE];
-                        int count;
-
-                        // reading and writing
-                        while ((count = zin.read(buffer)) != -1) {
-                            baos.write(buffer, 0, count);
-                            byte[] bytes = baos.toByteArray();
-                            fout.write(bytes);
-                            baos.reset();
-                        }
-                        fout.close();
-                        zin.closeEntry();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (zin != null) {
-                        try {
-                            zin.close();
-                        } catch (IOException e) {}
-                    }
-                }
-
-                // restore settings
-                File settingsFile = getCachedSettingsFile();
-                if (! settingsFile.exists()) {
-                    return;
-                }
-                boolean settingsImportSuccessful = settingsManagerInstance.importSettings(settingsFile);
-                Timber.d("settings import: %1$s", settingsImportSuccessful);
-                if (! settingsImportSuccessful) {
-                    return;
-                }
-
-                // restore database
-                File newDatabaseFile = getCachedDatabaseFile();
-                if (! newDatabaseFile.exists()) {
-                    return;
-                }
-                // close database
-                AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
-                accessDatabaseInstance.close();
-                // remove old database
-                File oldDatabaseFile = SQLiteHelper.getDatabaseFile();
-                if (oldDatabaseFile.exists()) {
-                    oldDatabaseFile.delete();
-                }
-                // copy from cache
-                boolean databaseImportSuccessful = FileUtility.copyFile(
-                        newDatabaseFile, SQLiteHelper.getDatabaseFile());
-                // open again
-                accessDatabaseInstance.open();
-
-                // reset cache and reload ui
-                cleanupCache();
-                GlobalInstance.getInstance().clearServerInstanceCache();
-                SimpleMessageDialog.newInstance(
-                        GlobalInstance.getStringResource(R.string.labelImportSuccessful))
-                    .show(getChildFragmentManager(), "SimpleMessageDialog");
+                Dialog proceedWithImportDialog = new AlertDialog.Builder(getActivity())
+                    .setMessage(getResources().getString(R.string.labelProceedWithImport))
+                    .setPositiveButton(
+                            getResources().getString(R.string.dialogYes),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    boolean importSuccessful = finishSettingsImport(selectedUri, zipFile);
+                                    cleanupCache();
+                                    String importResultMessage;
+                                    if (importSuccessful) {
+                                        importResultMessage = getResources().getString(R.string.labelImportSuccessful);
+                                    } else {
+                                        importResultMessage = getResources().getString(R.string.labelImportFailed);
+                                    }
+                                    SimpleMessageDialog.newInstance(importResultMessage)
+                                        .show(getChildFragmentManager(), "SimpleMessageDialog");
+                                    dialog.dismiss();
+                                }
+                            })
+                    .setNegativeButton(
+                            getResources().getString(R.string.dialogNo),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    cleanupCache();
+                                    dialog.dismiss();
+                                }
+                            })
+                    .create();
+                proceedWithImportDialog.show();
                 break;
 
             case EXPORT_SETTINGS:
                 boolean copySelectedUriSuccessful = FileUtility.copyFile(zipFile, selectedUri);
                 cleanupCache();
-                Timber.d("export: copy successful = %1$s", copySelectedUriSuccessful);
+                String exportResultMessage;
+                if (copySelectedUriSuccessful) {
+                    exportResultMessage = getResources().getString(R.string.labelExportSuccessful);
+                } else {
+                    exportResultMessage = getResources().getString(R.string.labelExportFailed);
+                }
+                SimpleMessageDialog.newInstance(exportResultMessage)
+                    .show(getChildFragmentManager(), "SimpleMessageDialog");
                 break;
         }
+    }
+
+    private boolean finishSettingsImport(Uri selectedUri, File zipFile) {
+        boolean zipFileCreationSuccessful = FileUtility.copyFile(selectedUri, zipFile);
+        Timber.d("import: zipFileCreationSuccessful = %1$s", zipFileCreationSuccessful);
+        if (! zipFileCreationSuccessful || ! zipFile.exists()) {
+            return false;
+        }
+
+        // unzip
+        ZipInputStream zin = null;
+        try {
+            zin = new ZipInputStream(new FileInputStream(zipFile));
+            ZipEntry ze = null;
+            while ((ze = zin.getNextEntry()) != null) {
+                if (ze.isDirectory()) {
+                    continue;
+                }
+                FileOutputStream fout = new FileOutputStream(
+                        new File(getCacheDirectory(), ze.getName()));
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int count;
+
+                // reading and writing
+                while ((count = zin.read(buffer)) != -1) {
+                    baos.write(buffer, 0, count);
+                    byte[] bytes = baos.toByteArray();
+                    fout.write(bytes);
+                    baos.reset();
+                }
+                fout.close();
+                zin.closeEntry();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (zin != null) {
+                try {
+                    zin.close();
+                } catch (IOException e) {}
+            }
+        }
+
+        // restore settings
+        File settingsFile = getCachedSettingsFile();
+        if (! settingsFile.exists()) {
+            return false;
+        }
+        boolean settingsImportSuccessful = settingsManagerInstance.importSettings(settingsFile);
+        Timber.d("settings import: %1$s", settingsImportSuccessful);
+        if (! settingsImportSuccessful) {
+            return false;
+        }
+
+        // restore database
+        File newDatabaseFile = getCachedDatabaseFile();
+        if (! newDatabaseFile.exists()) {
+            return false;
+        }
+        // close database
+        AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
+        accessDatabaseInstance.close();
+        // remove old database
+        File oldDatabaseFile = SQLiteHelper.getDatabaseFile();
+        if (oldDatabaseFile.exists()) {
+            oldDatabaseFile.delete();
+        }
+        // copy from cache
+        boolean databaseImportSuccessful = FileUtility.copyFile(
+                newDatabaseFile, SQLiteHelper.getDatabaseFile());
+        // open again
+        accessDatabaseInstance.open();
+
+        // reset cache and reload ui
+        cleanupCache();
+        GlobalInstance.getInstance().clearCaches();
+        return databaseImportSuccessful;
     }
 
     // static helpers
@@ -510,38 +604,5 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             zipFile.delete();
         }
     }
-
-
-    /*
-                                Dialog overwriteExistingSettingsDialog = new AlertDialog.Builder(SettingsActivity.this)
-                                    .setMessage(
-                                            getResources().getString(R.string.labelOverwriteExistingSettings))
-                                    .setCancelable(false)
-                                    .setPositiveButton(
-                                            getResources().getString(R.string.dialogYes),
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            })
-                                    .setNegativeButton(
-                                            getResources().getString(R.string.dialogNo),
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            })
-                                    .create();
-                                overwriteExistingSettingsDialog.show();
-
-            message = String.format(
-                    getResources().getString(R.string.labelExportSuccessful),
-                    GlobalInstance.getExportFolder().getAbsolutePath());
-        } else {
-            message = getResources().getString(R.string.labelExportFailed);
-        }
-        SimpleMessageDialog.newInstance(message)
-            .show(getChildFragmentManager(), "SimpleMessageDialog");
-    */
 
 }

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -16,19 +18,16 @@
             android:id="@+id/buttonSelectProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/buttonSelectProfile" />
+            android:text="@string/buttonSelectProfile"
+            android:visibility="gone" />
 
         <LinearLayout
+            android:id="@+id/layoutSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:orientation="horizontal" >
-
-            <TextView
-                android:labelFor="@+id/editSearch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/labelSearch" />
+            android:orientation="horizontal"
+            android:visibility="gone" >
 
             <AutoCompleteTextView
                 android:id="@+id/editSearch"
@@ -36,8 +35,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
                 android:completionThreshold="2"
+                android:hint="@string/hintSearch"
                 android:inputType="textFilter"
-                android:imeOptions="actionDone" />
+                android:imeOptions="actionSearch" />
 
             <ImageButton
                 android:id="@+id/buttonClearSearch"
@@ -46,7 +46,7 @@
                 android:minWidth="@dimen/minWidth"
                 android:minHeight="@dimen/minHeight"
                 android:background="@null"
-                android:tint="@color/image"
+                app:tint="@color/image"
                 android:src="@drawable/clear"
                 android:contentDescription="@string/buttonClearSearch" />
         </LinearLayout>

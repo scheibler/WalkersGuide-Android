@@ -1,10 +1,9 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.server.address.AddressException;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -12,134 +11,220 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.fragment.app.DialogFragment;
-import androidx.core.view.ViewCompat;
 
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.Button;
-import android.widget.TextView;
 
-import org.json.JSONException;
 
-import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.server.util.ServerUtility;
-import org.walkersguide.android.util.StringUtility;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.address.AddressManager;
-import org.walkersguide.android.server.address.AddressManager.AddressRequestListener;
-import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
-import java.util.ArrayList;
-import org.walkersguide.android.data.basic.point.StreetAddress;
-import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import org.walkersguide.android.data.object_with_id.Point;
 
 
-public class WhereAmIDialog extends DialogFragment implements AddressRequestListener {
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.Context;
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.address.ResolveCoordinatesTask;
+import org.walkersguide.android.server.address.AddressException;
+import org.walkersguide.android.sensor.DeviceSensorManager;
 
-    private AddressManager addressManagerRequest;
-    private TextViewAndActionButton layoutCurrentAddress;
+
+public class WhereAmIDialog extends DialogFragment {
+    public static final String REQUEST_RESOLVE_COORDINATES = "resolveCoordinates";
+    public static final String EXTRA_STREET_ADDRESS = "streetAddress";
+
+
+    // instance constructors
 
     public static WhereAmIDialog newInstance() {
+        return WhereAmIDialog.newInstance(false);
+    }
+
+    public static WhereAmIDialog newInstance(boolean onlyResolveAddressAndCloseDialogImmediately) {
         WhereAmIDialog dialog = new WhereAmIDialog();
+        Bundle args = new Bundle();
+        args.putBoolean(KEY_ONLY_RESOLVE_ADDRESS, onlyResolveAddressAndCloseDialogImmediately);
+        dialog.setArguments(args);
         return dialog;
     }
 
+
+    // dialog
+    private static final String KEY_TASK_ID = "taskId";
+    private static final String KEY_ONLY_RESOLVE_ADDRESS = "onlyResolveAddressAndCloseDialogImmediately";
+
+    private ServerTaskExecutor serverTaskExecutorInstance;
+    private long taskId;
+    private boolean onlyResolveAddressAndCloseDialogImmediately;
+
+    private TextViewAndActionButton layoutCurrentAddress;
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+    }
+
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        layoutCurrentAddress = new TextViewAndActionButton(WhereAmIDialog.this.getContext());
-        LayoutParams lp = new LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        layoutCurrentAddress.setLayoutParams(lp);
+        if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+        } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+        }
+        onlyResolveAddressAndCloseDialogImmediately = getArguments().getBoolean(KEY_ONLY_RESOLVE_ADDRESS);
+
+        layoutCurrentAddress = new TextViewAndActionButton(
+                WhereAmIDialog.this.getContext(),
+                getResources().getString(R.string.labelPrefixYouAreAt),
+                false);
+        layoutCurrentAddress.setLayoutParams(
+                new LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         // create dialog
-        return new AlertDialog.Builder(getActivity())
-            .setTitle(getResources().getString(R.string.whereAmIDialogTitle))
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity())
             .setView(layoutCurrentAddress)
-            .setNeutralButton(
-                    getResources().getString(R.string.dialogRefresh),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
             .setNegativeButton(
-                    getResources().getString(R.string.dialogClose),
+                    onlyResolveAddressAndCloseDialogImmediately
+                    ? getResources().getString(R.string.dialogCancel)
+                    : getResources().getString(R.string.dialogClose),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
-                    })
-            .create();
+                    });
+
+        if (! onlyResolveAddressAndCloseDialogImmediately) {
+            dialogBuilder.setTitle(getResources().getString(R.string.whereAmIDialogTitle))
+                .setNeutralButton(
+                        getResources().getString(R.string.dialogRefresh),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        });
+        }
+
+        return dialogBuilder.create();
     }
 
     @Override public void onStart() {
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
         if(dialog != null) {
-            // neutral button: update
-            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-            buttonNeutral.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    requestAddressForCurrentLocation();
-                }
-            });
+
             // negative button
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    dialog.dismiss();
+                    dismiss();
                 }
             });
-            // request address
-            requestAddressForCurrentLocation();
+
+            // neutral button: update (is optional)
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (buttonNeutral != null) {
+                buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        requestAddressForCurrentLocation();
+                    }
+                });
+            }
+        }
+
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        localIntentFilter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
+
+        // request address
+        requestAddressForCurrentLocation();
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+    }
+
+    @Override public void onDestroy() {
+        super.onDestroy();
+        if (! getActivity().isChangingConfigurations()) {
+            serverTaskExecutorInstance.cancelTask(taskId);
         }
     }
 
     private void requestAddressForCurrentLocation() {
-        Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-        layoutCurrentAddress.configureView(null);
+        layoutCurrentAddress.reset();
+
+        // get current position
+        final Point currentLocation = PositionManager.getInstance().getCurrentLocation();
         if (currentLocation == null) {
-            layoutCurrentAddress.setLabelText(
-                    ServerUtility.getErrorMessageForReturnCode(Constants.RC.NO_LOCATION_FOUND));
-        } else {
-            layoutCurrentAddress.setLabelText(
-                    getResources().getString(R.string.messagePleaseWait));
-            addressManagerRequest = new AddressManager(
-                    WhereAmIDialog.this,
-                    currentLocation.getLatitude(),
-                    currentLocation.getLongitude());
-            addressManagerRequest.execute();
+            layoutCurrentAddress.configureAsSingleObject(
+                    null, getResources().getString(R.string.errorNoLocationFound));
+            return;
+        }
+
+        layoutCurrentAddress.configureAsSingleObject(
+                null, getResources().getString(R.string.messagePleaseWait));
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            taskId = serverTaskExecutorInstance.executeTask(
+                    new ResolveCoordinatesTask(
+                        currentLocation.getLatitude(), currentLocation.getLongitude()));
         }
     }
 
-    @Override public void requireAddressRequestSuccessful(StreetAddress addressPoint) {
-        layoutCurrentAddress.configureView(
-                addressPoint, LabelTextConfig.empty(false));
-        // add to database
-        AccessDatabase.getInstance().addObjectToDatabaseProfile(
-                addressPoint, DatabasePointProfile.ADDRESS_POINTS);
-    }
+    // background task results
 
-    @Override public void requireCoordinatesRequestSuccessful(ArrayList<StreetAddress> addressPointList) {
-    }
+    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                    return;
+                }
 
-    @Override public void addressOrCoordinatesRequestFailed(int returnCode) {
-        layoutCurrentAddress.configureView(null);
-        layoutCurrentAddress.setLabelText(
-                ServerUtility.getErrorMessageForReturnCode(returnCode));
-    }
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL)) {
+                    StreetAddress addressPoint = (StreetAddress) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_STREET_ADDRESS);
+                    if (addressPoint != null) {
+                        if (onlyResolveAddressAndCloseDialogImmediately) {
+                            Bundle result = new Bundle();
+                            result.putSerializable(EXTRA_STREET_ADDRESS, addressPoint);
+                            getParentFragmentManager().setFragmentResult(REQUEST_RESOLVE_COORDINATES, result);
+                            dismiss();
+                        } else {
+                            layoutCurrentAddress.configureAsSingleObject(addressPoint);
+                        }
+                    }
 
-    @Override public void onDismiss(final DialogInterface dialog) {
-        super.onDismiss(dialog);
-        if (addressManagerRequest != null
-                && addressManagerRequest.getStatus() != AsyncTask.Status.FINISHED) {
-            addressManagerRequest.cancel();
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+                    layoutCurrentAddress.configureAsSingleObject(
+                            null, context.getResources().getString(R.string.errorReqRequestCancelled));
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    AddressException addressException = (AddressException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (addressException != null) {
+                        layoutCurrentAddress.configureAsSingleObject(
+                                null, addressException.getMessage());
+                    }
+                }
+
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SHAKE_DETECTED)) {
+                requestAddressForCurrentLocation();
+            }
         }
-    }
+    };
 
 }

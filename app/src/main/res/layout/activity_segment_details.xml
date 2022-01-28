@@ -19,7 +19,8 @@
         <org.walkersguide.android.ui.view.TextViewAndActionButton
             android:id="@+id/layoutSelectedSegment"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:compact="true" />
 
         <include
             layout="@layout/layout_default_divider" />

@@ -53,7 +53,6 @@
         <service
             android:name=".util.LocationService" />
         -->
-
     </application>
 
 </manifest>

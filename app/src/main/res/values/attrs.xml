@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="EditTextAndClearInputButton">
+        <attr name="labelAbove" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="TextViewAndActionButton">
+        <attr name="prefix" format="string" />
+        <attr name="compact" format="boolean" />
+    </declare-styleable>
+
+</resources>

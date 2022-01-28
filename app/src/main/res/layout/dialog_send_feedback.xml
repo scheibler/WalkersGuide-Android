@@ -1,46 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical" >
 
-        <TextView
-            android:labelFor="@+id/editSenderEmailAddress"
+        <org.walkersguide.android.ui.view.EditTextAndClearInputButton
+            android:id="@+id/layoutSender"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusable="true"
-            android:text="@string/labelSenderEmailAddress" />
+            app:labelAbove="true" />
 
-        <EditText
-            android:id="@+id/editSenderEmailAddress"
+        <org.walkersguide.android.ui.view.EditTextAndClearInputButton
+            android:id="@+id/layoutMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:selectAllOnFocus="true"
-            android:inputType="textEmailAddress"
-            android:imeOptions="actionNext"
-            tools:ignore="LabelFor" />
-
-        <TextView
-            android:id="@+id/labelMessage"
-            android:labelFor="@+id/editMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true" />
-
-        <EditText
-            android:id="@+id/editMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:selectAllOnFocus="true"
-            android:inputType="text"
-            android:imeOptions="actionDone"
-            tools:ignore="LabelFor" />
+            android:layout_marginTop="20dp"
+            app:labelAbove="true" />
 
     </LinearLayout>
 </ScrollView>

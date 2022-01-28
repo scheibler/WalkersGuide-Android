@@ -25,11 +25,9 @@ import android.widget.TextView;
 
 
 
-import org.walkersguide.android.data.basic.point.GPS;
-import org.walkersguide.android.data.basic.wrapper.PointWrapper;
+import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.util.Constants;
 
 
 public class LocationSensorDetailsDialog extends DialogFragment {
@@ -76,7 +74,7 @@ public class LocationSensorDetailsDialog extends DialogFragment {
     @Override public void onStart() {
         super.onStart();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_NEW_GPS_LOCATION);
+        filter.addAction(PositionManager.ACTION_NEW_GPS_LOCATION);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request gps location
         PositionManager.getInstance().requestGPSLocation();
@@ -90,7 +88,7 @@ public class LocationSensorDetailsDialog extends DialogFragment {
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_GPS_LOCATION)) {
+            if (intent.getAction().equals(PositionManager.ACTION_NEW_GPS_LOCATION)) {
 
                 // clear fields
                 labelGPSLatitude.setText(context.getResources().getString(R.string.labelGPSLatitude));
@@ -103,11 +101,8 @@ public class LocationSensorDetailsDialog extends DialogFragment {
                 labelGPSTime.setText(context.getResources().getString(R.string.labelGPSTime));
 
                 // get gps location
-                PointWrapper pointWrapper = PointWrapper.fromString(
-                        context, intent.getStringExtra(Constants.ACTION_NEW_GPS_LOCATION_OBJECT));
-                if (pointWrapper  != null
-                        && pointWrapper.getPoint() instanceof GPS) {
-                    GPS gpsLocation = (GPS) pointWrapper.getPoint();
+                GPS gpsLocation = (GPS) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
+                if (gpsLocation != null) {
 
                     // fill labels
                     labelGPSLatitude.setText(gpsLocation.formatLatitude());

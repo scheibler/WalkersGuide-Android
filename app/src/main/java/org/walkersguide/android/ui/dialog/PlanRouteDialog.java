@@ -1,12 +1,15 @@
 package org.walkersguide.android.ui.dialog;
 
-import org.walkersguide.android.database.profiles.DatabaseSegmentProfile;
-import org.walkersguide.android.ui.fragment.object_list.ObjectListFromDatabaseFragment;
-import org.walkersguide.android.database.DatabaseProfileRequest;
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.wg.p2p.P2pRouteTask;
+import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
+import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
+
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
-import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.selectors.SelectRouteOrSimulationPointDialog.WhereToPut;
+import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
+import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
+import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
@@ -29,46 +32,40 @@ import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import java.util.ArrayList;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 
-import org.walkersguide.android.data.basic.point.Point;
-import org.walkersguide.android.server.route.WayClass;
-import org.walkersguide.android.server.util.ServerUtility;
+import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.route.RouteManager;
-import org.walkersguide.android.server.route.RouteManager.RouteCalculationListener;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
-import org.walkersguide.android.ui.adapter.WayClassAdapter;
-import org.walkersguide.android.util.Constants;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.SettingsManager.PlanRouteSettings;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
-import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
 import android.widget.CompoundButton;
-import android.widget.Switch;
-import android.view.KeyEvent;
-import org.walkersguide.android.data.route.Route;
-import org.walkersguide.android.ui.dialog.selectors.SelectMapDialog;
-import org.walkersguide.android.server.util.OSMMap;
+import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.ui.dialog.select.SelectMapDialog;
+import org.walkersguide.android.server.wg.status.OSMMap;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
+
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.wg.WgException;
+import timber.log.Timber;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
+import android.view.Menu;
+import android.view.MenuItem;
+import org.walkersguide.android.database.util.AccessDatabase;
+import org.walkersguide.android.database.DatabaseProfile;
 
 
-public class PlanRouteDialog extends DialogFragment implements FragmentResultListener, RouteCalculationListener {
-    private static final String KEY_SHOW_VIA_POINTS = "showViaPoints";
+public class PlanRouteDialog extends DialogFragment implements FragmentResultListener {
+    private static final String KEY_TASK_ID = "taskId";
 
-    private PositionManager positionManagerInstance;
-    private RouteManager routeManagerInstance;
+    private ServerTaskExecutor serverTaskExecutorInstance;
+    private long taskId;
+
     private SettingsManager settingsManagerInstance;
-    private boolean showViaPoints;
 
     // query in progress vibration
     private Handler progressHandler;
@@ -78,6 +75,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     // ui components
     private TextViewAndActionButton layoutStartPoint, layoutDestinationPoint;
     private LinearLayout layoutViaPointList;
+    private SwitchCompat switchShowViaPointList;
     private TextViewAndActionButton layoutViaPoint1, layoutViaPoint2, layoutViaPoint3;
 
     public static PlanRouteDialog newInstance() {
@@ -87,14 +85,17 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		positionManagerInstance = PositionManager.getInstance(GlobalInstance.getContext());
-        routeManagerInstance = RouteManager.getInstance();
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         settingsManagerInstance = SettingsManager.getInstance();
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
         this.vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+
         // fragment result listener
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectMapDialog.REQUEST_SELECT_MAP, this, this);
@@ -104,44 +105,54 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
+        if (requestKey.equals(ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED)) {
+            settingsManagerInstance.setWayClassWeightSettings(
+                    (WayClassWeightSettings) bundle.getSerializable(ConfigureWayClassWeightsDialog.EXTRA_WAY_CLASS_SETTINGS));
+        } else if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
             settingsManagerInstance.setSelectedMap(
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
             startRouteCalculation();
         } else if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
-            PlanRouteSettings planRouteSettings = settingsManagerInstance.getPlanRouteSettings();
+            P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
             WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
             Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
             switch (whereToPut) {
                 case ROUTE_START_POINT:
-                    planRouteSettings.setStartPoint(point);
+                    p2pRouteRequest.setStartPoint(point);
                     break;
                 case ROUTE_DESTINATION_POINT:
-                    planRouteSettings.setDestinationPoint(point);
+                    p2pRouteRequest.setDestinationPoint(point);
                     break;
                 case ROUTE_VIA_POINT_1:
-                    planRouteSettings.setViaPoint1(point);
+                    p2pRouteRequest.setViaPoint1(point);
                     break;
                 case ROUTE_VIA_POINT_2:
-                    planRouteSettings.setViaPoint2(point);
+                    p2pRouteRequest.setViaPoint2(point);
                     break;
                 case ROUTE_VIA_POINT_3:
-                    planRouteSettings.setViaPoint3(point);
+                    p2pRouteRequest.setViaPoint3(point);
                     break;
             }
+            settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
             updateUI();
         }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+        } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+        }
+
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_plan_route, nullParent);
 
         layoutStartPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutStartPoint);
-        layoutStartPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-            @Override public void onLabelClick(TextViewAndActionButton view) {
+        layoutStartPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_START_POINT)
                     .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
@@ -149,103 +160,49 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         });
 
         layoutDestinationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutDestinationPoint);
-        layoutDestinationPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-            @Override public void onLabelClick(TextViewAndActionButton view) {
+        layoutDestinationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_DESTINATION_POINT)
                     .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
 
-        Button buttonNewRoute = (Button) view.findViewById(R.id.buttonNewRoute);
-        buttonNewRoute.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                PlanRouteSettings planRouteSettings = settingsManagerInstance.getPlanRouteSettings();
-                planRouteSettings.setStartPoint(null);
-                planRouteSettings.setDestinationPoint(null);
-                planRouteSettings.clearViaPointList();
-                updateUI();
-            }
-        });
-
-        Button buttonSwapRoute = (Button) view.findViewById(R.id.buttonSwapRoute);
-        buttonSwapRoute.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                PlanRouteSettings planRouteSettings = settingsManagerInstance.getPlanRouteSettings();
-                Point tempPoint = planRouteSettings.getStartPoint();
-                planRouteSettings.setStartPoint(planRouteSettings.getDestinationPoint());
-                planRouteSettings.setDestinationPoint(tempPoint);
-                updateUI();
-            }
-        });
-
-        Switch switchShowViaPointList = (Switch) view.findViewById(R.id.switchShowViaPointList);
-        switchShowViaPointList.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                layoutViaPointList.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            }
-        });
-        switchShowViaPointList.setChecked(
-                settingsManagerInstance.getPlanRouteSettings().hasViaPoint());
-
+        // via points
 		layoutViaPointList = (LinearLayout) view.findViewById(R.id.layoutViaPointList);
 
+        switchShowViaPointList = (SwitchCompat) view.findViewById(R.id.switchShowViaPointList);
+        switchShowViaPointList.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                layoutViaPointList.setVisibility(
+                        isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
+
         layoutViaPoint1 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint1);
-        layoutViaPoint1.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-            @Override public void onLabelClick(TextViewAndActionButton view) {
+        layoutViaPoint1.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_1)
                     .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
-        layoutViaPoint1.setOnMenuItemRemoveClickListener(new TextViewAndActionButton.OnMenuItemRemoveClickListener() {
-            @Override public void onMenuItemRemoveClick(TextViewAndActionButton view) {
-                settingsManagerInstance.getPlanRouteSettings().setViaPoint1(null);
-            }
-        });
 
         layoutViaPoint2 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint2);
-        layoutViaPoint2.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-            @Override public void onLabelClick(TextViewAndActionButton view) {
+        layoutViaPoint2.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_2)
                     .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
             }
         });
-        layoutViaPoint2.setOnMenuItemRemoveClickListener(new TextViewAndActionButton.OnMenuItemRemoveClickListener() {
-            @Override public void onMenuItemRemoveClick(TextViewAndActionButton view) {
-                settingsManagerInstance.getPlanRouteSettings().setViaPoint2(null);
-            }
-        });
 
         layoutViaPoint3 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint3);
-        layoutViaPoint3.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-            @Override public void onLabelClick(TextViewAndActionButton view) {
+        layoutViaPoint3.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_3)
                     .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
-            }
-        });
-        layoutViaPoint3.setOnMenuItemRemoveClickListener(new TextViewAndActionButton.OnMenuItemRemoveClickListener() {
-            @Override public void onMenuItemRemoveClick(TextViewAndActionButton view) {
-                settingsManagerInstance.getPlanRouteSettings().setViaPoint3(null);
-            }
-        });
-
-        Button buttonExcludedWays = (Button) view.findViewById(R.id.buttonExcludedWays);
-        buttonExcludedWays.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                ObjectListFromDatabaseFragment.createDialog(
-                        new DatabaseProfileRequest(DatabaseSegmentProfile.EXCLUDED_FROM_ROUTING), false)
-                    .show(getChildFragmentManager(), "ExcludedWaysDialog");
-            }
-        });
-
-        Button buttonRoutingWayClasses = (Button) view.findViewById(R.id.buttonRoutingWayClasses);
-        buttonRoutingWayClasses.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                SelectRoutingWayClassesDialog.newInstance()
-                    .show(getChildFragmentManager(), "SelectRoutingWayClassesDialog");
             }
         });
 
@@ -254,7 +211,13 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
             .setTitle(getResources().getString(R.string.planRouteDialogTitle))
             .setView(view)
             .setPositiveButton(
-                    getResources().getString(R.string.buttonGetRoute),
+                    getResources().getString(R.string.dialogCalculate),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+            .setNeutralButton(
+                    getResources().getString(R.string.dialogOptions),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -263,16 +226,6 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                     getResources().getString(R.string.dialogBack),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
-            .setOnKeyListener(
-                    new Dialog.OnKeyListener() {
-                        @Override public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
-                            if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                close();
-                                return true;
-                            }
-                            return false;
                         }
                     })
             .create();
@@ -285,17 +238,24 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
             // positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            if (routeManagerInstance.routeCalculationInProgress()) {
-                buttonPositive.setText(getResources().getString(R.string.dialogCancel));
-            } else {
-                buttonPositive.setText(getResources().getString(R.string.buttonGetRoute));
-            }
+            updatePositiveButtonText(
+                    serverTaskExecutorInstance.taskInProgress(taskId));
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    if (routeManagerInstance.routeCalculationInProgress()) {
-                        routeManagerInstance.cancelRouteCalculation();
+                    if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                        serverTaskExecutorInstance.cancelTask(taskId, true);
                     } else {
                         startRouteCalculation();
+                    }
+                }
+            });
+
+            // neutral button
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+                        showOptionsMenu(view);
                     }
                 }
             });
@@ -304,16 +264,17 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    close();
+                    dismiss();
                 }
             });
 
             IntentFilter filter = new IntentFilter();
-            filter.addAction(Constants.ACTION_NEW_LOCATION);
+            filter.addAction(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL);
+            filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+            filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(mMessageReceiver, filter);
 
-            if (routeManagerInstance.routeCalculationInProgress()) {
-                routeManagerInstance.updateRouteCalculationListener(PlanRouteDialog.this);
+            if (serverTaskExecutorInstance.taskInProgress(taskId)) {
                 progressHandler.postDelayed(progressUpdater, 2000);
             }
             updateUI();
@@ -326,87 +287,130 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         progressHandler.removeCallbacks(progressUpdater);
     }
 
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+    }
+
+    @Override public void onDestroy() {
+        super.onDestroy();
+        if (! getActivity().isChangingConfigurations()) {
+            serverTaskExecutorInstance.cancelTask(taskId, true);
+        }
+    }
+
     private void startRouteCalculation() {
-        routeManagerInstance.startRouteCalculation(PlanRouteDialog.this);
-        progressHandler.postDelayed(progressUpdater, 2000);
-        // change button label
+        updatePositiveButtonText(true);
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            taskId = serverTaskExecutorInstance.executeTask(
+                    new P2pRouteTask(
+                        settingsManagerInstance.getP2pRouteRequest(),
+                        settingsManagerInstance.getWayClassWeightSettings()));
+            progressHandler.postDelayed(progressUpdater, 2000);
+        }
+    }
+
+    private void updateUI() {
+        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+        layoutStartPoint.configureAsSingleObject(p2pRouteRequest.getStartPoint());
+        layoutDestinationPoint.configureAsSingleObject(p2pRouteRequest.getDestinationPoint());
+
+        // via point layout
+        switchShowViaPointList.setChecked(p2pRouteRequest.hasViaPoint());
+        layoutViaPointList.setVisibility(
+                p2pRouteRequest.hasViaPoint() ? View.VISIBLE : View.GONE);
+
+        Point viaPoint1 = p2pRouteRequest.getViaPoint1();
+        layoutViaPoint1.configureAsSingleObject(
+                viaPoint1,
+                viaPoint1 != null ? viaPoint1.getName() : null,
+                new TextViewAndActionButton.OnLayoutResetListener() {
+                    @Override public void onLayoutReset(TextViewAndActionButton view) {
+                        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                        p2pRouteRequest.setViaPoint1(null);
+                        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                        updateUI();
+                    }
+                });
+
+        Point viaPoint2 = p2pRouteRequest.getViaPoint2();
+        layoutViaPoint2.configureAsSingleObject(
+                viaPoint2,
+                viaPoint2 != null ? viaPoint2.getName() : null,
+                new TextViewAndActionButton.OnLayoutResetListener() {
+                    @Override public void onLayoutReset(TextViewAndActionButton view) {
+                        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                        p2pRouteRequest.setViaPoint2(null);
+                        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                        updateUI();
+                    }
+                });
+
+        Point viaPoint3 = p2pRouteRequest.getViaPoint3();
+        layoutViaPoint3.configureAsSingleObject(
+                viaPoint3,
+                viaPoint3 != null ? viaPoint3.getName() : null,
+                new TextViewAndActionButton.OnLayoutResetListener() {
+                    @Override public void onLayoutReset(TextViewAndActionButton view) {
+                        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                        p2pRouteRequest.setViaPoint3(null);
+                        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                        updateUI();
+                    }
+                });
+    }
+
+    private void updatePositiveButtonText(boolean requestInProgress) {
         final AlertDialog dialog = (AlertDialog)getDialog();
         if (dialog != null) {
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            buttonPositive.setText(getResources().getString(R.string.dialogCancel));
-        }
-    }
-
-    @Override public void routeCalculationSuccessful(Route route) {
-        progressHandler.removeCallbacks(progressUpdater);
-        settingsManagerInstance.setSelectedRoute(route);
-        // show router fragment of main activity
-        settingsManagerInstance.setSelectedTabForMainActivity(SettingsManager.DEFAULT_SELECTED_TAB_MAIN_ACTIVITY);
-        Intent mainActivityIntent = new Intent(getActivity(), MainActivity.class);
-        mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        getActivity().startActivity(mainActivityIntent);
-        vibrator.vibrate(250);
-        dismiss();
-    }
-
-    @Override public void routeCalculationFailed(int returnCode) {
-        progressHandler.removeCallbacks(progressUpdater);
-        // change positive button text back
-        final AlertDialog dialog = (AlertDialog)getDialog();
-        if(dialog != null) {
-            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            buttonPositive.setText(getResources().getString(R.string.buttonGetRoute));
-        }
-        // error dialog
-        if (isAdded()) {
-            if (returnCode == Constants.RC.MAP_LOADING_FAILED
-                    || returnCode == Constants.RC.WRONG_MAP_SELECTED) {
-                SelectMapDialog.newInstance(
-                        settingsManagerInstance.getSelectedMap())
-                    .show(getChildFragmentManager(), "SelectMapDialog");
-            } else {
-                SimpleMessageDialog.newInstance(
-                        ServerUtility.getErrorMessageForReturnCode(returnCode))
-                    .show(getChildFragmentManager(), "SimpleMessageDialog");
-            }
+            buttonPositive.setText(
+                    requestInProgress
+                    ? getResources().getString(R.string.dialogCancel)
+                    : getResources().getString(R.string.dialogCalculate));
         }
     }
 
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
-                NewLocationAttributes newLocationAttributes = NewLocationAttributes.fromString(
-                        intent.getStringExtra(Constants.ACTION_NEW_LOCATION_ATTRIBUTES));
-                if (newLocationAttributes != null
-                        && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.TEN_METERS)) {
-                    updateUI();
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                    Timber.e("wrong task");
+                    return;
                 }
+
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL)) {
+                    Route newRoute = (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE);
+                    DatabaseProfile.plannedRoutes().add(newRoute);
+                    vibrator.vibrate(250);
+                    MainActivity.loadRoute(
+                            PlanRouteDialog.this.getContext(), newRoute);
+                    dismiss();
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (wgException != null) {
+                        if (wgException.showMapDialog()) {
+                            SelectMapDialog.newInstance(
+                                    settingsManagerInstance.getSelectedMap())
+                                .show(getChildFragmentManager(), "SelectMapDialog");
+                        } else {
+                            SimpleMessageDialog.newInstance(wgException.getMessage())
+                                .show(getChildFragmentManager(), "SimpleMessageDialog");
+                        }
+                    }
+                }
+
+                progressHandler.removeCallbacks(progressUpdater);
+                updatePositiveButtonText(false);
             }
         }
     };
-
-    private void updateUI() {
-        PlanRouteSettings planRouteSettings = SettingsManager.getInstance().getPlanRouteSettings();
-        layoutStartPoint.configureView(
-                planRouteSettings.getStartPoint(), LabelTextConfig.start(false));
-        layoutDestinationPoint.configureView(
-                planRouteSettings.getDestinationPoint(), LabelTextConfig.destination(false));
-        layoutViaPoint1.configureView(
-                planRouteSettings.getViaPoint1(), LabelTextConfig.via(1, false), true, true);
-        layoutViaPoint2.configureView(
-                planRouteSettings.getViaPoint2(), LabelTextConfig.via(2, false), true, true);
-        layoutViaPoint3.configureView(
-                planRouteSettings.getViaPoint3(), LabelTextConfig.via(3, false), true, true);
-    }
-
-    private void close() {
-        progressHandler.removeCallbacks(progressUpdater);
-        if (routeManagerInstance.routeCalculationInProgress()) {
-            routeManagerInstance.cancelRouteCalculation();
-        }
-        dismiss();
-    }
 
 
     private class ProgressUpdater implements Runnable {
@@ -417,130 +421,55 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     }
 
 
-    public static class SelectRoutingWayClassesDialog extends DialogFragment {
+    /**
+     * options menu
+     */
+    private static final int MENU_ITEM_SWAP = 1;
+    private static final int MENU_ITEM_EXCLUDED_WAYS = 2;
+    private static final int MENU_ITEM_ROUTING_WAY_CLASSES = 3;
+    private static final int MENU_ITEM_CLEAR = 4;
 
-        private SettingsManager settingsManagerInstance;
+    private void showOptionsMenu(View view) {
+        PopupMenu optionsMenu = new PopupMenu(getActivity(), view);
+        optionsMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_SWAP, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemSwap));
+        optionsMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_EXCLUDED_WAYS, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemExcludedWays));
+        optionsMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_ROUTING_WAY_CLASSES, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemRoutingWayClasses));
+        optionsMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_CLEAR, 2, GlobalInstance.getStringResource(R.string.planRouteMenuItemClear));
 
-        private ListView listViewWayClasses;
-        private TextView labelListViewEmpty;
+        optionsMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+            @Override public boolean onMenuItemClick(MenuItem item) {
 
-        public static SelectRoutingWayClassesDialog newInstance() {
-            SelectRoutingWayClassesDialog selectRoutingWayClassesDialog = new SelectRoutingWayClassesDialog();
-            return selectRoutingWayClassesDialog;
-        }
+                if (item.getItemId() == MENU_ITEM_SWAP) {
+                    P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                    p2pRouteRequest.swapStartAndDestinationPoints();
+                    settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                    updateUI();
 
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            settingsManagerInstance = SettingsManager.getInstance();
-            ArrayList<WayClass> wayClassList = new ArrayList<WayClass>();
-            if (savedInstanceState != null) {
-                JSONArray jsonWayClassList = null;
-                try {
-                    jsonWayClassList = new JSONArray(
-                            savedInstanceState.getString("jsonWayClassList"));
-                } catch (JSONException e) {
-                    jsonWayClassList = null;
-                } finally {
-                    if (jsonWayClassList != null) {
-                        for (int i=0; i<jsonWayClassList.length(); i++) {
-                            try {
-                                wayClassList.add(
-                                        new WayClass(
-                                            jsonWayClassList.getJSONObject(i)));
-                            } catch (JSONException e) {}
-                        }
-                    }
+                } else if (item.getItemId() == MENU_ITEM_EXCLUDED_WAYS) {
+                    ObjectListFromDatabaseFragment.createDialog(DatabaseProfile.excludedRoutingSegments(), false)
+                        .show(getChildFragmentManager(), "ExcludedWaysDialog");
+
+                } else if (item.getItemId() == MENU_ITEM_ROUTING_WAY_CLASSES) {
+                    ConfigureWayClassWeightsDialog.newInstance(
+                            settingsManagerInstance.getWayClassWeightSettings())
+                        .show(getChildFragmentManager(), "ConfigureWayClassWeightsDialog");
+
+                } else if (item.getItemId() == MENU_ITEM_CLEAR) {
+                    settingsManagerInstance.setP2pRouteRequest(P2pRouteRequest.getDefault());
+                    updateUI();
+
+                } else {
+                    return false;
                 }
-            } else {
-                wayClassList = settingsManagerInstance.getPlanRouteSettings().getWayClassList();
+                return true;
             }
+        });
 
-            // custom view
-            final ViewGroup nullParent = null;
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            View view = inflater.inflate(R.layout.layout_single_list_view, nullParent);
-
-            listViewWayClasses = (ListView) view.findViewById(R.id.listView);
-            listViewWayClasses.setAdapter(
-                    new WayClassAdapter(getActivity(), wayClassList));
-
-            labelListViewEmpty    = (TextView) view.findViewById(R.id.labelListViewEmpty);
-            labelListViewEmpty.setVisibility(View.GONE);
-            listViewWayClasses.setEmptyView(labelListViewEmpty);
-
-            // create dialog
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.selectRoutingWayClassesDialogTitle))
-                .setView(view)
-                .setPositiveButton(
-                        getResources().getString(R.string.dialogOK),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .setNeutralButton(
-                        getResources().getString(R.string.dialogDefault),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                .create();
-        }
-
-        @Override public void onStart() {
-            super.onStart();
-            final AlertDialog dialog = (AlertDialog) getDialog();
-            if (dialog != null) {
-                // positive button
-                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                buttonPositive.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        WayClassAdapter adapter = (WayClassAdapter) listViewWayClasses.getAdapter();
-                        if (adapter != null) {
-                            settingsManagerInstance.getPlanRouteSettings().setWayClassList(adapter.getWayClassList());
-                            dialog.dismiss();
-                        }
-                    }
-                });
-                // neutral button
-                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                buttonNeutral.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        WayClassAdapter adapter = (WayClassAdapter) listViewWayClasses.getAdapter();
-                        if (adapter != null) {
-                            adapter.resetToDefaults();
-                        }
-                    }
-                });
-                // negative button
-                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                buttonNegative.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        dialog.dismiss();
-                    }
-                });
-            }
-        }
-
-        @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-            super.onSaveInstanceState(savedInstanceState);
-            WayClassAdapter adapter = (WayClassAdapter) listViewWayClasses.getAdapter();
-            if (adapter != null) {
-                JSONArray jsonWayClassList = new JSONArray();
-                for (WayClass wayClass : adapter.getWayClassList()) {
-                    try {
-                        jsonWayClassList.put(wayClass.toJson());
-                    } catch (JSONException e) {}
-                }
-                savedInstanceState.putString("jsonWayClassList", jsonWayClassList.toString());
-            }
-        }
+        optionsMenu.show();
     }
 
 }

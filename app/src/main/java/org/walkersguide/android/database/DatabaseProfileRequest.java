@@ -1,27 +1,30 @@
 package org.walkersguide.android.database;
 
-import org.walkersguide.android.util.StringUtility;
+import org.walkersguide.android.data.profile.Profile;
+import org.walkersguide.android.database.DatabaseProfile;
+
+import org.walkersguide.android.data.profile.ProfileRequest;
+import org.walkersguide.android.util.Helper;
 import java.io.Serializable;
 import android.text.TextUtils;
 
 
-public class DatabaseProfileRequest implements Serializable {
+public class DatabaseProfileRequest extends ProfileRequest implements Serializable {
     private static final long serialVersionUID = 1l;
 
 
     private DatabaseProfile profile;
-    private String searchTerm;
     private SortMethod sortMethod;
 
     public DatabaseProfileRequest(DatabaseProfile profile) {
+        super(null);
         this.profile = profile;
-        this.searchTerm = null;
         this.sortMethod = SortMethod.ACCESSED_DESC;
     }
 
     public DatabaseProfileRequest(DatabaseProfile profile, String searchTerm, SortMethod sortMethod) {
+        super(searchTerm);
         this.profile = profile;
-        this.searchTerm = searchTerm;
         this.sortMethod = sortMethod;
     }
 
@@ -31,18 +34,6 @@ public class DatabaseProfileRequest implements Serializable {
 
     public void setProfile(DatabaseProfile newProfile) {
         this.profile = newProfile;
-    }
-
-    public String getSearchTerm() {
-        return this.searchTerm;
-    }
-
-    public boolean hasSearchTerm() {
-        return ! TextUtils.isEmpty(this.searchTerm);
-    }
-
-    public void setSearchTerm(String newSearchTerm) {
-        this.searchTerm = newSearchTerm;
     }
 
     public SortMethod getSortMethod() {
@@ -59,11 +50,7 @@ public class DatabaseProfileRequest implements Serializable {
 
     @Override public int hashCode() {
         final int prime = 31;
-        int result = 1;
-        result = prime * result + this.profile.hashCode();
-        if (hasSearchTerm()) {
-            result = prime * result + this.searchTerm.hashCode();
-        }
+        int result = super.hashCode();
         result = prime * result + this.sortMethod.hashCode();
         return result;
     }
@@ -76,8 +63,7 @@ public class DatabaseProfileRequest implements Serializable {
         if (!(obj instanceof DatabaseProfileRequest))
             return false;
         DatabaseProfileRequest other = (DatabaseProfileRequest) obj;
-        return this.profile ==  other.getProfile()
-            && StringUtility.compareObjects(this.searchTerm, other.getSearchTerm())
+        return super.equals((ProfileRequest) other)
             && this.sortMethod == other.getSortMethod();
     }
 

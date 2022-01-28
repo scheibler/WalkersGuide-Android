@@ -1,11 +1,10 @@
         package org.walkersguide.android.ui.view;
 
-import org.walkersguide.android.database.profiles.DatabaseRouteProfile;
-import org.walkersguide.android.database.profiles.DatabaseSegmentProfile;
+import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import androidx.appcompat.app.AppCompatActivity;
-import org.walkersguide.android.ui.dialog.creators.RenameObjectDialog;
+import org.walkersguide.android.ui.dialog.edit.RenameObjectDialog;
 import org.walkersguide.android.data.ObjectWithId;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.view.MenuItem;
 import timber.log.Timber;
 
@@ -21,691 +20,595 @@ import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.R;
 import android.text.TextUtils;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
-import java.util.ArrayList;
 import android.content.Context;
 import android.widget.ImageView;
-import org.walkersguide.android.util.Constants;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 import android.view.Menu;
 import android.view.SubMenu;
 import android.content.Intent;
-import android.net.Uri;
-import java.util.Locale;
 import android.widget.LinearLayout;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.sensor.DirectionManager;
+import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.data.basic.segment.Segment;
+import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.ui.activity.toolbar.tabs.SegmentDetailsActivity;
 import androidx.core.view.MenuCompat;
-import org.walkersguide.android.data.sensor.Direction;
 import android.content.BroadcastReceiver;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
-import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
-import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
-import org.walkersguide.android.data.route.Route;
-import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
-import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
+import org.walkersguide.android.data.object_with_id.HikingTrail;
+import org.walkersguide.android.data.object_with_id.Route;
 import android.widget.Toast;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.data.object_with_id.point.Intersection;
+import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
+import android.content.res.TypedArray;
+import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
 
 
 public class TextViewAndActionButton extends LinearLayout {
 
 
     /**
-     * label config
+     * interfaces
      */
 
-    public static class LabelTextConfig {
+    // default action
 
-        public static LabelTextConfig empty(boolean useObjectName) {
-            return new LabelTextConfig("", useObjectName);
-        }
-        public static LabelTextConfig start(boolean useObjectName) {
-            return new LabelTextConfig(
-                    GlobalInstance.getStringResource(R.string.labelPrefixStart), useObjectName);
-        }
-        public static LabelTextConfig via(int number, boolean useObjectName) {
-            return new LabelTextConfig(
-                    String.format(GlobalInstance.getStringResource(R.string.labelPrefixVia), number), useObjectName);
-        }
-        public static LabelTextConfig destination(boolean useObjectName) {
-            return new LabelTextConfig(
-                    GlobalInstance.getStringResource(R.string.labelPrefixDestination), useObjectName);
-        }
-        public static LabelTextConfig simulation(boolean useObjectName) {
-            return new LabelTextConfig(
-                    GlobalInstance.getStringResource(R.string.labelPrefixSimulation), useObjectName);
-        }
-
-        public String prefix;
-        public boolean useObjectName;
-        private LabelTextConfig(String prefix, boolean useObjectName) {
-            this.prefix = prefix;
-            this.useObjectName = useObjectName;
-        }
+    public interface OnObjectDefaultActionListener {
+        public void onObjectDefaultAction(TextViewAndActionButton view);
     }
 
+    private boolean showDetailsAction;
+    private OnObjectDefaultActionListener onObjectDefaultActionListener;
 
-    /**
-     * listener
-     */
-
-    public interface OnLabelClickListener {
-        public void onLabelClick(TextViewAndActionButton view);
+    public void setOnObjectDefaultActionListener(OnObjectDefaultActionListener listener) {
+        setOnObjectDefaultActionListener(listener, true);
     }
 
-    public interface OnMenuItemRemoveClickListener {
-        public void onMenuItemRemoveClick(TextViewAndActionButton view);
+    public void setOnObjectDefaultActionListener(OnObjectDefaultActionListener listener, boolean showDetailsAction) {
+        this.showDetailsAction = showDetailsAction;
+        this.onObjectDefaultActionListener = listener;
     }
 
-    public interface NotifyDataSetChangedListener {
-        public void notifyDataSetChanged(TextViewAndActionButton view);
+    // parent list update request
+
+    public interface OnUpdateListRequestListener {
+        public void onUpdateListRequested(TextViewAndActionButton view);
     }
 
+    private OnUpdateListRequestListener onUpdateListRequestListener;
 
-    private OnLabelClickListener onLabelClickListener;
-    private OnMenuItemRemoveClickListener onMenuItemRemoveClickListener;
-    private NotifyDataSetChangedListener notifyDataSetChangedListener;
+    // reset layout action
 
-    public void setOnLabelClickListener(OnLabelClickListener listener) {
-        onLabelClickListener = listener;
+    public interface OnLayoutResetListener {
+        public void onLayoutReset(TextViewAndActionButton view);
     }
 
-    public void setOnMenuItemRemoveClickListener(OnMenuItemRemoveClickListener listener) {
-        onMenuItemRemoveClickListener = listener;
-    }
-
-    public void setOnNotifyDataSetChangedListener(NotifyDataSetChangedListener listener) {
-        notifyDataSetChangedListener = listener;
-    }
+    private OnLayoutResetListener onLayoutResetListener;
 
 
     /**
      * initialize
      */
 
-    private AccessDatabase accessDatabaseInstance;
-    private DirectionManager directionManagerInstance;
+    private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
+    private SettingsManager settingsManagerInstance;
+
+    private String prefix = null;
+    private boolean compact = false;
 
     private ObjectWithId objectWithId;
-    private LabelTextConfig labelTextConfig;
-    private boolean showIsFavoriteIndicator, showMenuItemRemove;
+    private int isFavoriteModeHide, isFavoriteModeVisible;
 
-    private View rootView;
     private ImageView imageViewIsFavorite;
     private TextView label;
     private ImageButton buttonActionFor;
 
-
     public TextViewAndActionButton(Context context) {
         super(context);
-        init(context);
+        this.initUi(context);
+    }
+
+    public TextViewAndActionButton(Context context, String prefix, boolean compact) {
+        super(context);
+        this.prefix = prefix;
+        this.compact = compact;
+        this.initUi(context);
     }
 
     public TextViewAndActionButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+
+        // parse xml layout attributes
+        TypedArray attributeArray = context.obtainStyledAttributes(
+                attrs, R.styleable.TextViewAndActionButton);
+        if (attributeArray != null) {
+            this.prefix = attributeArray.getString(
+                    R.styleable.TextViewAndActionButton_prefix);
+            this.compact = attributeArray.getBoolean(
+                    R.styleable.TextViewAndActionButton_compact, false);
+            attributeArray.recycle();
+        }
+
+        this.initUi(context);
     }
 
-    private void init(Context context) {
-        objectWithId = null;
-        labelTextConfig = null;
-        showIsFavoriteIndicator = true;
-        showMenuItemRemove = false;
-
-        accessDatabaseInstance = AccessDatabase.getInstance();
-        directionManagerInstance = DirectionManager.getInstance();
+    private void initUi(Context context) {
+        deviceSensorManagerInstance = DeviceSensorManager.getInstance();
         positionManagerInstance = PositionManager.getInstance();
+        settingsManagerInstance = SettingsManager.getInstance();
 
-        rootView = inflate(context, R.layout.layout_text_view_and_action_button, this);
+        // configure enclosing linear layout
         setOrientation(LinearLayout.HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
         setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 
+        View rootView = inflate(context, R.layout.layout_text_view_and_action_button, this);
         imageViewIsFavorite = (ImageView) rootView.findViewById(R.id.imageViewIsFavorite);
-        imageViewIsFavorite.setVisibility(View.GONE);
 
         label = (TextView) rootView.findViewById(R.id.label);
+        if (compact) {
+            label.setEllipsize(TextUtils.TruncateAt.END);
+            label.setSingleLine();
+        }
         label.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                Timber.d("label onClick: %1$s", onLabelClickListener);
-                if (onLabelClickListener != null) {
-                    onLabelClickListener.onLabelClick(TextViewAndActionButton.this);
-                } else {
-                    // default action: show details
-                    if (objectWithId instanceof Point) {
-                        PointDetailsActivity.start(view.getContext(), (Point) objectWithId);
-                    } else if (objectWithId instanceof Segment) {
-                        SegmentDetailsActivity.start(view.getContext(), (Segment) objectWithId);
-                    }
+                if (onObjectDefaultActionListener != null) {
+                    onObjectDefaultActionListener.onObjectDefaultAction(TextViewAndActionButton.this);
+                } else if (objectWithId != null) {
+                    executeObjectMenuAction(
+                            view.getContext(), objectWithId, MENU_ITEM_DETAILS);
                 }
             }
         });
         label.setOnLongClickListener(new View.OnLongClickListener() {
             @Override public boolean onLongClick(View view) {
-                Timber.d("label onLongClick");
-                showContextMenu(view);
+                if (objectWithId != null) {
+                    showContextMenu(view, objectWithId);
+                }
                 return true;
             }
         });
 
         buttonActionFor = (ImageButton) rootView.findViewById(R.id.buttonActionFor);
-        buttonActionFor.setVisibility(View.GONE);
         buttonActionFor.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                Timber.d("button clicked");
-                showContextMenu(view);
+                if (objectWithId != null) {
+                    showContextMenu(view, objectWithId);
+                }
             }
         });
-    }
 
-    public void configureView(ObjectWithId objectWithId) {
-        this.objectWithId = objectWithId;
-        this.labelTextConfig = null;
-        this.showIsFavoriteIndicator = true;
-        this.showMenuItemRemove = false;
-        updateUI();
-    }
-
-    public void configureView(ObjectWithId objectWithId, LabelTextConfig labelTextConfig) {
-        this.objectWithId = objectWithId;
-        this.labelTextConfig = labelTextConfig;
-        this.showIsFavoriteIndicator = true;
-        this.showMenuItemRemove = false;
-        updateUI();
-    }
-
-    public void configureView(ObjectWithId objectWithId, LabelTextConfig labelTextConfig, boolean showIsFavoriteIndicator, boolean showMenuItemRemove) {
-        this.objectWithId = objectWithId;
-        this.labelTextConfig = labelTextConfig;
-        this.showIsFavoriteIndicator = showIsFavoriteIndicator;
-        this.showMenuItemRemove = showMenuItemRemove;
-        updateUI();
+        this.onObjectDefaultActionListener = null;
+        this.showDetailsAction = false;
+        this.reset();
     }
 
     public ObjectWithId getObject() {
         return this.objectWithId;
     }
 
-    public boolean hasObject() {
-        return this.objectWithId != null;
+    public void reset() {
+        this.objectWithId = null;
+        this.isFavoriteModeHide = View.GONE;
+        this.isFavoriteModeVisible = View.GONE;
+        this.onUpdateListRequestListener = null;
+        this.onLayoutResetListener = null;
+        this.setLabelAndButtonText(
+                GlobalInstance.getStringResource(R.string.labelNothingSelected));
     }
 
-    public void setLabelText(String text) {
-        label.setText(text);
-    }
+    public void configureAsListItem(ObjectWithId object, boolean showIsFavoriteIndicator, OnUpdateListRequestListener listener) {
+        this.reset();
+        if (object != null) {
+            this.objectWithId = object;
+            if (showIsFavoriteIndicator) {
+                this.isFavoriteModeVisible = View.VISIBLE;
+                this.isFavoriteModeHide = View.INVISIBLE;
+            }
+            this.onUpdateListRequestListener = listener;
 
-    private void updateUI() {
-        // label
-        if (labelTextConfig != null) {
-            String labelText;
-            if (objectWithId == null) {
-                labelText = GlobalInstance.getStringResource(R.string.labelNothingSelected);
-            } else {
-                if (labelTextConfig.useObjectName) {
-                    labelText = objectWithId.getName();
-                } else {
-                    labelText = objectWithId.toString();
+            String labelText = object.toString();
+            if (object instanceof Point) {
+                String distanceAndBearing = ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation();
+                if (! TextUtils.isEmpty(distanceAndBearing)) {
+                    labelText += String.format("\n%1$s", distanceAndBearing);
                 }
             }
-            if (! TextUtils.isEmpty(labelTextConfig.prefix)) {
-                labelText = String.format("%1$s: %2$s", labelTextConfig.prefix, labelText);
-            }
-            label.setText(labelText);
-            // content description
-            if (showIsFavoriteIndicator
-                    && objectWithId instanceof Point
-                    && ((Point) objectWithId).isFavorite()) {
-                if (! TextUtils.isEmpty(labelTextConfig.prefix)) {
-                    label.setContentDescription(
-                            String.format(
-                                "%1$s\n%2$s",
-                                labelText,
-                                GlobalInstance.getStringResource(R.string.labelIsFavoriteLong))
-                            );
-                } else {
-                    label.setContentDescription(
-                            String.format(
-                                "%1$s: %2$s",
-                                GlobalInstance.getStringResource(R.string.labelIsFavoriteShort),
-                                labelText)
-                            );
-                }
-            } else {
-                label.setContentDescription(labelText);
-            }
-        } else if (notifyDataSetChangedListener != null) {
-            notifyDataSetChangedListener.notifyDataSetChanged(TextViewAndActionButton.this);
-        }
-
-        // others
-        if (objectWithId != null) {
-            if (showIsFavoriteIndicator && objectWithId instanceof Point) {
-                imageViewIsFavorite.setVisibility(
-                        ((Point) objectWithId).isFavorite() ? View.VISIBLE : View.INVISIBLE);
-            }
-
-            if (SettingsManager.getInstance().getShowActionButton()) {
-                buttonActionFor.setContentDescription(
-                        String.format(
-                            "%1$s %2$s",
-                            getResources().getString(R.string.buttonActionFor),
-                            objectWithId.getName())
-                        );
-                buttonActionFor.setVisibility(View.VISIBLE);
-            }
+            this.setLabelAndButtonText(labelText);
         }
     }
 
-    @Override public void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        Timber.d("onDetachedFromWindow");
-        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(mMessageReceiver);
+    public void configureAsSingleObject(ObjectWithId object) {
+        this.configureAsSingleObject(object, object != null ? object.toString() : null);
     }
 
-    @Override public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        Timber.d("onAttachedToWindow");
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION_NEW_DIRECTION);
-        filter.addAction(Constants.ACTION_NEW_LOCATION);
-        filter.addAction(RenameObjectDialog.REQUEST_RENAME_OBJECT);
-        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(mMessageReceiver, filter);
+    public void configureAsSingleObject(ObjectWithId object, String labelText) {
+        this.configureAsSingleObject(object, labelText, null);
     }
 
-
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
-                NewDirectionAttributes newDirectionAttributes = NewDirectionAttributes.fromString(
-                        context, intent.getStringExtra(Constants.ACTION_NEW_DIRECTION_ATTRIBUTES));
-                if (newDirectionAttributes != null
-                        && newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TWENTY_DEGREES)) {
-                    updateUI();
-                }
-
-            } else if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
-                NewLocationAttributes newLocationAttributes = NewLocationAttributes.fromString(
-                        intent.getStringExtra(Constants.ACTION_NEW_LOCATION_ATTRIBUTES));
-                if (newLocationAttributes != null
-                        && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.TEN_METERS)
-                        && labelTextConfig != null) {
-                    updateUI();
-                }
-
-            } else if (intent.getAction().equals(RenameObjectDialog.REQUEST_RENAME_OBJECT)) {
-                if (intent.getBooleanExtra(RenameObjectDialog.EXTRA_SUCCESSFUL, false)) {
-                    updateUI();
-                } else {
-                    Toast.makeText(
-                            context,
-                            context.getResources().getString(R.string.messageRenameObjectFailed),
-                            Toast.LENGTH_LONG).show();
-                }
-            }
+    public void configureAsSingleObject(ObjectWithId object, String labelText, OnLayoutResetListener listener) {
+        this.reset();
+        if (object != null && labelText != null) {
+            this.objectWithId = object;
+            this.isFavoriteModeVisible = View.VISIBLE;
+            this.onLayoutResetListener = listener;
+            this.setLabelAndButtonText(labelText);
         }
-    };
+    }
+
+    private void setLabelAndButtonText(String labelText) {
+        if (this.prefix != null) {
+            labelText = String.format(
+                    "%1$s%2$s%3$s",
+                    this.prefix,
+                    this.compact ? ": " : ":\n",
+                    labelText);
+        }
+        this.label.setText(labelText);
+        updateFavoriteIndicator(labelText);
+
+        if (this.objectWithId != null
+                && settingsManagerInstance.getShowActionButton()) {
+            this.buttonActionFor.setContentDescription(
+                    String.format(
+                        "%1$s %2$s",
+                        getResources().getString(R.string.buttonActionFor),
+                        this.objectWithId.getName())
+                    );
+            this.buttonActionFor.setVisibility(View.VISIBLE);
+        } else {
+            this.buttonActionFor.setVisibility(View.GONE);
+        }
+    }
+
+    private void updateFavoriteIndicator(String labelText) {
+        int favoriteIndicatorVisibilityMode = isFavoriteModeHide;
+        if (this.objectWithId != null && this.objectWithId.isFavorite()) {
+            favoriteIndicatorVisibilityMode = isFavoriteModeVisible;
+        }
+        this.imageViewIsFavorite.setVisibility(favoriteIndicatorVisibilityMode);
+
+        // content description
+        if (favoriteIndicatorVisibilityMode == View.VISIBLE) {
+            this.label.setContentDescription(
+                    String.format(
+                        "%1$s: %2$s",
+                        GlobalInstance.getStringResource(R.string.labelIsFavorite),
+                        labelText)
+                    );
+        } else {
+            this.label.setContentDescription(null);
+        }
+    }
 
 
     /**
      * context menu
      */
 
-    // group ids (only to create a devider in the menu)
     private static final int MENU_GROUP_1 = 1;
     private static final int MENU_GROUP_2 = 2;
+    private static final int MENU_GROUP_3 = 3;
 
-    // item ids for point and segment menu
-    private static final int MENU_ITEM_ADD_TO_FAVORITES = 1;
-    private static final int MENU_ITEM_REMOVE_FROM_FAVORITES = 2;
-    private static final int MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING = 3;
-    private static final int MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING = 4;
-    private static final int MENU_ITEM_START_SIMULATION = 5;
-    private static final int MENU_ITEM_END_SIMULATION = 6;
-    private static final int MENU_ITEM_RENAME = 7;
-    private static final int MENU_ITEM_REMOVE = 8;
-    private static final int MENU_ITEM_DETAILS = 9;
-    private static final int MENU_ITEM_ROUTE_PLANNER = 10;
-    private static final int MENU_ITEM_OPEN_ON_OSM_ORG = 11;
+    private static final int MENU_ITEM_DETAILS = 1;
+    private static final int MENU_ITEM_DEPARTURES = 2;
+    private static final int MENU_ITEM_LOAD = 3;
+    private static final int MENU_ITEM_STREET_COURSE = 4;
+    private static final int MENU_ITEM_ADD_TO_FAVORITES = 10;
+    private static final int MENU_ITEM_REMOVE_FROM_FAVORITES = 11;
+    private static final int MENU_ITEM_START_LOCATION_SIMULATION = 12;
+    private static final int MENU_ITEM_END_LOCATION_SIMULATION = 13;
+    private static final int MENU_ITEM_START_BEARING_SIMULATION = 14;
+    private static final int MENU_ITEM_END_BEARING_SIMULATION = 15;
+    private static final int MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING = 16;
+    private static final int MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING = 17;
+    private static final int MENU_ITEM_RENAME = 18;
+    private static final int MENU_ITEM_RESET_LAYOUT = 19;
+    private static final int MENU_ITEM_ROUTE_PLANNER = 20;
+    private static final int MENU_ITEM_SHARE_COORDINATES = 21;
 
-    private void showContextMenu(View view) {
-        if (objectWithId instanceof Point) {
-            showPointContextMenu(view, (Point) objectWithId);
-        } else if (objectWithId instanceof Route) {
-            showRouteContextMenu(view, (Route) objectWithId);
-        } else if (objectWithId instanceof Segment) {
-            showSegmentContextMenu(view, (Segment) objectWithId);
-        }
-    }
-
-
-    // point context menu
-    private static final String OSM_NODE_URL = "https://www.openstreetmap.org/node/%1$d/";
-
-    // route planner submenu
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT = 100;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1 = 101;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2 = 102;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3 = 103;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT = 104;
 
-    private void showPointContextMenu(final View view, final Point point) {
-        PopupMenu pointContextMenu = new PopupMenu(view.getContext(), view);
-        MenuCompat.setGroupDividerEnabled(pointContextMenu.getMenu(), true);
+
+    private void showContextMenu(final View view, final ObjectWithId object) {
+        PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
+        MenuCompat.setGroupDividerEnabled(contextMenu.getMenu(), true);
         int orderId = 0;
 
-        if (point != null) {
+        // top items
+        if (onObjectDefaultActionListener != null && showDetailsAction) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_1, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemDetails));
+        }
+        if (object instanceof Station) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_1, MENU_ITEM_DEPARTURES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemDepartures));
+        } else if (object instanceof Route
+                && ! ((Route) object).equals(settingsManagerInstance.getSelectedRoute())) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_1, MENU_ITEM_LOAD, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemLoad));
+        } else if (object instanceof IntersectionSegment) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_1, MENU_ITEM_STREET_COURSE, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemStreetCourse));
+        }
 
-            // favorite
-            if (point.isFavorite()) {
-                pointContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_REMOVE_FROM_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.menuItemRemoveFromFavorites));
+        // favorite
+        if (object.hasDefaultFavoritesProfile()) {
+            if (object.isFavorite()) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_REMOVE_FROM_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRemoveFromFavorites));
             } else {
-                pointContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_ADD_TO_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.menuItemAddToFavorites));
-            }
-
-            // simulation
-            if (positionManagerInstance.getSimulationEnabled()
-                    && point.equals(positionManagerInstance.getCurrentLocation())) {
-                pointContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_END_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.menuItemEndSimulation));
-            } else {
-                pointContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_START_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.menuItemStartSimulation));
-            }
-
-            // rename and remove
-            pointContextMenu.getMenu().add(
-                    MENU_GROUP_1, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.menuItemRename));
-            if (showMenuItemRemove) {
-                pointContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_REMOVE, orderId++, GlobalInstance.getStringResource(R.string.menuItemRemove));
-            }
-
-            // details
-            pointContextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.menuItemDetails));
-
-            SubMenu routePlannerSubMenu = pointContextMenu.getMenu().addSubMenu(
-                    MENU_GROUP_2, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.menuItemRoutePlanner));
-            routePlannerSubMenu.add(
-                    Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT, 1, GlobalInstance.getStringResource(R.string.menuItemUseAsStartPoint));
-            routePlannerSubMenu.add(
-                    Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT, 2, GlobalInstance.getStringResource(R.string.menuItemUseAsDestinationPoint));
-
-            // osm id
-            if (point.getOsmId() != null) {
-                pointContextMenu.getMenu().add(
-                        MENU_GROUP_2, MENU_ITEM_OPEN_ON_OSM_ORG, orderId++, GlobalInstance.getStringResource(R.string.menuItemOpenStreetMap));
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_ADD_TO_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemAddToFavorites));
             }
         }
 
-        pointContextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+        // simulation
+        if (object instanceof Point) {
+            if (positionManagerInstance.getSimulationEnabled()
+                    && ((Point) object).equals(positionManagerInstance.getSimulatedLocation())) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_END_LOCATION_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemEndSimulation));
+            } else {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_START_LOCATION_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemStartLocationSimulation));
+            }
+        } else if (object instanceof Segment) {
+            if (deviceSensorManagerInstance.getSimulationEnabled()
+                    && ((Segment) object).equals(deviceSensorManagerInstance.getSimulatedBearing())) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_END_BEARING_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemEndSimulation));
+            } else {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_START_BEARING_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemStartBearingSimulation));
+            }
+        }
+
+        // exclude from routing
+        if (object instanceof Segment) {
+            if (((Segment) object).isExcludedFromRouting()) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRemoveExcludeFromRouting));
+            } else {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_2, MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemAddToExcludeFromRouting));
+            }
+        }
+
+        // rename and reset
+        if (object instanceof Point
+                || object instanceof Route
+                || object instanceof Segment) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_2, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRename));
+        }
+        if (onLayoutResetListener != null) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_2, MENU_ITEM_RESET_LAYOUT, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemResetLayout));
+        }
+
+        // route planner
+        if (object instanceof Point) {
+            P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+            SubMenu routePlannerSubMenu = contextMenu.getMenu().addSubMenu(
+                    MENU_GROUP_3, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRoutePlanner));
+            int planRouteSubMenuOrder = 0;
+            // start
+            routePlannerSubMenu.add(
+                    Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT, planRouteSubMenuOrder++,
+                    GlobalInstance.getStringResource(R.string.objectMenuItemUseAsStartPoint));
+            // via point 1
+            routePlannerSubMenu.add(
+                    Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1, planRouteSubMenuOrder++,
+                    GlobalInstance.getStringResource(R.string.objectMenuItemUseAsViaPoint1));
+            // via point 2
+            if (p2pRouteRequest.getViaPoint1() != null) {
+                routePlannerSubMenu.add(
+                        Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2, planRouteSubMenuOrder++,
+                        GlobalInstance.getStringResource(R.string.objectMenuItemUseAsViaPoint2));
+            }
+            // via point 3
+            if (p2pRouteRequest.getViaPoint2() != null) {
+                routePlannerSubMenu.add(
+                        Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3, planRouteSubMenuOrder++,
+                        GlobalInstance.getStringResource(R.string.objectMenuItemUseAsViaPoint3));
+            }
+            // destination
+            routePlannerSubMenu.add(
+                    Menu.NONE, MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT, planRouteSubMenuOrder++,
+                    GlobalInstance.getStringResource(R.string.objectMenuItemUseAsDestinationPoint));
+        }
+
+        // share
+        if (object instanceof Point) {
+            SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
+                    MENU_GROUP_3, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemShareCoordinates));
+            Point.populateShareCoordinatesSubMenuEntries(shareCoordinatesSubMenu);
+        }
+
+        contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
             @Override public boolean onMenuItemClick(MenuItem item) {
                 Timber.d("onMenuItemClick: %1$d", item.getItemId());
-                switch (item.getItemId()) {
-
-                    case MENU_ITEM_ADD_TO_FAVORITES:
-                        accessDatabaseInstance.addObjectToDatabaseProfile(
-                                point, DatabasePointProfile.FAVORITES);
-                        updateUI();
-                        break;
-                    case MENU_ITEM_REMOVE_FROM_FAVORITES:
-                        accessDatabaseInstance.removeObjectFromDatabaseProfile(
-                                point, DatabasePointProfile.FAVORITES);
-                        updateUI();
-                        break;
-
-                    case MENU_ITEM_START_SIMULATION:
-                        positionManagerInstance.setSimulatedLocation(point);
-                        positionManagerInstance.setSimulationEnabled(true);
-                        updateUI();
-                        break;
-                    case MENU_ITEM_END_SIMULATION:
-                        positionManagerInstance.setSimulationEnabled(false);
-                        updateUI();
-                        break;
-
-                    case MENU_ITEM_RENAME:
-                        RenameObjectDialog roDialog = RenameObjectDialog.newInstance(point);
-                        if (getContext() instanceof AppCompatActivity) {
-                            roDialog.show(
-                                    ((AppCompatActivity)getContext()).getSupportFragmentManager(), "RenameObjectDialog");
-                        }
-                        break;
-                    case MENU_ITEM_REMOVE:
-                        if (onMenuItemRemoveClickListener != null) {
-                            onMenuItemRemoveClickListener.onMenuItemRemoveClick(TextViewAndActionButton.this);
-                        }
-                        break;
-
-                    case MENU_ITEM_DETAILS:
-                        PointDetailsActivity.start(view.getContext(), point);
-                        break;
-                    case MENU_ITEM_OPEN_ON_OSM_ORG:
-                        Intent openBrowserIntent = new Intent(Intent.ACTION_VIEW);
-                        openBrowserIntent.setData(
-                                Uri.parse(
-                                    String.format(Locale.ROOT, OSM_NODE_URL, point.getOsmId())));
-                        view.getContext().startActivity(openBrowserIntent);
-                        break;
-
-                    default:
-                        return false;
+                if (executeObjectMenuAction(view.getContext(), object, item.getItemId())) {
+                    return true;
+                } else if (object instanceof Point) {
+                    return executePointMenuAction(
+                            view.getContext(), (Point) object, item.getItemId());
+                } else if (object instanceof HikingTrail) {
+                    return executeHikingTrailMenuAction(
+                            view.getContext(), (HikingTrail) object, item.getItemId());
+                } else if (object instanceof Route) {
+                    return executeRouteMenuAction(
+                            view.getContext(), (Route) object, item.getItemId());
+                } else if (object instanceof Segment) {
+                    return executeSegmentMenuAction(
+                            view.getContext(), (Segment) object, item.getItemId());
+                } else {
+                    return false;
                 }
-                return true;
             }
         });
 
-        pointContextMenu.show();
-    }
-
-                    /*
-                    PopupMenu popupAddToRoute = new PopupMenu(PointDetailsActivity.this, view);
-                    popupAddToRoute.setOnMenuItemClickListener(PointDetailsActivity.this);
-                    // start point
-                    popupAddToRoute.getMenu().add(
-                            Menu.NONE,
-                            Constants.POINT_PUT_INTO.START,
-                            1,
-                            getResources().getString(R.string.menuItemAsRouteStartPoint));
-                    // via points
-                    ArrayList<PointWrapper> viaPointList = SettingsManager.getInstance(PointDetailsActivity.this).getRouteSettings().getViaPointList();
-                    for (int viaPointIndex=0; viaPointIndex<viaPointList.size(); viaPointIndex++) {;
-                        popupAddToRoute.getMenu().add(
-                                Menu.NONE,
-                                viaPointIndex+Constants.POINT_PUT_INTO.VIA,
-                                viaPointIndex+2,
-                                String.format(
-                                    getResources().getString(R.string.menuItemAsRouteViaPoint),
-                                    viaPointIndex+1));
-                    }
-                    // destination point
-                    popupAddToRoute.getMenu().add(
-                            Menu.NONE,
-                            Constants.POINT_PUT_INTO.DESTINATION,
-                            viaPointList.size()+2,
-                            getResources().getString(R.string.menuItemAsRouteDestinationPoint));
-                    popupAddToRoute.show();
-                    */
-
-
-    // route context menu
-
-    private void showRouteContextMenu(final View view, final Route route) {
-        PopupMenu routeContextMenu = new PopupMenu(view.getContext(), view);
-        MenuCompat.setGroupDividerEnabled(routeContextMenu.getMenu(), true);
-        int orderId = 0;
-
-        if (route != null) {
-            // favorite
-            if (route.isFavorite()) {
-                routeContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_REMOVE_FROM_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.menuItemRemoveFromFavorites));
-            } else {
-                routeContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_ADD_TO_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.menuItemAddToFavorites));
-            }
-
-            // remove
-            if (showMenuItemRemove) {
-                routeContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_REMOVE, orderId++, GlobalInstance.getStringResource(R.string.menuItemRemove));
-            }
-
-            // details
-            routeContextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.menuItemDetails));
-        }
-
-        routeContextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-
-                    case MENU_ITEM_ADD_TO_FAVORITES:
-                        accessDatabaseInstance.addObjectToDatabaseProfile(
-                                route, DatabaseRouteProfile.FAVORITES);
-                        updateUI();
-                        break;
-                    case MENU_ITEM_REMOVE_FROM_FAVORITES:
-                        accessDatabaseInstance.removeObjectFromDatabaseProfile(
-                                route, DatabaseRouteProfile.FAVORITES);
-                        updateUI();
-                        break;
-
-                    case MENU_ITEM_REMOVE:
-                        if (onMenuItemRemoveClickListener != null) {
-                            onMenuItemRemoveClickListener.onMenuItemRemoveClick(TextViewAndActionButton.this);
-                        }
-                        break;
-
-                    case MENU_ITEM_DETAILS:
-                        break;
-
-                    default:
-                        return false;
-                }
-                return true;
-            }
-        });
-        routeContextMenu.show();
+        contextMenu.show();
     }
 
 
-    // segment context menu
-    private static final String OSM_WAY_URL = "https://www.openstreetmap.org/way/%1$d/";
+    private boolean executeObjectMenuAction(Context context, ObjectWithId object, int menuItemId) {
+        if (menuItemId == MENU_ITEM_DETAILS) {
+            if (object instanceof Point) {
+                PointDetailsActivity.start(context, (Point) object);
+            } else if (object instanceof HikingTrail) {
+                FragmentContainerActivity.showDetailsForObjectWithId(context, (HikingTrail) object);
+            } else if (object instanceof Route) {
+                FragmentContainerActivity.showDetailsForObjectWithId(context, (Route) object);
+            } else if (object instanceof Segment) {
+                SegmentDetailsActivity.start(context, (Segment) object);
+            }
 
-    private void showSegmentContextMenu(final View view, final Segment segment) {
-        PopupMenu segmentContextMenu = new PopupMenu(view.getContext(), view);
-        MenuCompat.setGroupDividerEnabled(segmentContextMenu.getMenu(), true);
-        int orderId = 0;
-
-        if (segment != null) {
-            if (segment.isExcludedFromRouting()) {
-                segmentContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING, orderId++, GlobalInstance.getStringResource(R.string.menuItemRemoveExcludeFromRouting));
+        } else if (menuItemId == MENU_ITEM_ADD_TO_FAVORITES
+                || menuItemId == MENU_ITEM_REMOVE_FROM_FAVORITES) {
+            if (menuItemId == MENU_ITEM_ADD_TO_FAVORITES) {
+                object.addToFavorites();
             } else {
-                segmentContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING, orderId++, GlobalInstance.getStringResource(R.string.menuItemAddToExcludeFromRouting));
-            }
-
-            // simulation
-            if (directionManagerInstance.getSimulationEnabled()
-                    && directionManagerInstance.getCurrentDirection() != null
-                    && directionManagerInstance.getCurrentDirection().getBearing() == segment.getBearing()) {
-                segmentContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_END_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.menuItemEndSimulation));
-            } else {
-                segmentContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_START_SIMULATION, orderId++, GlobalInstance.getStringResource(R.string.menuItemStartSimulation));
-            }
-
-            // rename and remove
-            segmentContextMenu.getMenu().add(
-                    MENU_GROUP_1, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.menuItemRename));
-            if (showMenuItemRemove) {
-                segmentContextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_REMOVE, orderId++, GlobalInstance.getStringResource(R.string.menuItemRemove));
-            }
-
-            // details
-            segmentContextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.menuItemDetails));
-            // osm id
-            if (segment.getOsmId() != null) {
-                segmentContextMenu.getMenu().add(
-                        MENU_GROUP_2, MENU_ITEM_OPEN_ON_OSM_ORG, orderId++, GlobalInstance.getStringResource(R.string.menuItemOpenStreetMap));
-            }
-        }
-
-        segmentContextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-
-                    case MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING:
-                        accessDatabaseInstance.addObjectToDatabaseProfile(
-                                segment, DatabaseSegmentProfile.EXCLUDED_FROM_ROUTING);
-                        updateUI();
-                        break;
-                    case MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING:
-                        accessDatabaseInstance.removeObjectFromDatabaseProfile(
-                                segment, DatabaseSegmentProfile.EXCLUDED_FROM_ROUTING);
-                        updateUI();
-                        break;
-
-                    case MENU_ITEM_START_SIMULATION:
-                        directionManagerInstance.setSimulatedDirection(
-                                new Direction.Builder(
-                                    GlobalInstance.getContext(), segment.getBearing())
-                                .build());
-                        directionManagerInstance.setSimulationEnabled(true);
-                        updateUI();
-                        break;
-                    case MENU_ITEM_END_SIMULATION:
-                        directionManagerInstance.setSimulationEnabled(false);
-                        updateUI();
-                        break;
-
-                    case MENU_ITEM_RENAME:
-                        RenameObjectDialog roDialog = RenameObjectDialog.newInstance(segment);
-                        if (getContext() instanceof AppCompatActivity) {
-                            roDialog.show(
-                                    ((AppCompatActivity)getContext()).getSupportFragmentManager(), "RenameObjectDialog");
-                        }
-                        break;
-                    case MENU_ITEM_REMOVE:
-                        if (onMenuItemRemoveClickListener != null) {
-                            onMenuItemRemoveClickListener.onMenuItemRemoveClick(TextViewAndActionButton.this);
-                        }
-                        break;
-
-                    case MENU_ITEM_DETAILS:
-                        SegmentDetailsActivity.start(view.getContext(), segment);
-                        break;
-                    case MENU_ITEM_OPEN_ON_OSM_ORG:
-                        Intent openBrowserIntent = new Intent(Intent.ACTION_VIEW);
-                        openBrowserIntent.setData(
-                                Uri.parse(
-                                    String.format(Locale.ROOT, OSM_WAY_URL, segment.getOsmId())));
-                        view.getContext().startActivity(openBrowserIntent);
-                        break;
-
-                    default:
-                        return false;
+                object.removeFromFavorites();
+                // notify parent list update
+                if (this.onUpdateListRequestListener != null) {
+                    this.onUpdateListRequestListener.onUpdateListRequested(TextViewAndActionButton.this);
                 }
-                return true;
             }
-        });
-        segmentContextMenu.show();
+            updateFavoriteIndicator(
+                    this.label.getText().toString());
+
+        } else if (menuItemId == MENU_ITEM_RENAME) {
+            RenameObjectDialog roDialog = RenameObjectDialog.newInstance(object);
+            if (context instanceof AppCompatActivity) {
+                roDialog.show(
+                        ((AppCompatActivity) context).getSupportFragmentManager(), "RenameObjectDialog");
+            }
+
+        } else if (menuItemId == MENU_ITEM_RESET_LAYOUT) {
+            this.reset();
+            if (onLayoutResetListener != null) {
+                onLayoutResetListener.onLayoutReset(TextViewAndActionButton.this);
+            }
+
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+
+    private boolean executePointMenuAction(Context context, Point point, int menuItemId) {
+        if (menuItemId == MENU_ITEM_DEPARTURES) {
+            if (point instanceof Station) {
+                PointDetailsActivity.startAtTab(
+                        context, (Station) point, PointDetailsActivity.Tab.DEPARTURES);
+            }
+
+        } else if (menuItemId == MENU_ITEM_START_LOCATION_SIMULATION) {
+            positionManagerInstance.setSimulatedLocation(point);
+            positionManagerInstance.setSimulationEnabled(true);
+        } else if (menuItemId == MENU_ITEM_END_LOCATION_SIMULATION) {
+            positionManagerInstance.setSimulationEnabled(false);
+
+        } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
+                || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1
+                || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2
+                || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3
+                || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT) {
+            P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+            if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT) {
+                p2pRouteRequest.setStartPoint(point);
+            } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1) {
+                p2pRouteRequest.setViaPoint1(point);
+            } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2) {
+                p2pRouteRequest.setViaPoint2(point);
+            } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3) {
+                p2pRouteRequest.setViaPoint3(point);
+            } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT) {
+                p2pRouteRequest.setDestinationPoint(point);
+            }
+            settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+
+            // show plan route dialog
+            PlanRouteDialog prDialog = PlanRouteDialog.newInstance();
+            if (context instanceof AppCompatActivity) {
+                prDialog.show(
+                        ((AppCompatActivity) context).getSupportFragmentManager(), "PlanRouteDialog");
+            }
+
+        } else if (menuItemId == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {
+            point.startShareCoordinatesChooserActivity(
+                    context, Point.SharingService.APPLE_MAPS);
+        } else if (menuItemId == Point.MENU_ITEM_SHARE_GOOGLE_MAPS_LINK) {
+            point.startShareCoordinatesChooserActivity(
+                    context, Point.SharingService.GOOGLE_MAPS);
+        } else if (menuItemId == Point.MENU_ITEM_SHARE_OSM_ORG_LINK) {
+            point.startShareCoordinatesChooserActivity(
+                    context, Point.SharingService.OSM_ORG);
+
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+
+    private boolean executeHikingTrailMenuAction(Context context, HikingTrail hikingTrail, int menuItemId) {
+        return false;
+    }
+
+
+    private boolean executeRouteMenuAction(Context context, Route route, int menuItemId) {
+        if (menuItemId == MENU_ITEM_LOAD) {
+            MainActivity.loadRoute(context, route);
+
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+
+    private boolean executeSegmentMenuAction(Context context, Segment segment, int menuItemId) {
+        if (menuItemId == MENU_ITEM_STREET_COURSE) {
+            if (segment instanceof IntersectionSegment) {
+                SegmentDetailsActivity.startAtTab(
+                        context, (IntersectionSegment) segment, SegmentDetailsActivity.Tab.STREET_COURSE);
+            }
+
+        } else if (menuItemId == MENU_ITEM_START_BEARING_SIMULATION) {
+            deviceSensorManagerInstance.setSimulatedBearing(segment.getBearing());
+            deviceSensorManagerInstance.setSimulationEnabled(true);
+        } else if (menuItemId == MENU_ITEM_END_BEARING_SIMULATION) {
+            deviceSensorManagerInstance.setSimulationEnabled(false);
+
+        } else if (menuItemId == MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING) {
+            segment.excludeFromRouting();
+        } else if (menuItemId == MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING) {
+            segment.includeIntoRouting();
+            // notify parent list update
+            if (this.onUpdateListRequestListener != null) {
+                this.onUpdateListRequestListener.onUpdateListRequested(TextViewAndActionButton.this);
+            }
+
+        } else {
+            return false;
+        }
+        return true;
     }
 
 }

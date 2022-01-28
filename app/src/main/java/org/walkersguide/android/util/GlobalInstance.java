@@ -19,11 +19,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import org.walkersguide.android.server.util.ServerInstance;
+import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.DirectionManager;
+import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 
@@ -31,6 +31,12 @@ import timber.log.Timber;
 import java.io.File;
 import android.os.Environment;
 import org.walkersguide.android.database.util.SQLiteHelper;
+import android.os.Handler;
+import java.util.LinkedHashMap;
+import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
+import org.walkersguide.android.server.wg.poi.PoiProfileResult;
+import android.annotation.SuppressLint;
+import org.walkersguide.android.data.object_with_id.Route;
 
 
 public class GlobalInstance extends Application {
@@ -83,24 +89,6 @@ public class GlobalInstance extends Application {
 
 
     /**
-     * server instance cache
-     */
-    private ServerInstance cachedServerInstance = null;
-
-    public ServerInstance getCachedServerInstance() {
-        return this.cachedServerInstance;
-    }
-
-    public void setCachedServerInstance(ServerInstance newServerInstance) {
-        this.cachedServerInstance = newServerInstance;
-    }
-
-    public void clearServerInstanceCache() {
-        this.cachedServerInstance = null;
-    }
-
-
-    /**
      * Background detection
      */
     private static final long MAX_ACTIVITY_TRANSITION_TIME_MS = 2000;
@@ -124,8 +112,8 @@ public class GlobalInstance extends Application {
                 // is run, when application was sent to background or the screen was turned off
                 ((GlobalInstance) getApplicationContext()).setApplicationInBackground(true);
                 // deactivate sensors
-                PositionManager.getInstance(getApplicationContext()).stopGPS();
-                DirectionManager.getInstance(getApplicationContext()).stopSensors();
+                PositionManager.getInstance().stopGPS();
+                DeviceSensorManager.getInstance().stopSensors();
             }
         };
         this.mActivityTransitionTimer.schedule(mActivityTransitionTimerTask,
@@ -165,9 +153,8 @@ public class GlobalInstance extends Application {
     }
 
     private void showTestNotification() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = createPendingIntent(
+                new Intent(this, MainActivity.class));
         // create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -193,6 +180,68 @@ public class GlobalInstance extends Application {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(
                 WG_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    @SuppressLint("Deprecation, UnspecifiedImmutableFlag")
+    private PendingIntent createPendingIntent(Intent intent) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            return PendingIntent.getActivity(
+                    this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            return PendingIntent.getActivity(
+                    this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+    }
+
+
+    /**
+     * route position
+     */
+    private LinkedHashMap<Route,Integer> routeCurrentPositionMap = new LinkedHashMap<Route,Integer>();
+
+    public int getRouteCurrentPosition(Route route) {
+        if (this.routeCurrentPositionMap.containsKey(route)) {
+            return this.routeCurrentPositionMap.get(route);
+        }
+        return 0;
+    }
+
+    public void setRouteCurrentPosition(Route route, int newPosition) {
+        this.routeCurrentPositionMap.put(route, newPosition);
+    }
+
+
+    /**
+     * caches
+     */
+
+    // server instance cache
+    private ServerInstance cachedServerInstance = null;
+
+    public ServerInstance getCachedServerInstance() {
+        return this.cachedServerInstance;
+    }
+
+    public void setCachedServerInstance(ServerInstance newServerInstance) {
+        this.cachedServerInstance = newServerInstance;
+    }
+
+    // poi profiles
+    private LinkedHashMap<PoiProfileRequest,PoiProfileResult> poiProfileResultByRequestMap = new LinkedHashMap<PoiProfileRequest,PoiProfileResult>();
+
+    public PoiProfileResult getCachedPoiProfileResult(PoiProfileRequest request) {
+        return this.poiProfileResultByRequestMap.get(request);
+    }
+
+    public void cachePoiProfileResult(PoiProfileRequest request, PoiProfileResult result) {
+        this.poiProfileResultByRequestMap.put(request, result);
+    }
+
+    // clear caches
+
+    public void clearCaches() {
+        this.cachedServerInstance = null;
+        this.poiProfileResultByRequestMap.clear();
     }
 
 }

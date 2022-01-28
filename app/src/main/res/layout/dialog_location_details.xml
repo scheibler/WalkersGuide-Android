@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -9,89 +10,74 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+
+        <!-- current location -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal" >
 
-            <Button
-                android:id="@+id/buttonWhereAmI"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:text="@string/buttonWhereAmI" />
-
-            <Button
-                android:id="@+id/buttonSaveCurrentLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:text="@string/buttonSaveCurrentLocation" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="vertical" >
-
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1.0"
                 android:focusable="true"
-                android:text="@string/labelLocationSensorDetailsHeading"
+                android:text="@string/labelCurrentLocationHeading"
                 android:theme="@style/HeadingTextView" />
 
-            <TextView
-                android:id="@+id/labelGPSCoordinates"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/buttonActionForCurrentLocation"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSCoordinates" />
-
-            <TextView
-                android:id="@+id/labelGPSAccuracy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSAccuracy" />
-
-            <TextView
-                android:id="@+id/labelGPSTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:text="@string/labelGPSTime" />
-
-            <Button
-                android:id="@+id/buttonLocationSensorDetails"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/buttonLocationSensorDetails" />
+                android:minWidth="@dimen/minWidth"
+                android:minHeight="@dimen/minHeight"
+                android:background="@null"
+                app:tint="@color/image"
+                android:src="@drawable/expand_more"
+                android:contentDescription="@string/buttonActionForCurrentLocation" />
         </LinearLayout>
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/labelGPSCoordinates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="vertical" >
+            android:layout_marginTop="5dp"
+            android:focusable="true"
+            android:text="@string/labelGPSCoordinates" />
 
-            <Switch
-                android:id="@+id/buttonEnableSimulation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/buttonEnableLocationSimulation" />
+        <TextView
+            android:id="@+id/labelGPSAccuracy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelGPSAccuracy" />
 
-            <org.walkersguide.android.ui.view.TextViewAndActionButton
-                android:id="@+id/layoutSimulationPoint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/labelGPSTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelGPSTime" />
 
-        </LinearLayout>
+
+        <!-- simulation -->
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/buttonEnableSimulation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/minHeight"
+            android:layout_marginTop="30dp"
+            android:text="@string/buttonEnableLocationSimulation"
+            android:theme="@style/HeadingTextView" />
+
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutSimulationPoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:prefix="@string/labelPrefixSimulation" />
 
     </LinearLayout>
 </ScrollView>

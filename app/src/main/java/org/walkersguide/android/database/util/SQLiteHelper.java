@@ -1,8 +1,7 @@
 package org.walkersguide.android.database.util;
 
+import org.walkersguide.android.R;
 import org.walkersguide.android.data.ObjectWithId;
-import org.walkersguide.android.database.profiles.DatabaseSegmentProfile;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
 import android.content.Context;
 
 import android.database.Cursor;
@@ -21,13 +20,14 @@ import timber.log.Timber;
 import java.util.ArrayList;
 import android.content.ContentValues;
 import java.util.HashMap;
-import org.walkersguide.android.util.StringUtility;
+import org.walkersguide.android.util.Helper;
 import org.json.JSONArray;
-import org.walkersguide.android.data.route.Route;
-import org.walkersguide.android.data.basic.point.Point;
-import org.walkersguide.android.data.basic.segment.Segment;
+import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.util.GlobalInstance;
 import java.io.File;
+import java.util.Locale;
 
 
 public class SQLiteHelper extends SQLiteOpenHelper {
@@ -44,31 +44,14 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
 
-    // points table
-    public static final String TABLE_POINTS = SQLiteHelper.V10_TABLE_POINTS;
-    public static final String POINTS_ID = SQLiteHelper.V10_POINTS_ID;
-    public static final String POINTS_DATA = SQLiteHelper.V10_POINTS_DATA;
-    public static final String POINTS_CUSTOM_NAME = SQLiteHelper.V10_POINTS_CUSTOM_NAME;
-    public static final String[] TABLE_POINTS_ALL_COLUMNS = {
-        POINTS_ID, POINTS_DATA, POINTS_CUSTOM_NAME
-    };
-
-    // segments table
-    public static final String TABLE_SEGMENTS = SQLiteHelper.V10_TABLE_SEGMENTS;
-    public static final String SEGMENTS_ID = SQLiteHelper.V10_SEGMENTS_ID;
-    public static final String SEGMENTS_DATA = SQLiteHelper.V10_SEGMENTS_DATA;
-    public static final String SEGMENTS_CUSTOM_NAME = SQLiteHelper.V10_SEGMENTS_CUSTOM_NAME;
-    public static final String[] TABLE_SEGMENTS_ALL_COLUMNS = {
-        SEGMENTS_ID, SEGMENTS_DATA, SEGMENTS_CUSTOM_NAME
-    };
-
-    // routes table
-    public static final String TABLE_ROUTES = SQLiteHelper.V10_TABLE_ROUTES;
-    public static final String ROUTES_ID = SQLiteHelper.V10_ROUTES_ID;
-    public static final String ROUTES_DATA = SQLiteHelper.V10_ROUTES_DATA;
-    public static final String ROUTES_CURRENT_POSITION = SQLiteHelper.V10_ROUTES_CURRENT_POSITION;
-    public static final String[] TABLE_ROUTES_ALL_COLUMNS = {
-        ROUTES_ID, ROUTES_DATA, ROUTES_CURRENT_POSITION
+    // objects table
+    public static final String TABLE_OBJECTS = SQLiteHelper.V10_TABLE_OBJECTS;
+    public static final String OBJECTS_ID = SQLiteHelper.V10_OBJECTS_ID;
+    public static final String OBJECTS_TYPE = SQLiteHelper.V10_OBJECTS_TYPE;
+    public static final String OBJECTS_DATA = SQLiteHelper.V10_OBJECTS_DATA;
+    public static final String OBJECTS_CUSTOM_NAME = SQLiteHelper.V10_OBJECTS_CUSTOM_NAME;
+    public static final String[] TABLE_OBJECTS_ALL_COLUMNS = {
+        OBJECTS_ID, OBJECTS_TYPE, OBJECTS_DATA, OBJECTS_CUSTOM_NAME
     };
 
     // object -> profile mapping table
@@ -97,9 +80,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
     @Override public void onCreate(SQLiteDatabase database) {
-        database.execSQL(V10_CREATE_TABLE_POINTS);
-        database.execSQL(V10_CREATE_TABLE_SEGMENTS);
-        database.execSQL(V10_CREATE_TABLE_ROUTES);
+        database.execSQL(V10_CREATE_TABLE_OBJECTS);
         database.execSQL(V10_CREATE_TABLE_MAPPING);
         database.execSQL(V10_CREATE_TABLE_POI_PROFILE);
     }
@@ -186,38 +167,18 @@ public class SQLiteHelper extends SQLiteOpenHelper {
      * db version 10
      */
 
-    // points table
-    private static final String V10_TABLE_POINTS = "points";
-    private static final String V10_POINTS_ID = "_id";
-    private static final String V10_POINTS_DATA = "data";
-    private static final String V10_POINTS_CUSTOM_NAME = "custom_name";
-    private static final String V10_CREATE_TABLE_POINTS =
-          "CREATE TABLE IF NOT EXISTS " + V10_TABLE_POINTS + "( "
-        + V10_POINTS_ID + " INTEGER PRIMARY KEY, "
-        + V10_POINTS_DATA + " TEXT NOT NULL, "
-        + V10_POINTS_CUSTOM_NAME + " TEXT DEFAULT '');";
-
-    // segments table
-    private static final String V10_TABLE_SEGMENTS = "segments";
-    private static final String V10_SEGMENTS_ID = "_id";
-    private static final String V10_SEGMENTS_DATA = "data";
-    private static final String V10_SEGMENTS_CUSTOM_NAME = "custom_name";
-    private static final String V10_CREATE_TABLE_SEGMENTS =
-          "CREATE TABLE IF NOT EXISTS " + V10_TABLE_SEGMENTS + "( "
-        + V10_SEGMENTS_ID + " INTEGER PRIMARY KEY, "
-        + V10_SEGMENTS_DATA + " TEXT NOT NULL, "
-        + V10_SEGMENTS_CUSTOM_NAME + " TEXT DEFAULT '');";
-
-    // routes table
-    private static final String V10_TABLE_ROUTES = "routes";
-    private static final String V10_ROUTES_ID = "_id";
-    private static final String V10_ROUTES_DATA = "data";
-    private static final String V10_ROUTES_CURRENT_POSITION = "current_position";
-    private static final String V10_CREATE_TABLE_ROUTES =
-          "CREATE TABLE IF NOT EXISTS " + V10_TABLE_ROUTES + "( "
-        + V10_ROUTES_ID + " INTEGER PRIMARY KEY, "
-        + V10_ROUTES_DATA + " TEXT NOT NULL, "
-        + V10_ROUTES_CURRENT_POSITION + " INTEGER DEFAULT 0);";
+    // objects table
+    private static final String V10_TABLE_OBJECTS = "objects";
+    private static final String V10_OBJECTS_ID = "_id";
+    private static final String V10_OBJECTS_TYPE = "type";
+    private static final String V10_OBJECTS_DATA = "data";
+    private static final String V10_OBJECTS_CUSTOM_NAME = "custom_name";
+    private static final String V10_CREATE_TABLE_OBJECTS =
+          "CREATE TABLE IF NOT EXISTS " + V10_TABLE_OBJECTS + "( "
+        + V10_OBJECTS_ID + " INTEGER PRIMARY KEY, "
+        + V10_OBJECTS_TYPE + " INTEGER NOT NULL, "
+        + V10_OBJECTS_DATA + " TEXT NOT NULL, "
+        + V10_OBJECTS_CUSTOM_NAME + " TEXT DEFAULT '');";
 
     // mapping table
     private static final String V10_TABLE_MAPPING = "mapping";
@@ -251,27 +212,23 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         ContentValues mappingTableValues = null;
 
         // change profile ids in fp_points table
-        // all points profile
+        // favorite points profile
         database.execSQL(
-                "UPDATE fp_points SET profile_id = 1999999 WHERE profile_id = -100;");
+                "UPDATE fp_points SET profile_id = 1000000 WHERE profile_id = -140;");
         // address points profile
         database.execSQL(
                 "UPDATE fp_points SET profile_id = 1501000 WHERE profile_id = -110;");
-        // route points profile
-        database.execSQL(
-                "UPDATE fp_points SET profile_id = 1505000 WHERE profile_id = -120;");
         // simulated points profile
         database.execSQL(
-                "UPDATE fp_points SET profile_id = 1506000 WHERE profile_id = -130;");
-        // user created points profile
+                "UPDATE fp_points SET profile_id = 1504000 WHERE profile_id = -130;");
+        // all points profile
         database.execSQL(
-                "UPDATE fp_points SET profile_id = 1502000 WHERE profile_id = -140;");
+                "UPDATE fp_points SET profile_id = 1999999 WHERE profile_id = -100;");
 
-        // create new points table
-        //
-        // create
-        database.execSQL(V10_CREATE_TABLE_POINTS);
-        // copy
+        // new objects table
+        database.execSQL(V10_CREATE_TABLE_OBJECTS);
+
+        // copy from point table
         HashMap<Long,Long> oldNewPointIdMap = new HashMap<Long,Long>();
         Cursor cursor = database.query(
                 "point", new String[]{"_id", "data"}, null, null, null, null, "_id ASC");
@@ -279,33 +236,38 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             try {
                 // point data
                 JSONObject jsonPointData = Point.addNodeIdToJsonObject(
-                        new JSONObject(cursor.getString(cursor.getColumnIndex("data"))));
+                        new JSONObject(cursor.getString(cursor.getColumnIndexOrThrow("data"))));
                 // point ids
-                long oldPointId = cursor.getLong(cursor.getColumnIndex("_id"));
+                long oldPointId = cursor.getLong(cursor.getColumnIndexOrThrow("_id"));
                 long newPointId = jsonPointData.getLong("node_id");
                 // create values list
                 ContentValues pointsValues = new ContentValues();
-                pointsValues.put(V10_POINTS_ID, newPointId);
-                pointsValues.put(V10_POINTS_DATA, jsonPointData.toString());
+                pointsValues.put(V10_OBJECTS_ID, newPointId);
+                pointsValues.put(V10_OBJECTS_TYPE, 1);
+                pointsValues.put(V10_OBJECTS_DATA, jsonPointData.toString());
                 database.insertWithOnConflict(
-                        V10_TABLE_POINTS, null, pointsValues, SQLiteDatabase.CONFLICT_REPLACE);
+                        V10_TABLE_OBJECTS, null, pointsValues, SQLiteDatabase.CONFLICT_REPLACE);
                 // add to id map
                 oldNewPointIdMap.put(oldPointId, newPointId);
-            } catch (JSONException e) {
+            } catch (IllegalArgumentException | JSONException e) {
                 Timber.e("fill points table error: %1$s", e.getMessage());
             }
         }
         cursor.close();
-        // delete old point table
-        database.execSQL(buildDropTableQuery("point"));
 
-        // add points from old fp_points table to ContentValues list
+        // add points from old fp_points table to mappingTableValues list
         cursor = database.query(
                 "fp_points", new String[]{"profile_id", "point_id", "ordering"}, null, null, null, null, "profile_id ASC");
         while (cursor.moveToNext()) {
-            long profileId = cursor.getLong(cursor.getColumnIndex("profile_id"));
-            long oldPointId = cursor.getLong(cursor.getColumnIndex("point_id"));
-            long ordering = cursor.getLong(cursor.getColumnIndex("ordering"));
+            long profileId, oldPointId, ordering;
+            try {
+                profileId = cursor.getLong(cursor.getColumnIndexOrThrow("profile_id"));
+                oldPointId = cursor.getLong(cursor.getColumnIndexOrThrow("point_id"));
+                ordering = cursor.getLong(cursor.getColumnIndexOrThrow("ordering"));
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+
             if (oldNewPointIdMap.containsKey(oldPointId)) {
                 long newPointId = oldNewPointIdMap.get(oldPointId);
                 // new point id found in points table -> copy
@@ -315,28 +277,13 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 mappingTableValues.put(V10_MAPPING_ACCESSED, ordering);
                 mappingTableValues.put(V10_MAPPING_CREATED, ordering);
                 mappingTableValuesList.add(mappingTableValues);
-                // also copy points from profile "user created" to new favorites profile
-                if (profileId == 1502000) {
-                    mappingTableValues = new ContentValues();
-                    mappingTableValues.put(V10_MAPPING_PROFILE_ID, 1000000);   // favorites
-                    mappingTableValues.put(V10_MAPPING_OBJECT_ID, newPointId);
-                    mappingTableValues.put(V10_MAPPING_ACCESSED, ordering);
-                    mappingTableValues.put(V10_MAPPING_CREATED, ordering);
-                    mappingTableValuesList.add(mappingTableValues);
-                }
             } else {
                 Timber.d("orph");
             }
         }
         cursor.close();
-        // delete old fp_points table
-        database.execSQL(buildDropTableQuery("fp_points"));
 
-        // new segments table
-        //
-        // create
-        database.execSQL(V10_CREATE_TABLE_SEGMENTS);
-        // copy
+        // copy from excluded_ways table
         HashMap<Long,Long> segmentIdCreatedMap = new HashMap<Long,Long>();
         cursor = database.query(
                 "excluded_ways", new String[]{"_id", "data", "timestamp"}, null, null, null, null, "_id ASC");
@@ -344,27 +291,26 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             try {
                 // segment data
                 JSONObject jsonSegmentData = Segment.addWayIdToJsonObject(
-                        new JSONObject(cursor.getString(cursor.getColumnIndex("data"))));
+                        new JSONObject(cursor.getString(cursor.getColumnIndexOrThrow("data"))));
                 // new segment id
                 long newSegmentId = jsonSegmentData.getLong("way_id");
                 // add
                 ContentValues segmentsValues = new ContentValues();
-                segmentsValues.put(V10_SEGMENTS_ID, newSegmentId);
-                segmentsValues.put(V10_SEGMENTS_DATA, jsonSegmentData.toString());
+                segmentsValues.put(V10_OBJECTS_ID, newSegmentId);
+                segmentsValues.put(V10_OBJECTS_TYPE, 2);
+                segmentsValues.put(V10_OBJECTS_DATA, jsonSegmentData.toString());
                 database.insertWithOnConflict(
-                        V10_TABLE_SEGMENTS, null, segmentsValues, SQLiteDatabase.CONFLICT_REPLACE);
+                        V10_TABLE_OBJECTS, null, segmentsValues, SQLiteDatabase.CONFLICT_REPLACE);
                 // add to id map
                 segmentIdCreatedMap.put(
-                        newSegmentId, cursor.getLong(cursor.getColumnIndex("timestamp")));
-            } catch (JSONException e) {
+                        newSegmentId, cursor.getLong(cursor.getColumnIndexOrThrow("timestamp")));
+            } catch (IllegalArgumentException | JSONException e) {
                 Timber.e("fill segments table error: %1$s", e.getMessage());
             }
         }
         cursor.close();
-        // remove old excluded_ways table
-        database.execSQL(buildDropTableQuery("excluded_ways"));
 
-        // add segments to ContentValues list
+        // add excluded ways to mapping table ContentValues list
         for (Map.Entry<Long,Long> segmentIdCreated : segmentIdCreatedMap.entrySet()) {
             long segmentId = segmentIdCreated.getKey();
             long segmentCreated = segmentIdCreated.getValue();
@@ -384,11 +330,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             mappingTableValuesList.add(mappingTableValues);
         }
 
-        // new routes table
-        //
-        // create
-        database.execSQL(V10_CREATE_TABLE_ROUTES);
-        // copy
+        // copy from routes table
         HashMap<Long,Long> routeIdCreatedMap = new HashMap<Long,Long>();
         String[] oldRouteColumns = new String[] { "_id", "start", "destination",
             "via_point_list", "description", "created", "object_list" };
@@ -398,31 +340,30 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             try {
                 JSONObject jsonV10Route = Route.convertRouteFromWebserverApiV4ToV5(
                         new JSONObject(
-                            cursor.getString(cursor.getColumnIndex("start"))),
+                            cursor.getString(cursor.getColumnIndexOrThrow("start"))),
                         new JSONObject(
-                            cursor.getString(cursor.getColumnIndex("destination"))),
+                            cursor.getString(cursor.getColumnIndexOrThrow("destination"))),
                         new JSONArray(
-                            cursor.getString(cursor.getColumnIndex("via_point_list"))),
-                        cursor.getString(cursor.getColumnIndex("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("via_point_list"))),
+                        cursor.getString(cursor.getColumnIndexOrThrow("description")),
                         new JSONArray(
-                            cursor.getString(cursor.getColumnIndex("object_list"))));
+                            cursor.getString(cursor.getColumnIndexOrThrow("object_list"))));
                 long newRouteId = jsonV10Route.getLong("route_id");
                 // create values list
                 ContentValues routesValues = new ContentValues();
-                routesValues.put(V10_ROUTES_ID, newRouteId);
-                routesValues.put(V10_ROUTES_DATA, jsonV10Route.toString());
+                routesValues.put(V10_OBJECTS_ID, newRouteId);
+                routesValues.put(V10_OBJECTS_TYPE, 3);
+                routesValues.put(V10_OBJECTS_DATA, jsonV10Route.toString());
                 database.insertWithOnConflict(
-                        V10_TABLE_ROUTES, null, routesValues, SQLiteDatabase.CONFLICT_REPLACE);
+                        V10_TABLE_OBJECTS, null, routesValues, SQLiteDatabase.CONFLICT_REPLACE);
                 // add to id map
                 routeIdCreatedMap.put(
-                        newRouteId, cursor.getLong(cursor.getColumnIndex("created")));
-            } catch (JSONException e) {
+                        newRouteId, cursor.getLong(cursor.getColumnIndexOrThrow("created")));
+            } catch (IllegalArgumentException | JSONException e) {
                 Timber.e("route conversion error: %1$s", e.getMessage());
             }
         }
         cursor.close();
-        // remove old route table
-        database.execSQL(buildDropTableQuery("route"));
 
         // add routes to ContentValues list
         for (Map.Entry<Long,Long> routeIdCreated : routeIdCreatedMap.entrySet()) {
@@ -435,7 +376,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             mappingTableValues.put(V10_MAPPING_ACCESSED, routeCreated);
             mappingTableValues.put(V10_MAPPING_CREATED, routeCreated);
             mappingTableValuesList.add(mappingTableValues);
-            // all segments profile
+            // all routes profile
             mappingTableValues = new ContentValues();
             mappingTableValues.put(V10_MAPPING_PROFILE_ID, 5999999);
             mappingTableValues.put(V10_MAPPING_OBJECT_ID, routeId);
@@ -462,15 +403,21 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         cursor = database.query(
                 "poi_profile", new String[]{"name", "category_id_list"}, null, null, null, null, "_id ASC");
         while (cursor.moveToNext()) {
-            ContentValues poiProfileValues = new ContentValues();
-            poiProfileValues.put(V10_POI_PROFILE_NAME, cursor.getString(cursor.getColumnIndex("name")));
-            poiProfileValues.put(V10_POI_PROFILE_CATEGORY_ID_LIST, cursor.getString(cursor.getColumnIndex("category_id_list")));
-            poiProfileValues.put(V10_POI_PROFILE_INCLUDE_FAVORITES, 0);
-            database.insertWithOnConflict(
-                    V10_TABLE_POI_PROFILE, null, poiProfileValues, SQLiteDatabase.CONFLICT_REPLACE);
+            try {
+                ContentValues poiProfileValues = new ContentValues();
+                poiProfileValues.put(V10_POI_PROFILE_NAME, cursor.getString(cursor.getColumnIndexOrThrow("name")));
+                poiProfileValues.put(V10_POI_PROFILE_CATEGORY_ID_LIST, cursor.getString(cursor.getColumnIndexOrThrow("category_id_list")));
+                poiProfileValues.put(V10_POI_PROFILE_INCLUDE_FAVORITES, 0);
+                database.insertWithOnConflict(
+                        V10_TABLE_POI_PROFILE, null, poiProfileValues, SQLiteDatabase.CONFLICT_REPLACE);
+            } catch (IllegalArgumentException e) {}
         }
         cursor.close();
-        // remove old poi_profile table
+
+        // cleanup
+        database.execSQL(buildDropTableQuery("fp_points"));
+        database.execSQL(buildDropTableQuery("excluded_ways"));
+        database.execSQL(buildDropTableQuery("route"));
         database.execSQL(buildDropTableQuery("poi_profile"));
     }
 

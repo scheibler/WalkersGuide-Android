@@ -5,9 +5,11 @@
          abstract activity and app wide menu
     -->
 
-    <!-- AbstractActivity -->
+    <!-- ToolbarActivity -->
+    <string name="toolbarSensorPrefixPosition">Position</string>
+    <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">outdated</string>
-    <string name="toolbarCompassCalibrationRequired">calibrate</string>
+    <string name="toolbarSensorCalibrationRequired">calibrate</string>
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
@@ -15,28 +17,34 @@
     <string name="menuItemSaveCurrentLocation">Save current location</string>
     <string name="menuItemLastPoints">Last points</string>
     <string name="menuItemLastRoutes">Last routes</string>
-    <string name="menuItemLastSegments">Last ways</string>
     <string name="menuItemHikingTrails">Hiking trails</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
 
-    <!-- select direction source dialog -->
-    <string name="directionDetailsDialogTitle">Direction details</string>
-    <string name="directionSourceCompass">Compass</string>
-    <string name="directionSourceGPS">Satellite</string>
-    <string name="directionSourceSimulated">Simulation</string>
-    <string name="buttonEnableDirectionSimulation">Enable direction simulation</string>
+    <!-- enable location dialog -->
+    <string name="enableLocationDialogTitle">Enable location service?</string>
+    <string name="enableLocationDialogMessage">Please enable your smartphones location
+        service, to receive location updates.</string>
+    <string name="messageLocationProviderDisabled">Location service disabled. The app won\'t receive any location updates</string>
+
+    <!-- app info dialog -->
+    <string name="appInfoDialogTitle">Location permission</string>
+    <string name="appInfoDialogMessage">The app requires the location permission to
+        receive location updates. Please click \"OK\", then \"permissions\" and select
+        \"location\" from the permission list.</string>
+    <string name="messageLocationPermissionDenied">Location permission denied. The app won\'t receive any location updates</string>
+
+    <!-- BearingDetailsDialog -->
+    <string name="bearingDetailsDialogTitle">Bearing details</string>
+    <string name="buttonEnableBearingSimulation">Enable simulation</string>
+    <string name="labelForDegreeEditText">Degree:</string>
 
     <!-- LocationDetailsDialog -->
     <string name="locationDetailsDialogTitle">Location details</string>
-    <string name="locationSourceGPS">Position</string>
-    <string name="locationSourceSimulatedPoint">Simulation</string>
-    <string name="buttonWhereAmI">Where am I?</string>
-    <string name="buttonSaveCurrentLocation">Save location</string>
-    <string name="labelLocationSensorDetailsHeading">Location sensor</string>
-    <string name="buttonLocationSensorDetails">Show location sensor details</string>
-    <string name="buttonEnableLocationSimulation">Enable location simulation</string>
+    <string name="labelCurrentLocationHeading">Current location</string>
+    <string name="buttonActionForCurrentLocation">Actions for the current location</string>
+    <string name="buttonEnableLocationSimulation">Enable simulation</string>
 
     <!-- LocationSensorDetailsDialog -->
     <string name="locationSensorDetailsDialogTitle">Location sensor details</string>
@@ -66,6 +74,7 @@
     <string name="pointSelectFromFavoritePoints">Favorites</string>
     <string name="pointSelectFromHistoryPoints">history</string>
     <string name="pointSelectFromPOI">Select from POI</string>
+    <string name="pointSelectFromCoordinatesLink">Import from url</string>
 
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Enter Address:</string>
@@ -76,41 +85,40 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Enter Coordinates:</string>
-    <string name="labelName">Name</string>
-    <string name="hintNameIsOptional">Name is optional</string>
     <string name="messageLatitudeMissing">Missing or invalid latitude value.</string>
     <string name="messageLongitudeMissing">Missing or invalid longitude value.</string>
-    <string name="messageCantCreatePointFromCoordinates">Could not create address or point from coordinates.</string>
+
+    <!-- point from coordinates link dialog -->
+    <string name="pointFromCoordinatesLinkDialogTitle">Enter coordinates link:</string>
+    <string name="editHintMapLinkURL">Google maps, Apple maps or OSM url</string>
+    <string name="messageLinkUrlMissing">Coordinates url is missing.</string>
+    <string name="messageAppleMapsUrlFormatUnknown">Could not extract latitude and longitude. The Apple maps Coordinates url format is unknown.</string>
+    <string name="messageGoogleMapsUrlFormatUnknown">Could not extract latitude and longitude. The Google maps Coordinates url format is unknown.</string>
+    <string name="messageOsmOrgUrlFormatUnknown">Could not extract latitude and longitude. The OpenStreetMap Coordinates url format is unknown.</string>
+    <string name="messageOsmAndUrlFormatUnknown">Could not extract latitude and longitude. The OsmAnd Coordinates url format is unknown.</string>
+    <string name="messageLinkContainsInvalidCoordinates">Found invalid coordinates.</string>
+    <string name="messageLinkUrlFormatUnknown">Coordinates url format is unknown. Please enter either an OpenStreetMap, a Google maps or an Apple maps coordinates url.</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
-    <string name="buttonStartPoint">Start</string>
-    <string name="buttonViaPoint">Via</string>
-    <string name="buttonDestinationPoint">Destination</string>
-    <string name="labelNoPointSelected">No point selected</string>
-    <string name="buttonSimulationPoint">Simulation</string>
-    <string name="buttonNewRoute">New</string>
-    <string name="buttonNewRouteCD">New route</string>
-    <string name="buttonAddViaPoint">Via</string>
-    <string name="buttonAddViaPointCD">Add via point</string>
-    <string name="buttonSwapRoute">Swap</string>
-    <string name="buttonSwapRouteCD">Swap start and destination</string>
-    <string name="labelRouteOptions">Router options:</string>
-    <string name="buttonExcludedWays">Excluded ways</string>
-    <string name="buttonRoutingWayClasses">Way classes</string>
-    <string name="buttonGetRoute">Get route</string>
+    <string name="switchShowViaPointList">Show via points</string>
+    <!-- options menu -->
+    <string name="planRouteMenuItemSwap">Swap start and destination</string>
+    <string name="planRouteMenuItemExcludedWays">Excluded ways</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Way classes</string>
+    <string name="planRouteMenuItemClear">Clear points</string>
 
-    <!-- ExcludedWaysDialog -->
-    <string name="excludedWaysDialogTitle">These ways have been excluded from routing:</string>
-
-    <!-- SelectRoutingWayClassesDialog -->
-    <string name="selectRoutingWayClassesDialogTitle">Prioritize way classes:</string>
+    <!-- ConfigureWayClassWeightsDialog -->
+    <string name="configureWayClassWeightsDialogTitle">Prioritise way classes:</string>
 
     <!-- WhereAmIDialog -->
     <string name="whereAmIDialogTitle">Where am I?</string>
 
     <!-- SaveCurrentLocationDialog -->
     <string name="saveCurrentLocationDialogTitle">Save current location:</string>
+    <string name="labelName">Name</string>
+    <string name="buttonLocationSensorDetails">Show location sensor details</string>
+    <string name="messageNameMissing">Please enter a name.</string>
 
 
     <!--
@@ -121,63 +129,47 @@
     <string name="app_name">WalkersGuide</string>
     <string name="openNavigationDrawer">Open menu</string>
     <string name="closeNavigationDrawer">Close menu</string>
-    <!-- fragment names -->
-    <string name="fragmentRouterName">Router</string>
-    <string name="fragmentPOIName">POI</string>
 
     <!-- router fragment -->
-    <string name="buttonRouteCommandList">Route overview</string>
+    <string name="fragmentRouterName">Router</string>
     <string name="labelRoutePosition">Instruction %1$d of %2$d</string>
     <string name="buttonPreviousRouteObject">Previous</string>
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
     <string name="buttonNextRouteObject">Next</string>
     <string name="buttonNextRouteObjectCD">Next route point</string>
-    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s</string>
-    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s</string>
-    <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
-    <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
     <!-- more options menu -->
-    <string name="menuItemRouteHistory">Route history</string>
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
     <string name="menuItemSkipToFirstRoutePoint">Back to first point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
 
-    <!-- RouteDetailsFragment -->
-    <string name="routeDetailsFragmentTitle">Route details</string>
-
-    <!-- route object list menu -->
-    <string name="menuItemJumpToRouteObject">Jump to object</string>
-    <string name="menuItemShowSegmentDetails">Segment details</string>
-    <string name="menuItemShowPointDetails">Point details</string>
-
-    <!-- route history dialog -->
-    <string name="routeHistoryDialogTitle">Route history</string>
-
-
-    <!--
-        poi
-    --> 
-
     <!-- ObjectListFragment -->
-    <string name="labelSearch">Search:</string>
-    <string name="buttonClearSearch">Clear search</string>
     <!-- toolbar menu -->
     <string name="menuItemJumpToTop">Jump to top of list</string>
     <string name="menuItemFilterResult">Filter by viewing direction</string>
     <string name="menuItemSortMethod">Sort method</string>
-    <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
-    <string name="selectProfileDialogTitle">Select profile:</string>
-    <string name="buttonNewProfile">New profile</string>
 
     <!-- SimpleObjectListFragment -->
-    <!-- Entrances -->
     <string name="fragmentEntrancesName">Entrances</string>
-    <string name="labelNumberOfEntrancesSuccess">%1$s found</string>
-    <!-- PedestrianCrossings -->
     <string name="fragmentPedestrianCrossingsName">Crossings</string>
-    <string name="labelNumberOfPedestrianCrossingsSuccess">%1$s nearby:</string>
+
+    <!-- IntersectionStructureFragment -->
+    <string name="fragmentIntersectionStructureName">Intersection structure</string>
+    <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$s\nViewing direction: %2$s</string>
+    <string name="labelPartOfPreviousRouteSegment">Previous route segment</string>
+    <string name="labelPartOfNextRouteSegment">Next route segment</string>
+
+    <!-- ExtendedObjectListFragment -->
+    <string name="buttonSelectProfile">Profile: %1$s</string>
+    <string name="buttonSelectProfileNone">Profile: None selected</string>
+    <string name="hintSearch">Search</string>
+    <string name="buttonClearSearch">Clear search</string>
+
+    <!-- HikingTrailListFromServerFragment -->
+    <string name="fragmentHikingTrailListName">Hiking trails</string>
+    <string name="labelHikingTrailsHeading">%1$s within %2$s</string>
+    <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
     <string name="fragmentFavoritesName">Favorites</string>
@@ -185,108 +177,66 @@
     <string name="fragmentRouteHistoryName">Route history</string>
 
     <!-- PoiFromServerFragment -->
-    <string name="buttonSelectProfile">Profile: %1$s</string>
-    <string name="buttonSelectProfileNone">Profile: None selected</string>
-    <string name="buttonSelectProfileCD">Profile: %1$s.\nSelected Categories: %2$s</string>
-    <!-- dialog titles -->
-    <string name="poiFragmentHistoryPointProfileDialogTitle">Select from point history:</string>
-    <string name="poiFragmentPOIProfileDialogTitle">Select from POI:</string>
-    <!-- ContentType HISTORY_POINTS-->
-    <string name="labelSelectHistoryPointDialogHeaderSuccess">%1$s\nSorted by %2$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSuccessFiltered">Filtered: %1$s\nSorted by %2$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSearch">%1$s\nFor: %2$s\nSorted by %3$s</string>
-    <string name="labelSelectHistoryPointDialogHeaderSearchFiltered">Filtered: %1$s\nFor: %2$s\nSorted by %3$s</string>
-    <!-- ContentType POI-->
+    <string name="fragmentPOIName">POI</string>
+    <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
     <string name="labelPOIFragmentHeaderSuccess">%1$s\nRadius: %2$s</string>
-    <string name="labelPOIFragmentHeaderSuccessFiltered">Filtered: %1$s\nRadius: %2$s</string>
-    <string name="labelPOIFragmentHeaderSearch">%1$s\nFor: %2$s\nRadius: %3$s</string>
-    <string name="labelPOIFragmentHeaderSearchFiltered">Filtered: %1$s\nFor: %2$s\nRadius: %3$s</string>
     <string name="labelMoreResults">Get more POI</string>
 
-    <!-- select history point profile dialog -->
-    <string name="selectHistoryPointProfileDialogTitle">Select history point profile:</string>
-
-    <!-- SelectServerPointProfileDialog -->
-    <string name="buttonAddServerPointProfile">Add profile</string>
-    <string name="menuItemEditProfile">Edit profile</string>
-    <string name="menuItemRemoveProfile">Remove profile</string>
+    <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
+    <string name="selectProfileDialogTitle">Select profile:</string>
+    <!-- poi profile menu -->
+    <string name="poiProfileMenuItemEdit">Edit</string>
+    <string name="poiProfileMenuItemRemove">Remove</string>
 
     <!-- SelectPoiCategoriesDialog -->
     <string name="selectPoiCategoriesDialogTitle">Select POI categories:</string>
 
-    <!-- CreateOrModifyServerPointProfileDialog -->
+    <!-- ManagePoiProfileDialog -->
     <string name="newProfileDialogTitle">Create profile</string>
     <string name="modifyProfileDialogTitle">Edit profile</string>
+    <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
     <string name="labelProfileName">Name:</string>
-    <string name="buttonIncludeFavorites">Include favorites</string>
+    <string name="switchIncludeFavorites">Include favorites</string>
     <string name="buttonSelectPoiCategories">POI categories: %1$d selected</string>
     <string name="messageProfileNameMissing">Please enter a profile name.</string>
     <string name="messageProfileExists">The profile with the name %1$s already exists.</string>
     <string name="messageCouldNotCreateProfile">The profile could not be created.</string>
     <string name="messageCouldNotModifyProfile">The profile could not be modified.</string>
-
-    <!-- RemoveServerPointProfileDialog -->
-    <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
     <string name="messageCouldNotRemoveProfile">The profile could not be removed.</string>
+
+    <!-- SelectSortMethodDialog -->
+    <string name="selectSortMethodDialogTitle">Select sort method:</string>
 
 
     <!--
-         other activities
+         details activities and fragments
     -->
 
     <!-- point details activity -->
     <string name="pointDetailsActivityTitle">Details</string>
-    <string name="labelPointName">Name: %1$s</string>
     <string name="labelPointType">Type: %1$s</string>
-    <string name="labelPointDistanceAndBearing">Distance: %1$s, %2$s</string>
-    <string name="buttonPointFavorite">Favorite</string>
-    <string name="buttonPointSimulateLocation">Simulate</string>
-    <string name="buttonAddToRoute">Route</string>
-    <string name="menuItemAsRouteStartPoint">Use as start</string>
-    <string name="menuItemAsRouteViaPoint">Use as via %1$d</string>
-    <string name="menuItemAsRouteDestinationPoint">Use as destination</string>
+    <string name="labelPointDistanceAndBearing">Distance: %1$s</string>
 
-    <!-- select poi profiles for point dialog -->
-    <string name="selectPOIProfilesForPointDialogName">Add favorite to POI profile:</string>
+    <!-- segment details activity -->
+    <string name="segmentDetailsActivityTitle">Details</string>
+    <string name="labelSegmentType">Type: %1$s</string>
+    <string name="labelSegmentDirection">Direction: %1$s</string>
 
-    <!-- DeparturesFragment -->
-    <string name="fragmentDeparturesName">Departures</string>
-    <string name="menuItemPublicTransportProvider">Public transport provider</string>
-    <string name="menuItemSelectDepartureDateAndTime">Departure time</string>
-    <string name="labelNearby">Nearby</string>
-    <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
-    <!-- DepartureAdapter -->
-    <string name="labelDepartureAdapter">%1$s %2$s\nto %3$s\n%4$s %5$s</string>
-    <string name="labelDepartureAdapterCD">%1$s %2$s,\nto %3$s,\n%4$s, %5$s</string>
-    <string name="labelFromPlatform">From platform %1$s</string>
-
-    <!-- SelectPtStationDialog -->
-    <string name="selectPtStationDialogTitle">Select station:</string>
-
-    <!-- SelectDepartureDateAndTimeDialog -->
-    <string name="selectDepartureDateAndTimeDialogTitle">Select departure date and time:</string>
-
-    <!-- TripDetailsFragment -->
-    <string name="fragmentTripDetailsName">Trip details</string>
-    <string name="labelDepartureDetails">Station: %1$s\n%2$s %3$s to %4$s\nDeparture %5$s %6$s</string>
-    <string name="switchSimulateNearbyStationLocation">Simulate station location</string>
-    <string name="labelNoMoreStops">The line arrived at its destination stop.</string>
-    <!-- TripAdapter -->
-    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
-    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
-
-    <!-- IntersectionWaysFragment -->
-    <string name="fragmentIntersectionStructureName">Intersection structure</string>
-    <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$s\nViewing direction: %2$s</string>
-    <string name="labelPartOfPreviousRouteSegment">Previous route segment</string>
-    <string name="labelPartOfNextRouteSegment">Next route segment</string>
-    <!-- toolbar menu: menu_toolbar_intersection_ways_fragment -->
-    <string name="menuItemRefresh">Refresh</string>
-    <string name="menuItemCancel">Cancel</string>
-    <string name="menuItemAutoUpdate">Auto-update</string>
+    <!-- HikingTrailDetailsFragment -->
+    <string name="fragmentHikingTrailDetailsName">Hiking trail details</string>
+    <string name="labelTrailName">Name</string>
+    <string name="labelTrailDescription">Description</string>
+    <string name="labelTrailLength">Length</string>
+    <string name="labelTrailSymbol">Symbol</string>
+    <!-- distances -->
+    <string name="labelTrailDistancesHeading">Distances from current position</string>
+    <string name="labelDistanceToTrailStart">Start point</string>
+    <string name="labelDistanceToTrailDestination">Destination point</string>
+    <string name="labelDistanceToTrailClosest">Closest route point</string>
 
     <!-- PointDetailsFragment -->
     <string name="fragmentPointDetailsName">Details</string>
+    <string name="menuItemOpenOsmWebsite">Show on OpenStreetMap.org</string>
     <!-- entrance -->
     <string name="labelPointEntranceAttributesHeading">Entrance</string>
     <string name="labelPointEntranceLabel">Label:</string>
@@ -338,16 +288,10 @@
     <string name="labelPointCoordinatesHeading">Coordinates</string>
 
 
-    <!-- segment details activity -->
-    <string name="segmentDetailsActivityTitle">Details</string>
-    <string name="labelSegmentName">Name: %1$s</string>
-    <string name="labelSegmentType">Type: %1$s</string>
-    <string name="labelSegmentDirection">Direction: %1$s</string>
-    <string name="buttonSegmentExcludeFromRouting">Exclude</string>
-    <string name="buttonSegmentSimulateDirection">Simulate</string>
-
-    <!-- SetNameForExcludedWayDialog -->
-    <string name="setNameForExcludedWayDialogTitle">Exclude way segment from routing:</string>
+    <!-- RouteDetailsFragment -->
+    <string name="fragmentRouteDetailsName">Route details</string>
+    <string name="fragmentStreetCourseDetailsName">Street course</string>
+    <string name="menuItemLoadRoute">Load route</string>
 
     <!-- SegmentDetailsFragment -->
     <string name="fragmentSegmentDetailsName">Details</string>
@@ -359,7 +303,7 @@
     <string name="labelSegmentRouteDistance">Distance:</string>
     <!-- segment attributes -->
     <string name="labelSegmentFootwayAttributesHeading">Attributes</string>
-    <string name="labelSegmentBearing">Bearing: %1$d°, %2$s</string>
+    <string name="labelSegmentBearing">Bearing</string>
     <string name="labelSegmentFootwayDescription">Description</string>
     <string name="labelSegmentFootwaySidewalk">Sidewalk</string>
     <string name="labelSegmentFootwaySurface">Surface</string>
@@ -369,61 +313,76 @@
     <string name="labelSegmentFootwayMaxSpeed">Max. speed (default=km/h)</string>
     <string name="labelSegmentFootwaySegregated">Cycleway segregated</string>
     <string name="labelSegmentFootwayTram">Tram rails</string>
-    <!-- user attributes -->
-    <string name="labelSegmentUserAttributesHeading">User attributes</string>
-    <string name="labelSegmentUserDescription">Description</string>
 
-    <!-- NextIntersectionsFragment -->
-    <string name="fragmentNextIntersectionsName">Road course</string>
-    <string name="labelNextIntersectionsSuccess">%1$s found\nTotal length: %2$s</string>
 
-    <!-- settings activity -->
+    <!--
+         pt departures and trips
+    -->
+
+    <!-- DeparturesFragment -->
+    <string name="fragmentDeparturesName">Departures</string>
+    <string name="menuItemPublicTransportProvider">Public transport provider</string>
+    <string name="menuItemSelectDepartureDateAndTime">Departure time</string>
+    <string name="labelNearby">Nearby</string>
+    <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
+    <!-- DepartureAdapter -->
+    <string name="labelDepartureAdapter">%1$s %2$s\nto %3$s\n%4$s %5$s</string>
+    <string name="labelDepartureAdapterCD">%1$s %2$s,\nto %3$s,\n%4$s, %5$s</string>
+    <string name="labelFromPlatform">From platform %1$s</string>
+
+    <!-- SelectPtStationDialog -->
+    <string name="selectPtStationDialogTitle">Select station:</string>
+
+    <!-- select public transport provider  dialog -->
+    <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
+
+    <!-- SelectDepartureDateAndTimeDialog -->
+    <string name="selectDepartureDateAndTimeDialogTitle">Select departure date and time:</string>
+
+    <!-- TripDetailsFragment -->
+    <string name="labelNoMoreStops">The line arrived at its destination stop.</string>
+    <!-- TripAdapter -->
+    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
+    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
+
+
+    <!--
+         info and settings
+    -->
+
+    <!-- settings fragment -->
     <string name="fragmentSettingsName">Settings</string>
-    <string name="settingsActivityTitle">Settings</string>
-    <string name="labelServerSettingsHeader">Server:</string>
+    <string name="labelServerSettingsHeader">WalkersGuide server:</string>
     <string name="buttonServerURL">URL: %1$s</string>
     <string name="buttonServerURLNoSelection">URL: None selected</string>
     <string name="buttonServerMap">Map: %1$s</string>
     <string name="buttonServerMapNoSelection">Map: None selected</string>
     <string name="buttonPublicTransportProvider">Public transport: %1$s</string>
     <string name="buttonPublicTransportProviderNoSelection">Public transport: None selected</string>
-    <string name="buttonAddressProvider">Address resolver: %1$s</string>
-    <string name="buttonAddressProviderNoSelection">Address resolver: None selected</string>
-    <string name="labelInterfaceSettingsHeader">Interface:</string>
+    <string name="labelInterfaceSettingsHeader">User interface:</string>
+    <string name="buttonShowActionButton">Show action button</string>
     <string name="buttonEnableTextInputHistory">Enable local text input history</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
     <string name="buttonExportSettings">Export application settings</string>
+    <!-- import messages -->
+    <string name="labelProceedWithImport">Do you want to proceed with the import?</string>
+    <string name="labelImportSuccessful">Import successful.</string>
+    <string name="labelImportFailed">Import failed.</string>
     <!-- export messages -->
-    <string name="labelWriteExternalStoragePermissionDenied">Permission denied: Import and export not possible.</string>
-    <string name="labelOverwriteExistingSettings">Import settings already present. Do you really want to overwrite them?</string>
-    <string name="labelExportSuccessful">Export successful.\nPlease copy the created folder %1$s to your new device.</string>
+    <string name="labelExportSuccessful">Export successful.</string>
     <string name="labelExportFailed">Export failed.</string>
 
-    <!-- new server dialog -->
-    <string name="newServerDialogTitle">New server:</string>
+    <!-- ChangeServerUrlDialog -->
+    <string name="changeServerUrlDialogTitle">New WalkersGuide server:</string>
     <string name="editHintServerURL">Server URL</string>
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Select map:</string>
 
-    <!-- select address provider dialog -->
-    <string name="selectAddressProviderDialogTitle">Select address resolver:</string>
-    <string name="addressProviderGoogle">Google</string>
-    <string name="addressProviderOSM">OpenStreetMap</string>
-
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
-
-    <!-- import settings dialog -->
-    <string name="importSettingsDialogTitle">Import settings:</string>
-    <string name="labelImportReady">Import data found: Ready to begin.\n\nPlease beware,
-        that this is highly experimental. Make sure, that the WalkersGuide program
-        versions from export and import are identical, to prevent data loss.</string>
-    <string name="labelImportDataNotFound">%1$s not found.</string>
-    <string name="labelImportSuccessful">Import successful.</string>
-    <string name="labelImportFailed">Import failed.</string>
 
     <!-- info fragment -->
     <string name="fragmentInfoName">Info</string>
@@ -438,79 +397,6 @@
     <string name="labelSelectedMapName">Map:</string>
     <string name="labelSelectedMapCreated">Created:</string>
 
-
-    <!-- selector fragments -->
-
-    <!-- SelectSortMethodDialog -->
-    <string name="selectSortMethodDialogTitle">Select sort method:</string>
-
-
-    <!--
-         TextViewAndActionButton
-    -->
-
-    <!-- layout -->
-    <string name="labelIsFavoriteShort">Favorite</string>
-    <string name="labelIsFavoriteLong">Is part of favorites</string>
-    <string name="buttonActionFor">Actions for</string>
-    <string name="labelNothingSelected">Nothing selected</string>
-
-    <!-- label config -->
-    <string name="labelPrefixStart">Start</string>
-    <string name="labelPrefixVia">Via %1$d</string>
-    <string name="labelPrefixDestination">Destination</string>
-    <string name="labelPrefixSimulation">Simulation</string>
-
-    <!-- object context menu -->
-    <string name="menuItemAddToFavorites">Add to favorites</string>
-    <string name="menuItemRemoveFromFavorites">Remove favorite</string>
-    <string name="menuItemAddToExcludeFromRouting">Exclude from routing</string>
-    <string name="menuItemRemoveExcludeFromRouting">Include in routing again</string>
-    <string name="menuItemStartSimulation">Simulate point location</string>
-    <string name="menuItemEndSimulation">End simulation</string>
-    <string name="menuItemRoutePlanner">Route planner</string>
-    <string name="menuItemOpenStreetMap">Show on OpenStreetMap.org</string>
-    <!-- routeplanner context submenu -->
-    <string name="menuItemUseAsStartPoint">As start point</string>
-    <string name="menuItemUseAsViaPoint1">As via point 1</string>
-    <string name="menuItemUseAsViaPoint2">As via point 2</string>
-    <string name="menuItemUseAsViaPoint3">As via point 3</string>
-    <string name="menuItemUseAsDestinationPoint">As destination point</string>
-
-
-
-    <!--
-         other dialogs and layouts
-    -->
-
-    <!-- SelectIntegerDialog -->
-    <string name="selectIntegerDialogTitleCompassDirection">Select compass direction:</string>
-
-    <!-- RenameObjectDialog -->
-    <string name="renamePointDialogTitle">Rename point</string>
-    <string name="renameSegmentDialogTitle">Rename segment</string>
-    <string name="messageRenameObjectFailed">Rename object failed.</string>
-
-    <!-- HikingTrailsDialog -->
-    <string name="hikingTrailsDialogTitle">Hiking trails</string>
-    <string name="labelHikingTrailsHeading">%1$s within %2$d km</string>
-    <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
-
-    <!-- TrailDetailsDialog -->
-    <string name="trailDetailsDialogTitle">Hiking trail details</string>
-    <string name="labelTrailName">Name</string>
-    <string name="labelTrailDescription">Description</string>
-    <string name="labelTrailLength">Length</string>
-    <string name="labelTrailSymbol">Symbol</string>
-    <!-- distances -->
-    <string name="labelTrailDistancesHeading">Distances from current position</string>
-    <string name="labelDistanceToTrailStart">Start point</string>
-    <string name="labelDistanceToTrailDestination">Destination point</string>
-    <string name="labelDistanceToTrailClosest">Closest route point</string>
-    <!-- menu_button_hiking_trails_dialog -->
-    <string name="menuItemDirectionForwards">Start to destination</string>
-    <string name="menuItemDirectionBackwards">Destination to Start</string>
-
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Send feedback:</string>
     <string name="sendFeedbackDialogTitleMissingMap">Request: OSM map</string>
@@ -520,25 +406,100 @@
     <string name="labelMessageMissingMap">The map of which country is missing?</string>
     <string name="labelMessageMissingPtProvider">Which public transport provider is missing?</string>
     <string name="messageSendFeedbackSuccessful">Message sent successfully.</string>
+    <string name="messageFeedbackMessageIsEmpty">Please enter a message.</string>
+
+
+    <!--
+         TextViewAndActionButton
+    -->
+
+    <!-- layout -->
+    <string name="labelIsFavorite">Favorite</string>
+    <string name="buttonActionFor">Actions for</string>
+    <string name="labelNothingSelected">Nothing selected</string>
+
+    <!-- label prefix -->
+    <string name="labelPrefixStart">Start</string>
+    <string name="labelPrefixVia1">Via 1</string>
+    <string name="labelPrefixVia2">Via 2</string>
+    <string name="labelPrefixVia3">Via 3</string>
+    <string name="labelPrefixDestination">Destination</string>
+    <string name="labelPrefixSimulation">Simulation</string>
+    <string name="labelPrefixYouAreAt">You are at</string>
+
+    <!-- object context menu -->
+    <string name="objectMenuItemDetails">Details</string>
+    <string name="objectMenuItemDepartures">Departures</string>
+    <string name="objectMenuItemLoad">Load</string>
+    <string name="objectMenuItemStreetCourse">Street course</string>
+    <string name="objectMenuItemSave">Save</string>
+    <string name="objectMenuItemRename">Rename</string>
+    <string name="objectMenuItemResetLayout">Clear</string>
+    <string name="objectMenuItemAddToFavorites">Add to favorites</string>
+    <string name="objectMenuItemRemoveFromFavorites">Remove from favorites</string>
+    <string name="objectMenuItemAddToExcludeFromRouting">Exclude from routing</string>
+    <string name="objectMenuItemRemoveExcludeFromRouting">Include into routing again</string>
+    <string name="objectMenuItemStartLocationSimulation">Simulate location</string>
+    <string name="objectMenuItemStartBearingSimulation">Simulate bearing</string>
+    <string name="objectMenuItemEndSimulation">End simulation</string>
+    <string name="objectMenuItemRoutePlanner">Route planner</string>
+    <string name="objectMenuItemShareCoordinates">Share</string>
+    <!-- routeplanner context submenu -->
+    <string name="objectMenuItemUseAsStartPoint">As start point</string>
+    <string name="objectMenuItemUseAsViaPoint1">As via point 1</string>
+    <string name="objectMenuItemUseAsViaPoint2">As via point 2</string>
+    <string name="objectMenuItemUseAsViaPoint3">As via point 3</string>
+    <string name="objectMenuItemUseAsDestinationPoint">As destination point</string>
+    <!-- share coordinates context submenu -->
+    <string name="objectMenuItemShareOsmOrgLink">OpenStreetMap</string>
+    <string name="objectMenuItemShareGoogleMapsLink">Google maps</string>
+    <string name="objectMenuItemShareAppleMapsLink">Apple maps</string>
+
+
+    <!--
+         other dialogs and layouts
+    -->
+
+    <!-- RenameObjectDialog -->
+    <string name="renamePointDialogTitle">Rename point</string>
+    <string name="renameRouteDialogTitle">Rename route</string>
+    <string name="renameSegmentDialogTitle">Rename segment</string>
+    <string name="messageRenameObjectFailed">Rename object failed.</string>
 
     <!-- layout_heading_and_list_view_with_refresh_button -->
     <string name="buttonRefresh">Refresh</string>
     <string name="buttonCancel">Cancel</string>
 
+    <!-- layout_edit_text_and_clear_input_button -->
+    <string name="buttonClearInput">Clear</string>
+    <string name="buttonClearInputWithLabel">Clear %1$s</string>
+
+    <!-- RouteObjectView -->
+    <string name="labelSelectedRouteObject">Next way segment:</string>
+
+    <!-- dialog button labels -->
+    <string name="dialogOK">OK</string>
+    <string name="dialogCancel">Cancel</string>
+    <string name="dialogBack">Back</string>
+    <string name="dialogClose">Close</string>
+    <string name="dialogYes">Yes</string>
+    <string name="dialogNo">No</string>
+    <string name="dialogSelectAll">All</string>
+    <string name="dialogClear">Clear</string>
+    <string name="dialogCalculate">Calculate</string>
+    <string name="dialogDefault">Default</string>
+    <string name="dialogNew">New</string>
+    <string name="dialogNow">Now</string>
+    <string name="dialogOptions">Options</string>
+    <string name="dialogRefresh">Refresh</string>
+    <string name="dialogSend">Send</string>
+    <string name="dialogSomethingMissing">Something missing?</string>
+    <string name="messagePleaseWait">Please wait…</string>
+
 
     <!--
          points
     -->
-
-    <!-- point types -->
-    <string name="pointTypeStation">Station</string>
-    <string name="pointTypeEntrance">Entrance</string>
-    <string name="pointTypePOI">POI</string>
-    <string name="pointTypeStreetAddress">Address</string>
-    <string name="pointTypeGPS">GPS</string>
-    <string name="pointTypeIntersection">Intersection</string>
-    <string name="pointTypePedestrianCrossing">PED crossing></string>
-    <string name="pointTypePoint">Way point</string>
 
     <!-- Point -->
     <!-- TactilePaving -->
@@ -551,7 +512,7 @@
     <string name="wheelchairYes">Yes</string>
 
     <!-- gps point -->
-    <string name="currentLocationName">GPS location</string>
+    <string name="gpsPointSubtype">GPS location</string>
 
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Intersection with %1$s</string>
@@ -563,55 +524,110 @@
 
     <!-- StationPoint -->
     <string name="stationLines">Lines: %1$s</string>
-    <string name="stationExactStopPosition">, precise station location available</string>
-    <string name="stationNoExactStopPosition">, precise station location not available</string>
+
+    <!-- StreetAddress -->
+    <string name="streetAddressPointSubtype">Address</string>
 
 
     <!--
          segments
     -->
 
-    <!-- segment types -->
-    <string name="segmentTypeIntersection">Intersection segment</string>
-    <string name="segmentTypeRoute">Route segment</string>
-    <string name="segmentTypeFootway">Segment</string>
+    <!-- segment -->
+    <!-- sidewalk -->
+    <string name="sidewalkNo">No</string>
+    <string name="sidewalkLeft">On the left</string>
+    <string name="sidewalkRight">On the right</string>
+    <string name="sidewalkBoth">On both sides</string>
 
-    <!-- DatabaseSegmentProfile -->
-    <string name="databaseSegmentProfileFavorites">Favorites</string>
-    <string name="databaseSegmentProfileExcludedFromRouting">Excluded ways from routing</string>
-    <string name="databaseSegmentProfileAllSegments">All segments</string>
+    <!-- route segment -->
+    <string name="routeSegmentNameUnknown">Way segment</string>
+    <string name="routeSegmentToString">%1$s at %2$s</string>
 
-    <!-- DatabaseRouteProfile -->
-    <string name="databaseRouteProfileFavorites">Favorites</string>
-    <string name="databaseRouteProfilePlannedRoutes">Planned routes</string>
-    <string name="databaseRouteProfileStreetCourses">Street courses</string>
-    <string name="databaseRouteProfileRecordedRoutes">Recorded routes</string>
-    <string name="databaseRouteProfileAllRoutes">All routes</string>
+
+    <!--
+         angles
+    -->
+
+    <!-- Bearing -->
+    <!-- Orientation -->
+    <string name="orientationNorth">North</string>
+    <string name="orientationNorthEast">Northeast</string>
+    <string name="orientationEast">East</string>
+    <string name="orientationSouthEast">Southeast</string>
+    <string name="orientationSouth">South</string>
+    <string name="orientationSouthWest">Southwest</string>
+    <string name="orientationWest">West</string>
+    <string name="orientationNorthWest">Northwest</string>
+
+    <!-- RelativeBearing -->
+    <!-- Direction -->
+    <string name="directionStraightAhead">Straight ahead</string>
+    <string name="directionRightSlightly">slight right</string>
+    <string name="directionRight">right</string>
+    <string name="directionRightStrongly">sharp right</string>
+    <string name="directionBehind">in your back</string>
+    <string name="directionLeftStrongly">sharp left</string>
+    <string name="directionLeft">left</string>
+    <string name="directionLeftSlightly">slight left</string>
+
+    <!-- Turn -->
+    <!-- Instruction -->
+    <string name="instructionCross">Cross</string>
+    <string name="instructionTurnRightSlightly">Turn slight right</string>
+    <string name="instructionTurnRight">Turn right</string>
+    <string name="instructionTurnRightStrongly">Turn sharp right</string>
+    <string name="instructionTurnRound">Turn round</string>
+    <string name="instructionTurnLeftStrongly">Turn sharp left</string>
+    <string name="instructionTurnLeft">Turn left</string>
+    <string name="instructionTurnLeftSlightly">Turn slight left</string>
+
+    <!-- BearingSensorValue -->
+    <string name="labelBearingAccuracy">Accuracy</string>
+    <string name="labelBearingOutdated">Value is outdated</string>
+
+
+    <!--
+         database
+    -->
+
+    <!-- DatabaseProfile -->
+    <!-- point -->
+    <string name="databaseProfileAddressPoints">Addresses</string>
+    <string name="databaseProfileIntersectionPoints">Intersections</string>
+    <string name="databaseProfileStationPoints">Stations</string>
+    <string name="databaseProfileSimulatedPoints">Simulated points</string>
+    <string name="databaseProfileAllPoints">All points</string>
+    <!-- segment -->
+    <string name="databaseProfileExcludedFromRouting">Excluded ways from routing</string>
+    <!-- route -->
+    <string name="databaseProfilePlannedRoutes">Planned routes</string>
+    <string name="databaseProfileStreetCourses">Street courses</string>
+    <string name="databaseProfileAllRoutes">All routes</string>
+
+    <!-- FavoritesProfile -->
+    <string name="favoritesProfilePoints">Favorite points</string>
+    <string name="favoritesProfileRoutes">favorite Routes</string>
+
+    <!-- SortMethod -->
+    <string name="sortAccessedAsc">Last visited, ascending</string>
+    <string name="sortAccessedDesc">Last visited, descending</string>
+    <string name="sortNameAsc">Name, ascending</string>
+    <string name="sortNameDesc">Name, descending</string>
+    <string name="sortBearingAsc">Bearing, ascending</string>
+    <string name="sortBearingDesc">Bearing, descending</string>
+    <string name="sortDistanceAsc">Distance, ascending</string>
+    <string name="sortDistanceDesc">Distance, descending</string>
+    <string name="sortCreatedAsc">Added, ascending</string>
+    <string name="sortCreatedDesc">Added, descending</string>
+    <string name="sortToString">Sorted by %1$s</string>
+
 
     <!--
          poi management
     -->
 
-    <!-- DatabasePointProfile -->
-    <string name="databasePointProfileFavorites">Favorites</string>
-    <string name="databasePointProfileAddressPoints">Addresses</string>
-    <string name="databasePointProfileIntersectionPoints">Intersections</string>
-    <string name="databasePointProfileStationPoints">Stations</string>
-    <string name="databasePointProfileGpsPoints">Gps points</string>
-    <string name="databasePointProfileRoutePoints">Route points</string>
-    <string name="databasePointProfileSimulatedPoints">Simulated points</string>
-    <string name="databasePointProfileAllPoints">All points</string>
-
-    <!-- HistoryPointProfile (to be removed) -->
-    <string name="fpNameAllPoints">All points</string>
-    <string name="fpNameAddressPoints">Addresses</string>
-    <string name="fpNameRoutePoints">Route points</string>
-    <string name="fpNameSimulatedPoints">Simulated points</string>
-    <string name="fpNameUserCreatedPoints">My self-created points</string>
-    <string name="fpNameNextIntersections">Next intersections</string>
-
     <!-- POICategory -->
-    <string name="poiCategoryNoneSelected">None</string>
     <string name="poiCategoryBusTram">Bus and tram stations</string>
     <string name="poiCategoryTrain">Train, suburban train and subway stations</string>
     <string name="poiCategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
@@ -635,37 +651,38 @@
     <string name="poiCategoryOtherIntersection">Intersections without name</string>
     <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
 
-    <!-- PointWrapper Object -->
-    <string name="pointListObjectDescription">%1$s\nIn %2$s, %3$s</string>
-
 
     <!--
          route management
     -->
 
-    <!-- hiking trail -->
+    <!-- HikingTrail -->
     <string name="hikingTrailToString">%1$s\nClosest distance: %2$s</string>
 
-    <!-- route object -->
-    <string name="routeObjectToString">%1$d.\n%2$s\n%3$s</string>
-    <string name="proceedToFirstRoutePoint">Proceed to first route point</string>
+    <!-- Route -->
+    <string name="descriptionStreetCourse">Total distance: %1$s\nNumber of intersections: %2$d</string>
+    <string name="messageAlmostArrivedAtRouteStart">Almost at start point</string>
+    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s</string>
+    <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>
+    <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
+    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s</string>
+    <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
 
-    <!-- route point -->
-    <string name="routePointToString">Then:\n%1$s at %2$s</string>
-    <string name="routePointToStringCross">Then:\n%1$s %2$s</string>
+    <!-- RouteObject -->
+    <string name="routePointInstructionStart">Start:\n%1$s</string>
+    <string name="routePointInstructionIntermediateCross">Then:\n%1$s %2$s</string>
+    <string name="routePointInstructionIntermediateTurn">Then:\n%1$s at %2$s</string>
+    <string name="routePointInstructionDestination">Destination:\n%1$s</string>
 
-    <!-- route segment -->
-    <string name="routeSegmentToString">%1$s at %2$s</string>
+    <!-- WayClassType -->
+    <string name="wayClassTypeBigStreets">Big streets</string>
+    <string name="wayClassTypeSmallStreets">Small streets</string>
+    <string name="wayClassTypePavedWays">Paved ways</string>
+    <string name="wayClassTypeUnpavedWays">Unpaved ways</string>
+    <string name="wayClassTypeSteps">Steps</string>
+    <string name="wayClassTypeUnclassifiedWays">Unclassified ways</string>
 
-    <!-- way class names -->
-    <string name="routingWayClassBigStreets">Big streets</string>
-    <string name="routingWayClassSmallStreets">Small streets</string>
-    <string name="routingWayClassPavedWays">Paved ways</string>
-    <string name="routingWayClassUnpavedWays">Unpaved ways</string>
-    <string name="routingWayClassSteps">Steps</string>
-    <string name="routingWayClassUnclassifiedWays">Ways of unknown type</string>
-
-    <!-- way class weights -->
+    <!-- WayClassWeight -->
     <string name="wayClassWeightVeryPreferable">Strongly preferable</string>
     <string name="wayClassWeightPreferable">Preferable</string>
     <string name="wayClassWeightSlightlyPreferable">Slightly preferable</string>
@@ -681,25 +698,8 @@
     -->
 
     <!-- PTHelper -->
-    <string name="errorNoNetworkProvider">No public transport provider selected.</string>
-    <string name="errorNoStation">No station selected.</string>
-    <string name="errorNoDepartureDate">No departure date selected.</string>
-    <string name="errorNoCoordinates">The current position is not available.</string>
-    <string name="errorPTRequestFailed">The public transport provider request failed.</string>
-    <string name="errorPTServiceDown">The public transport provider is not accessibile.</string>
-    <string name="errorInvalidProvider">Invalid public transport provider.</string>
-    <string name="errorInvalidStation">Invalid station.</string>
-    <string name="errorNoDepartures">No departures found.</string>
-    <string name="errorNoTrips">No matching trip found.</string>
-    <string name="errorAmbiguousDestination">Ambiguous destination.</string>
-    <string name="errorUnknownServerResponse">The public transport provider response could not be processed.</string>
-    <!-- formatter -->
     <string name="contentDescriptionAbsoluteDepartureTime">at %1$s</string>
     <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
-    <string name="contentDescriptionLineDestination">%1$s</string>
-
-    <!-- select public transport provider  dialog -->
-    <string name="selectPublicTransportProviderDialogTitle">Select public transport provider</string>
 
     <!-- Countries -->
     <string name="countryEurope">Europe</string>
@@ -728,131 +728,20 @@
 
 
     <!--
-         helpers and utils
+         sensors
     -->
 
-    <!-- standard messages, which are used in more than one component -->
-    <string name="contentDescriptionSelected">Selected</string>
-    <string name="dialogOK">OK</string>
-    <string name="dialogYes">Yes</string>
-    <string name="dialogLimited">Limited</string>
-    <string name="dialogNo">No</string>
-    <string name="dialogAll">All</string>
-    <string name="dialogBack">Back</string>
-    <string name="dialogCancel">Cancel</string>
-    <string name="dialogClear">Clear</string>
-    <string name="dialogClose">Close</string>
-    <string name="dialogDefault">Default</string>
-    <string name="dialogDetails">Details</string>
-    <string name="dialogDone">Done</string>
-    <string name="dialogExclude">Exclude</string>
-    <string name="dialogImport">Import</string>
-    <string name="dialogNow">Now</string>
-    <string name="dialogRefresh">Refresh</string>
-    <string name="dialogRemove">Remove</string>
-    <string name="dialogSearch">Search</string>
-    <string name="dialogSomethingMissing">Something missing?</string>
-    <string name="messagePleaseWait">Please wait…</string>
+    <!-- BearingSensor -->
+    <string name="bearingSensorCompass">Compass</string>
+    <string name="bearingSensorSatellite">Satellite</string>
 
-    <!-- menu items -->
-    <string name="menuItemDetails">Details</string>
-    <string name="menuItemEdit">Edit</string>
-    <string name="menuItemRename">Rename</string>
-    <string name="menuItemRemove">Remove</string>
-    <string name="menuItemSelect">Select</string>
+    <!-- BearingSensorAccuracyRating -->
+    <string name="bearingSensorAccuracyLow">Low</string>
+    <string name="bearingSensorAccuracyMedium">Medium</string>
+    <string name="bearingSensorAccuracyHigh">High</string>
+    <string name="bearingSensorAccuracyUnknown">Unknown</string>
 
-    <!-- sidewalk attributes-->
-    <string name="sidewalkNo">No</string>
-    <string name="sidewalkLeft">On the left</string>
-    <string name="sidewalkRight">On the right</string>
-    <string name="sidewalkBoth">On both sides</string>
-
-    <!-- return code errors -->
-    <!-- walkersguide server errors -->
-    <string name="errorBadRequest">The server request can\'t be processed.</string>
-    <string name="errorRequestInProgress">A prior request is still running. Please retry later.</string>
-    <string name="errorInternalServerError">Internal server error.</string>
-    <string name="errorBadGateway">The public transport query server is not accessible.</string>
-    <string name="errorServiceUnavailableOrBusy">The server is busy. Please retry later.</string>
-    <string name="errorNoPOITagsSelected">No POI categories selected.</string>
-    <string name="errorMapLoadingFailed">The selected map is either not available on the server or outdated.</string>
-    <string name="errorWrongMapSelected">The given location lays outside of the selected map.</string>
-    <string name="errorMapOutdated">The selected map does not offer this feature.</string>
-    <string name="errorStartOrDestinationMissing">Start or destination point is missing.</string>
-    <string name="errorStartAndDestinationTooFarAway">The distance between start and destination points is too big. Please include at least one via point.</string>
-    <string name="errorTooManyWayClassesIgnored">You\'ve excluded too many way classes from routing.</string>
-    <string name="errorNoRouteBetweenStartAndDestination">The server can\'t find a route between the given start and destination.</string>
-    <!-- app errors -->
-    <string name="errorCancelled">Cancelled</string>
-    <string name="errorNoLocationFound">No location available.</string>
-    <string name="errorNoDirectionFound">No direction available.</string>
-    <string name="errorNoDirectionSelected">No direction selected.</string>
-    <string name="errorConnectionFailed">The server is not accessible.</string>
-    <string name="errorBadResponse">The server response can\'t be processed.</string>
-    <string name="errorNoServerURL">Empty or invalid server URL.</string>
-    <string name="errorNoInternetConnection">No internet connection available.</string>
-    <string name="errorAPIClientOutdated">The API version of this app is too old for the selected server. Please check for app updates on walkersguide.org or in the Google play store.</string>
-    <string name="errorAPIServerOutdated">The API version of the selected map server is not longer supported by this app.</string>
-    <string name="errorNoMapList">The server doesn\'t offer any maps.</string>
-    <!-- address lookup -->
-    <string name="errorNoCoordinatesForAddress">No coordinates for this address found.</string>
-    <string name="errorNoAddressForCoordinates">No address for this coordinates found.</string>
-    <string name="errorGoogleMapsQuotaExceeded">You exceeded the daily request quota for the Google maps API.</string>
-    <string name="errorNeitherCoordinatesNorAddress">Got neither coordinates nor an address to look up</string>
-    <string name="errorAddressProviderNotSupported">Address provider not supported</string>
-    <!-- history and poi -->
-    <string name="errorNoPOIProfileCreated">Please create at least one POI profile.</string>
-    <string name="errorNoPOIProfileSelected">No POI profile selected.</string>
-    <string name="errorPOIProfileParsing">POI profile parsing error.</string>
-    <string name="errorUnsupportedPOIRequestAction">Unsupported POI request action</string>
-    <!-- route -->
-    <string name="errorNoRouteCreated">No route created.</string>
-    <string name="errorNoRouteSelected">No route selected.</string>
-    <string name="errorRouteParsing">Route parsing error.</string>
-    <!-- others -->
-    <string name="errorDirectionOutOfRange">The direction value must lay between 0° and 359°</string>
-    <string name="messageErrorPointDataLoadingFailed">Selected point could not be loaded.</string>
-    <string name="messageNameMissing">Please enter a name.</string>
-    <string name="messageUnknownError">Unknown error: %1$d</string>
-
-    <!-- instruction directions -->
-    <string name="directionCross">Cross</string>
-    <string name="directionTurnRightSlightly">Turn slight right</string>
-    <string name="directionTurnRight">Turn right</string>
-    <string name="directionTurnRightStrongly">Turn sharp right</string>
-    <string name="directionTurnRound">Turn round</string>
-    <string name="directionTurnLeftStrongly">Turn sharp left</string>
-    <string name="directionTurnLeft">Turn left</string>
-    <string name="directionTurnLeftSlightly">Turn slight left</string>
-
-    <!-- relative viewing directions -->
-    <string name="directionStraightforward">Straight ahead</string>
-    <string name="directionRightSlightly">slight right</string>
-    <string name="directionRight">right</string>
-    <string name="directionRightStrongly">sharp right</string>
-    <string name="directionBehind">in your back</string>
-    <string name="directionLeftStrongly">sharp left</string>
-    <string name="directionLeft">left</string>
-    <string name="directionLeftSlightly">slight left</string>
-
-    <!-- geographic directions -->
-    <string name="directionNorth">North</string>
-    <string name="directionNorthEast">Northeast</string>
-    <string name="directionEast">East</string>
-    <string name="directionSouthEast">Southeast</string>
-    <string name="directionSouth">South</string>
-    <string name="directionSouthWest">Southwest</string>
-    <string name="directionWest">West</string>
-    <string name="directionNorthWest">Northwest</string>
-
-    <!-- direction accuracy -->
-    <string name="directionAccuracyLabel">Accuracy</string>
-    <string name="directionAccuracyOutdated">Value is outdated</string>
-    <string name="directionAccuracyLow">Low</string>
-    <string name="directionAccuracyMedium">Medium</string>
-    <string name="directionAccuracyHigh">High</string>
-
-    <!-- Class: ShakeIntensity -->
+    <!-- : ShakeIntensity -->
     <string name="shakeIntensityDisabled">Disabled</string>
     <string name="shakeIntensityVeryWeak">Very weak</string>
     <string name="shakeIntensityWeak">Weak</string>
@@ -860,18 +749,72 @@
     <string name="shakeIntensityStrong">Strong</string>
     <string name="shakeIntensityVeryStrong">Very Strong</string>
 
-    <!-- class SortMethod -->
-    <string name="sortAccessedAsc">Last visited, ascending</string>
-    <string name="sortAccessedDesc">Last visited, descending</string>
-    <string name="sortNameAsc">Name, ascending</string>
-    <string name="sortNameDesc">Name, descending</string>
-    <string name="sortBearingAsc">Bearing, ascending</string>
-    <string name="sortBearingDesc">Bearing, descending</string>
-    <string name="sortDistanceAsc">Distance, ascending</string>
-    <string name="sortDistanceDesc">Distance, descending</string>
-    <string name="sortCreatedAsc">Added, ascending</string>
-    <string name="sortCreatedDesc">Added, descending</string>
-    <string name="sortToString">Sorted by %1$s</string>
+
+    <!--
+        errors and exceptions
+    -->
+
+    <!-- ServerRequestException -->
+    <string name="errorReqRequestFailed">The server request failed.</string>
+    <string name="errorReqNoInternetConnection">No internet connection available.</string>
+    <string name="errorReqBadRequest">Server request could not be created. Invalid parameters.</string>
+    <string name="errorReqBadResponse">Server response could not be processed.</string>
+    <string name="errorReqRequestCancelled">Server request cancelled</string>
+    <string name="errorReqUnknownReturnCode">Unknown error: %1$d</string>
+
+    <!-- WgRequestException -->
+
+    <!-- walkersguide server -->
+    <string name="errorWgReqBadRequest">WalkersGuide server: Invalid request parameters.</string>
+    <string name="errorWgReqRequestInProgress">A prior request is still running. Please retry later.</string>
+    <string name="errorWgReqInternalServerError">Internal server error.</string>
+    <string name="errorWgReqBadGateway">The public transport query server is not accessible.</string>
+    <string name="errorWgReqServiceUnavailableOrBusy">The server is busy. Please retry later.</string>
+    <string name="errorWgReqNoPOITagsSelected">No POI categories selected.</string>
+    <string name="errorWgReqMapLoadingFailed">The selected map is either not available on the server or outdated.</string>
+    <string name="errorWgReqWrongMapSelected">The given location lays outside of the selected map.</string>
+    <string name="errorWgReqMapOutdated">The selected map does not offer this feature.</string>
+    <string name="errorWgReqStartOrDestinationMissing">Start or destination point is missing.</string>
+    <string name="errorWgReqStartAndDestinationTooFarAway">The distance between start and destination points is too big. Please include at least one via point.</string>
+    <string name="errorWgReqTooManyWayClassesIgnored">You\'ve excluded too many way classes from routing.</string>
+    <string name="errorWgReqNoRouteBetweenStartAndDestination">The server can\'t find a route between the given start and destination.</string>
+
+    <!-- app errorWgReqs -->
+    <!-- poi -->
+    <string name="errorWgReqNoPOIProfileCreated">Please create at least one POI profile.</string>
+    <string name="errorWgReqNoPOIProfileSelected">No POI profile selected.</string>
+    <string name="errorWgReqPOIProfileParsing">POI profile parsing error.</string>
+    <string name="errorWgReqUnsupportedPOIRequestAction">Unsupported POI request action</string>
+    <!-- route -->
+    <string name="errorWgReqNoRouteCreated">No route created.</string>
+    <string name="errorWgReqNoRouteSelected">No route selected.</string>
+    <string name="errorWgReqRouteParsing">Route parsing error.</string>
+    <!-- status -->
+    <string name="errorWgReqNoServerURL">Empty or invalid server URL.</string>
+    <string name="errorWgReqAPIClientOutdated">The API version of this app is too old for the selected server. Please check for app updates on walkersguide.org or in the Google play store.</string>
+    <string name="errorWgReqAPIServerOutdated">The API version of the selected map server is not longer supported by this app.</string>
+    <string name="errorWgReqNoMapList">The server doesn\'t offer any maps.</string>
+
+    <!-- ptRequestException -->
+    <string name="errorPtReqNoNetworkProvider">No public transport provider selected.</string>
+    <string name="errorPtReqNoStation">No station selected.</string>
+    <string name="errorPtReqNoDepartureDate">No departure date selected.</string>
+    <string name="errorPtReqNoCoordinates">The current position is not available.</string>
+    <string name="errorPtReqPTServiceDown">The public transport provider is not accessibile.</string>
+    <string name="errorPtReqInvalidProvider">Invalid public transport provider.</string>
+    <string name="errorPtReqInvalidStation">Invalid station.</string>
+    <string name="errorPtReqNoDepartures">No departures found.</string>
+    <string name="errorPtReqNoTrips">No matching trip found.</string>
+    <string name="errorPtReqAmbiguousDestination">Ambiguous destination.</string>
+    <string name="errorPtReqUnknownServerResponse">The public transport provider response could not be processed.</string>
+
+    <!-- AddressRequestException -->
+    <string name="errorAddrReqNoCoordinatesForAddress">No coordinates for this address found.</string>
+    <string name="errorAddrReqNoAddressForCoordinates">No address for this coordinates found.</string>
+
+    <!-- other errors -->
+    <string name="errorNoLocationFound">No location available.</string>
+    <string name="errorNoBearingFound">No bearing available.</string>
 
 
     <!--
@@ -879,27 +822,9 @@
     -->
 
     <plurals
-        name="crossing">
-        <item quantity="one">1 crossing</item>
-        <item quantity="other">%d crossings</item>
-    </plurals>
-
-    <plurals
         name="departure">
         <item quantity="one">1 departure</item>
         <item quantity="other">%d departures</item>
-    </plurals>
-
-    <plurals
-        name="entrance">
-        <item quantity="one">1 entrance</item>
-        <item quantity="other">%d entrances</item>
-    </plurals>
-
-    <plurals
-        name="hikingTrail">
-        <item quantity="one">1 hiking trail</item>
-        <item quantity="other">%d hiking trails</item>
     </plurals>
 
     <plurals
@@ -912,6 +837,24 @@
         name="hourLong">
         <item quantity="one">einer hour</item>
         <item quantity="other">%d hours</item>
+    </plurals>
+
+    <plurals
+        name="minuteShort">
+        <item quantity="one">1 Min</item>
+        <item quantity="other">%d Min</item>
+    </plurals>
+
+    <plurals
+        name="minuteLong">
+        <item quantity="one">einer Minute</item>
+        <item quantity="other">%d Minutes</item>
+    </plurals>
+
+    <plurals
+        name="kiloMeter">
+        <item quantity="one">1 km</item>
+        <item quantity="other">%d km</item>
     </plurals>
 
     <plurals
@@ -933,27 +876,15 @@
     </plurals>
 
     <plurals
-        name="minuteShort">
-        <item quantity="one">1 Min</item>
-        <item quantity="other">%d Min</item>
+        name="result">
+        <item quantity="one">1 result</item>
+        <item quantity="other">%d results</item>
     </plurals>
 
     <plurals
-        name="minuteLong">
-        <item quantity="one">einer Minute</item>
-        <item quantity="other">%d Minutes</item>
-    </plurals>
-
-    <plurals
-        name="poi">
-        <item quantity="one">1 POI</item>
-        <item quantity="other">%d POI</item>
-    </plurals>
-
-    <plurals
-        name="point">
-        <item quantity="one">1 point</item>
-        <item quantity="other">%d points</item>
+        name="satellite">
+        <item quantity="one">1 satellite</item>
+        <item quantity="other">%d satellites</item>
     </plurals>
 
     <plurals
@@ -963,21 +894,45 @@
     </plurals>
 
     <plurals
-        name="result">
-        <item quantity="one">1 result</item>
-        <item quantity="other">%d results</item>
+        name="favorite">
+        <item quantity="one">1 favorite</item>
+        <item quantity="other">%d favorites</item>
+    </plurals>
+
+    <plurals
+        name="hikingTrail">
+        <item quantity="one">1 hiking trail</item>
+        <item quantity="other">%d hiking trails</item>
+    </plurals>
+
+    <plurals
+        name="point">
+        <item quantity="one">1 point</item>
+        <item quantity="other">%d points</item>
+    </plurals>
+
+    <plurals
+        name="crossing">
+        <item quantity="one">1 crossing</item>
+        <item quantity="other">%d crossings</item>
+    </plurals>
+
+    <plurals
+        name="entrance">
+        <item quantity="one">1 entrance</item>
+        <item quantity="other">%d entrances</item>
+    </plurals>
+
+    <plurals
+        name="poi">
+        <item quantity="one">1 POI</item>
+        <item quantity="other">%d POI</item>
     </plurals>
 
     <plurals
         name="route">
         <item quantity="one">1 route</item>
         <item quantity="other">%d routes</item>
-    </plurals>
-
-    <plurals
-        name="satellite">
-        <item quantity="one">1 satellite</item>
-        <item quantity="other">%d satellites</item>
     </plurals>
 
     <plurals

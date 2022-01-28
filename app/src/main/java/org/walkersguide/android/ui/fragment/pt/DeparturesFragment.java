@@ -1,8 +1,10 @@
 package org.walkersguide.android.ui.fragment.pt;
 
+import android.os.Handler;
+import android.os.Looper;
 import timber.log.Timber;
 import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
-import org.walkersguide.android.data.basic.point.GPS;
+import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.sensor.PositionManager;
 import android.widget.Switch;
 import android.widget.CompoundButton;
@@ -55,13 +57,11 @@ import de.schildbach.pte.dto.Location;
 
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.dialog.selectors.SelectPublicTransportProviderDialog;
+import org.walkersguide.android.ui.dialog.select.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.pt.PTHelper;
-import org.walkersguide.android.pt.StationManager;
-import org.walkersguide.android.pt.StationManager.StationListener;
-import org.walkersguide.android.pt.DepartureManager;
-import org.walkersguide.android.pt.DepartureManager.DepartureListener;
+import org.walkersguide.android.server.pt.PtException;
+import org.walkersguide.android.server.pt.PtUtility;
+import org.walkersguide.android.server.pt.PtUtility;
 import java.util.Date;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -73,22 +73,17 @@ import androidx.fragment.app.Fragment;
 import de.schildbach.pte.NetworkId;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
+import org.json.JSONException;
+
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.pt.NearbyStationsTask;
+import org.walkersguide.android.server.pt.StationDeparturesTask;
+import org.walkersguide.android.server.pt.PtException;
+    import org.walkersguide.android.ui.view.TextViewAndActionButton;
 
 
-public class DeparturesFragment extends Fragment 
-    implements FragmentResultListener, StationListener, DepartureListener, Runnable {
-    private static final String KEY_LIST_POSITION = "listPosition";
+public class DeparturesFragment extends Fragment implements FragmentResultListener, Runnable {
 
-    private SettingsManager settingsManagerInstance;
-    private DepartureManager departureManagerInstance;
-    private StationManager stationManagerInstance;
-    private int listPosition;
-	private Handler nextDeparturesHandler;
-
-	// ui components
-    private ImageButton buttonRefresh;
-    private ListView listViewDepartures;
-    private TextView labelHeading, labelEmptyListView, labelMoreResultsFooter;
 
     // constructors
 
@@ -122,11 +117,25 @@ public class DeparturesFragment extends Fragment
 	}
 
 
+    // fragment
+    private static final String KEY_TASK_ID = "taskId";
+    private static final String KEY_LIST_POSITION = "listPosition";
+
+    private SettingsManager settingsManagerInstance;
+    private ServerTaskExecutor serverTaskExecutorInstance;
+    private long taskId;
+    private int listPosition;
+	private Handler nextDeparturesHandler;
+
+	// ui components
+    private ImageButton buttonRefresh;
+    private ListView listViewDepartures;
+    private TextView labelHeading, labelEmptyListView, labelMoreResultsFooter;
+
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
-        departureManagerInstance = DepartureManager.getInstance();
-        stationManagerInstance = StationManager.getInstance();
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         nextDeparturesHandler= new Handler(Looper.getMainLooper());
 
         getChildFragmentManager()
@@ -145,10 +154,8 @@ public class DeparturesFragment extends Fragment
         if (coordinatesForStationRequest == null) {
             return;
         }
-        if (departureManagerInstance.departureRequestTaskInProgress()) {
-            departureManagerInstance.cancelDepartureRequestTask();
-        } else if (stationManagerInstance.stationRequestTaskInProgress()) {
-            stationManagerInstance.cancelStationRequestTask();
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            serverTaskExecutorInstance.cancelTask(taskId);
         }
 
         if (requestKey.equals(SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER)) {
@@ -180,20 +187,18 @@ public class DeparturesFragment extends Fragment
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menuItemPublicTransportProvider:
-                SelectPublicTransportProviderDialog.newInstance(
-                        settingsManagerInstance.getSelectedNetworkId())
-                    .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
-                return true;
-            case R.id.menuItemSelectDepartureDateAndTime:
-                SelectDepartureDateAndTimeDialog.newInstance(departureTime)
-                    .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
-                return true;
-            default:
-                return false;
+        if (item.getItemId() == R.id.menuItemPublicTransportProvider) {
+            SelectPublicTransportProviderDialog.newInstance(
+                    settingsManagerInstance.getSelectedNetworkId())
+                .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
+        } else if (item.getItemId() == R.id.menuItemSelectDepartureDateAndTime) {
+            SelectDepartureDateAndTimeDialog.newInstance(departureTime)
+                .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
+        } else {
+            return super.onOptionsItemSelected(item);
         }
-    }
+        return true;
+        }
 
 
     /**
@@ -209,16 +214,20 @@ public class DeparturesFragment extends Fragment
 		super.onViewCreated(view, savedInstanceState);
 
         coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
-        station = (Location) getArguments().getSerializable(KEY_STATION);
-        departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
         if (savedInstanceState != null) {
+            station = (Location) savedInstanceState.getSerializable(KEY_STATION);
+            departureTime = (Date) savedInstanceState.getSerializable(KEY_DEPARTURE_TIME);
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {
+            station = (Location) getArguments().getSerializable(KEY_STATION);
+            departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
+            taskId = ServerTaskExecutor.NO_TASK_ID;
             listPosition = 0;
         }
 
-        LinearLayout layoutBottom = (LinearLayout) view.findViewById(R.id.layoutBottom);
-        layoutBottom.setVisibility(View.GONE);
+        LinearLayout layoutTop = (LinearLayout) view.findViewById(R.id.layoutTop);
+        layoutTop.setVisibility(View.GONE);
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
@@ -227,10 +236,8 @@ public class DeparturesFragment extends Fragment
         buttonRefresh.setVisibility(View.GONE);
         buttonRefresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                if (departureManagerInstance.departureRequestTaskInProgress()) {
-                    departureManagerInstance.cancelDepartureRequestTask();
-                } else if (stationManagerInstance.stationRequestTaskInProgress()) {
-                    stationManagerInstance.cancelStationRequestTask();
+                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                    serverTaskExecutorInstance.cancelTask(taskId);
                 } else if (listViewDepartures.getAdapter() != null) {
                     updateListView();
                 } else if (coordinatesForStationRequest != null || station != null) {
@@ -266,64 +273,25 @@ public class DeparturesFragment extends Fragment
 
             // show simulate location layout if not embedded in PointDetailsActivity
             if (coordinatesForStationRequest == null && station != null) {
-                layoutBottom.setVisibility(View.VISIBLE);
+                GPS stationGpsPoint = null;
+                try {
+                    stationGpsPoint = new GPS.Builder(
+                            station.coord.getLatAsDouble(),
+                            station.coord.getLonAsDouble())
+                        .setName(
+                                String.format(
+                                    "%1$s %2$s",
+                                    GlobalInstance.getStringResource(R.string.labelNearby),
+                                    PtUtility.getLocationName(station)))
+                        .build();
+                } catch (JSONException e) {}
 
-                // build gps point
-                GPS.Builder gpsBuilder = new GPS.Builder(
-                        station.coord.getLatAsDouble(),
-                        station.coord.getLonAsDouble(),
-                        System.currentTimeMillis());
-                gpsBuilder.overwriteName(
-                        String.format(
-                            "%1$s %2$s",
-                            GlobalInstance.getStringResource(R.string.labelNearby),
-                            PTHelper.getLocationName(station))
-                        );
-                GPS stationLocationFromPTE = gpsBuilder.build();
-
-                // switch
-                if (stationLocationFromPTE != null) {
-                    final PositionManager positionManagerInstance = PositionManager.getInstance(getActivity());
-                    Switch switchSimulateNearbyStationLocation = (Switch) view.findViewById(R.id.switchSimulateNearbyStationLocation);
-                    switchSimulateNearbyStationLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                            boolean isSimulated = 
-                                positionManagerInstance.getSimulationEnabled()
-                                && stationLocationFromPTE.equals(positionManagerInstance.getCurrentLocation());
-                            if (isChecked && ! isSimulated) {
-                                positionManagerInstance.setSimulatedLocation(stationLocationFromPTE);
-                                positionManagerInstance.setSimulationEnabled(true);
-                            } else if (! isChecked && isSimulated) {
-                                positionManagerInstance.setSimulationEnabled(false);
-                            }
-                        }
-                    });
-                    // check
-                    switchSimulateNearbyStationLocation.setChecked(
-                            positionManagerInstance.getSimulationEnabled()
-                            && stationLocationFromPTE.equals(positionManagerInstance.getCurrentLocation()));
+                if (stationGpsPoint != null) {
+                    TextViewAndActionButton layoutStationGpsPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutStationGpsPoint);
+                    layoutStationGpsPoint.configureAsSingleObject(stationGpsPoint);
+                    layoutTop.setVisibility(View.VISIBLE);
                 }
             }
-        }
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
-    }
-
-
-    /**
-     * pause and resume
-     */
-
-    @Override public void onPause() {
-        super.onPause();
-        if (station != null) {
-            nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
-            departureManagerInstance.invalidateDepartureRequestTask(DeparturesFragment.this);
-        } else if (coordinatesForStationRequest != null) {
-            stationManagerInstance.invalidateStationRequestTask(DeparturesFragment.this);
         }
     }
 
@@ -333,7 +301,38 @@ public class DeparturesFragment extends Fragment
         if (coordinatesForStationRequest != null || station != null) {
             prepareRequest();
         }
+
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_NEARBY_STATIONS_TASK_SUCCESSFUL);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_STATION_DEPARTURES_TASK_SUCCESSFUL);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
     }
+
+    @Override public void onPause() {
+        super.onPause();
+        if (station != null) {
+            nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
+        }
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_STATION, station);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putSerializable(KEY_DEPARTURE_TIME, departureTime);
+        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
+    }
+
+    @Override public void onDestroy() {
+        super.onDestroy();
+        if (! getActivity().isChangingConfigurations()) {
+            serverTaskExecutorInstance.cancelTask(taskId);
+        }
+    }
+
 
     private void prepareRequest() {
         // heading
@@ -353,29 +352,73 @@ public class DeparturesFragment extends Fragment
                 getResources().getString(R.string.messagePleaseWait));
         nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
 
-        if (station != null) {
-            departureManagerInstance.requestDeparture(
-                    DeparturesFragment.this,
-                    settingsManagerInstance.getSelectedNetworkId(),
-                    station,
-                    departureTime);
-        } else {
-            stationManagerInstance.requestStationList(
-                    DeparturesFragment.this,
-                    settingsManagerInstance.getSelectedNetworkId(),
-                    coordinatesForStationRequest,
-                    null);
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            if (station != null) {
+                taskId = serverTaskExecutorInstance.executeTask(
+                        new StationDeparturesTask(
+                            settingsManagerInstance.getSelectedNetworkId(),
+                            station, departureTime));
+            } else {
+                taskId = serverTaskExecutorInstance.executeTask(
+                        new NearbyStationsTask(
+                            settingsManagerInstance.getSelectedNetworkId(),
+                            coordinatesForStationRequest, null));
+            }
         }
     }
 
-    private void updateRefreshButton(boolean showCancel) {
-        if (showCancel) {
+    // background task results
+
+    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_NEARBY_STATIONS_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_STATION_DEPARTURES_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                    return;
+                }
+
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_NEARBY_STATIONS_TASK_SUCCESSFUL)) {
+                    stationTaskWasSuccessful(
+                            (ArrayList<Location>) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_STATION_LIST));
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_STATION_DEPARTURES_TASK_SUCCESSFUL)) {
+                    departureTaskWasSuccessful(
+                            (ArrayList<Departure>) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_DEPARTURE_LIST));
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+                    labelEmptyListView.setText(
+                            GlobalInstance.getStringResource(R.string.errorReqRequestCancelled));
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    PtException ptException = (PtException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (ptException != null) {
+                        if (ptException.showPtProviderDialog()) {
+                            SelectPublicTransportProviderDialog.newInstance(
+                                    settingsManagerInstance.getSelectedNetworkId())
+                                .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
+                        } else {
+                            ViewCompat.setAccessibilityLiveRegion(
+                                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
+                        }
+                        labelEmptyListView.setText(ptException.getMessage());
+                    }
+                }
+
+                updateRefreshButton(false);
+            }
+        }
+    };
+
+    private void updateRefreshButton(boolean requestInProgress) {
+        if (requestInProgress) {
             buttonRefresh.setContentDescription(
-                    getResources().getString(R.string.buttonCancel));
+                    GlobalInstance.getStringResource(R.string.buttonCancel));
             buttonRefresh.setImageResource(R.drawable.cancel);
         } else {
             buttonRefresh.setContentDescription(
-                    getResources().getString(R.string.buttonRefresh));
+                    GlobalInstance.getStringResource(R.string.buttonRefresh));
             buttonRefresh.setImageResource(R.drawable.refresh);
         }
     }
@@ -390,30 +433,21 @@ public class DeparturesFragment extends Fragment
         }
     }
 
-    private DepartureAdapter getDepartureAdapterFromListView() {
-        if (listViewDepartures.getAdapter() != null) {
-            if (listViewDepartures.getAdapter() instanceof HeaderViewListAdapter) {
-                return (DepartureAdapter) ((HeaderViewListAdapter) listViewDepartures.getAdapter()).getWrappedAdapter();
-            }
-            return (DepartureAdapter) listViewDepartures.getAdapter();
-        }
-        return null;
-    }
-
 
     /**
-     * stationListener
+     * nearby stations
      */
 
-    @Override public void stationRequestTaskSuccessful(Point currentPosition, ArrayList<Location> stationList) {
+    public void stationTaskWasSuccessful(ArrayList<Location> stationList) {
         updateRefreshButton(false);
         // filter station list by distance
         ArrayList<Location> nearbyStationList = new ArrayList<Location>();
         for (Location station : stationList) {
-            if (PTHelper.distanceBetweenTwoPoints(currentPosition, station.coord) < 200) {
+            if (PtUtility.distanceBetweenTwoPoints(coordinatesForStationRequest, station.coord) < 200) {
                 nearbyStationList.add(station);
             }
         }
+
         // select
         switch (nearbyStationList.size()) {
             case 0:
@@ -430,28 +464,12 @@ public class DeparturesFragment extends Fragment
                 break;
             default:
                 if (isAdded()) {
-                    SelectPtStationDialog.newInstance(currentPosition, nearbyStationList)
+                    SelectPtStationDialog.newInstance(coordinatesForStationRequest, nearbyStationList)
                         .show(getChildFragmentManager(), "SelectPtStationDialog");
                 }
                 labelEmptyListView.setText("");
                 break;
         }
-    }
-
-    @Override public void stationRequestTaskFailed(int returnCode) {
-        updateRefreshButton(false);
-        // show select network provider dialog
-        if (isAdded()
-                && returnCode == PTHelper.RC_NO_NETWORK_PROVIDER) {
-            SelectPublicTransportProviderDialog.newInstance(
-                    settingsManagerInstance.getSelectedNetworkId())
-                .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
-        } else {
-            ViewCompat.setAccessibilityLiveRegion(
-                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-        }
-        labelEmptyListView.setText(
-                PTHelper.getErrorMessageForReturnCode(DeparturesFragment.this.getContext(), returnCode));
     }
 
 
@@ -542,36 +560,36 @@ public class DeparturesFragment extends Fragment
         }
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
-            // load item layout
-        EntryHolder holder;
-        if (convertView == null) {
-            convertView = LayoutInflater.from(this.context).inflate(R.layout.layout_single_text_view, parent, false);
-            holder = new EntryHolder();
-            holder.label = (TextView) convertView.findViewById(R.id.label);
-            convertView.setTag(holder);
-        } else {
-            holder = (EntryHolder) convertView.getTag();
-        }
-        Location station = getItem(position);
-        if (holder.label != null) {
-            ArrayList<String> stationDescriptionList = new ArrayList<String>();
-            // station name
-            stationDescriptionList.add(PTHelper.getLocationName(station));
-            // available vehicle types
-            if (station.products != null && ! station.products.isEmpty()) {
-                stationDescriptionList.add(
-                        PTHelper.vehicleTypesToString(context, station.products));
+            EntryHolder holder;
+            if (convertView == null) {
+                convertView = LayoutInflater.from(this.context).inflate(R.layout.layout_single_text_view, parent, false);
+                holder = new EntryHolder();
+                holder.label = (TextView) convertView.findViewById(R.id.label);
+                convertView.setTag(holder);
+            } else {
+                holder = (EntryHolder) convertView.getTag();
             }
-            // distance to current position
-            if (this.position != null) {
-                int distanceInMeters = PTHelper.distanceBetweenTwoPoints(this.position, station.coord);
-                stationDescriptionList.add(
-                        context.getResources().getQuantityString(
-                            R.plurals.meter, distanceInMeters, distanceInMeters));
+
+            Location station = getItem(position);
+            if (holder.label != null) {
+                ArrayList<String> stationDescriptionList = new ArrayList<String>();
+                // station name
+                stationDescriptionList.add(PtUtility.getLocationName(station));
+                // available vehicle types
+                if (station.products != null && ! station.products.isEmpty()) {
+                    stationDescriptionList.add(
+                            PtUtility.vehicleTypesToString(context, station.products));
+                }
+                // distance to current position
+                if (this.position != null) {
+                    int distanceInMeters = PtUtility.distanceBetweenTwoPoints(this.position, station.coord);
+                    stationDescriptionList.add(
+                            context.getResources().getQuantityString(
+                                R.plurals.meter, distanceInMeters, distanceInMeters));
+                }
+                holder.label.setText(TextUtils.join("\n", stationDescriptionList));
             }
-            holder.label.setText(TextUtils.join("\n", stationDescriptionList));
-        }
-        return convertView;
+            return convertView;
         }
 
         @Override public int getCount() {
@@ -592,10 +610,10 @@ public class DeparturesFragment extends Fragment
 
 
     /**
-     * DepartureListener
+     * station departures
      */
 
-    @Override public void departureRequestTaskSuccessful(ArrayList<Departure> departureList) {
+    public void departureTaskWasSuccessful(ArrayList<Departure> departureList) {
         // heading
         ViewCompat.setAccessibilityLiveRegion(
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -603,12 +621,14 @@ public class DeparturesFragment extends Fragment
                 getResources().getQuantityString(
                     R.plurals.departure, departureList.size(), departureList.size()));
         updateRefreshButton(false);
+
         // listview
         DepartureAdapter departureAdapter = new DepartureAdapter(
                 DeparturesFragment.this.getContext(), station, departureList);
         departureAdapter.notifyDataSetChanged();
         listViewDepartures.setAdapter(departureAdapter);
         labelEmptyListView.setText("");
+
         // list position
         listViewDepartures.setSelection(listPosition);
         listViewDepartures.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -619,18 +639,21 @@ public class DeparturesFragment extends Fragment
             }
             }
         });
+
         // start relative departure time updates
         nextDeparturesHandler.postDelayed(
                 DeparturesFragment.this,
                 61000 - (System.currentTimeMillis() % 60000));
     }
 
-    @Override public void departureRequestTaskFailed(int returnCode) {
-        updateRefreshButton(false);
-        ViewCompat.setAccessibilityLiveRegion(
-                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-        labelEmptyListView.setText(
-                PTHelper.getErrorMessageForReturnCode(DeparturesFragment.this.getContext(), returnCode));
+    private DepartureAdapter getDepartureAdapterFromListView() {
+        if (listViewDepartures.getAdapter() != null) {
+            if (listViewDepartures.getAdapter() instanceof HeaderViewListAdapter) {
+                return (DepartureAdapter) ((HeaderViewListAdapter) listViewDepartures.getAdapter()).getWrappedAdapter();
+            }
+            return (DepartureAdapter) listViewDepartures.getAdapter();
+        }
+        return null;
     }
 
     @Override public void run() {
@@ -677,13 +700,13 @@ public class DeparturesFragment extends Fragment
 
             String labelText = String.format(
                     context.getResources().getString(R.string.labelDepartureAdapter),
-                    PTHelper.getVehicleName(context, departure.line.product),
+                    PtUtility.getVehicleName(context, departure.line.product),
                     departure.line.label,
-                    PTHelper.getLocationName(departure.destination),
-                    PTHelper.formatRelativeDepartureTime(
-                        context, PTHelper.getDepartureTime(departure), false),
-                    PTHelper.formatAbsoluteDepartureTime(
-                        context, PTHelper.getDepartureTime(departure)));
+                    PtUtility.getLocationName(departure.destination),
+                    PtUtility.formatRelativeDepartureTime(
+                        context, PtUtility.getDepartureTime(departure), false),
+                    PtUtility.formatAbsoluteDepartureTime(
+                        context, PtUtility.getDepartureTime(departure)));
             if (departure.position != null) {
                 labelText += "\n" + String.format(
                         context.getResources().getString(R.string.labelFromPlatform),
@@ -693,13 +716,13 @@ public class DeparturesFragment extends Fragment
 
             String labelContentDescription = String.format(
                     context.getResources().getString(R.string.labelDepartureAdapterCD),
-                    PTHelper.getVehicleName(context, departure.line.product),
+                    PtUtility.getVehicleName(context, departure.line.product),
                     departure.line.label,
-                    PTHelper.getLocationName(departure.destination),
-                    PTHelper.formatRelativeDepartureTime(
-                        context, PTHelper.getDepartureTime(departure), true),
-                    PTHelper.formatAbsoluteDepartureTime(
-                        context, PTHelper.getDepartureTime(departure)));
+                    PtUtility.getLocationName(departure.destination),
+                    PtUtility.formatRelativeDepartureTime(
+                        context, PtUtility.getDepartureTime(departure), true),
+                    PtUtility.formatAbsoluteDepartureTime(
+                        context, PtUtility.getDepartureTime(departure)));
             if (departure.position != null) {
                 labelContentDescription += ",\n" + String.format(
                         context.getResources().getString(R.string.labelFromPlatform),
@@ -725,7 +748,7 @@ public class DeparturesFragment extends Fragment
             ListIterator<Departure> departureListIterator = this.departureList.listIterator();
             while(departureListIterator.hasNext()){
                 Departure departure = departureListIterator.next();
-                if (PTHelper.getDepartureTime(departure).before(new Date(System.currentTimeMillis()-60000))) {
+                if (PtUtility.getDepartureTime(departure).before(new Date(System.currentTimeMillis()-60000))) {
                     departureListIterator.remove();
                 }
             }

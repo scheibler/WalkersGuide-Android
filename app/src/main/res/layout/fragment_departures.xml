@@ -1,31 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
     <LinearLayout
-        android:id="@+id/layoutBottom"
+        android:id="@+id/layoutTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="10dp"
         android:orientation="vertical" >
+
+        <org.walkersguide.android.ui.view.TextViewAndActionButton
+            android:id="@+id/layoutStationGpsPoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <include
             layout="@layout/layout_default_divider" />
-
-        <Switch
-            android:id="@+id/switchSimulateNearbyStationLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/switchSimulateNearbyStationLocation" />
     </LinearLayout>
 
     <include
-        layout="@layout/layout_heading_and_list_view_with_refresh_button"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/layoutBottom" />
+        layout="@layout/layout_heading_and_list_view_with_refresh_button" />
 
-</RelativeLayout>
+</LinearLayout>

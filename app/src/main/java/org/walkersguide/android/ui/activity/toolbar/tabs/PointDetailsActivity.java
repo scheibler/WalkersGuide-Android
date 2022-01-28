@@ -1,9 +1,13 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.sensor.bearing.AcceptNewQuadrant;
+import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import androidx.core.view.ViewCompat;
-import org.walkersguide.android.database.profiles.DatabasePointProfile;
-import org.walkersguide.android.ui.activity.toolbar.AbstractTabsActivity;
-import org.walkersguide.android.ui.activity.toolbar.AbstractTabsActivity.AbstractTabAdapter;
+import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
+import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity.AbstractTabAdapter;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,8 +20,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import android.view.MenuItem;
-import android.view.View;
 
 import android.widget.Switch;
 import android.widget.TextView;
@@ -26,72 +28,69 @@ import java.util.ArrayList;
 
 
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.basic.point.Intersection;
-import org.walkersguide.android.data.basic.point.POI;
-import org.walkersguide.android.data.basic.point.Station;
-import org.walkersguide.android.data.sensor.attribute.NewDirectionAttributes;
-import org.walkersguide.android.data.sensor.attribute.NewLocationAttributes;
-import org.walkersguide.android.data.sensor.threshold.BearingThreshold;
-import org.walkersguide.android.data.sensor.threshold.DistanceThreshold;
-import org.walkersguide.android.util.StringUtility;
+import org.walkersguide.android.data.object_with_id.point.Intersection;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.DirectionManager;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.dialog.PlanRouteDialog;
-import org.walkersguide.android.ui.fragment.object_list.IntersectionStructureFragment;
-import org.walkersguide.android.ui.fragment.PointDetailsFragment;
+import org.walkersguide.android.ui.fragment.details.PointDetailsFragment;
 import org.walkersguide.android.ui.fragment.pt.DeparturesFragment;
-import org.walkersguide.android.ui.fragment.object_list.SimpleObjectListFragment;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.data.basic.point.Point;
+import org.walkersguide.android.ui.fragment.object_list.simple.EntranceListFragment;
+import org.walkersguide.android.ui.fragment.object_list.simple.IntersectionStructureFragment;
+import org.walkersguide.android.ui.fragment.object_list.simple.PedestrianCrossingListFragment;
+import org.walkersguide.android.data.object_with_id.Point;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton.LabelTextConfig;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.sensor.PositionManager;
+import timber.log.Timber;
 
 
-public class PointDetailsActivity extends AbstractTabsActivity {
-    private static final String KEY_POINT = "point";
-
-    public enum Tab {
-        DEPARTURES, DETAILS, ENTRANCES, INTERSECTION_STRUCTURE, PEDESTRIAN_CROSSINGS
-    }
+public class PointDetailsActivity extends TabLayoutActivity {
+    public static final String KEY_POINT = "point";
 
 
     public static void start(Context packageContext, Point point) {
-        // add to all points profile
-        AccessDatabase.getInstance().addObjectToDatabaseProfile(
-                point, DatabasePointProfile.ALL_POINTS);
+        startAtTab(packageContext, point, null);
+    }
+
+    public static void startAtTab(Context packageContext, Point point, Tab tab) {
+        // add to database profile
+        if (point instanceof Intersection) {
+            DatabaseProfile.intersectionPoints().add((Intersection) point);
+        } else if (point instanceof Station) {
+            DatabaseProfile.stationPoints().add((Station) point);
+        } else {
+            DatabaseProfile.allPoints().add(point);
+        }
         // start activity
         Intent intent = new Intent(packageContext, PointDetailsActivity.class);
         intent.putExtra(KEY_POINT, point);
+        intent.putExtra(KEY_SELECTED_TAB, tab);
         packageContext.startActivity(intent);
     }
 
 
-	// instance variables
-    private DirectionManager directionManagerInstance;
-    private PositionManager positionManagerInstance;
     private Point point;
 
     private TextView labelPointDistanceAndBearing;
-    private Switch buttonPointSimulateLocation;
+
+    @Override public int getLayoutResourceId() {
+		return R.layout.activity_point_details;
+    }
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        directionManagerInstance = DirectionManager.getInstance(this);
-        positionManagerInstance = PositionManager.getInstance(this);
 
         // load point
         point = (Point) getIntent().getExtras().getSerializable(KEY_POINT);
         if (point != null) {
             TextViewAndActionButton layoutSelectedPoint = (TextViewAndActionButton) findViewById(R.id.layoutSelectedPoint);
-            layoutSelectedPoint.setOnLabelClickListener(new TextViewAndActionButton.OnLabelClickListener() {
-                @Override public void onLabelClick(TextViewAndActionButton view) {
+            layoutSelectedPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+                @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                     // nothing should happen here
                 }
-            });
-            layoutSelectedPoint.configureView(point, LabelTextConfig.empty(true));
+            }, false);
+            layoutSelectedPoint.configureAsSingleObject(point, point.getName());
 
             // type and distance
     		TextView labelPointType = (TextView) findViewById(R.id.labelPointType);
@@ -105,9 +104,8 @@ public class PointDetailsActivity extends AbstractTabsActivity {
                     labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
 
             // prepare tab list
-            ArrayList<PointDetailsActivity.Tab> tabList = new ArrayList<PointDetailsActivity.Tab>();
+            ArrayList<Tab> tabList = new ArrayList<Tab>();
             tabList.add(Tab.DETAILS);
-            int initialTabIndex = 0;
 
             if (point instanceof POI
                     || point instanceof Station) {
@@ -125,12 +123,10 @@ public class PointDetailsActivity extends AbstractTabsActivity {
                 if (! intersection.getPedestrianCrossingList().isEmpty()) {
                     tabList.add(Tab.PEDESTRIAN_CROSSINGS);
                 }
-                initialTabIndex = tabList.indexOf(Tab.INTERSECTION_STRUCTURE);
             }
 
             initializeViewPagerAndTabLayout(
-                    new TabAdapter(PointDetailsActivity.this, tabList),
-                    initialTabIndex);
+                    new TabAdapter(PointDetailsActivity.this, tabList));
         }
     }
 
@@ -145,8 +141,8 @@ public class PointDetailsActivity extends AbstractTabsActivity {
         super.onResume();
         if (point != null) {
             IntentFilter filter = new IntentFilter();
-            filter.addAction(Constants.ACTION_NEW_LOCATION);
-            filter.addAction(Constants.ACTION_NEW_DIRECTION);
+            filter.addAction(PositionManager.ACTION_NEW_LOCATION);
+            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(this).registerReceiver(newLocationAndDirectionReceiver, filter);
             // update ui
             updateDistanceAndBearingLabel();
@@ -157,21 +153,10 @@ public class PointDetailsActivity extends AbstractTabsActivity {
         labelPointDistanceAndBearing.setText(
                 String.format(
                     GlobalInstance.getStringResource(R.string.labelPointDistanceAndBearing),
-                    GlobalInstance.getPluralResource(R.plurals.meter, point.distanceFromCurrentLocation()),
-                    StringUtility.formatRelativeViewingDirection(point.bearingFromCurrentLocation()))
+                    point.formatDistanceAndRelativeBearingFromCurrentLocation())
                 );
-    }
-
-
-    /**
-     * implement AbstractToolbarActivity and AbstractTabsActivity functions
-     */
-
-    public int getLayoutResourceId() {
-		return R.layout.activity_point_details;
-    }
-
-    public void tabSelected(int tabIndex) {
+        ViewCompat.setAccessibilityLiveRegion(
+                labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
     }
 
 
@@ -180,32 +165,25 @@ public class PointDetailsActivity extends AbstractTabsActivity {
      */
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
+        private AcceptNewPosition ttsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION_NEW_LOCATION)) {
-                NewLocationAttributes newLocationAttributes = NewLocationAttributes.fromString(
-                        intent.getStringExtra(Constants.ACTION_NEW_LOCATION_ATTRIBUTES));
-                if (newLocationAttributes != null
-                        && newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.ZERO_METERS)) {
-                    if (newLocationAttributes.getAggregatingDistanceThreshold().isAtLeast(DistanceThreshold.TEN_METERS)) {
-                        ViewCompat.setAccessibilityLiveRegion(
-                                labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
-                    }
-                    updateDistanceAndBearingLabel();
+            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                if (ttsAnnouncement.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION))) {
+                    ViewCompat.setAccessibilityLiveRegion(
+                            labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
                 }
-            } else if (intent.getAction().equals(Constants.ACTION_NEW_DIRECTION)) {
-                NewDirectionAttributes newDirectionAttributes = NewDirectionAttributes.fromString(
-                        context, intent.getStringExtra(Constants.ACTION_NEW_DIRECTION_ATTRIBUTES));
-                if (newDirectionAttributes != null
-                        && newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TEN_DEGREES)) {
-                    if (newDirectionAttributes.getAggregatingBearingThreshold().isAtLeast(BearingThreshold.TWENTY_DEGREES)) {
-                        ViewCompat.setAccessibilityLiveRegion(
-                                labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-                    }
+                updateDistanceAndBearingLabel();
+
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
+                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
+                if (currentBearing != null
+                        && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
                     updateDistanceAndBearingLabel();
                 }
             }
-            ViewCompat.setAccessibilityLiveRegion(
-                    labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         }
     };
 
@@ -214,65 +192,68 @@ public class PointDetailsActivity extends AbstractTabsActivity {
      * fragment management
      */
 
-	private class TabAdapter extends AbstractTabAdapter {
-        private ArrayList<PointDetailsActivity.Tab> tabList;
+    public enum Tab {
+        DEPARTURES, DETAILS, ENTRANCES, INTERSECTION_STRUCTURE, PEDESTRIAN_CROSSINGS
+    }
 
-        public TabAdapter(FragmentActivity activity, ArrayList<PointDetailsActivity.Tab> tabList) {
-            super(activity);
-            this.tabList = tabList;
+
+	private class TabAdapter extends AbstractTabAdapter {
+
+        public TabAdapter(FragmentActivity activity, ArrayList<Tab> tabList) {
+            super(activity, tabList);
         }
 
         @Override public Fragment createFragment(int position) {
-            switch (this.tabList.get(position)) {
-                case DETAILS:
-                    return PointDetailsFragment.newInstance(point);
-                case DEPARTURES:
-                    if (point instanceof Station) {
-                        return DeparturesFragment.newInstance(point.getLatitude(), point.getLongitude());
-                    }
-                    return null;
-                case ENTRANCES:
-                    if (point instanceof POI) {
-                        return SimpleObjectListFragment.newInstance(
-                                ((POI) point).getEntranceList());
-                    }
-                    return null;
-                case INTERSECTION_STRUCTURE:
-                    if (point instanceof Intersection) {
-                        return IntersectionStructureFragment.newInstance(
-                                ((Intersection) point).getSegmentList());
-                    }
-                    return null;
-                case PEDESTRIAN_CROSSINGS:
-                    if (point instanceof Intersection) {
-                        return SimpleObjectListFragment.newInstance(
-                                ((Intersection) point).getPedestrianCrossingList());
-                    }
-                    return null;
-                default:
-                    return null;
+            Tab tab = getTab(position);
+            if (tab != null) {
+                switch (tab) {
+                    case DETAILS:
+                        return PointDetailsFragment.newInstance(point);
+                    case DEPARTURES:
+                        if (point instanceof Station) {
+                            return DeparturesFragment.newInstance(point.getLatitude(), point.getLongitude());
+                        }
+                        return null;
+                    case ENTRANCES:
+                        if (point instanceof POI) {
+                            return EntranceListFragment.newInstance(
+                                    ((POI) point).getEntranceList());
+                        }
+                        return null;
+                    case INTERSECTION_STRUCTURE:
+                        if (point instanceof Intersection) {
+                            return IntersectionStructureFragment.newInstance(
+                                    ((Intersection) point).getSegmentList());
+                        }
+                        return null;
+                    case PEDESTRIAN_CROSSINGS:
+                        if (point instanceof Intersection) {
+                            return PedestrianCrossingListFragment.newInstance(
+                                    ((Intersection) point).getPedestrianCrossingList());
+                        }
+                        return null;
+                }
             }
-        }
-
-		@Override public int getItemCount() {
-			return this.tabList.size();
+            return null;
         }
 
         @Override public String getFragmentName(int position) {
-            switch (this.tabList.get(position)) {
-                case DETAILS:
-    				return getResources().getString(R.string.fragmentPointDetailsName);
-                case DEPARTURES:
-    				return getResources().getString(R.string.fragmentDeparturesName);
-                case ENTRANCES:
-    				return getResources().getString(R.string.fragmentEntrancesName);
-                case INTERSECTION_STRUCTURE:
-    				return getResources().getString(R.string.fragmentIntersectionStructureName);
-                case PEDESTRIAN_CROSSINGS:
-    				return getResources().getString(R.string.fragmentPedestrianCrossingsName);
-                default:
-                    return "";
+            Tab tab = getTab(position);
+            if (tab != null) {
+                switch (tab) {
+                    case DETAILS:
+                        return getResources().getString(R.string.fragmentPointDetailsName);
+                    case DEPARTURES:
+                        return getResources().getString(R.string.fragmentDeparturesName);
+                    case ENTRANCES:
+                        return getResources().getString(R.string.fragmentEntrancesName);
+                    case INTERSECTION_STRUCTURE:
+                        return getResources().getString(R.string.fragmentIntersectionStructureName);
+                    case PEDESTRIAN_CROSSINGS:
+                        return getResources().getString(R.string.fragmentPedestrianCrossingsName);
+                }
             }
+            return "";
         }
     }
 

@@ -14,7 +14,7 @@
         android:fitsSystemWindows="true" >
 
         <ImageButton
-            android:id="@+id/buttonDirectionDetails"
+            android:id="@+id/buttonBearingDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="2dp"
@@ -22,9 +22,9 @@
             android:minWidth="@dimen/minWidth"
             android:minHeight="@dimen/minHeight"
             android:background="@null"
-            android:tint="@color/image"
+            app:tint="@color/image"
             android:src="@drawable/toolbar_direction"
-            android:contentDescription="@string/directionSourceCompass" />
+            android:contentDescription="@string/bearingDetailsDialogTitle" />
 
         <ImageButton
             android:id="@+id/buttonLocationDetails"
@@ -35,9 +35,9 @@
             android:minWidth="@dimen/minWidth"
             android:minHeight="@dimen/minHeight"
             android:background="@null"
-            android:tint="@color/image"
+            app:tint="@color/image"
             android:src="@drawable/toolbar_location"
-            android:contentDescription="@string/locationSourceGPS" />
+            android:contentDescription="@string/locationDetailsDialogTitle" />
 
         <TextView
             android:id="@+id/labelToolbarTitle"

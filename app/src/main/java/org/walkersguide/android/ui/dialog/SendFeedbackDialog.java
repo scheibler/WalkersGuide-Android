@@ -1,15 +1,17 @@
 package org.walkersguide.android.ui.dialog;
 
-import org.walkersguide.android.server.util.ServerInstance;
-import org.walkersguide.android.server.util.ServerCommunicationException;
+import android.widget.Toast;
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.wg.SendFeedbackTask;
+import org.walkersguide.android.ui.UiHelper;
+import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
+import org.walkersguide.android.server.wg.WgException;
 import android.app.AlertDialog;
 import android.app.Dialog;
 
-import android.content.Context;
 import android.content.DialogInterface;
 
 import android.os.Bundle;
-import android.os.Handler;
 
 import androidx.fragment.app.DialogFragment;
 
@@ -18,63 +20,54 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.Button;
-import android.widget.TextView;
 
 
-import org.json.JSONException;
 
-import org.walkersguide.android.server.util.ServerUtility;
 import org.walkersguide.android.R;
-import org.walkersguide.android.util.Constants;
-import org.walkersguide.android.util.SettingsManager;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.text.InputType;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
-import org.walkersguide.android.util.GlobalInstance;
 
-import java.util.concurrent.ExecutorService;
-import android.os.Handler;
-import android.os.Looper;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import javax.net.ssl.HttpsURLConnection;
-import org.json.JSONObject;
+import timber.log.Timber;
 import android.text.TextUtils;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.Context;
 
 
 public class SendFeedbackDialog extends DialogFragment implements FragmentResultListener {
+    private static final String KEY_TOKEN = "token";
+    private static final String KEY_TASK_ID = "taskId";
+    private static final String KEY_CLOSE_DIALOG = "closeDialog";
 
-    public enum Token {
+    public enum FeedbackToken {
         QUESTION, MAP_REQUEST, PT_PROVIDER_REQUEST
     }
 
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private Handler handler = new Handler(Looper.getMainLooper());
-    private Future sendFeedbackRequest;
-    private InputMethodManager imm;
 
-    private Token token;
+    private ServerTaskExecutor serverTaskExecutorInstance;
+    private long taskId;
+
+    private FeedbackToken token;
     private boolean closeDialog;
 
-    private EditText editSenderEmailAddress, editMessage;
-    private TextView labelMessage;
+    private EditTextAndClearInputButton layoutSender, layoutMessage;
 
-    public static SendFeedbackDialog newInstance(Token token) {
-        SendFeedbackDialog sendFeedbackDialogInstance = new SendFeedbackDialog();
+    public static SendFeedbackDialog newInstance(FeedbackToken token) {
+        SendFeedbackDialog dialog = new SendFeedbackDialog();
         Bundle args = new Bundle();
-        args.putSerializable("token", token);
-        sendFeedbackDialogInstance.setArguments(args);
-        return sendFeedbackDialogInstance;
+        args.putSerializable(KEY_TOKEN, token);
+        dialog.setArguments(args);
+        return dialog;
     }
 
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        imm = (InputMethodManager) GlobalInstance.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         getChildFragmentManager()
             .setFragmentResultListener(
                     SimpleMessageDialog.REQUEST_DIALOG_CLOSED, this, this);
@@ -89,12 +82,31 @@ public class SendFeedbackDialog extends DialogFragment implements FragmentResult
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        token = (FeedbackToken) getArguments().getSerializable(KEY_TOKEN);
         if (savedInstanceState != null) {
-            token = (Token) savedInstanceState.getSerializable("token");
-            closeDialog = savedInstanceState.getBoolean("closeDialog");
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            closeDialog = savedInstanceState.getBoolean(KEY_CLOSE_DIALOG);
         } else {
-            token = (Token) getArguments().getSerializable("token");
+            taskId = ServerTaskExecutor.NO_TASK_ID;
             closeDialog = false;
+        }
+
+        String dialogTitle = null;
+        if (token != null) {
+            switch (this.token) {
+                case MAP_REQUEST:
+                    dialogTitle = getResources().getString(R.string.sendFeedbackDialogTitleMissingMap);
+                    break;
+                case PT_PROVIDER_REQUEST:
+                    dialogTitle = getResources().getString(R.string.sendFeedbackDialogTitleMissingPtProvider);
+                    break;
+                case QUESTION:
+                    dialogTitle = getResources().getString(R.string.sendFeedbackDialogTitle);
+                    break;
+            }
+        }
+        if (dialogTitle == null) {
+            return null;
         }
 
         // custom view
@@ -102,53 +114,60 @@ public class SendFeedbackDialog extends DialogFragment implements FragmentResult
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_send_feedback, nullParent);
 
-        editSenderEmailAddress = (EditText) view.findViewById(R.id.editSenderEmailAddress);
-        editMessage = (EditText) view.findViewById(R.id.editMessage);
-        editMessage.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    tryToSendFeedback();
-                    return true;
-                }
-                return false;
-            }
-        });
+        layoutSender = (EditTextAndClearInputButton) view.findViewById(R.id.layoutSender);
+        layoutSender.setInputType(
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        layoutSender.setLabelText(
+                getResources().getString(R.string.labelSenderEmailAddress));
+        layoutSender.setEditorAction(
+                EditorInfo.IME_ACTION_NEXT,
+                new EditTextAndClearInputButton.OnSelectedActionClickListener() {
+                    @Override public void onSelectedActionClicked() {
+                        layoutMessage.requestFocus();
+                    }
+                });
 
-        String dialogTitle = null;
-        TextView labelMessage = (TextView) view.findViewById(R.id.labelMessage);
-        switch (this.token) {
+        layoutMessage = (EditTextAndClearInputButton) view.findViewById(R.id.layoutMessage);
+        switch (token) {
             case MAP_REQUEST:
-                dialogTitle = getResources().getString(R.string.sendFeedbackDialogTitleMissingMap);
-                labelMessage.setText(
+                layoutMessage.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE);
+                layoutMessage.setLabelText(
                         getResources().getString(R.string.labelMessageMissingMap));
                 break;
             case PT_PROVIDER_REQUEST:
-                dialogTitle = getResources().getString(R.string.sendFeedbackDialogTitleMissingPtProvider);
-                labelMessage.setText(
+                layoutMessage.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE);
+                layoutMessage.setLabelText(
                         getResources().getString(R.string.labelMessageMissingPtProvider));
                 break;
-            default:
-                dialogTitle = getResources().getString(R.string.sendFeedbackDialogTitle);
-                labelMessage.setText(
+            case QUESTION:
+                layoutMessage.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_LONG_MESSAGE | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                layoutMessage.setLabelText(
                         getResources().getString(R.string.labelMessage));
-                editMessage.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-                editMessage.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                editMessage.setSingleLine(false);
                 break;
         }
+        layoutMessage.setEditorAction(
+                EditorInfo.IME_ACTION_DONE,
+                new EditTextAndClearInputButton.OnSelectedActionClickListener() {
+                    @Override public void onSelectedActionClicked() {
+                        tryToSendFeedback();
+                    }
+                });
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
             .setTitle(dialogTitle)
             .setView(view)
             .setPositiveButton(
-                    getResources().getString(R.string.dialogOK),
+                    getResources().getString(R.string.dialogSend),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
                     })
             .setNegativeButton(
-                    getResources().getString(R.string.dialogCancel),
+                    getResources().getString(R.string.dialogBack),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -160,90 +179,118 @@ public class SendFeedbackDialog extends DialogFragment implements FragmentResult
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
         if(dialog != null) {
+
             // positive button
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            updatePositiveButtonText(
+                    serverTaskExecutorInstance.taskInProgress(taskId));
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    tryToSendFeedback();
+                    if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                        serverTaskExecutorInstance.cancelTask(taskId);
+                    } else {
+                        tryToSendFeedback();
+                    }
                 }
             });
+
             // negative button
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    dialog.dismiss();
+                    dismiss();
                 }
             });
         }
+
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SEND_FEEDBACK_TASK_SUCCESSFUL);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+        localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
     }
 
     @Override public void onStop() {
         super.onStop();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putSerializable("token", token);
-        savedInstanceState.putBoolean("closeDialog", closeDialog);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putBoolean(KEY_CLOSE_DIALOG, closeDialog);
+    }
+
+    @Override public void onDestroy() {
+        super.onDestroy();
+        if (! getActivity().isChangingConfigurations()) {
+            Timber.d("onDestroy");
+            serverTaskExecutorInstance.cancelTask(taskId);
+            UiHelper.hideKeyboard(this);
+        }
     }
 
     private void tryToSendFeedback() {
-        if (sendFeedbackRequest == null || sendFeedbackRequest.isDone()) {
-            sendFeedbackRequest = this.executorService.submit(() -> {
-                try {
-                    JSONObject jsonServerParams = null;
-                    try {
-                        jsonServerParams = ServerUtility.createServerParamList();
-                        // mandatory
-                        jsonServerParams.put(
-                                "token", this.token.name().toLowerCase());
-                        jsonServerParams.put(
-                                "message", editMessage.getText().toString().trim());
-                        // optional
-                        String sender = editSenderEmailAddress.getText().toString().trim();
-                        if (! TextUtils.isEmpty(sender)) {
-                            jsonServerParams.put("sender", sender);
-                        }
-                    } catch (JSONException e) {
-                        throw new ServerCommunicationException(Constants.RC.BAD_REQUEST);
-                    }
+        final String sender = layoutSender.getInputText();
+        final String message = layoutMessage.getInputText();
+        if (TextUtils.isEmpty(message)) {
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getString(R.string.messageFeedbackMessageIsEmpty),
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
 
-                    HttpsURLConnection connection = null;
-                    ServerCommunicationException scException = null;
-                    try {
-                        ServerInstance serverInstance = ServerUtility.getServerInstance(
-                                SettingsManager.getInstance().getServerURL());
-                        connection = ServerUtility.connectToServer(
-                                String.format(
-                                    "%1$s/%2$s", serverInstance.getServerURL(), Constants.SERVER_COMMAND.SEND_FEEDBACK),
-                                jsonServerParams);
-
-                    } catch (ServerCommunicationException e) {
-                        scException = e;
-                    } finally {
-                        ServerUtility.cleanUp(connection, null);
-                        if (scException != null) {
-                            throw scException;
-                        }
-                    }
-
-                    closeDialog = true;
-                    handler.post(() -> {
-                        SimpleMessageDialog.newInstance(
-                                getResources().getString(R.string.messageSendFeedbackSuccessful))
-                            .show(getChildFragmentManager(), "SimpleMessageDialog");
-                    });
-
-                } catch (ServerCommunicationException e) {
-                    final ServerCommunicationException scException = e;
-                    handler.post(() -> {
-                        SimpleMessageDialog.newInstance(
-                                ServerUtility.getErrorMessageForReturnCode(scException.getReturnCode()))
-                            .show(getChildFragmentManager(), "SimpleMessageDialog");
-                    });
-                }
-            });
+        updatePositiveButtonText(true);
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            taskId = serverTaskExecutorInstance.executeTask(
+                    new SendFeedbackTask(token, sender, message));
         }
     }
+
+    private void updatePositiveButtonText(boolean requestInProgress) {
+        final AlertDialog dialog = (AlertDialog)getDialog();
+        if (dialog != null) {
+            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            buttonPositive.setText(
+                    requestInProgress
+                    ? getResources().getString(R.string.dialogCancel)
+                    : getResources().getString(R.string.dialogSend));
+        }
+    }
+
+
+    // background task results
+
+    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_SEND_FEEDBACK_TASK_SUCCESSFUL)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
+                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                    Timber.e("wrong task");
+                    return;
+                }
+
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_SEND_FEEDBACK_TASK_SUCCESSFUL)) {
+                    closeDialog = true;
+                    SimpleMessageDialog.newInstance(
+                            context.getResources().getString(R.string.messageSendFeedbackSuccessful))
+                        .show(getChildFragmentManager(), "SimpleMessageDialog");
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (wgException != null) {
+                        SimpleMessageDialog.newInstance(wgException.getMessage())
+                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                    }
+                }
+
+                updatePositiveButtonText(false);
+            }
+        }
+    };
 
 }

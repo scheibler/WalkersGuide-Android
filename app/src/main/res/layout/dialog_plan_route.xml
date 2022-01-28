@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -9,52 +10,32 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+
         <!-- start and destination -->
 
         <org.walkersguide.android.ui.view.TextViewAndActionButton
             android:id="@+id/layoutStartPoint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:prefix="@string/labelPrefixStart" />
 
         <org.walkersguide.android.ui.view.TextViewAndActionButton
             android:id="@+id/layoutDestinationPoint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" >
-
-            <Button
-                android:id="@+id/buttonNewRoute"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:text="@string/buttonNewRoute"
-                android:contentDescription="@string/buttonNewRouteCD" />
-
-            <Button
-                android:id="@+id/buttonSwapRoute"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:text="@string/buttonSwapRoute"
-                android:contentDescription="@string/buttonSwapRouteCD" />
-        </LinearLayout>
+            app:prefix="@string/labelPrefixDestination" />
 
 
         <!-- via points -->
 
-        <Switch
+        <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchShowViaPointList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/smallPadding"
             android:paddingBottom="@dimen/smallPadding"
             android:minHeight="@dimen/minHeight"
-            android:thumbTint="@color/image"
-            android:text="@string/buttonIncludeFavorites"
+            android:text="@string/switchShowViaPointList"
             android:theme="@style/HeadingTextView" />
 
         <LinearLayout
@@ -66,43 +47,24 @@
             <org.walkersguide.android.ui.view.TextViewAndActionButton
                 android:id="@+id/layoutViaPoint1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:prefix="@string/labelPrefixVia1"
+                app:compact="true" />
 
             <org.walkersguide.android.ui.view.TextViewAndActionButton
                 android:id="@+id/layoutViaPoint2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:prefix="@string/labelPrefixVia2"
+                app:compact="true" />
 
             <org.walkersguide.android.ui.view.TextViewAndActionButton
                 android:id="@+id/layoutViaPoint3"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:prefix="@string/labelPrefixVia3"
+                app:compact="true" />
         </LinearLayout>
-
-
-        <!-- route options -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@dimen/smallPadding"
-            android:paddingBottom="@dimen/smallPadding"
-            android:minHeight="@dimen/minHeight"
-            android:focusable="true"
-            android:text="@string/labelRouteOptions"
-            android:theme="@style/HeadingTextView" />
-
-        <Button
-            android:id="@+id/buttonExcludedWays"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/buttonExcludedWays" />
-
-        <Button
-            android:id="@+id/buttonRoutingWayClasses"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/buttonRoutingWayClasses" />
 
     </LinearLayout>
 </ScrollView>
