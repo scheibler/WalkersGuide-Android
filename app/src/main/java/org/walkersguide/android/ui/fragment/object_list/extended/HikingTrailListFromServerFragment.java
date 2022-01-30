@@ -22,7 +22,6 @@ import android.view.View;
 import java.util.ArrayList;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.ui.dialog.select.SelectMapDialog;
 import org.walkersguide.android.server.wg.status.OSMMap;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
@@ -38,8 +37,7 @@ import android.content.Intent;
 import org.walkersguide.android.sensor.PositionManager;
 
 
-public class HikingTrailListFromServerFragment extends ExtendedObjectListFragment
-        implements FragmentResultListener {
+public class HikingTrailListFromServerFragment extends ExtendedObjectListFragment {
 
 
 	public static HikingTrailListFromServerFragment newInstance() {
@@ -59,20 +57,6 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
-
-        // fragment result listener
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
-    }
-
-    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
-            SettingsManager.getInstance().setSelectedMap(
-                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
-        }
-        resetListPosition();
-        requestUiUpdate();
     }
 
     @Override public Profile getProfile() {
@@ -201,11 +185,6 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
                     WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
                     if (wgException != null) {
                         HikingTrailListFromServerFragment.super.populateUiAfterRequestFailed(wgException.getMessage());
-                        if (wgException.showMapDialog()) {
-                            SelectMapDialog.newInstance(
-                                    SettingsManager.getInstance().getSelectedMap())
-                                .show(getChildFragmentManager(), "SelectMapDialog");
-                        }
                     }
                 }
             }

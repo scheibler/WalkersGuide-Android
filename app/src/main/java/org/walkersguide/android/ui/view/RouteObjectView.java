@@ -91,20 +91,6 @@ public class RouteObjectView extends LinearLayout {
         if (object != null) {
             this.routeObject = object;
             this.configureRouteObjectView(false);
-
-            this.layoutRoutePoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-                @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                    if (view.getObject() instanceof Intersection) {
-                        PointDetailsActivity.startAtTab(
-                                view.getContext(),
-                                (Intersection) view.getObject(),
-                                PointDetailsActivity.Tab.INTERSECTION_STRUCTURE);
-                    } else if (view.getObject() instanceof Point) {
-                        PointDetailsActivity.start(
-                                view.getContext(), (Point) view.getObject());
-                    }
-                }
-            });
         }
     }
 

@@ -1,11 +1,11 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import org.walkersguide.android.util.TTSWrapper;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.sensor.bearing.AcceptNewQuadrant;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
-import androidx.core.view.ViewCompat;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity.AbstractTabAdapter;
 
@@ -100,28 +100,22 @@ public class PointDetailsActivity extends TabLayoutActivity {
                         point.getSubType())
                     );
     		labelPointDistanceAndBearing = (TextView) findViewById(R.id.labelPointDistanceAndBearing);
-            ViewCompat.setAccessibilityLiveRegion(
-                    labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
 
             // prepare tab list
             ArrayList<Tab> tabList = new ArrayList<Tab>();
-            tabList.add(Tab.DETAILS);
+            if (point instanceof Intersection) {
+                tabList.add(Tab.INTERSECTION_STRUCTURE);
+                if (((Intersection) point).hasPedestrianCrossing()) {
+                    tabList.add(Tab.PEDESTRIAN_CROSSINGS);
+                }
 
-            if (point instanceof POI
-                    || point instanceof Station) {
-                POI poiOrStation = (POI) point;
-                if (poiOrStation instanceof Station) {
+            } else {
+                tabList.add(Tab.DETAILS);
+                if (point instanceof Station) {
                     tabList.add(Tab.DEPARTURES);
                 }
-                if (! poiOrStation.getEntranceList().isEmpty()) {
+                if (point instanceof POI && ((POI) point).hasEntrance()) {
                     tabList.add(Tab.ENTRANCES);
-                }
-
-            } else if (point instanceof Intersection) {
-                Intersection intersection = (Intersection) point;
-                tabList.add(Tab.INTERSECTION_STRUCTURE);
-                if (! intersection.getPedestrianCrossingList().isEmpty()) {
-                    tabList.add(Tab.PEDESTRIAN_CROSSINGS);
                 }
             }
 
@@ -144,8 +138,8 @@ public class PointDetailsActivity extends TabLayoutActivity {
             filter.addAction(PositionManager.ACTION_NEW_LOCATION);
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(this).registerReceiver(newLocationAndDirectionReceiver, filter);
-            // update ui
-            updateDistanceAndBearingLabel();
+            // request current location to update the ui
+            PositionManager.getInstance().requestCurrentLocation();
         }
     }
 
@@ -155,8 +149,6 @@ public class PointDetailsActivity extends TabLayoutActivity {
                     GlobalInstance.getStringResource(R.string.labelPointDistanceAndBearing),
                     point.formatDistanceAndRelativeBearingFromCurrentLocation())
                 );
-        ViewCompat.setAccessibilityLiveRegion(
-                labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
     }
 
 
@@ -165,17 +157,23 @@ public class PointDetailsActivity extends TabLayoutActivity {
      */
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
-        private AcceptNewPosition ttsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
         private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+        private TTSWrapper ttsWrapperInstance = TTSWrapper.getInstance();
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                if (ttsAnnouncement.updatePoint(
-                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION))) {
-                    ViewCompat.setAccessibilityLiveRegion(
-                            labelPointDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
+                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
+                if (currentLocation != null) {
+                    if (acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
+                        updateDistanceAndBearingLabel();
+                    }
+                    if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
+                        ttsWrapperInstance.announceToScreenReader(
+                                point.formatDistanceAndRelativeBearingFromCurrentLocation());
+                    }
                 }
-                updateDistanceAndBearingLabel();
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);

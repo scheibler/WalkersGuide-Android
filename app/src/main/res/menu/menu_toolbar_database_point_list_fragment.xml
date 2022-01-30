@@ -8,4 +8,8 @@
     <item
         android:id="@+id/menuItemSortMethod"
         android:title="@string/menuItemSortMethod" />
+    <item
+        android:id="@+id/menuItemClearProfile"
+        android:title="@string/menuItemClearProfile"
+        android:visible="false" />
 </menu>

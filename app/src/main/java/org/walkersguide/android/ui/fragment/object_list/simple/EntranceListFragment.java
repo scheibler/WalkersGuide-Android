@@ -25,4 +25,7 @@ public class EntranceListFragment extends SimpleObjectListFragment {
         return R.plurals.entrance;
     }
 
+    @Override public void  successfulViewPopulationFinished() {
+    }
+
 }

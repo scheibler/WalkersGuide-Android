@@ -40,6 +40,8 @@ import org.walkersguide.android.database.DatabaseProfile;
 import timber.log.Timber;
 import android.widget.Button;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 
 
 public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment implements FragmentResultListener {
@@ -102,15 +104,23 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
             Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
-            if (selectedProfile instanceof DatabaseProfile) {
+            if (selectedProfile == null) {
+                request.setProfile(null);
+            } else if (selectedProfile instanceof DatabaseProfile) {
                 request.setProfile((DatabaseProfile) selectedProfile);
             }
+            resetListPosition();
+            requestUiUpdate();
+
         } else if (requestKey.equals(SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD)) {
             request.setSortMethod(
                     (SortMethod) bundle.getSerializable(SelectSortMethodDialog.EXTRA_SORT_METHOD));
+            resetListPosition();
+            requestUiUpdate();
+
+        } else {
+            super.onFragmentResult(requestKey, bundle);
         }
-        resetListPosition();
-        requestUiUpdate();
     }
 
     @Override public Profile getProfile() {
@@ -174,10 +184,49 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemClearProfile = menu.findItem(R.id.menuItemClearProfile);
+        menuItemClearProfile.setVisible(
+                   request != null
+                && request.hasProfile()
+                && (
+                       getProfileGroup() == ProfileGroup.POINT_HISTORY
+                    || getProfileGroup() == ProfileGroup.ROUTE_HISTORY));
+    }
+
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemSortMethod) {
             SelectSortMethodDialog.newInstance(request.getSortMethod())
                 .show(getChildFragmentManager(), "SelectSortMethodDialog");
+
+        } else if (item.getItemId() == R.id.menuItemClearProfile) {
+            Dialog clearProfileDialog = new AlertDialog.Builder(getActivity())
+                .setMessage(
+                        String.format(
+                            getResources().getString(R.string.clearProfileDialogTitle),
+                            request.getProfile().getName())
+                        )
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogYes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                AccessDatabase.getInstance().clearDatabaseProfile(request.getProfile());
+                                resetListPosition();
+                                requestUiUpdate();
+                                dialog.dismiss();
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogNo),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                .create();
+            clearProfileDialog.show();
+
         } else {
             return super.onOptionsItemSelected(item);
         }

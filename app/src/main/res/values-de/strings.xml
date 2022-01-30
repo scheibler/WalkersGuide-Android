@@ -155,6 +155,7 @@
     <string name="menuItemJumpToTop">An den Listenanfang springen</string>
     <string name="menuItemFilterResult">Nach Blickrichtung filtern</string>
     <string name="menuItemSortMethod">Sortieren</string>
+    <string name="menuItemClearProfile">Profil leeren</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Eingänge</string>
@@ -162,7 +163,6 @@
 
     <!-- IntersectionStructureFragment -->
     <string name="fragmentIntersectionStructureName">Kreuzungsstruktur</string>
-    <string name="labelNumberOfIntersectionWaysAndBearing">Kreuzung mit %1$s\nBlickrichtung: %2$s</string>
     <string name="labelPartOfPreviousRouteSegment">Vorheriges Teilstück der Route</string>
     <string name="labelPartOfNextRouteSegment">Nächstes Teilstück der Route</string>
 
@@ -181,6 +181,8 @@
     <string name="fragmentFavoritesName">Favoriten</string>
     <string name="fragmentPointHistoryName">Letzte Punkte</string>
     <string name="fragmentRouteHistoryName">Letzte Routen</string>
+    <!-- clear profile dialog -->
+    <string name="clearProfileDialogTitle">Möchtest du alle Einträge des Profils \"%1$s\" entfernen?</string>
 
     <!-- PoiFromServerFragment -->
     <string name="fragmentPOIName">POI</string>
@@ -275,9 +277,6 @@
     <string name="labelPointGPSDetailsHeading">GPS Details</string>
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Kreuzung</string>
-    <string name="labelPointIntersectionNumberOfStreets">Anzahl Straßen:</string>
-    <string name="labelPointIntersectionNumberOfBigStreets">Anzahl großer Straßen:</string>
-    <string name="labelPointIntersectionNumberOfPedestrianCrossingsNearBy">Fußgängerquerungen in der Nähe:</string>
     <!-- pedestrian crossing -->
     <string name="labelPointTrafficSignalsAttributesHeading">Ampel</string>
     <string name="labelPointTrafficSignalsSound">Tonsignal:</string>
@@ -521,6 +520,7 @@
 
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Kreuzung mit %1$s</string>
+    <string name="intersectionNumberOfCrossingsNearby">%1$s in der Nähe:</string>
 
     <!-- PedestrianCrossing -->
     <!-- TrafficSignal -->

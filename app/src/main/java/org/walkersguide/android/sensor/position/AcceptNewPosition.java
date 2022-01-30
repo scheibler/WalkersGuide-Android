@@ -12,6 +12,10 @@ public class AcceptNewPosition implements Serializable {
         return new AcceptNewPosition(20, 10);
     }
 
+    public static AcceptNewPosition newInstanceForDistanceLabelUpdate() {
+        return new AcceptNewPosition(3, 3);
+    }
+
     private final int distanceThreshold, timeThreshold;
 
     private Point lastAcceptedPoint;
@@ -20,12 +24,8 @@ public class AcceptNewPosition implements Serializable {
     private AcceptNewPosition(int distanceThresholdInMeters, int timeThresholdInSeconds) {
         this.distanceThreshold = distanceThresholdInMeters;
         this.timeThreshold = timeThresholdInSeconds;
-        this.lastAcceptedPoint = PositionManager.getInstance().getCurrentLocation();
+        this.lastAcceptedPoint = null;
         this.lastAcceptedPointTimestamp = System.currentTimeMillis();
-    }
-
-    public Point getLastPoint() {
-        return this.lastAcceptedPoint;
     }
 
     public boolean updatePoint(Point newPoint) {

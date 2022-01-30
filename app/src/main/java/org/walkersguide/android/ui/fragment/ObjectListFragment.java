@@ -1,5 +1,8 @@
 package org.walkersguide.android.ui.fragment;
 
+import org.walkersguide.android.server.wg.status.OSMMap;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentResultListener;
 
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -40,9 +43,14 @@ import java.util.Collections;
 import android.view.WindowManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.server.wg.WgException;
+import org.walkersguide.android.server.ServerException;
+import org.walkersguide.android.ui.dialog.select.SelectMapDialog;
+import org.walkersguide.android.util.SettingsManager;
 
 
-public abstract class ObjectListFragment extends DialogFragment {
+public abstract class ObjectListFragment extends DialogFragment implements FragmentResultListener {
     public static final String REQUEST_SELECT_OBJECT = "selectObject";
     public static final String EXTRA_OBJECT_WITH_ID = "objectWithId";
 
@@ -71,6 +79,20 @@ public abstract class ObjectListFragment extends DialogFragment {
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setShowsDialog(getDialogMode() != null);
+
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
+        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
+            SettingsManager.getInstance().setSelectedMap(
+                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
+            resetListPosition();
+            requestUiUpdate();
+        }
     }
 
     private DialogMode getDialogMode() {
@@ -176,7 +198,6 @@ public abstract class ObjectListFragment extends DialogFragment {
     }
 
     public void refreshButtonClicked() {
-        Timber.d("refreshButtonClicked");
         requestUiUpdate();
     }
 
@@ -210,6 +231,7 @@ public abstract class ObjectListFragment extends DialogFragment {
     /**
      * pause and resume
      */
+    private static final String SELECT_MAP_DIALOG_TAG = "SelectMapDialog";
 
     @Override public void onPause() {
         super.onPause();
@@ -236,6 +258,7 @@ public abstract class ObjectListFragment extends DialogFragment {
         filter.addAction(PositionManager.ACTION_NEW_SIMULATED_LOCATION);
         filter.addAction(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED);
         filter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
+        filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
         return filter;
     }
 
@@ -255,6 +278,17 @@ public abstract class ObjectListFragment extends DialogFragment {
                         .vibrate(250);
                 }
                 requestUiUpdate();
+
+            } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                Timber.d("ACTION_SERVER_TASK_FAILED");
+                ServerException serverException = (ServerException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                if (serverException instanceof WgException
+                        && ((WgException) serverException).showMapDialog()
+                        && getChildFragmentManager().findFragmentByTag(SELECT_MAP_DIALOG_TAG) == null) {
+                    SelectMapDialog.newInstance(
+                            SettingsManager.getInstance().getSelectedMap())
+                        .show(getChildFragmentManager(), SELECT_MAP_DIALOG_TAG);
+                }
             }
         }
     };
@@ -289,7 +323,7 @@ public abstract class ObjectListFragment extends DialogFragment {
             ArrayList<? extends ObjectWithId> objectList, boolean showIsFavoriteIndicator) {
         ViewCompat.setAccessibilityLiveRegion(
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
-        updateHeadingText(heading);
+        labelHeading.setText(heading);
         updateRefreshButton(false);
 
         listViewObject.setAdapter(
@@ -329,10 +363,6 @@ public abstract class ObjectListFragment extends DialogFragment {
         ViewCompat.setAccessibilityLiveRegion(
                 labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
         labelEmptyListView.setText(message);
-    }
-
-    public void updateHeadingText(String heading) {
-        labelHeading.setText(heading);
     }
 
     public void updateRefreshButton(boolean requestInProgress) {

@@ -184,14 +184,12 @@ public class RouterFragment extends Fragment {
 
         // bottom layout
         labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
-        ViewCompat.setAccessibilityLiveRegion(
-                labelDistanceAndBearing, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
 
         buttonPreviousRouteObject = (Button) view.findViewById(R.id.buttonPreviousRouteObject);
         buttonPreviousRouteObject.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (route.hasPreviousRouteObject()) {
-                    onPostProcessSkipRouteObject(
+                    onPostProcessSkipRouteObjectManually(
                             route.skipToPreviousRouteObject());
                 }
             }
@@ -201,7 +199,7 @@ public class RouterFragment extends Fragment {
         buttonNextRouteObject.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (route.hasNextRouteObject()) {
-                    onPostProcessSkipRouteObject(
+                    onPostProcessSkipRouteObjectManually(
                             route.skipToNextRouteObject());
                 }
             }
@@ -255,20 +253,16 @@ public class RouterFragment extends Fragment {
         }
     }
 
-    private void onPostProcessSkipRouteObject(boolean skipWasSuccessful) {
+    private void onPostProcessSkipRouteObjectManually(boolean skipWasSuccessful) {
         if (skipWasSuccessful) {
             ttsWrapperInstance.announceToScreenReader(
-                    String.format(
-                        Locale.getDefault(),
-                        "%1$d: %2$s",
-                        route.getCurrentPosition() + 1,
-                        route.getCurrentRouteObject().formatSegmentInstruction())
-                    );
+                    route.getCurrentRouteObject().formatSegmentInstruction());
         }
         updateUiExceptDistanceLabel();
+        updateDistanceAndBearingLabel(route.getCurrentRouteObject());
     }
 
-    public void updateUiExceptDistanceLabel() {
+    private void updateUiExceptDistanceLabel() {
         layoutRoute.configureAsSingleObject(route);
         labelHeading.setText(
                 String.format(
@@ -279,13 +273,21 @@ public class RouterFragment extends Fragment {
         layoutCurrentRouteObject.configureAsSingleObject(route.getCurrentRouteObject());
     }
 
+    private void updateDistanceAndBearingLabel(RouteObject currentRouteObject) {
+        labelDistanceAndBearing.setText(
+                currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation());
+    }
+
 
     private class RouteBroadcastReceiver extends BroadcastReceiver {
         private static final int SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS = 30;
 
-        private AcceptNewPosition ttsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
         private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+
         private RouteObject lastRouteObject = null;
+        private boolean announceNextInstruction = false;
 
         private boolean shortlyBeforeArrivalAnnounced, arrivalAnnounced;
         private long arrivalTime;
@@ -301,11 +303,21 @@ public class RouterFragment extends Fragment {
             }
 
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                updateDistanceAndBearingLabel(currentRouteObject);
-                if (ttsAnnouncement.updatePoint(
-                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION))) {
-                    ttsWrapperInstance.announceToScreenReader(
-                            currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation());
+                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
+                if (currentLocation != null) {
+                    if (acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
+                        updateDistanceAndBearingLabel(currentRouteObject);
+                    }
+                    if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
+                        if (announceNextInstruction) {
+                            ttsWrapperInstance.announceToScreenReader(
+                                    currentRouteObject.formatSegmentInstruction());
+                            announceNextInstruction = false;
+                        } else {
+                            ttsWrapperInstance.announceToScreenReader(
+                                    currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation());
+                        }
+                    }
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
@@ -399,14 +411,10 @@ public class RouterFragment extends Fragment {
             // auto jump to next route point
             if (route.hasNextRouteObject()
                     && settingsManagerInstance.getAutoSkipToNextRoutePoint()) {
-                onPostProcessSkipRouteObject(
-                        route.skipToNextRouteObject());
+                this.announceNextInstruction = route.skipToNextRouteObject();
+                updateUiExceptDistanceLabel();
+                updateDistanceAndBearingLabel(currentRouteObject);
             }
-        }
-
-        private void updateDistanceAndBearingLabel(RouteObject currentRouteObject) {
-            labelDistanceAndBearing.setText(
-                    currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation());
         }
     }
 

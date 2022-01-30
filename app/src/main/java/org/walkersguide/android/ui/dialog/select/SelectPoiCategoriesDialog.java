@@ -99,12 +99,6 @@ public class SelectPoiCategoriesDialog extends DialogFragment {
                         }
                     }
                     )
-            .setPositiveButton(
-                    getResources().getString(R.string.dialogOK),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
             .setNeutralButton(
                     getResources().getString(R.string.dialogClear),
                     new DialogInterface.OnClickListener() {
@@ -113,7 +107,7 @@ public class SelectPoiCategoriesDialog extends DialogFragment {
                     }
                     )
             .setNegativeButton(
-                    getResources().getString(R.string.dialogCancel),
+                    getResources().getString(R.string.dialogClose),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -126,9 +120,7 @@ public class SelectPoiCategoriesDialog extends DialogFragment {
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
         if (dialog != null) {
-            // hide positive and neutral buttons for now
-            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            buttonPositive.setVisibility(View.GONE);
+            // hide neutral button for now
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setVisibility(View.GONE);
         }
@@ -158,6 +150,10 @@ public class SelectPoiCategoriesDialog extends DialogFragment {
     @Override public void onDestroy() {
         super.onDestroy();
         if (! getActivity().isChangingConfigurations()) {
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_POI_CATEGORY_LIST, selectedPoiCategoryList);
+            getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POI_CATEGORIES, result);
+            // stop server instance request, if running
             serverTaskExecutorInstance.cancelTask(taskId, false);
         }
     }
@@ -194,18 +190,6 @@ public class SelectPoiCategoriesDialog extends DialogFragment {
         final AlertDialog dialog = (AlertDialog) getDialog();
         if (dialog != null) {
             supportedPoiCategoryList = serverInstance.getSupportedPoiCategoryList();
-
-            // positive button
-            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            buttonPositive.setVisibility(View.VISIBLE);
-            buttonPositive.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    Bundle result = new Bundle();
-                    result.putSerializable(EXTRA_POI_CATEGORY_LIST, selectedPoiCategoryList);
-                    getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POI_CATEGORIES, result);
-                    dismiss();
-                }
-            });
 
             // neutral button
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);

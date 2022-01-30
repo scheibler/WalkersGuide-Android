@@ -28,6 +28,7 @@ import java.lang.NumberFormatException;
 import android.content.ClipboardManager;
 import android.content.ClipData;
 import org.json.JSONException;
+import org.walkersguide.android.database.DatabaseProfile;
 
 public class PointFromCoordinatesLinkDialog extends DialogFragment {
     public static final String REQUEST_FROM_COORDINATES_LINK = "fromCoordinatesLink";
@@ -222,7 +223,8 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
         }
 
         // return point or show error message
-        if (extractedCoordinates != null) {
+        if (extractedCoordinates != null
+                && DatabaseProfile.allPoints().add(extractedCoordinates)) {
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, extractedCoordinates);
             getParentFragmentManager().setFragmentResult(REQUEST_FROM_COORDINATES_LINK, result);

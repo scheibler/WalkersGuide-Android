@@ -37,6 +37,7 @@ import android.widget.ArrayAdapter;
 import org.walkersguide.android.util.SettingsManager;
 import android.widget.LinearLayout;
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
+import timber.log.Timber;
 
 
 public abstract class ExtendedObjectListFragment extends ObjectListFragment {

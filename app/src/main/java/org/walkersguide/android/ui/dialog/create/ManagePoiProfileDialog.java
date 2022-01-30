@@ -29,6 +29,7 @@ import android.widget.Toast;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
+import timber.log.Timber;
 
 
 public class ManagePoiProfileDialog extends DialogFragment implements FragmentResultListener {
@@ -48,20 +49,20 @@ public class ManagePoiProfileDialog extends DialogFragment implements FragmentRe
         return dialog;
     }
 
-    public static ManagePoiProfileDialog modifyProfile(PoiProfile profile) {
+    public static ManagePoiProfileDialog modifyProfile(long profileId) {
         ManagePoiProfileDialog dialog = new ManagePoiProfileDialog();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ACTION, Action.MODIFY);
-        args.putSerializable(KEY_PROFILE, profile);
+        args.putSerializable(KEY_PROFILE, PoiProfile.load(profileId));
         dialog.setArguments(args);
         return dialog;
     }
 
-    public static ManagePoiProfileDialog removeProfile(PoiProfile profile) {
+    public static ManagePoiProfileDialog removeProfile(long profileId) {
         ManagePoiProfileDialog dialog = new ManagePoiProfileDialog();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ACTION, Action.REMOVE);
-        args.putSerializable(KEY_PROFILE, profile);
+        args.putSerializable(KEY_PROFILE, PoiProfile.load(profileId));
         dialog.setArguments(args);
         return dialog;
     }

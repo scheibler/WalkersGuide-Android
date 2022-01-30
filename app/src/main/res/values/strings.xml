@@ -149,6 +149,7 @@
     <string name="menuItemJumpToTop">Jump to top of list</string>
     <string name="menuItemFilterResult">Filter by viewing direction</string>
     <string name="menuItemSortMethod">Sort method</string>
+    <string name="menuItemClearProfile">Clear profile</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Entrances</string>
@@ -156,7 +157,6 @@
 
     <!-- IntersectionStructureFragment -->
     <string name="fragmentIntersectionStructureName">Intersection structure</string>
-    <string name="labelNumberOfIntersectionWaysAndBearing">Intersection with %1$s\nViewing direction: %2$s</string>
     <string name="labelPartOfPreviousRouteSegment">Previous route segment</string>
     <string name="labelPartOfNextRouteSegment">Next route segment</string>
 
@@ -181,6 +181,8 @@
     <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
     <string name="labelPOIFragmentHeaderSuccess">%1$s\nRadius: %2$s</string>
     <string name="labelMoreResults">Get more POI</string>
+    <!-- clear profile dialog -->
+    <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
 
     <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
     <string name="selectProfileDialogTitle">Select profile:</string>
@@ -269,9 +271,6 @@
     <string name="labelPointGPSDetailsHeading">GPS Details</string>
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Intersection</string>
-    <string name="labelPointIntersectionNumberOfStreets">Number of streets:</string>
-    <string name="labelPointIntersectionNumberOfBigStreets">Number of big streets:</string>
-    <string name="labelPointIntersectionNumberOfPedestrianCrossingsNearBy">Pedestrian crossings nearby:</string>
     <!-- pedestrian crossing -->
     <string name="labelPointTrafficSignalsAttributesHeading">Traffic light</string>
     <string name="labelPointTrafficSignalsSound">Sound:</string>
@@ -516,6 +515,7 @@
 
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Intersection with %1$s</string>
+    <string name="intersectionNumberOfCrossingsNearby">%1$s nearby</string>
 
     <!-- PedestrianCrossing -->
     <!-- TrafficSignal -->

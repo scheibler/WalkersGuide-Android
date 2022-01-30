@@ -61,8 +61,8 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionCode 2
-            versionName '2.0.0-b2'
+            versionCode 3
+            versionName '2.0.0-b3'
             signingConfig signingConfigs.beta
             // internal
             // database
@@ -93,8 +93,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
         }
     }
 

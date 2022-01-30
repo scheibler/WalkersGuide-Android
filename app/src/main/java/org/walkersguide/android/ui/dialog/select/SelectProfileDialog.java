@@ -43,6 +43,7 @@ import androidx.annotation.NonNull;
 import org.walkersguide.android.util.SettingsManager;
 import android.widget.BaseAdapter;
 import timber.log.Timber;
+import android.text.TextUtils;
 
 
 public class SelectProfileDialog extends DialogFragment implements FragmentResultListener {
@@ -73,7 +74,6 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
 
     private ProfileGroup profileGroup;
     private Profile selectedProfile;
-    private boolean selectedProfileModified;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,24 +83,18 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
         if (requestKey.equals(ManagePoiProfileDialog.REQUEST_MANAGE_POI_PROFILE)) {
             Action action = (Action) bundle.getSerializable(ManagePoiProfileDialog.EXTRA_ACTION);
             PoiProfile newProfile = (PoiProfile) bundle.getSerializable(ManagePoiProfileDialog.EXTRA_POI_PROFILE);
             if (action == Action.CREATE) {
-                if (selectedProfile == null) {
+                selectedProfile = newProfile;
+            } else if (newProfile != null
+                    && newProfile.equals(selectedProfile)) {
+                if (action == Action.MODIFY) {
                     selectedProfile = newProfile;
-                    selectedProfileModified = true;
-                }
-            } else if (action == Action.MODIFY) {
-                if (newProfile != null
-                        && newProfile.equals(selectedProfile)) {
-                    selectedProfileModified = true;
-                }
-            } else if (action == Action.REMOVE) {
-                if (newProfile != null
-                        && newProfile.equals(selectedProfile)) {
+                } else if (action == Action.REMOVE) {
                     selectedProfile = null;
-                    selectedProfileModified = true;
                 }
             }
             fillProfilesListView();
@@ -109,11 +103,10 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         profileGroup = (ProfileGroup) getArguments().getSerializable(KEY_GROUP);
-        selectedProfile = (Profile) getArguments().getSerializable(KEY_SELECTED_PROFILE);
         if(savedInstanceState != null) {
-            selectedProfileModified = savedInstanceState.getBoolean(KEY_SELECTED_PROFILE_MODIFIED);
+            selectedProfile = (Profile) savedInstanceState.getSerializable(KEY_SELECTED_PROFILE);
         } else {
-            selectedProfileModified = false;
+            selectedProfile = (Profile) getArguments().getSerializable(KEY_SELECTED_PROFILE);
         }
 
         return new AlertDialog.Builder(getActivity())
@@ -167,13 +160,7 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
             ListView listViewItems = (ListView) dialog.getListView();
             listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-                    Profile newProfile = (Profile) parent.getItemAtPosition(position);
-                    Timber.d("onClick: %1$s", newProfile);
-                    if (newProfile != null) {
-                        Bundle result = new Bundle();
-                        result.putSerializable(EXTRA_PROFILE, newProfile);
-                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_PROFILE, result);
-                    }
+                    selectedProfile = (Profile) parent.getItemAtPosition(position);
                     dismiss();
                 }
             });
@@ -194,13 +181,13 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putBoolean(KEY_SELECTED_PROFILE_MODIFIED, selectedProfileModified);
+        savedInstanceState.putSerializable(KEY_SELECTED_PROFILE, selectedProfile);
     }
 
     @Override public void onDestroy() {
         super.onDestroy();
-        if (selectedProfileModified
-                && ! getActivity().isChangingConfigurations()) {
+        if (! getActivity().isChangingConfigurations()) {
+            Timber.d("onDestroy: %1$s", selectedProfile);
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_PROFILE, selectedProfile);
             getParentFragmentManager().setFragmentResult(REQUEST_SELECT_PROFILE, result);
@@ -252,11 +239,11 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
                 @Override public boolean onMenuItemClick(MenuItem item) {
                     switch (item.getItemId()) {
                         case MENU_ITEM_EDIT_PROFILE:
-                            ManagePoiProfileDialog.modifyProfile(poiProfile)
+                            ManagePoiProfileDialog.modifyProfile(poiProfile.getId())
                                 .show(getChildFragmentManager(), "ManagePoiProfileDialog");
                             return true;
                         case MENU_ITEM_REMOVE_PROFILE:
-                            ManagePoiProfileDialog.removeProfile(poiProfile)
+                            ManagePoiProfileDialog.removeProfile(poiProfile.getId())
                                 .show(getChildFragmentManager(), "ManagePoiProfileDialog");
                             return true;
                         default:

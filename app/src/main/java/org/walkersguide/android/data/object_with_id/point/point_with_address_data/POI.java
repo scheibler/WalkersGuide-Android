@@ -54,6 +54,10 @@ public class POI extends PointWithAddressData implements Serializable {
         return this.entranceList;
     }
 
+    public boolean hasEntrance() {
+        return this.entranceList != null && ! this.entranceList.isEmpty();
+    }
+
     public POI getOuterBuilding() {
         return this.isInside;
     }

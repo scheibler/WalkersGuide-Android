@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.data.angle.Bearing;
@@ -83,6 +84,10 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
         getSupportFragmentManager()
             .setFragmentResultListener(
                     RenameObjectDialog.REQUEST_RENAME_OBJECT_SUCCESSFUL, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    SaveCurrentLocationDialog.REQUEST__LOCATION_SAVED_SUCCESSFULLY, this, this);
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
@@ -106,8 +111,8 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(RenameObjectDialog.REQUEST_RENAME_OBJECT_SUCCESSFUL)) {
-            Timber.d("onFragmentResult: rename");
+        if (requestKey.equals(RenameObjectDialog.REQUEST_RENAME_OBJECT_SUCCESSFUL)
+                || requestKey.equals(SaveCurrentLocationDialog.REQUEST__LOCATION_SAVED_SUCCESSFULLY)) {
             ToolbarActivity.this.recreate();
         }
     }

@@ -66,30 +66,30 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                ObjectWithIdAdapter adapter = getListAdapter();
-                if (adapter != null
-                        && currentBearing != null
-                        && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
-
-                    updateHeadingText(
-                            String.format(
-                                GlobalInstance.getStringResource(R.string.labelNumberOfIntersectionWaysAndBearing),
-                                GlobalInstance.getPluralResource(
-                                    getPluralResourceId(), adapter.getCount()),
-                                currentBearing.getOrientation().toString())
-                            );
-
-                    boolean newItemOnTop = adapter.sortObjectList(
-                            // bearing offset = 68 -> sort the ways, which are slightly to the left of the user, to the top of the list
-                            new ObjectWithId.SortByBearingRelativeToCurrentBearing(
-                                Angle.Quadrant.Q1.max, true));
-                    if (newItemOnTop) {
-                        TTSWrapper.getInstance()
-                            .announceToScreenReader(adapter.getItem(0).getName());
-                    }
+                if (acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
+                    sortListAndAnnounceSegmentStraightAhead();
                 }
             }
         }
     };
+
+    @Override public void  successfulViewPopulationFinished() {
+        sortListAndAnnounceSegmentStraightAhead();
+    }
+
+
+    private void sortListAndAnnounceSegmentStraightAhead() {
+        ObjectWithIdAdapter adapter = getListAdapter();
+        if (adapter != null) {
+            boolean newItemOnTop = adapter.sortObjectList(
+                    // bearing offset = 68 -> sort the ways, which are slightly to the left of the user, to the top of the list
+                    new ObjectWithId.SortByBearingRelativeToCurrentBearing(
+                        Angle.Quadrant.Q1.max, true));
+            if (newItemOnTop) {
+                TTSWrapper.getInstance()
+                    .announceToScreenReader(adapter.getItem(0).getName());
+            }
+        }
+    }
 
 }

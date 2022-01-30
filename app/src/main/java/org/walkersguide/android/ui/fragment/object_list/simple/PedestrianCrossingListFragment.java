@@ -25,4 +25,7 @@ public class PedestrianCrossingListFragment extends SimpleObjectListFragment {
         return R.plurals.crossing;
     }
 
+    @Override public void  successfulViewPopulationFinished() {
+    }
+
 }

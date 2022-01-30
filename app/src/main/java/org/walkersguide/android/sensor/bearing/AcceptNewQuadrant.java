@@ -18,12 +18,8 @@ public class AcceptNewQuadrant implements Serializable {
 
     private AcceptNewQuadrant(int timeThresholdInSeconds) {
         this.timeThreshold = timeThresholdInSeconds;
-        this.lastAcceptedQuadrant = Quadrant.Q0;
+        this.lastAcceptedQuadrant = null;
         this.lastAcceptedQuadrantTimestamp = System.currentTimeMillis();
-    }
-
-    public Quadrant getLastQuadrant() {
-        return this.lastAcceptedQuadrant;
     }
 
     public boolean updateQuadrant(Quadrant newQuadrant) {
@@ -35,7 +31,7 @@ public class AcceptNewQuadrant implements Serializable {
         return false;
     }
 
-    private  boolean checkQuadrant(Quadrant newQuadrant) {
+    public  boolean checkQuadrant(Quadrant newQuadrant) {
         if (newQuadrant == null) {
             return false;
         } else if (this.lastAcceptedQuadrant == null) {

@@ -81,8 +81,6 @@ public class SegmentDetailsActivity extends TabLayoutActivity {
                         segment.getSubType())
                     );
         	labelSegmentDirection = (TextView) findViewById(R.id.labelSegmentDirection);
-            ViewCompat.setAccessibilityLiveRegion(
-                    labelSegmentDirection, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
 
             // prepare tab list
             ArrayList<Tab> tabList = new ArrayList<Tab>();
@@ -109,8 +107,8 @@ public class SegmentDetailsActivity extends TabLayoutActivity {
             IntentFilter filter = new IntentFilter();
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(this).registerReceiver(newLocationAndDirectionReceiver, filter);
-            // update ui
-            updateDirectionLabel();
+            // request current direction to update the ui
+            DeviceSensorManager.getInstance().requestCurrentBearing();
         }
     }
 
@@ -135,13 +133,9 @@ public class SegmentDetailsActivity extends TabLayoutActivity {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
                 if (currentBearing != null
                         && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
-                    ViewCompat.setAccessibilityLiveRegion(
-                            labelSegmentDirection, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                     updateDirectionLabel();
                 }
             }
-            ViewCompat.setAccessibilityLiveRegion(
-                    labelSegmentDirection, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         }
     };
 

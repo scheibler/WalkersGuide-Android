@@ -552,38 +552,18 @@ public class PointDetailsFragment extends Fragment {
                         .addTopMargin()
                         .create()
                     );
-
             // number of streets
             layoutAttributes.addView(
                     new TextViewBuilder(
                             PointDetailsFragment.this.getContext(),
-                            String.format(
-                                Locale.getDefault(),
-                                "%1$s: %2$d",
-                                getResources().getString(R.string.labelPointIntersectionNumberOfStreets),
-                                intersection.getNumberOfStreets()))
+                            intersection.formatNumberOfStreets())
                         .create()
                     );
-            layoutAttributes.addView(
-                    new TextViewBuilder(
-                            PointDetailsFragment.this.getContext(),
-                            String.format(
-                                Locale.getDefault(),
-                                "%1$s: %2$d",
-                                getResources().getString(R.string.labelPointIntersectionNumberOfBigStreets),
-                                intersection.getNumberOfStreetsWithName()))
-                        .create()
-                    );
-
             // pedestrian crossings nearby
             layoutAttributes.addView(
                     new TextViewBuilder(
                             PointDetailsFragment.this.getContext(),
-                            String.format(
-                                Locale.getDefault(),
-                                "%1$s: %2$d",
-                                getResources().getString(R.string.labelPointIntersectionNumberOfPedestrianCrossingsNearBy),
-                                intersection.getPedestrianCrossingList().size()))
+                            intersection.formatNumberOfCrossingsNearby())
                         .create()
                     );
 

@@ -22,6 +22,7 @@ import org.walkersguide.android.data.object_with_id.Point;
 
 public abstract class SimpleObjectListFragment extends ObjectListFragment {
 
+    public abstract void  successfulViewPopulationFinished();
 
     public static Bundle createArgsBundle(ArrayList<? extends ObjectWithId> objectList) {
         Bundle args = ObjectListFragment.createArgsBundle(null);
@@ -66,6 +67,7 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
                     GlobalInstance.getPluralResource(
                         getPluralResourceId(), objectList.size()),
                     objectList, true);
+            successfulViewPopulationFinished();
         } else {
             super.populateUiAfterRequestFailed("");
         }

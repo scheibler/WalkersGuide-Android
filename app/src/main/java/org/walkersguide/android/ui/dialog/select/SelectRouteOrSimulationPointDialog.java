@@ -95,6 +95,7 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
         if (requestKey.equals(WhereAmIDialog.REQUEST_RESOLVE_COORDINATES)) {
             pointSelected(
                     (StreetAddress) bundle.getSerializable(WhereAmIDialog.EXTRA_STREET_ADDRESS));
@@ -111,6 +112,7 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                 ObjectListFromDatabaseFragment.createDialog((DatabaseProfile) selectedProfile, true)
                     .show(getChildFragmentManager(), "SelectPointDialog");
             } else if (selectedProfile instanceof PoiProfile) {
+                Timber.d("start poi dialog");
                 PoiListFromServerFragment.createDialog((PoiProfile) selectedProfile, true)
                     .show(getChildFragmentManager(), "SelectPointDialog");
             }

@@ -124,9 +124,29 @@ public class SettingsManager {
             editor.remove("generalSettings");
             editor.apply();
         }
+        if (settings.contains("directionSettings")) {
+            Editor editor = settings.edit();
+            editor.remove("directionSettings");
+            editor.apply();
+        }
+        if (settings.contains("locationSettings")) {
+            Editor editor = settings.edit();
+            editor.remove("locationSettings");
+            editor.apply();
+        }
         if (settings.contains("poiSettings")) {
             Editor editor = settings.edit();
             editor.remove("poiSettings");
+            editor.apply();
+        }
+        if (settings.contains("routeSettings")) {
+            Editor editor = settings.edit();
+            editor.remove("routeSettings");
+            editor.apply();
+        }
+        if (settings.contains("serverSettings")) {
+            Editor editor = settings.edit();
+            editor.remove("serverSettings");
             editor.apply();
         }
 	}

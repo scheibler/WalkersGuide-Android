@@ -105,6 +105,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
         if (requestKey.equals(ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED)) {
             settingsManagerInstance.setWayClassWeightSettings(
                     (WayClassWeightSettings) bundle.getSerializable(ConfigureWayClassWeightsDialog.EXTRA_WAY_CLASS_SETTINGS));

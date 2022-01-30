@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import org.walkersguide.android.data.object_with_id.Point;
 import android.os.Handler;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.ui.dialog.select.SelectMapDialog;
 import org.walkersguide.android.server.wg.status.OSMMap;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
@@ -99,9 +98,6 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         // fragment result listener
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
-        getChildFragmentManager()
-            .setFragmentResultListener(
                     SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -109,23 +105,31 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
-            SettingsManager.getInstance().setSelectedMap(
-                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
-        } else if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
+        if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
             Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
-            if (selectedProfile instanceof PoiProfile) {
+            if (selectedProfile == null) {
+                request.setProfile(null);
+                SettingsManager.getInstance().setSelectedPoiProfile(null);
+            } else if (selectedProfile instanceof PoiProfile) {
                 PoiProfile selectedPoiProfile = (PoiProfile) selectedProfile;
                 request.setProfile(selectedPoiProfile);
                 SettingsManager.getInstance().setSelectedPoiProfile(selectedPoiProfile);
             }
+            resetListPosition();
+            requestUiUpdate();
+
         } else if (requestKey.equals(SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES)) {
+            Timber.d("onFragmentResult: categories selected");
             ArrayList<PoiCategory> newPoiCategoryList = (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST);
             request.getProfile().setValues(
                     request.getProfile().getName(), newPoiCategoryList, request.getProfile().getIncludeFavorites());
+            resetListPosition();
+            requestUiUpdate();
+
+        } else {
+            super.onFragmentResult(requestKey, bundle);
         }
-        resetListPosition();
-        requestUiUpdate();
     }
 
     @Override public Profile getProfile() {
@@ -241,7 +245,6 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
     }
 
     @Override public void refreshButtonClicked() {
-        Timber.d("refreshButtonClicked");
         if (serverTaskExecutorInstance.taskInProgress(taskId)) {
             serverTaskExecutorInstance.cancelTask(taskId, true);
         } else {
@@ -299,11 +302,6 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
                     WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
                     if (wgException != null) {
                         PoiListFromServerFragment.super.populateUiAfterRequestFailed(wgException.getMessage());
-                        if (wgException.showMapDialog()) {
-                            SelectMapDialog.newInstance(
-                                    SettingsManager.getInstance().getSelectedMap())
-                                .show(getChildFragmentManager(), "SelectMapDialog");
-                        }
                     }
                 }
 
