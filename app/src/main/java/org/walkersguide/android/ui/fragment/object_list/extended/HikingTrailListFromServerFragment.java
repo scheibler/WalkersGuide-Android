@@ -35,15 +35,16 @@ import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
 import org.walkersguide.android.sensor.PositionManager;
+import android.view.Menu;
+import android.view.MenuItem;
 
 
 public class HikingTrailListFromServerFragment extends ExtendedObjectListFragment {
 
-
 	public static HikingTrailListFromServerFragment newInstance() {
 		HikingTrailListFromServerFragment fragment = new HikingTrailListFromServerFragment();
-        Bundle args = ExtendedObjectListFragment.createArgsBundle(null, null);
-        fragment.setArguments(args);
+        fragment.setArguments(
+                new ExtendedObjectListFragment.BundleBuilder().build());
 		return fragment;
     }
 
@@ -97,6 +98,24 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
 
 
     /**
+     * menu
+     */
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // refresh
+        MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemCancel));
+        } else {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemRefresh));
+        }
+    }
+
+
+    /**
      * pause and resume
      */
 
@@ -133,15 +152,24 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
         super.prepareRequest();
     }
 
-    @Override public void refreshButtonClicked() {
+    @Override public void swipeToRefreshDetected() {
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            super.swipeToRefreshDetected();
+        }
+    }
+
+    @Override public void refreshMenuItemClicked() {
         if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-            serverTaskExecutorInstance.cancelTask(taskId);
+            serverTaskExecutorInstance.cancelTask(taskId, true);
         } else {
-            super.refreshButtonClicked();
+            super.refreshMenuItemClicked();
         }
     }
 
     @Override public void requestUiUpdate() {
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            serverTaskExecutorInstance.cancelTask(taskId, true);
+        }
         this.prepareRequest();
 
         // get current position
@@ -152,11 +180,8 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
             return;
         }
 
-        super.updateRefreshButton(true);
-        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            taskId = serverTaskExecutorInstance.executeTask(
-                    new HikingTrailsTask(currentLocation));
-        }
+        taskId = serverTaskExecutorInstance.executeTask(
+                new HikingTrailsTask(currentLocation));
     }
 
     @Override public void requestMoreResults() {
@@ -195,9 +220,7 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
         resetListPosition();
         super.populateUiAfterRequestWasSuccessful(
                 String.format(
-                    GlobalInstance.getStringResource(R.string.labelHikingTrailsHeading),
-                    GlobalInstance.getPluralResource(
-                        R.plurals.hikingTrail, hikingTrailList.size()),
+                    GlobalInstance.getStringResource(R.string.labelHeadingSecondLineRadius),
                     GlobalInstance.getPluralResource(
                         R.plurals.kiloMeter, HikingTrailsTask.DEFAULT_TRAIL_RADIUS / 1000)),
                 hikingTrailList,

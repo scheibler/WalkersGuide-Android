@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.util.TTSWrapper;
 import org.walkersguide.android.server.address.AddressException;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -63,7 +64,7 @@ public class WhereAmIDialog extends DialogFragment {
 
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
-    private boolean onlyResolveAddressAndCloseDialogImmediately;
+    private boolean onlyResolveAddressAndCloseDialogImmediately, announceNewAddress;
 
     private TextViewAndActionButton layoutCurrentAddress;
 
@@ -79,14 +80,13 @@ public class WhereAmIDialog extends DialogFragment {
             taskId = ServerTaskExecutor.NO_TASK_ID;
         }
         onlyResolveAddressAndCloseDialogImmediately = getArguments().getBoolean(KEY_ONLY_RESOLVE_ADDRESS);
+        announceNewAddress = false;
 
-        layoutCurrentAddress = new TextViewAndActionButton(
-                WhereAmIDialog.this.getContext(),
-                getResources().getString(R.string.labelPrefixYouAreAt),
-                false);
+        layoutCurrentAddress = new TextViewAndActionButton(WhereAmIDialog.this.getContext(), true);
         layoutCurrentAddress.setLayoutParams(
                 new LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        layoutCurrentAddress.setAutoUpdate(true);
 
         // create dialog
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity())
@@ -132,6 +132,7 @@ public class WhereAmIDialog extends DialogFragment {
                 buttonNeutral.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
                         requestAddressForCurrentLocation();
+                        announceNewAddress = true;
                     }
                 });
             }
@@ -206,6 +207,10 @@ public class WhereAmIDialog extends DialogFragment {
                             dismiss();
                         } else {
                             layoutCurrentAddress.configureAsSingleObject(addressPoint);
+                            // announce
+                            if (announceNewAddress) {
+                                TTSWrapper.getInstance().announceToScreenReader(addressPoint.toString());
+                            }
                         }
                     }
 
@@ -220,9 +225,11 @@ public class WhereAmIDialog extends DialogFragment {
                                 null, addressException.getMessage());
                     }
                 }
+                announceNewAddress = false;
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SHAKE_DETECTED)) {
                 requestAddressForCurrentLocation();
+                announceNewAddress = true;
             }
         }
     };

@@ -8,6 +8,11 @@ package org.walkersguide.android.util;
 import org.json.JSONObject;
 import org.json.JSONException;
 import android.text.TextUtils;
+import android.os.Vibrator;
+import android.annotation.TargetApi;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.content.Context;
 
 
 public class Helper {
@@ -91,6 +96,53 @@ public class Helper {
             return object2 == null;
         }
         return object1.equals(object2);
+    }
+
+
+    /**
+     * vibration
+     */
+    // duration constants
+    public static final long VIBRATION_DURATION_SHORT = 50;
+    public static final long VIBRATION_DURATION_LONG = 250;
+    // intensity constants
+    public static final int VIBRATION_INTENSITY_WEAK = 90;
+    public static final int VIBRATION_INTENSITY_DEFAULT = 128;
+    public static final int VIBRATION_INTENSITY_STRONG = 180;
+
+    @TargetApi(Build.VERSION_CODES.O)
+    public static void vibrateOnce(long duration) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            vibrateOnce(duration, VibrationEffect.DEFAULT_AMPLITUDE);
+        } else {
+            vibrateOnce(duration, VIBRATION_INTENSITY_DEFAULT);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    public static void vibrateOnce(long duration, int amplitude) {
+        Vibrator vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                        VibrationEffect.createOneShot(duration, amplitude));
+            } else {
+                vibrator.vibrate(duration);
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    public static void vibratePattern(long[] timings) {
+        Vibrator vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                        VibrationEffect.createWaveform(timings, -1));
+            } else {
+                vibrator.vibrate(timings, -1);
+            }
+        }
     }
 
 }

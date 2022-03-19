@@ -22,19 +22,12 @@
             android:layout_height="wrap_content"
             app:compact="true" />
 
-        <include
-            layout="@layout/layout_default_divider" />
-
-        <TextView
-            android:id="@+id/labelSegmentType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true" />
-
         <TextView
             android:id="@+id/labelSegmentDirection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
             android:focusable="true" />
 
         <include

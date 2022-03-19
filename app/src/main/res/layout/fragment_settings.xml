@@ -53,18 +53,14 @@
             android:id="@+id/buttonShowActionButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="@string/buttonShowActionButtonHint"
             android:text="@string/buttonShowActionButton" />
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/buttonEnableTextInputHistory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/buttonEnableTextInputHistory" />
 
         <Button
             android:id="@+id/buttonShakeIntensity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="@string/buttonShakeIntensityHint"
             android:text="@string/buttonShakeIntensity" />
 
 

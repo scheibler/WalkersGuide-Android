@@ -12,7 +12,7 @@ public class EntranceListFragment extends SimpleObjectListFragment {
 	public static EntranceListFragment newInstance(ArrayList<Entrance> entranceList) {
 		EntranceListFragment fragment = new EntranceListFragment();
         fragment.setArguments(
-                SimpleObjectListFragment.createArgsBundle(entranceList));
+                new SimpleObjectListFragment.BundleBuilder(entranceList).build());
 		return fragment;
 	}
 

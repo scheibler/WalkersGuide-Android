@@ -1,7 +1,7 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
 import org.walkersguide.android.data.angle.Bearing;
-import org.walkersguide.android.sensor.bearing.AcceptNewQuadrant;
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;
 import androidx.core.view.ViewCompat;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
@@ -71,15 +71,10 @@ public class SegmentDetailsActivity extends TabLayoutActivity {
                     // nothing should happen here
                 }
             }, false);
-            layoutSelectedSegment.configureAsSingleObject(segment, segment.getName());
+            layoutSelectedSegment.configureAsSingleObject(
+                    segment, segment.formatNameAndSubType());
 
-            // type and bearing
-    		TextView labelSegmentType = (TextView) findViewById(R.id.labelSegmentType);
-            labelSegmentType.setText(
-                    String.format(
-                        getResources().getString(R.string.labelSegmentType),
-                        segment.getSubType())
-                    );
+            // bearing
         	labelSegmentDirection = (TextView) findViewById(R.id.labelSegmentDirection);
 
             // prepare tab list
@@ -126,13 +121,13 @@ public class SegmentDetailsActivity extends TabLayoutActivity {
      */
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
-        private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
                 if (currentBearing != null
-                        && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
+                        && acceptNewBearing.updateBearing(currentBearing)) {
                     updateDirectionLabel();
                 }
             }

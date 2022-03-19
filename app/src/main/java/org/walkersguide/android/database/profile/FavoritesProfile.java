@@ -25,13 +25,6 @@ public class FavoritesProfile extends DatabaseProfile implements Serializable {
         }
     }
 
-    public static ArrayList<FavoritesProfile> favoritesProfileList() {
-        ArrayList<FavoritesProfile> profileList = new ArrayList<FavoritesProfile>();
-        profileList.add(favoritePoints());
-        profileList.add(favoriteRoutes());
-        return profileList;
-    }
-
     // ids
     private static final long ID_FAVORITE_POINTS = 1000000;
     private static final long ID_FAVORITE_ROUTES = 5000000;
@@ -39,14 +32,14 @@ public class FavoritesProfile extends DatabaseProfile implements Serializable {
     public static FavoritesProfile favoritePoints() {
         return new FavoritesProfile(
                 ID_FAVORITE_POINTS,
-                GlobalInstance.getStringResource(R.string.favoritesProfilePoints),
+                GlobalInstance.getStringResource(R.string.favoritesProfile),
                 DatabaseProfile.ForObject.POINTS);
     }
 
     public static FavoritesProfile favoriteRoutes() {
         return new FavoritesProfile(
                 ID_FAVORITE_ROUTES,
-                GlobalInstance.getStringResource(R.string.favoritesProfileRoutes),
+                GlobalInstance.getStringResource(R.string.favoritesProfile),
                 DatabaseProfile.ForObject.ROUTES);
     }
 

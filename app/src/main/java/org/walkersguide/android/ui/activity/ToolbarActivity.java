@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.shortcut.StaticShortcutAction;
 import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
@@ -53,6 +54,11 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import org.walkersguide.android.ui.dialog.edit.RenameObjectDialog;
 import android.widget.Toast;
+import android.view.MenuItem;
+import androidx.core.app.NavUtils;
+import androidx.core.app.TaskStackBuilder;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 
 
 public abstract class ToolbarActivity extends AppCompatActivity implements FragmentResultListener {
@@ -194,6 +200,28 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
 
 
     /**
+     * menu
+     */
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            Intent upIntent = NavUtils.getParentActivityIntent(this);
+            if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+                TaskStackBuilder.create(this)
+                    .addNextIntentWithParentStack(upIntent)
+                    .startActivities();
+            } else {
+                upIntent.setFlags(
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                NavUtils.navigateUpTo(this, upIntent);
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    /**
      * monitor navigation drawer open / close status
      */
     private boolean toolbarMenuIsOpen = false;
@@ -236,15 +264,30 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, filter);
 
         if (globalInstance.applicationWasInBackground()) {
-            Timber.d("onResume, skip = %1$s", skipPositionManagerInitialisationDuringOnResume);
             globalInstance.setApplicationInBackground(false);
+
             // activate sensors
             if (! skipPositionManagerInitialisationDuringOnResume) {
                 positionManagerInstance.startGPS();
             }
             deviceSensorManagerInstance.startSensors();
-            // reset server status request
+
+            for (StaticShortcutAction action : globalInstance.getEnabledStaticShortcutActions()) {
+                if (action == StaticShortcutAction.OPEN_PLAN_ROUTE_DIALOG) {
+                    PlanRouteDialog.newInstance()
+                        .show(getSupportFragmentManager(), "PlanRouteDialog");
+                } else if (action == StaticShortcutAction.OPEN_SAVE_CURRENT_LOCATION_DIALOG) {
+                    SaveCurrentLocationDialog.newInstance()
+                        .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
+                } else if (action == StaticShortcutAction.OPEN_WHERE_AM_I_DIALOG) {
+                    WhereAmIDialog.newInstance()
+                        .show(getSupportFragmentManager(), "WhereAmIDialog");
+                }
+            }
+
+            // cleanup after app resume
             globalInstance.clearCaches();
+            globalInstance.resetEnabledStaticShortcutActions();
         }
     }
 

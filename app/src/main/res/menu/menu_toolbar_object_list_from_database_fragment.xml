@@ -3,13 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/menuItemJumpToTop"
-        android:title="@string/menuItemJumpToTop" />
-    <item
         android:id="@+id/menuItemSortMethod"
         android:title="@string/menuItemSortMethod" />
     <item
         android:id="@+id/menuItemClearProfile"
         android:title="@string/menuItemClearProfile"
-        android:visible="false" />
+        android:orderInCategory="100" />
 </menu>

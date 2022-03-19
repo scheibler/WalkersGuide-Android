@@ -1,5 +1,7 @@
 package org.walkersguide.android.util;
 
+        import org.walkersguide.android.shortcut.PinnedShortcutUtility;
+import org.walkersguide.android.shortcut.StaticShortcutAction;
 import android.annotation.TargetApi;
 
 import android.app.Application;
@@ -37,15 +39,18 @@ import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
 import org.walkersguide.android.server.wg.poi.PoiProfileResult;
 import android.annotation.SuppressLint;
 import org.walkersguide.android.data.object_with_id.Route;
+import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.Map;
 
 
 public class GlobalInstance extends Application {
 
     @Override public void onCreate() {
         super.onCreate();
-        if (BuildConfig.DEBUG) {
+        //if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
-        }
+        //}
         // app context
         this.globalInstance = this;
         // session
@@ -114,6 +119,10 @@ public class GlobalInstance extends Application {
                 // deactivate sensors
                 PositionManager.getInstance().stopGPS();
                 DeviceSensorManager.getInstance().stopSensors();
+                // disable obsolete pinned shortcuts in background thread
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    PinnedShortcutUtility.disableObsoletePinnedShortcuts();
+                });
             }
         };
         this.mActivityTransitionTimer.schedule(mActivityTransitionTimerTask,
@@ -208,6 +217,30 @@ public class GlobalInstance extends Application {
 
     public void setRouteCurrentPosition(Route route, int newPosition) {
         this.routeCurrentPositionMap.put(route, newPosition);
+    }
+
+
+    /**
+     * static shortcuts
+     */
+    private LinkedHashMap<StaticShortcutAction,Boolean> staticShortcutActionEnabledMap = new LinkedHashMap<StaticShortcutAction,Boolean>();
+
+    public ArrayList<StaticShortcutAction> getEnabledStaticShortcutActions() {
+        ArrayList<StaticShortcutAction> enabledStaticShortcutActionList = new ArrayList<StaticShortcutAction>();
+        for (Map.Entry<StaticShortcutAction,Boolean> entry : this.staticShortcutActionEnabledMap.entrySet()) {
+            if (entry.getValue()) {
+                enabledStaticShortcutActionList.add(entry.getKey());
+            }
+        }
+        return enabledStaticShortcutActionList;
+    }
+
+    public void enableStaticShortcutAction(StaticShortcutAction action) {
+        this.staticShortcutActionEnabledMap.put(action, true);
+    }
+
+    public void resetEnabledStaticShortcutActions() {
+        this.staticShortcutActionEnabledMap.clear();
     }
 
 

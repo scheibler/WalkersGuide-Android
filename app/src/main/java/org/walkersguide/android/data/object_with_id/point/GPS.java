@@ -111,16 +111,12 @@ public class GPS extends Point {
         this.provider = Helper.getNullableStringFromJsonObject(inputData, KEY_PROVIDER);
 
         this.bearing = null;
-        try {
-            String key;
-            if (inputData.has("direction")) {
-                // convert from legacy format
-                key = "direction";
-            } else {
-                key = KEY_BEARING_SENSOR_VALUE;
-            }
-            this.bearing = new BearingSensorValue(inputData.getJSONObject(key));
-        } catch (JSONException e) {}
+        if (! inputData.isNull(KEY_BEARING_SENSOR_VALUE)) {
+            try {
+                this.bearing = new BearingSensorValue(
+                        inputData.getJSONObject(KEY_BEARING_SENSOR_VALUE));
+            } catch (JSONException e) {}
+        }
     }
 
 

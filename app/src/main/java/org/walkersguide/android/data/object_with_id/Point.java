@@ -203,6 +203,15 @@ public class Point extends ObjectWithId implements Serializable {
      * helper functions
      */
 
+    public String formatNameAndSubType() {
+        String customOrOriginalName = getName();
+        if (! TextUtils.isEmpty(this.subType)
+                && ! customOrOriginalName.equals(this.subType)) {
+            return String.format("%1$s (%2$s)", customOrOriginalName, this.subType);
+        }
+        return customOrOriginalName;
+    }
+
     public String formatCoordinates() {
         return String.format(
                 Locale.getDefault(),
@@ -342,12 +351,7 @@ public class Point extends ObjectWithId implements Serializable {
     }
 
     @Override public String toString() {
-        String customOrOriginalName = getName();
-        if (! TextUtils.isEmpty(this.subType)
-                && ! customOrOriginalName.equals(this.subType)) {
-            return String.format("%1$s (%2$s)", customOrOriginalName, this.subType);
-        }
-        return customOrOriginalName;
+        return formatNameAndSubType();
     }
 
 

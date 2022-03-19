@@ -144,6 +144,7 @@ public class AccessDatabase {
         try {
             objectWithIdSerialized = objectWithId.toJson().toString();
         } catch (JSONException e) {
+            Timber.d("addObjectWithId: %1$s", e.getMessage());
             return false;
         }
 
@@ -260,7 +261,9 @@ public class AccessDatabase {
                             cursor.getString(
                                     cursor.getColumnIndexOrThrow(objectTableColumnData)))
                         );
-            } catch (IllegalArgumentException | JSONException e) {}
+            } catch (IllegalArgumentException | JSONException e) {
+                Timber.e("error: %1$s", e.getMessage());
+            }
         }
         cursor.close();
 
@@ -292,7 +295,7 @@ public class AccessDatabase {
             case BEARING_ASC:
             case BEARING_DESC:
                 Collections.sort(
-                        objectList, new ObjectWithId.SortByBearingRelativeToCurrentBearing(0, sortMethod.isAscending()));
+                        objectList, ObjectWithId.SortByBearingRelativeTo.currentBearing(0, sortMethod.isAscending()));
             case DISTANCE_ASC:
             case DISTANCE_DESC:
                 Collections.sort(

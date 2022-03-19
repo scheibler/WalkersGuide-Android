@@ -13,12 +13,10 @@ public class PoiProfileRequest extends ProfileRequest implements Serializable {
 
 
     private PoiProfile profile;
-    private boolean filterByViewingDirection;
 
     public PoiProfileRequest(PoiProfile profile) {
         super(null);
         this.profile = profile;
-        this.filterByViewingDirection = false;
     }
 
     public PoiProfile getProfile() {
@@ -27,14 +25,6 @@ public class PoiProfileRequest extends ProfileRequest implements Serializable {
 
     public void setProfile(PoiProfile newProfile) {
         this.profile = newProfile;
-    }
-
-    public boolean getFilterByViewingDirection() {
-        return this.filterByViewingDirection;
-    }
-
-    public void toggleFilterByViewingDirection() {
-        this.filterByViewingDirection = ! this.filterByViewingDirection;
     }
 
     @Override public int hashCode() {
@@ -49,7 +39,6 @@ public class PoiProfileRequest extends ProfileRequest implements Serializable {
             }
             result = prime * result + (poiProfile.getIncludeFavorites() ? 1 : 0);
         }
-        // missing filterByViewingDirection is intentional
         return result;
     }
 

@@ -33,7 +33,7 @@ public abstract class Segment extends ObjectWithId implements Serializable {
      */
 
     protected enum Type {
-        INTERSECTION, ROUTE;
+        FOOTWAY_INTERSECTION, FOOTWAY_ROUTE;
 
         public static Type fromString(String name) {
             for (Type type : Type.values()) {
@@ -53,9 +53,9 @@ public abstract class Segment extends ObjectWithId implements Serializable {
         Type type = Type.fromString(jsonSegment.optString(KEY_TYPE, ""));
         if (type != null) {
             switch (type) {
-                case INTERSECTION:
+                case FOOTWAY_INTERSECTION:
                     return new IntersectionSegment(jsonSegment);
-                case ROUTE:
+                case FOOTWAY_ROUTE:
                     return new RouteSegment(jsonSegment);
             }
         }
@@ -138,6 +138,15 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
     public String getSubType() {
         return this.subType;
+    }
+
+    public String formatNameAndSubType() {
+        String customOrOriginalName = getName();
+        if (! TextUtils.isEmpty(this.subType)
+                && ! customOrOriginalName.equals(this.subType)) {
+            return String.format("%1$s (%2$s)", customOrOriginalName, this.subType);
+        }
+        return customOrOriginalName;
     }
 
 
@@ -247,12 +256,7 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     }
 
     @Override public String toString() {
-        String customOrOriginalName = getName();
-        if (! TextUtils.isEmpty(this.subType)
-                && ! customOrOriginalName.equals(this.subType)) {
-            return String.format("%1$s (%2$s)", customOrOriginalName, this.subType);
-        }
-        return customOrOriginalName;
+        return formatNameAndSubType();
     }
 
 

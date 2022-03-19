@@ -33,9 +33,11 @@ public class Bearing extends Angle implements Serializable {
                 Angle.Quadrant.Q7, GlobalInstance.getStringResource(R.string.orientationNorthWest));
 
         public static Orientation newInstance(Quadrant quadrant) {
-            for (Orientation orientation : Orientation.values()) {
-                if (orientation.quadrant == quadrant) {
-                    return orientation;
+            if (quadrant != null) {
+                for (Orientation orientation : Orientation.values()) {
+                    if (orientation.quadrant == quadrant) {
+                        return orientation;
+                    }
                 }
             }
             return null;
@@ -65,6 +67,10 @@ public class Bearing extends Angle implements Serializable {
 
     public Bearing shiftBy(int offset) {
         return new Bearing(super.getDegree() + offset);
+    }
+
+    public Bearing inverse() {
+        return shiftBy(180);
     }
 
     public RelativeBearing relativeToCurrentBearing() {

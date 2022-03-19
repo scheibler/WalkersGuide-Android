@@ -17,12 +17,14 @@
             android:id="@+id/layoutStartPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:includeDistanceOrBearingInformation="true"
             app:prefix="@string/labelPrefixStart" />
 
         <org.walkersguide.android.ui.view.TextViewAndActionButton
             android:id="@+id/layoutDestinationPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:includeDistanceOrBearingInformation="true"
             app:prefix="@string/labelPrefixDestination" />
 
 

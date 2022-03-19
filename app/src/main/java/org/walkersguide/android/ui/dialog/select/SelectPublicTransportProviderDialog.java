@@ -176,8 +176,6 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
 
         @Override public View getGroupView(int groupPosition, boolean isExpanded,
                 View convertView, ViewGroup parent) {
-            Country country = getGroup(groupPosition);
-
             EntryHolderParent holder;
             if (convertView == null) {
                 holder = new EntryHolderParent();
@@ -187,28 +185,11 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             } else {
                 holder = (EntryHolderParent) convertView.getTag();
             }
-
-            String countryString = null;
-            switch (country) {
-                case EUROPE:
-                    countryString = context.getResources().getString(R.string.countryEurope);
-                    break;
-                case GERMANY:
-                    countryString = context.getResources().getString(R.string.countryGermany);
-                    break;
-                case SWITZERLAND:
-                    countryString = context.getResources().getString(R.string.countrySwitzerland);
-                    break;
-                default:
-                    countryString = country.name();
-                    break;
-            }
-
             holder.labelCountry.setText(
                     String.format(
                         Locale.getDefault(),
                         "%1$s (%2$d)",
-                        countryString,
+                        getGroup(groupPosition).toString(),
                         getChildrenCount(groupPosition)));
             return convertView;
         }

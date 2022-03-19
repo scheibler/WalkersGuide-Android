@@ -75,8 +75,12 @@ public class TTSWrapper extends UtteranceProgressListener {
     }
 
     public void announceToScreenReader(String message) {
+        announceToScreenReader(message, false);
+    }
+
+    public void announceToScreenReader(String message, boolean interrupt) {
         if (isScreenReaderEnabled()) {
-            announce(message, false);
+            announce(message, interrupt);
         }
     }
 

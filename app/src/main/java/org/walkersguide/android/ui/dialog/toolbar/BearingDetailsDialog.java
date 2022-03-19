@@ -1,5 +1,6 @@
     package org.walkersguide.android.ui.dialog.toolbar;
 
+import android.widget.Toast;
 import org.walkersguide.android.sensor.bearing.BearingSensor;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
@@ -88,7 +89,6 @@ public class BearingDetailsDialog extends DialogFragment {
         radioCompass.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    // set direction source to compass
                     deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.COMPASS);
                     // uncheck gps radio button
                     radioSatellite.setChecked(false);
@@ -104,10 +104,19 @@ public class BearingDetailsDialog extends DialogFragment {
         radioSatellite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    // set direction source to gps bearing
-                    deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.SATELLITE);
-                    // uncheck compass radio button
-                    radioCompass.setChecked(false);
+                    if (deviceSensorManagerInstance.getBearingValueFromSatellite() == null) {
+                        // no satellite bearing
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.errorNoBearingFound),
+                                Toast.LENGTH_LONG).show();
+                        radioCompass.setChecked(true);
+                        radioSatellite.setChecked(false);
+                    } else {
+                        deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.SATELLITE);
+                        // uncheck compass radio button
+                        radioCompass.setChecked(false);
+                    }
                 }
             }
         });
@@ -139,6 +148,7 @@ public class BearingDetailsDialog extends DialogFragment {
                     newBearingInDegree += InputFilterForBearingInDegree.MAX + 1;
                 }
                 editDegree.setText(String.valueOf(newBearingInDegree));
+                buttonEnableSimulation.setChecked(true);
                 TTSWrapper
                     .getInstance()
                     .announceToScreenReader(
@@ -191,6 +201,7 @@ public class BearingDetailsDialog extends DialogFragment {
                     newBearingInDegree -= 360;
                 }
                 editDegree.setText(String.valueOf(newBearingInDegree));
+                buttonEnableSimulation.setChecked(true);
                 TTSWrapper
                     .getInstance()
                     .announceToScreenReader(

@@ -35,7 +35,7 @@ public class RouteSegment extends Segment implements Serializable {
         }
 
         // refresh some entries
-        jsonRouteSegment.put(Segment.KEY_TYPE, Segment.Type.ROUTE.toString());
+        jsonRouteSegment.put(Segment.KEY_TYPE, Segment.Type.FOOTWAY_ROUTE.toString());
         jsonRouteSegment.put(KEY_BEARING, newBearing.getDegree());
         jsonRouteSegment.put(KEY_DISTANCE, newDistance);
         return new RouteSegment(jsonRouteSegment);

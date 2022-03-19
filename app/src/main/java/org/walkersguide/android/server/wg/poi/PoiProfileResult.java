@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.io.Serializable;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.database.SortMethod;
+import timber.log.Timber;
 
 
 public class PoiProfileResult implements Serializable{
@@ -21,6 +22,14 @@ public class PoiProfileResult implements Serializable{
 
     public static int calculateLookupNumberOfResults(ArrayList<Point> pointList) {
         return pointList.size();
+    }
+
+    public static boolean hasSameFirstPoi(ArrayList<Point> oldPoiList, ArrayList<Point> newPoiList) {
+        if (oldPoiList != null && ! oldPoiList.isEmpty()
+                && newPoiList != null && ! newPoiList.isEmpty()) {
+            return oldPoiList.get(0).equals(newPoiList.get(0));
+        }
+        return false;
     }
 
 

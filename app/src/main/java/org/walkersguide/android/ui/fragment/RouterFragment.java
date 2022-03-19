@@ -1,6 +1,9 @@
 package org.walkersguide.android.ui.fragment;
 
-import org.walkersguide.android.sensor.bearing.AcceptNewQuadrant;
+import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.data.profile.ProfileGroup;
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
@@ -51,9 +54,15 @@ import androidx.annotation.NonNull;
 import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
 import androidx.core.view.ViewCompat;
 import java.util.Locale;
+import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
+import org.walkersguide.android.data.profile.Profile;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.util.Helper;
 
 
-public class RouterFragment extends Fragment {
+public class RouterFragment extends Fragment implements FragmentResultListener {
 
 
 	// instance constructor
@@ -80,6 +89,30 @@ public class RouterFragment extends Fragment {
         routeBroadcastReceiver = new RouteBroadcastReceiver();
 		settingsManagerInstance = SettingsManager.getInstance();
         ttsWrapperInstance = TTSWrapper.getInstance();
+
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ObjectListFragment.REQUEST_SELECT_OBJECT, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
+            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
+            if (selectedProfile instanceof DatabaseProfile) {
+                ObjectListFromDatabaseFragment.createDialog((DatabaseProfile) selectedProfile, true)
+                    .show(getChildFragmentManager(), "SelectPointDialog");
+            }
+        } else if (requestKey.equals(ObjectListFragment.REQUEST_SELECT_OBJECT)) {
+            ObjectWithId newObject = (ObjectWithId) bundle.getSerializable(ObjectListFragment.EXTRA_OBJECT_WITH_ID);
+            Timber.d("selected: %1$s", newObject);
+            if (newObject instanceof Route) {
+                MainActivity.loadRoute(
+                        RouterFragment.this.getContext(), (Route) newObject);
+            }
+        }
     }
 
 
@@ -103,7 +136,11 @@ public class RouterFragment extends Fragment {
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menuItemRecalculate
+        if (item.getItemId() == R.id.menuItemLoadPreviousRoute) {
+            SelectProfileDialog.newInstance(ProfileGroup.LOAD_PREVIOUS_ROUTE)
+                .show(getChildFragmentManager(), "SelectProfileDialog");
+
+        } else if (item.getItemId() == R.id.menuItemRecalculate
                 || item.getItemId() == R.id.menuItemRecalculateWithCurrentPosition
                 || item.getItemId() == R.id.menuItemRecalculateReturnRoute) {
             P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
@@ -282,13 +319,15 @@ public class RouterFragment extends Fragment {
     private class RouteBroadcastReceiver extends BroadcastReceiver {
         private static final int SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS = 30;
 
-        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        // distance label
         private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
-        private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
 
-        private RouteObject lastRouteObject = null;
+        // tts
+        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
         private boolean announceNextInstruction = false;
 
+        private RouteObject lastRouteObject = null;
         private boolean shortlyBeforeArrivalAnnounced, arrivalAnnounced;
         private long arrivalTime;
 
@@ -305,7 +344,8 @@ public class RouterFragment extends Fragment {
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
                 if (currentLocation != null) {
-                    if (acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
+                    if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)
+                            || acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
                         updateDistanceAndBearingLabel(currentRouteObject);
                     }
                     if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
@@ -323,7 +363,7 @@ public class RouterFragment extends Fragment {
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
                 if (currentBearing != null
-                        && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
+                        && acceptNewBearing.updateBearing(currentBearing)) {
                     updateDistanceAndBearingLabel(currentRouteObject);
                 }
 
@@ -405,8 +445,7 @@ public class RouterFragment extends Fragment {
             arrivalAnnounced = true;
             ttsWrapperInstance.announceToEveryone(
                     route.formatArrivalAtPointMessage());
-            ((Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE))
-                .vibrate(250);
+            Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
 
             // auto jump to next route point
             if (route.hasNextRouteObject()

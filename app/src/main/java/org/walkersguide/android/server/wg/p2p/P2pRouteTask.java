@@ -2,7 +2,6 @@ package org.walkersguide.android.server.wg.p2p;
 
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
-import org.walkersguide.android.data.profile.ProfileGroup;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.server.wg.WgException;
@@ -79,7 +78,6 @@ public class P2pRouteTask extends ServerTask {
             jsonServerParams.put(
                     "allowed_way_classes", jsonWayClassTypeAndWeightMappings);
 
-            Timber.d("jsonServerParams: %1$s", jsonServerParams.toString());
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_REQUEST);
         }

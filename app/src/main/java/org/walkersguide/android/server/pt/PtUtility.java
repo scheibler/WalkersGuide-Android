@@ -52,16 +52,27 @@ public class PtUtility {
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36";
 
     public enum Country {
-        EUROPE, GERMANY, SWITZERLAND
+        EUROPE(GlobalInstance.getStringResource(R.string.countryEurope)),
+        GERMANY(GlobalInstance.getStringResource(R.string.countryGermany));
+
+        private String name;
+        private Country(String name) {
+            this.name = name;
+        }
+        @Override public String toString() {
+            return this.name;
+        }
     }
+
 
     public static final Map<Country,ArrayList<AbstractNetworkProvider>> supportedNetworkProviderMap;
     static {
         // europe
         ArrayList<AbstractNetworkProvider> europeProviderList = new ArrayList<AbstractNetworkProvider>();
-        // rt
+        // railteam europe (rt)
         europeProviderList.add(
                 new RtProvider());
+
         // germany
         ArrayList<AbstractNetworkProvider> germanyProviderList = new ArrayList<AbstractNetworkProvider>();
         // DB
@@ -75,16 +86,15 @@ public class PtUtility {
         // vvo
         germanyProviderList.add(
                 new VvoProvider());
-        // switzerland
-        ArrayList<AbstractNetworkProvider> switzerlandProviderList = new ArrayList<AbstractNetworkProvider>();
-        // vbl
-        switzerlandProviderList.add(
-                new VblProvider());
+
         // create country, provider_list map
         Map<Country,ArrayList<AbstractNetworkProvider>> staticMap = new LinkedHashMap<Country,ArrayList<AbstractNetworkProvider>>();
-        staticMap.put(Country.EUROPE, europeProviderList);
-        staticMap.put(Country.GERMANY, germanyProviderList);
-        staticMap.put(Country.SWITZERLAND, switzerlandProviderList);
+        if (! europeProviderList.isEmpty()) {
+            staticMap.put(Country.EUROPE, europeProviderList);
+        }
+        if (! germanyProviderList.isEmpty()) {
+            staticMap.put(Country.GERMANY, germanyProviderList);
+        }
         supportedNetworkProviderMap = Collections.unmodifiableMap(staticMap);
     }
 
@@ -111,9 +121,6 @@ public class PtUtility {
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderDB);
                 case VVO:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderVVO);
-                // switzerland
-                case VBL:
-                    return GlobalInstance.getStringResource(R.string.publicTransportProviderVBL);
                 // default provider name
                 default:
                     return id.name();

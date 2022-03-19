@@ -24,8 +24,19 @@ public class IntersectionSegment extends Segment implements Serializable {
     public IntersectionSegment(JSONObject inputData) throws JSONException {
         super(inputData);
         this.intersectionName = inputData.getString(KEY_INTERSECTION_NAME);
-        this.intersectionNodeId = inputData.getLong(KEY_INTERSECTION_NODE_ID);
-        this.nextNodeId = inputData.getLong(KEY_NEXT_NODE_ID);
+
+        Long intersectionNodeIdFromJson = Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_INTERSECTION_NODE_ID);
+        if (intersectionNodeIdFromJson == null) {
+            intersectionNodeIdFromJson = -1l;        // invalid id
+        }
+        this.intersectionNodeId = intersectionNodeIdFromJson;
+
+        Long nextNodeIdFromJson = Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_NEXT_NODE_ID);
+        if (nextNodeIdFromJson == null) {
+            nextNodeIdFromJson = -1l;        // invalid id
+        }
+        this.nextNodeId = nextNodeIdFromJson;
+
         this.partOfPreviousRouteSegment = Helper.getNullableBooleanFromJsonObject(inputData, KEY_PART_OF_PREVIOUS_ROUTE_SEGMENT);
         this.partOfNextRouteSegment = Helper.getNullableBooleanFromJsonObject(inputData, KEY_PART_OF_NEXT_ROUTE_SEGMENT);
     }
@@ -56,16 +67,17 @@ public class IntersectionSegment extends Segment implements Serializable {
         return false;
     }
 
+    public String formatRelativeBearingFromCurrentLocation() {
+        RelativeBearing relativeBearing = getBearing().relativeToCurrentBearing();
+        if (relativeBearing != null) {
+            return relativeBearing.getDirection().toString();
+        }
+        return "";
+    }
+
     @Override public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-
-        RelativeBearing relativeBearing = getBearing().relativeToCurrentBearing();;
-        if (relativeBearing != null) {
-            stringBuilder.append(
-                    String.format("%1$s: ", relativeBearing.getDirection()));
-        }
         stringBuilder.append(super.toString());
-
         if (isPartOfPreviousRouteSegment() || isPartOfNextRouteSegment()) {
             stringBuilder.append(System.lineSeparator());
             if (isPartOfPreviousRouteSegment()) {

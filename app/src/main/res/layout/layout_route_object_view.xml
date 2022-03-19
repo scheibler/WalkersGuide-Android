@@ -19,6 +19,15 @@
     <org.walkersguide.android.ui.view.TextViewAndActionButton
         android:id="@+id/layoutRoutePoint"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:id="@+id/labelRoutePointOptionalDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="5dp"
+        android:focusable="true" />
 
 </merge>

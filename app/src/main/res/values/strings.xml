@@ -15,9 +15,8 @@
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemWhereAmI">Where am I?</string>
     <string name="menuItemSaveCurrentLocation">Save current location</string>
-    <string name="menuItemLastPoints">Last points</string>
-    <string name="menuItemLastRoutes">Last routes</string>
-    <string name="menuItemHikingTrails">Hiking trails</string>
+    <string name="menuItemFavorites">Favorites</string>
+    <string name="menuItemHistory">History</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
@@ -138,6 +137,7 @@
     <string name="buttonNextRouteObject">Next</string>
     <string name="buttonNextRouteObjectCD">Next route point</string>
     <!-- more options menu -->
+    <string name="menuItemLoadPreviousRoute">Load previous route</string>
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
@@ -145,11 +145,15 @@
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
 
     <!-- ObjectListFragment -->
+    <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
+    <string name="labelHeadingSecondLineAutoUpdate">Auto update</string>
     <!-- toolbar menu -->
-    <string name="menuItemJumpToTop">Jump to top of list</string>
+    <string name="menuItemRefresh">Refresh</string>
+    <string name="menuItemCancel">Cancel</string>
+    <string name="menuItemAutoUpdate">List auto update</string>
     <string name="menuItemFilterResult">Filter by viewing direction</string>
-    <string name="menuItemSortMethod">Sort method</string>
-    <string name="menuItemClearProfile">Clear profile</string>
+    <string name="menuItemJumpToTop">Jump to top of list</string>
+    <string name="menuItemAnnounceObjectAhead">Announce objects ahead</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Entrances</string>
@@ -168,26 +172,34 @@
 
     <!-- HikingTrailListFromServerFragment -->
     <string name="fragmentHikingTrailListName">Hiking trails</string>
-    <string name="labelHikingTrailsHeading">%1$s within %2$s</string>
     <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
-    <string name="fragmentFavoritesName">Favorites</string>
-    <string name="fragmentPointHistoryName">Point history</string>
-    <string name="fragmentRouteHistoryName">Route history</string>
-
-    <!-- PoiFromServerFragment -->
-    <string name="fragmentPOIName">POI</string>
-    <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
-    <string name="labelPOIFragmentHeaderSuccess">%1$s\nRadius: %2$s</string>
-    <string name="labelMoreResults">Get more POI</string>
+    <string name="labelHeadingSecondLineSortMethod">Sorted by %1$s</string>
+    <string name="messageNoProfileSelected">No profile selected.</string>
+    <!-- favorites -->
+    <string name="fragmentPointFavoritesName">Favorite points</string>
+    <string name="fragmentRouteFavoritesName">Favorite routes</string>
+    <!-- object history -->
+    <string name="fragmentPointHistoryName">Last points</string>
+    <string name="fragmentRouteHistoryName">Last routes</string>
+    <!-- toolbar menu -->
+    <string name="menuItemSortMethod">Sort method</string>
+    <string name="menuItemClearProfile">Clear profile</string>
     <!-- clear profile dialog -->
     <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
+
+    <!-- PoiListFromServerFragment -->
+    <string name="fragmentPOIName">POI</string>
+    <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
+    <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
+    <string name="labelMoreResults">Get more POI</string>
 
     <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
     <string name="selectProfileDialogTitle">Select profile:</string>
     <!-- poi profile menu -->
     <string name="poiProfileMenuItemEdit">Edit</string>
+    <string name="poiProfileMenuItemPinShortcut">Add to launcher</string>
     <string name="poiProfileMenuItemRemove">Remove</string>
 
     <!-- SelectPoiCategoriesDialog -->
@@ -209,6 +221,11 @@
     <!-- SelectSortMethodDialog -->
     <string name="selectSortMethodDialogTitle">Select sort method:</string>
 
+    <!-- EnterLauncherShortcutNameDialog / SelectPoiProfileDialog -->
+    <string name="enterLauncherShortcutNameDialogTitle">Enter shortcut name:</string>
+    <string name="messageShortcutNameMissing">Please enter a shortcut name.</string>
+    <string name="messageCorrespondingPoiProfileNotFound">The poi profile for this shortcut could not be found. Maybe it was removed.</string>
+
 
     <!--
          details activities and fragments
@@ -216,12 +233,10 @@
 
     <!-- point details activity -->
     <string name="pointDetailsActivityTitle">Details</string>
-    <string name="labelPointType">Type: %1$s</string>
     <string name="labelPointDistanceAndBearing">Distance: %1$s</string>
 
     <!-- segment details activity -->
     <string name="segmentDetailsActivityTitle">Details</string>
-    <string name="labelSegmentType">Type: %1$s</string>
     <string name="labelSegmentDirection">Direction: %1$s</string>
 
     <!-- HikingTrailDetailsFragment -->
@@ -360,8 +375,9 @@
     <string name="buttonPublicTransportProviderNoSelection">Public transport: None selected</string>
     <string name="labelInterfaceSettingsHeader">User interface:</string>
     <string name="buttonShowActionButton">Show action button</string>
-    <string name="buttonEnableTextInputHistory">Enable local text input history</string>
+    <string name="buttonShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
+    <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "POI" Tab.</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
     <string name="buttonExportSettings">Export application settings</string>
@@ -424,11 +440,11 @@
     <string name="labelPrefixVia3">Via 3</string>
     <string name="labelPrefixDestination">Destination</string>
     <string name="labelPrefixSimulation">Simulation</string>
-    <string name="labelPrefixYouAreAt">You are at</string>
 
     <!-- object context menu -->
     <string name="objectMenuItemDetails">Details</string>
     <string name="objectMenuItemDepartures">Departures</string>
+    <string name="objectMenuItemEntrances">Entrances</string>
     <string name="objectMenuItemLoad">Load</string>
     <string name="objectMenuItemStreetCourse">Street course</string>
     <string name="objectMenuItemSave">Save</string>
@@ -464,10 +480,6 @@
     <string name="renameRouteDialogTitle">Rename route</string>
     <string name="renameSegmentDialogTitle">Rename segment</string>
     <string name="messageRenameObjectFailed">Rename object failed.</string>
-
-    <!-- layout_heading_and_list_view_with_refresh_button -->
-    <string name="buttonRefresh">Refresh</string>
-    <string name="buttonCancel">Cancel</string>
 
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Clear</string>
@@ -606,8 +618,7 @@
     <string name="databaseProfileAllRoutes">All routes</string>
 
     <!-- FavoritesProfile -->
-    <string name="favoritesProfilePoints">Favorite points</string>
-    <string name="favoritesProfileRoutes">favorite Routes</string>
+    <string name="favoritesProfile">Favoriten</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Last visited, ascending</string>
@@ -620,7 +631,6 @@
     <string name="sortDistanceDesc">Distance, descending</string>
     <string name="sortCreatedAsc">Added, ascending</string>
     <string name="sortCreatedDesc">Added, descending</string>
-    <string name="sortToString">Sorted by %1$s</string>
 
 
     <!--
@@ -704,7 +714,6 @@
     <!-- Countries -->
     <string name="countryEurope">Europe</string>
     <string name="countryGermany">Germany</string>
-    <string name="countrySwitzerland">Switzerland</string>
 
     <!-- public transport provider -->
     <!-- europe -->
@@ -712,8 +721,6 @@
     <!-- germany -->
     <string name="publicTransportProviderDB">Deutsche Bahn</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
-    <!-- switzerland -->
-    <string name="publicTransportProviderVBL">Verkehrsbetriebe Luzern</string>
 
     <!-- Vehicle type names -->
     <string name="productHighSpeedTrain">Highspeed train</string>

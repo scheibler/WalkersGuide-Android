@@ -10,14 +10,11 @@
         android:id="@+id/menuItemSaveCurrentLocation"
         android:title="@string/menuItemSaveCurrentLocation" />
     <item
-        android:id="@+id/menuItemLastPoints"
-        android:title="@string/menuItemLastPoints" />
+        android:id="@+id/menuItemFavorites"
+        android:title="@string/menuItemFavorites" />
     <item
-        android:id="@+id/menuItemLastRoutes"
-        android:title="@string/menuItemLastRoutes" />
-    <item
-        android:id="@+id/menuItemHikingTrails"
-        android:title="@string/menuItemHikingTrails" />
+        android:id="@+id/menuItemHistory"
+        android:title="@string/menuItemHistory" />
     <item
         android:id="@+id/menuItemSettings"
         android:title="@string/menuItemSettings" />

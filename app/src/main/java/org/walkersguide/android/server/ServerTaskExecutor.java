@@ -195,6 +195,7 @@ public class ServerTaskExecutor {
     public static final String ACTION_SERVER_TASK_CANCELLED = "action.serverTaskCancelled";
 
     public static void sendServerTaskCancelledBroadcast(long taskId) {
+        Timber.d("sendServerTaskCancelledBroadcast: %1$d", taskId);
         Intent intent = createActionIntentWithTaskId(ACTION_SERVER_TASK_CANCELLED, taskId);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }

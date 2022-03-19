@@ -4,9 +4,6 @@ import org.walkersguide.android.data.object_with_id.HikingTrail;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
 
-import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
-import org.walkersguide.android.ui.fragment.object_list.extended.HikingTrailListFromServerFragment;
-import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.ui.activity.ToolbarActivity;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.ui.fragment.InfoFragment;
@@ -40,9 +37,7 @@ import org.walkersguide.android.ui.fragment.details.SegmentDetailsFragment;
 
 public class FragmentContainerActivity extends ToolbarActivity {
 
-    // fragment with extra data
-    //
-    // showRouteDetails
+    // show object details
     private static final String KEY_OBJECT_WITH_ID = "objectWithId";
 
     public static void showDetailsForObjectWithId(Context packageContext, ObjectWithId objectWithId) {
@@ -75,25 +70,7 @@ public class FragmentContainerActivity extends ToolbarActivity {
         packageContext.startActivity(intent);
     }
 
-    // other fragments
-
-    public static void showHikingTrails(Context packageContext) {
-        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.HIKING_TRAILS);
-        packageContext.startActivity(intent);
-    }
-
-    public static void showPointHistory(Context packageContext) {
-        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.POINT_HISTORY);
-        packageContext.startActivity(intent);
-    }
-
-    public static void showRouteHistory(Context packageContext) {
-        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.ROUTE_HISTORY);
-        packageContext.startActivity(intent);
-    }
+    // settings and info
 
     public static void showSettings(Context packageContext) {
         Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
@@ -112,7 +89,7 @@ public class FragmentContainerActivity extends ToolbarActivity {
     private static final String KEY_SHOW_FRAGMENT = "show";
 
     private enum Show {
-        HIKING_TRAILS, POINT_HISTORY, ROUTE_HISTORY, DETAILS_FOR_OBJECT_WITH_ID, DEPARTURES, TRIP_DETAILS, SETTINGS, INFO
+        DETAILS_FOR_OBJECT_WITH_ID, DEPARTURES, TRIP_DETAILS, SETTINGS, INFO
     }
 
 
@@ -128,24 +105,6 @@ public class FragmentContainerActivity extends ToolbarActivity {
         Fragment fragment = null;
         if (showFragment != null) {
             switch (showFragment) {
-
-                case HIKING_TRAILS:
-                    fragment = HikingTrailListFromServerFragment.newInstance();
-                    FragmentContainerActivity.this.setToolbarTitle(
-                            GlobalInstance.getStringResource(R.string.fragmentHikingTrailListName));
-                    break;
-
-                case POINT_HISTORY:
-                    fragment = ObjectListFromDatabaseFragment.createPointHistoryFragment();
-                    FragmentContainerActivity.this.setToolbarTitle(
-                            GlobalInstance.getStringResource(R.string.fragmentPointHistoryName));
-                    break;
-
-                case ROUTE_HISTORY:
-                    fragment = ObjectListFromDatabaseFragment.createRouteHistoryFragment();
-                    FragmentContainerActivity.this.setToolbarTitle(
-                            GlobalInstance.getStringResource(R.string.fragmentRouteHistoryName));
-                    break;
 
                 case DETAILS_FOR_OBJECT_WITH_ID:
                     ObjectWithId objectWithId = (ObjectWithId) getIntent().getExtras().getSerializable(KEY_OBJECT_WITH_ID);

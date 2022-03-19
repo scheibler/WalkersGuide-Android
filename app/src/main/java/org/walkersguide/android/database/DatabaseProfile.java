@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.ArrayList;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.util.AccessDatabase;
+import java.util.Arrays;
 
 
 public class DatabaseProfile extends Profile implements Serializable {
@@ -40,24 +41,6 @@ public class DatabaseProfile extends Profile implements Serializable {
         } else {
             return FavoritesProfile.create(id);
         }
-    }
-
-    public static ArrayList<DatabaseProfile> pointHistoryProfileList() {
-        ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
-        profileList.add(allPoints());
-        profileList.add(addressPoints());
-        profileList.add(intersectionPoints());
-        profileList.add(stationPoints());
-        profileList.add(simulatedPoints());
-        return profileList;
-    }
-
-    public static ArrayList<DatabaseProfile> routeHistoryProfileList() {
-        ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
-        profileList.add(allRoutes());
-        profileList.add(plannedRoutes());
-        profileList.add(streetCourses());
-        return profileList;
     }
 
     // for points
@@ -144,7 +127,45 @@ public class DatabaseProfile extends Profile implements Serializable {
      */
 
     protected enum ForObject {
-        POINTS, ROUTES, SEGMENTS
+        POINTS(getSupportedSortMethodListForPoints()),
+        ROUTES(getSupportedSortMethodListForRoutes()),
+        SEGMENTS(getSupportedSortMethodListForSegments());
+
+        private static ArrayList<SortMethod> getSupportedSortMethodListForPoints() {
+            ArrayList<SortMethod> sortMethodList = new ArrayList<SortMethod>();
+            sortMethodList.add(SortMethod.DISTANCE_ASC);
+            sortMethodList.add(SortMethod.DISTANCE_DESC);
+            sortMethodList.addAll(getSupportedSortMethodListForObjects());
+            return sortMethodList;
+        }
+
+        private static ArrayList<SortMethod> getSupportedSortMethodListForRoutes() {
+            return getSupportedSortMethodListForObjects();
+        }
+
+        private static ArrayList<SortMethod> getSupportedSortMethodListForSegments() {
+            ArrayList<SortMethod> sortMethodList = new ArrayList<SortMethod>();
+            sortMethodList.add(SortMethod.BEARING_ASC);
+            sortMethodList.add(SortMethod.BEARING_DESC);
+            sortMethodList.addAll(getSupportedSortMethodListForObjects());
+            return sortMethodList;
+        }
+
+        private static ArrayList<SortMethod> getSupportedSortMethodListForObjects() {
+            ArrayList<SortMethod> sortMethodList = new ArrayList<SortMethod>();
+            sortMethodList.add(SortMethod.NAME_ASC);
+            sortMethodList.add(SortMethod.NAME_DESC);
+            sortMethodList.add(SortMethod.ACCESSED_ASC);
+            sortMethodList.add(SortMethod.ACCESSED_DESC);
+            sortMethodList.add(SortMethod.CREATED_ASC);
+            sortMethodList.add(SortMethod.CREATED_DESC);
+            return sortMethodList;
+        }
+
+        public ArrayList<SortMethod> sortMethodList;
+        private ForObject(ArrayList<SortMethod> sortMethodList) {
+            this.sortMethodList = sortMethodList;
+        }
     }
 
     private ForObject forObject;
@@ -183,6 +204,14 @@ public class DatabaseProfile extends Profile implements Serializable {
         return AccessDatabase
             .getInstance()
             .removeObjectFromDatabaseProfile(object, this);
+    }
+
+    public boolean isModifiable() {
+        return false;
+    }
+
+    public ArrayList<SortMethod> getSupportedSortMethodList() {
+        return forObject.sortMethodList;
     }
 
 }

@@ -15,6 +15,9 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import timber.log.Timber;
 import org.json.JSONObject;
 import org.json.JSONException;
+import java.util.Locale;
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
 public abstract class ObjectWithId implements Serializable {
@@ -138,29 +141,47 @@ public abstract class ObjectWithId implements Serializable {
 
     public static class SortByName implements Comparator<ObjectWithId> {
         private boolean ascending;
+
         public SortByName(boolean ascending) {
             this.ascending = ascending;
         }
+
         @Override public int compare(ObjectWithId object1, ObjectWithId object2) {
             if (this.ascending) {
-                return object1.getName().compareTo(object2.getName());
+                return object1.getName().toLowerCase(Locale.ROOT).compareTo(
+                        object2.getName().toLowerCase(Locale.ROOT));
             } else {
-                return object2.getName().compareTo(object1.getName());
+                return object2.getName().toLowerCase(Locale.ROOT).compareTo(
+                        object1.getName().toLowerCase(Locale.ROOT));
             }
         }
     }
 
-    public static class SortByBearingRelativeToCurrentBearing implements Comparator<ObjectWithId> {
+
+    public static class SortByBearingRelativeTo implements Comparator<ObjectWithId> {
+        private Bearing initialViewingDirection;
         private int offsetInDegree;
         private boolean ascending;
-        public SortByBearingRelativeToCurrentBearing(int offsetInDegree, boolean ascending) {
+
+        public static SortByBearingRelativeTo currentBearing(int offsetInDegree, boolean ascending) {
+            return new SortByBearingRelativeTo(null, offsetInDegree, ascending);
+        }
+
+        public SortByBearingRelativeTo(Bearing initialViewingDirection, int offsetInDegree, boolean ascending) {
+            this.initialViewingDirection = initialViewingDirection;
             this.offsetInDegree = offsetInDegree;
             this.ascending = ascending;
         }
+
         @Override public int compare(ObjectWithId object1, ObjectWithId object2) {
-            if (object1 instanceof Segment && object2 instanceof Segment) {
-                RelativeBearing bearing1 = ((Segment) object1).getBearing().relativeToCurrentBearing();;
-                RelativeBearing bearing2 = ((Segment) object2).getBearing().relativeToCurrentBearing();;
+            // take the current bearing, if no viewing direction was loaded via constructor
+            Bearing viewingDirection = this.initialViewingDirection != null
+                ? this.initialViewingDirection
+                : DeviceSensorManager.getInstance().getCurrentBearing();
+            if (viewingDirection != null
+                    && object1 instanceof Segment && object2 instanceof Segment) {
+                RelativeBearing bearing1 = ((Segment) object1).getBearing().relativeTo(viewingDirection);;
+                RelativeBearing bearing2 = ((Segment) object2).getBearing().relativeTo(viewingDirection);;
                 if (bearing1 != null && bearing2 != null) {
                     if (this.offsetInDegree != 0) {
                         bearing1 = bearing1.shiftBy(this.offsetInDegree);
@@ -177,11 +198,14 @@ public abstract class ObjectWithId implements Serializable {
         }
     }
 
+
     public static class SortByDistanceRelativeToCurrentLocation implements Comparator<ObjectWithId> {
         private boolean ascending;
+
         public SortByDistanceRelativeToCurrentLocation(boolean ascending) {
             this.ascending = ascending;
         }
+
         @Override public int compare(ObjectWithId object1, ObjectWithId object2) {
             if (object1 instanceof Point && object2 instanceof Point) {
                 Integer distance1 = ((Point) object1).distanceFromCurrentLocation();

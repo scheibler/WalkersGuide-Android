@@ -250,7 +250,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 // add to id map
                 oldNewPointIdMap.put(oldPointId, newPointId);
             } catch (IllegalArgumentException | JSONException e) {
-                Timber.e("fill points table error: %1$s", e.getMessage());
+                Timber.e("fill objects table with points error: %1$s", e.getMessage());
             }
         }
         cursor.close();
@@ -265,6 +265,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 oldPointId = cursor.getLong(cursor.getColumnIndexOrThrow("point_id"));
                 ordering = cursor.getLong(cursor.getColumnIndexOrThrow("ordering"));
             } catch (IllegalArgumentException e) {
+                Timber.e("cant find point from old fp_points table: %1$s", e.getMessage());
                 continue;
             }
 
@@ -278,7 +279,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 mappingTableValues.put(V10_MAPPING_CREATED, ordering);
                 mappingTableValuesList.add(mappingTableValues);
             } else {
-                Timber.d("orph");
+                Timber.w("orph");
             }
         }
         cursor.close();
@@ -305,7 +306,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 segmentIdCreatedMap.put(
                         newSegmentId, cursor.getLong(cursor.getColumnIndexOrThrow("timestamp")));
             } catch (IllegalArgumentException | JSONException e) {
-                Timber.e("fill segments table error: %1$s", e.getMessage());
+                Timber.e("fill objects table with segments error: %1$s", e.getMessage());
             }
         }
         cursor.close();
@@ -317,13 +318,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             // excluded from routing profile
             mappingTableValues = new ContentValues();
             mappingTableValues.put(V10_MAPPING_PROFILE_ID, 3501000);
-            mappingTableValues.put(V10_MAPPING_OBJECT_ID, segmentId);
-            mappingTableValues.put(V10_MAPPING_ACCESSED, segmentCreated);
-            mappingTableValues.put(V10_MAPPING_CREATED, segmentCreated);
-            mappingTableValuesList.add(mappingTableValues);
-            // all segments profile
-            mappingTableValues = new ContentValues();
-            mappingTableValues.put(V10_MAPPING_PROFILE_ID, 3999999);
             mappingTableValues.put(V10_MAPPING_OBJECT_ID, segmentId);
             mappingTableValues.put(V10_MAPPING_ACCESSED, segmentCreated);
             mappingTableValues.put(V10_MAPPING_CREATED, segmentCreated);
@@ -360,7 +354,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 routeIdCreatedMap.put(
                         newRouteId, cursor.getLong(cursor.getColumnIndexOrThrow("created")));
             } catch (IllegalArgumentException | JSONException e) {
-                Timber.e("route conversion error: %1$s", e.getMessage());
+                Timber.e("fill objects table with routes error: %1$s", e.getMessage());
             }
         }
         cursor.close();
@@ -391,8 +385,11 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         database.execSQL(V10_CREATE_TABLE_MAPPING);
         // fill mapping table
         for (ContentValues values : mappingTableValuesList) {
-            database.insertWithOnConflict(
+            long rowId = database.insertWithOnConflict(
                     V10_TABLE_MAPPING, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+            if (rowId == -1) {
+                Timber.e("cant insert %1$s into mapping table", values.toString());
+            }
         }
 
         // new poi profile table
@@ -410,7 +407,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 poiProfileValues.put(V10_POI_PROFILE_INCLUDE_FAVORITES, 0);
                 database.insertWithOnConflict(
                         V10_TABLE_POI_PROFILE, null, poiProfileValues, SQLiteDatabase.CONFLICT_REPLACE);
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+                Timber.e("Error during poi profile transfer: %1$s", e.getMessage());
+            }
         }
         cursor.close();
 

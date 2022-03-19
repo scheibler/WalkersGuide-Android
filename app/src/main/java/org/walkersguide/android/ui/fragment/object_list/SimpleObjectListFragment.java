@@ -18,16 +18,20 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.data.object_with_id.point.PedestrianCrossing;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Point;
+import android.view.Menu;
+import android.view.MenuItem;
 
 
 public abstract class SimpleObjectListFragment extends ObjectListFragment {
 
     public abstract void  successfulViewPopulationFinished();
 
-    public static Bundle createArgsBundle(ArrayList<? extends ObjectWithId> objectList) {
-        Bundle args = ObjectListFragment.createArgsBundle(null);
-        args.putSerializable(KEY_OBJECT_LIST, objectList);
-        return args;
+    public static class BundleBuilder extends ObjectListFragment.BundleBuilder {
+        public BundleBuilder(ArrayList<? extends ObjectWithId> objectList) {
+            super();
+            bundle.putSerializable(KEY_OBJECT_LIST, objectList);
+            setAutoUpdate(true);
+        }
     }
 
 
@@ -49,6 +53,21 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
 
 
     /**
+     * menu
+     */
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // show auto-update
+        MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
+        menuItemAutoUpdate.setVisible(true);
+        // show announceObjectAhead
+        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
+        menuItemAnnounceObjectAhead.setVisible(true);
+    }
+
+
+    /**
      * pause and resume
      */
 
@@ -63,10 +82,7 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
     @Override public void requestUiUpdate() {
         this.prepareRequest();
         if (objectList != null) {
-            super.populateUiAfterRequestWasSuccessful(
-                    GlobalInstance.getPluralResource(
-                        getPluralResourceId(), objectList.size()),
-                    objectList, true);
+            super.populateUiAfterRequestWasSuccessful(null, objectList, true);
             successfulViewPopulationFinished();
         } else {
             super.populateUiAfterRequestFailed("");

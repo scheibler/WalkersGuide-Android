@@ -6,6 +6,8 @@ import java.io.Serializable;
 public abstract class Profile implements Serializable {
     private static final long serialVersionUID = 1l;
 
+    public abstract boolean isModifiable();
+
 
     private long id;
     private String name;

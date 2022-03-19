@@ -39,8 +39,7 @@ public enum SortMethod {
     }
 
     @Override public String toString() {
-        return String.format(
-                GlobalInstance.getStringResource(R.string.sortToString), this.name);
+        return this.name;
     }
 
 }

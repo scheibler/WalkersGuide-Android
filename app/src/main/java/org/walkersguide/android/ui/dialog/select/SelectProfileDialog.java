@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.select;
 
+        import org.walkersguide.android.shortcut.PinnedShortcutUtility;
 import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.database.profile.FavoritesProfile;
 import org.walkersguide.android.database.DatabaseProfile;
@@ -44,6 +45,16 @@ import org.walkersguide.android.util.SettingsManager;
 import android.widget.BaseAdapter;
 import timber.log.Timber;
 import android.text.TextUtils;
+import android.content.pm.ShortcutManager;
+import android.content.pm.ShortcutInfo;
+import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import android.content.Intent;
+import android.annotation.TargetApi;
+import android.os.Build;
+import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
+import android.view.inputmethod.EditorInfo;
+import org.walkersguide.android.ui.UiHelper;
+import android.widget.Toast;
 
 
 public class SelectProfileDialog extends DialogFragment implements FragmentResultListener {
@@ -54,14 +65,16 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
     // instance constructors
 
     public static SelectProfileDialog newInstance(ProfileGroup profileGroup) {
-        return newInstance(profileGroup, null);
+        return newInstance(profileGroup, null, false);
     }
 
-    public static SelectProfileDialog newInstance(ProfileGroup profileGroup, Profile selectedProfile) {
+    public static SelectProfileDialog newInstance(ProfileGroup profileGroup,
+            Profile selectedProfile, boolean showNewProfileButton) {
         SelectProfileDialog dialog= new SelectProfileDialog();
         Bundle args = new Bundle();
         args.putSerializable(KEY_GROUP, profileGroup);
         args.putSerializable(KEY_SELECTED_PROFILE, selectedProfile);
+        args.putBoolean(KEY_SHOW_NEW_PROFILE_BUTTON, showNewProfileButton);
         dialog.setArguments(args);
         return dialog;
     }
@@ -70,10 +83,12 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
     // dialog
     private static final String KEY_GROUP = "profileGroup";
     private static final String KEY_SELECTED_PROFILE = "selectedProfile";
+    private static final String KEY_SHOW_NEW_PROFILE_BUTTON = "showNewProfileButton";
     private static final String KEY_SELECTED_PROFILE_MODIFIED = "selectedProfileModified";
 
     private ProfileGroup profileGroup;
     private Profile selectedProfile;
+    private boolean showNewProfileButton;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +123,7 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
         } else {
             selectedProfile = (Profile) getArguments().getSerializable(KEY_SELECTED_PROFILE);
         }
+        showNewProfileButton = getArguments().getBoolean(KEY_SHOW_NEW_PROFILE_BUTTON);
 
         return new AlertDialog.Builder(getActivity())
             .setTitle(getResources().getString(R.string.selectProfileDialogTitle))
@@ -141,7 +157,7 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
             // neutral button
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setVisibility(
-                    profileGroup == ProfileGroup.POI ? View.VISIBLE : View.GONE);
+                    showNewProfileButton ? View.VISIBLE : View.GONE);
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     ManagePoiProfileDialog.createProfile()
@@ -166,9 +182,9 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
             });
             listViewItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
-                    if (profileGroup == ProfileGroup.POI) {
-                        showProfileContextMenu(
-                                (Profile) parent.getItemAtPosition(position), view);
+                    Profile profile = (Profile) parent.getItemAtPosition(position);
+                    if (profile != null && profile.isModifiable()) {
+                        showProfileContextMenu(profile, view);
                         return true;
                     }
                     return false;
@@ -197,17 +213,7 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
     private void fillProfilesListView() {
         AlertDialog dialog = (AlertDialog) getDialog();
         if (dialog != null) {
-            ArrayList<? extends Profile> profileList = null;
-            if (profileGroup == ProfileGroup.FAVORITES) {
-                profileList = FavoritesProfile.favoritesProfileList();
-            } else if (profileGroup == ProfileGroup.POINT_HISTORY) {
-                profileList = DatabaseProfile.pointHistoryProfileList();
-            } else if (profileGroup == ProfileGroup.ROUTE_HISTORY) {
-                profileList = DatabaseProfile.routeHistoryProfileList();
-            } else if (profileGroup == ProfileGroup.POI) {
-                profileList = PoiProfile.allProfiles();
-            }
-
+            ArrayList<? extends Profile> profileList = profileGroup.getProfiles();
             if (profileList != null) {
                 ListView listViewItems = (ListView) dialog.getListView();
                 listViewItems.setAdapter(
@@ -223,7 +229,8 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
      * list menus
      */
     private static final int MENU_ITEM_EDIT_PROFILE = 1;
-    private static final int MENU_ITEM_REMOVE_PROFILE = 2;
+    private static final int MENU_ITEM_PIN_SHORTCUT = 2;
+    private static final int MENU_ITEM_REMOVE_PROFILE = 3;
 
     private void showProfileContextMenu(Profile profile, View view) {
         if (profile instanceof PoiProfile) {
@@ -232,8 +239,12 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
             PopupMenu profileContextMenu = new PopupMenu(getActivity(), view);
             profileContextMenu.getMenu().add(
                     Menu.NONE, MENU_ITEM_EDIT_PROFILE, 1, GlobalInstance.getStringResource(R.string.poiProfileMenuItemEdit));
+            if (PinnedShortcutUtility.isPinShortcutsSupported()) {
+                profileContextMenu.getMenu().add(
+                        Menu.NONE, MENU_ITEM_PIN_SHORTCUT, 2, GlobalInstance.getStringResource(R.string.poiProfileMenuItemPinShortcut));
+            }
             profileContextMenu.getMenu().add(
-                    Menu.NONE, MENU_ITEM_REMOVE_PROFILE, 2, GlobalInstance.getStringResource(R.string.poiProfileMenuItemRemove));
+                    Menu.NONE, MENU_ITEM_REMOVE_PROFILE, 3, GlobalInstance.getStringResource(R.string.poiProfileMenuItemRemove));
 
             profileContextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
                 @Override public boolean onMenuItemClick(MenuItem item) {
@@ -241,6 +252,10 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
                         case MENU_ITEM_EDIT_PROFILE:
                             ManagePoiProfileDialog.modifyProfile(poiProfile.getId())
                                 .show(getChildFragmentManager(), "ManagePoiProfileDialog");
+                            return true;
+                        case MENU_ITEM_PIN_SHORTCUT:
+                            EnterLauncherShortcutNameDialog.newInstance(poiProfile)
+                                .show(getChildFragmentManager(), "EnterLauncherShortcutNameDialog");
                             return true;
                         case MENU_ITEM_REMOVE_PROFILE:
                             ManagePoiProfileDialog.removeProfile(poiProfile.getId())
@@ -253,6 +268,113 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
             });
 
             profileContextMenu.show();
+        }
+    }
+
+
+    /**
+     * enter launcher shortcut name dialog
+     */
+
+    public static class EnterLauncherShortcutNameDialog extends DialogFragment {
+
+        public static EnterLauncherShortcutNameDialog newInstance(PoiProfile poiProfile) {
+            EnterLauncherShortcutNameDialog dialog = new EnterLauncherShortcutNameDialog();
+            Bundle args = new Bundle();
+            args.putSerializable(KEY_POI_PROFILE, poiProfile);
+            dialog.setArguments(args);
+            return dialog;
+        }
+
+        // dialog
+        private static final String KEY_POI_PROFILE = "poiProfile";
+        private static final String KEY_NEW_NAME = "newName";
+
+        private PoiProfile poiProfile;
+        private EditTextAndClearInputButton layoutNewName;
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            poiProfile = (PoiProfile) getArguments().getSerializable(KEY_POI_PROFILE);
+            if (poiProfile != null) {
+                String newName;
+                if(savedInstanceState != null) {
+                    newName = savedInstanceState.getString(KEY_NEW_NAME);
+                } else {
+                    newName = poiProfile.getName();
+                }
+
+                layoutNewName = new EditTextAndClearInputButton(getActivity());
+                layoutNewName.setInputText(newName);
+                layoutNewName.setEditorAction(
+                        EditorInfo.IME_ACTION_DONE,
+                        new EditTextAndClearInputButton.OnSelectedActionClickListener() {
+                            @Override public void onSelectedActionClicked() {
+                                tryToCreateShortcut();
+                            }
+                        });
+
+                return new AlertDialog.Builder(getActivity())
+                    .setTitle(getResources().getString(R.string.enterLauncherShortcutNameDialogTitle))
+                    .setView(layoutNewName)
+                    .setPositiveButton(
+                            getResources().getString(R.string.dialogOK),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                    .setNegativeButton(
+                            getResources().getString(R.string.dialogCancel),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                    .create();
+            }
+            return null;
+        }
+
+        @Override public void onStart() {
+            super.onStart();
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+                Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        tryToCreateShortcut();
+                    }
+                });
+                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                buttonNegative.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        dismiss();
+                    }
+                });
+            }
+        }
+
+        @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+            super.onSaveInstanceState(savedInstanceState);
+            savedInstanceState.putString(KEY_NEW_NAME, layoutNewName.getInputText());
+        }
+
+        @Override public void onDestroy() {
+            super.onDestroy();
+            if (! getActivity().isChangingConfigurations()) {
+                UiHelper.hideKeyboard(this);
+            }
+        }
+
+        private void tryToCreateShortcut() {
+            if (TextUtils.isEmpty(layoutNewName.getInputText())) {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getString(R.string.messageShortcutNameMissing),
+                        Toast.LENGTH_LONG).show();
+            } else {
+                PinnedShortcutUtility.addPinnedShortcutForPoiProfile(
+                        poiProfile.getId(), layoutNewName.getInputText());
+                dismiss();
+            }
         }
     }
 
@@ -295,7 +417,7 @@ public class SelectProfileDialog extends DialogFragment implements FragmentResul
                     profile.equals(this.selectedProfile));
 
             // action button
-            if (profileGroup == ProfileGroup.POI
+            if (profile.isModifiable()
                     && SettingsManager.getInstance().getShowActionButton()) {
                 holder.buttonActionFor.setContentDescription(
                         String.format(

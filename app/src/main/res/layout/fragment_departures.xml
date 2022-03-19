@@ -20,6 +20,6 @@
     </LinearLayout>
 
     <include
-        layout="@layout/layout_heading_and_list_view_with_refresh_button" />
+        layout="@layout/layout_heading_and_list_view" />
 
 </LinearLayout>

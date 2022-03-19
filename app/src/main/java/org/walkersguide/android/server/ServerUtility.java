@@ -105,6 +105,9 @@ public class ServerUtility {
         }
 
         // connect
+        if (! isInternetAvailable()) {
+            throw createException(exceptionClass, ServerException.RC_NO_INTERNET_CONNECTION);
+        }
         try {
             connection.connect();
             int returnCode = connection.getResponseCode();
@@ -116,11 +119,7 @@ public class ServerUtility {
         } catch (IOException e) {
             Timber.e("Server connection failed: %1$s", e.getMessage());
             cleanUp(connection, null);
-            if (! isInternetAvailable()) {
-                throw createException(exceptionClass, ServerException.RC_NO_INTERNET_CONNECTION);
-            } else {
-                throw createException(exceptionClass, ServerException.RC_REQUEST_FAILED);
-            }
+            throw createException(exceptionClass, ServerException.RC_REQUEST_FAILED);
         }
 
         // get response

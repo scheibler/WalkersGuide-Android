@@ -89,7 +89,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
-    private SwitchCompat buttonShowActionButton, buttonEnableTextInputHistory;
+    private SwitchCompat buttonShowActionButton;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -177,16 +177,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             }
         });
 
-        buttonShakeIntensity = (Button) view.findViewById(R.id.buttonShakeIntensity);
-        buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                SelectShakeIntensityDialog.newInstance(
-                        settingsManagerInstance.getSelectedShakeIntensity())
-                    .show(getChildFragmentManager(), "SelectShakeIntensityDialog");
-            }
-        });
-
-        // privacy settings
+        // ui
         buttonShowActionButton = (SwitchCompat) view.findViewById(R.id.buttonShowActionButton);
         buttonShowActionButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
@@ -196,15 +187,12 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             }
         });
 
-        buttonEnableTextInputHistory = (SwitchCompat) view.findViewById(R.id.buttonEnableTextInputHistory);
-        buttonEnableTextInputHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked != settingsManagerInstance.getEnableSearchTermHistory()) {
-                    settingsManagerInstance.setEnableSearchTermHistory(isChecked);
-                    if (! isChecked) {
-                        settingsManagerInstance.clearSearchTermHistory();
-                    }
-                }
+        buttonShakeIntensity = (Button) view.findViewById(R.id.buttonShakeIntensity);
+        buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                SelectShakeIntensityDialog.newInstance(
+                        settingsManagerInstance.getSelectedShakeIntensity())
+                    .show(getChildFragmentManager(), "SelectShakeIntensityDialog");
             }
         });
 
@@ -284,17 +272,14 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                     getResources().getString(R.string.buttonPublicTransportProviderNoSelection));
         }
 
-        // shake intensity button
+        // ui settings
+        buttonShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
         buttonShakeIntensity.setText(
                 String.format(
                     "%1$s: %2$s",
                     getResources().getString(R.string.buttonShakeIntensity),
                     settingsManagerInstance.getSelectedShakeIntensity())
                 );
-
-        // privacy and development settings
-        buttonShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
-        buttonEnableTextInputHistory.setChecked(settingsManagerInstance.getEnableSearchTermHistory());
 
         // request server instance
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {

@@ -1,6 +1,5 @@
 package org.walkersguide.android.ui.fragment.object_list.extended;
 
-import org.walkersguide.android.ui.fragment.ObjectListFragment.DialogMode;
 import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.data.Angle;
 import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
@@ -38,7 +37,6 @@ import org.walkersguide.android.server.wg.status.OSMMap;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.util.SettingsManager;
-import android.os.Vibrator;
 
 import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.server.wg.poi.PoiProfileTask;
@@ -50,33 +48,37 @@ import android.content.Intent;
 import android.os.Looper;
 import org.walkersguide.android.sensor.PositionManager;
 import android.text.TextUtils;
+import org.walkersguide.android.util.Helper;
 
 
 public class PoiListFromServerFragment extends ExtendedObjectListFragment
         implements FragmentResultListener, Runnable {
 
 
+    public static class BundleBuilder extends ExtendedObjectListFragment.BundleBuilder {
+        public BundleBuilder(PoiProfileRequest request) {
+            super();
+            bundle.putSerializable(KEY_REQUEST, request);
+        }
+    }
+
 	public static PoiListFromServerFragment createDialog(PoiProfile profile, boolean enableSelection) {
-        return newInstance(
-                enableSelection ? DialogMode.SELECT : DialogMode.DEFAULT,
-                new PoiProfileRequest(profile),
-                null);
+		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
+        fragment.setArguments(
+                new BundleBuilder(
+                    new PoiProfileRequest(profile))
+                .setIsDialog(enableSelection)
+                .build());
+		return fragment;
     }
 
 	public static PoiListFromServerFragment createPoiFragment() {
-        return newInstance(
-                null,
-                new PoiProfileRequest(
-                    SettingsManager.getInstance().getSelectedPoiProfile()),
-                ProfileGroup.POI);
-    }
-
-	private static PoiListFromServerFragment newInstance(
-            DialogMode dialogMode, PoiProfileRequest request, ProfileGroup profileGroup) {
 		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
-        Bundle args = ExtendedObjectListFragment.createArgsBundle(dialogMode, profileGroup);
-        args.putSerializable(KEY_REQUEST, request);
-        fragment.setArguments(args);
+        fragment.setArguments(
+                new BundleBuilder(
+                    new PoiProfileRequest(SettingsManager.getInstance().getSelectedPoiProfile()))
+                .setProfileGroup(ProfileGroup.POI)
+                .build());
 		return fragment;
     }
 
@@ -180,28 +182,25 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_server_point_list_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
     @Override public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
-        if (request != null && menuItemFilterResult != null) {
-            menuItemFilterResult.setChecked(request.getFilterByViewingDirection());
-        }
-    }
-
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menuItemFilterResult) {
-            request.toggleFilterByViewingDirection();
-            resetListPosition();
-            requestUiUpdate();
+        // refresh
+        MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemCancel));
         } else {
-            return super.onOptionsItemSelected(item);
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemRefresh));
         }
-        return true;
+        // show auto-update and direction filter
+        MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
+        menuItemAutoUpdate.setVisible(true);
+        MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
+        menuItemFilterResult.setVisible(true);
+        // show announceObjectAhead
+        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
+        menuItemAnnounceObjectAhead.setVisible(true);
     }
 
 
@@ -244,11 +243,17 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         super.prepareRequest();
     }
 
-    @Override public void refreshButtonClicked() {
+    @Override public void swipeToRefreshDetected() {
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            super.swipeToRefreshDetected();
+        }
+    }
+
+    @Override public void refreshMenuItemClicked() {
         if (serverTaskExecutorInstance.taskInProgress(taskId)) {
             serverTaskExecutorInstance.cancelTask(taskId, true);
         } else {
-            super.refreshButtonClicked();
+            super.refreshMenuItemClicked();
         }
     }
 
@@ -261,6 +266,10 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
     }
 
     private void startPoiProfileTask(PoiProfileTask.RequestAction action) {
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            Timber.d("cancel previous task");
+            serverTaskExecutorInstance.cancelTask(taskId, true);
+        }
         this.prepareRequest();
 
         // get current position
@@ -272,11 +281,8 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         }
 
         progressHandler.postDelayed(PoiListFromServerFragment.this, 2000);
-        super.updateRefreshButton(true);
-        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            taskId = serverTaskExecutorInstance.executeTask(
-                    new PoiProfileTask(request, action, currentLocation));
-        }
+        taskId = serverTaskExecutorInstance.executeTask(
+                new PoiProfileTask(request, action, currentLocation));
     }
 
     // background task results
@@ -314,39 +320,18 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         if (result.getResetListPosition()) {
             resetListPosition();
         }
-
-        ArrayList<Point> pointList = result.getAllPointList();
-        if (request.getFilterByViewingDirection()) {
-            pointList =filterPointListByViewingDirection(pointList);
-        }
-
         super.populateUiAndShowMoreResultsFooterAfterRequestWasSuccessful(
                 String.format(
-                    GlobalInstance.getStringResource(R.string.labelPOIFragmentHeaderSuccess),
-                    GlobalInstance.getPluralResource(getPluralResourceId(), pointList.size()),
+                    GlobalInstance.getStringResource(R.string.labelHeadingSecondLineRadius),
                     GlobalInstance.getPluralResource(R.plurals.meter, result.getLookupRadius())),
-                pointList);
-    }
-
-    private ArrayList<Point> filterPointListByViewingDirection(ArrayList<Point> listOfAllPoints) {
-        // only include, what's ahead
-        ArrayList<Point> listOfFilteredPoints = new ArrayList<Point>();
-        for (Point point : listOfAllPoints) {
-            if (point
-                    .bearingFromCurrentLocation()
-                    .relativeToCurrentBearing()
-                    .withinRange(Angle.Quadrant.Q7.min, Angle.Quadrant.Q1.max)) {
-                listOfFilteredPoints.add(point);
-            }
-        }
-        return listOfFilteredPoints;
+                result.getAllPointList());
     }
 
     // progress vibration
 
     @Override public void run() {
-        ((Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE))
-            .vibrate(50);
+        Helper.vibrateOnce(
+                Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
         progressHandler.postDelayed(PoiListFromServerFragment.this, 2000);
     }
 

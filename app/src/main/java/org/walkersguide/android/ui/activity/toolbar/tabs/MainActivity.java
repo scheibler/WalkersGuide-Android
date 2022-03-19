@@ -1,11 +1,15 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity.AbstractTabAdapter;
+import org.walkersguide.android.ui.activity.toolbar.tabs.PointAndRouteTabActivity;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 import android.os.Bundle;
@@ -31,6 +35,11 @@ import org.walkersguide.android.util.SettingsManager;
 import android.content.Context;
 import android.content.Intent;
 import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.ui.fragment.object_list.extended.HikingTrailListFromServerFragment;
+import org.walkersguide.android.database.SortMethod;
+import org.walkersguide.android.database.profile.FavoritesProfile;
+import timber.log.Timber;
+import org.walkersguide.android.server.wg.poi.PoiProfile;
 
 
 public class MainActivity extends TabLayoutActivity {
@@ -39,12 +48,19 @@ public class MainActivity extends TabLayoutActivity {
         SettingsManager settingsManagerInstance = SettingsManager.getInstance();
         settingsManagerInstance.setSelectedRoute(route);
         settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.ROUTER);
-        // show router fragment of main activity
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
         mainActivityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mainActivityIntent.putExtra(
-                MainActivity.KEY_SELECTED_TAB, MainActivity.Tab.ROUTER);
+        context.startActivity(mainActivityIntent);
+    }
+
+    public static void loadPoiProfile(Context context, PoiProfile poiProfile) {
+        SettingsManager settingsManagerInstance = SettingsManager.getInstance();
+        settingsManagerInstance.setSelectedPoiProfile(poiProfile);
+        settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.POI);
+        Intent mainActivityIntent = new Intent(context, MainActivity.class);
+        mainActivityIntent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(mainActivityIntent);
     }
 
@@ -65,10 +81,6 @@ public class MainActivity extends TabLayoutActivity {
         // navigation drawer
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         navigationView = (NavigationView) findViewById(R.id.navigationView);
-        navigationView.setItemIconTintList(null);
-        // hide hiking trails menu item for now
-        Menu navigationViewMenu = navigationView.getMenu();
-        //navigationViewMenu.findItem(R.id.menuItemHikingTrails).setVisible(false);
 
         // Setup click events on the Navigation View Items.
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -83,12 +95,10 @@ public class MainActivity extends TabLayoutActivity {
                 } else if (menuItem.getItemId() == R.id.menuItemSaveCurrentLocation) {
                     SaveCurrentLocationDialog.newInstance()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemLastPoints) {
-                    FragmentContainerActivity.showPointHistory(MainActivity.this);
-                } else if (menuItem.getItemId() == R.id.menuItemLastRoutes) {
-                    FragmentContainerActivity.showRouteHistory(MainActivity.this);
-                } else if (menuItem.getItemId() == R.id.menuItemHikingTrails) {
-                    FragmentContainerActivity.showHikingTrails(MainActivity.this);
+                } else if (menuItem.getItemId() == R.id.menuItemFavorites) {
+                    PointAndRouteTabActivity.showFavorites(MainActivity.this);
+                } else if (menuItem.getItemId() == R.id.menuItemHistory) {
+                    PointAndRouteTabActivity.showHistory(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemSettings) {
                     FragmentContainerActivity.showSettings(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemInfo) {
@@ -110,14 +120,14 @@ public class MainActivity extends TabLayoutActivity {
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
 
-        ArrayList<Tab> tabList = new ArrayList<Tab>();
-        tabList.add(Tab.FAVORITES);
-        tabList.add(Tab.ROUTER);
-        tabList.add(Tab.POI);
-
         initializeViewPagerAndTabLayout(
-                new TabAdapter(MainActivity.this, tabList),
-                settingsManagerInstance.getSelectedTabForMainActivity());
+                createTabAdapter(), settingsManagerInstance.getSelectedTabForMainActivity());
+    }
+
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        initializeViewPagerAndTabLayout(
+                createTabAdapter(), settingsManagerInstance.getSelectedTabForMainActivity());
     }
 
     @Override public void tabSelected(Enum<?> newTab) {
@@ -141,7 +151,17 @@ public class MainActivity extends TabLayoutActivity {
      */
 
     public enum Tab {
-        ROUTER, POI, FAVORITES
+        FAVORITE_POINTS, ROUTER, POI, HIKING_TRAILS
+    }
+
+    private TabAdapter createTabAdapter() {
+        ArrayList<Tab> tabList = new ArrayList<Tab>();
+        tabList.add(Tab.FAVORITE_POINTS);
+        tabList.add(Tab.ROUTER);
+        tabList.add(Tab.POI);
+        // hide the hiking trails tab for now
+        //tabList.add(Tab.HIKING_TRAILS);
+        return new TabAdapter(MainActivity.this, tabList);
     }
 
 
@@ -155,12 +175,15 @@ public class MainActivity extends TabLayoutActivity {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case FAVORITES:
-                        return ObjectListFromDatabaseFragment.createFavoritesFragment();
+                    case FAVORITE_POINTS:
+                        return ObjectListFromDatabaseFragment.createFragment(
+                                FavoritesProfile.favoritePoints(), SortMethod.DISTANCE_ASC);
                     case POI:
                         return PoiListFromServerFragment.createPoiFragment();
                     case ROUTER:
                         return RouterFragment.newInstance();
+                    case HIKING_TRAILS:
+                        return HikingTrailListFromServerFragment.newInstance();
                 }
             }
             return null;
@@ -170,12 +193,14 @@ public class MainActivity extends TabLayoutActivity {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case FAVORITES:
-                        return getResources().getString(R.string.fragmentFavoritesName);
+                    case FAVORITE_POINTS:
+                        return getResources().getString(R.string.favoritesProfile);
                     case POI:
                         return getResources().getString(R.string.fragmentPOIName);
                     case ROUTER:
                         return getResources().getString(R.string.fragmentRouterName);
+                    case HIKING_TRAILS:
+                        return getResources().getString(R.string.fragmentHikingTrailListName);
                 }
             }
             return null;

@@ -11,10 +11,12 @@ public enum BearingSensorAccuracyRating {
     HIGH(3, GlobalInstance.getStringResource(R.string.bearingSensorAccuracyHigh));
 
 
-    public static BearingSensorAccuracyRating lookUpById(int id) {
-        for (BearingSensorAccuracyRating rating : BearingSensorAccuracyRating.values()) {
-            if (rating.id == id) {
-                return rating;
+    public static BearingSensorAccuracyRating lookUpById(Integer id) {
+        if (id != null) {
+            for (BearingSensorAccuracyRating rating : BearingSensorAccuracyRating.values()) {
+                if (rating.id == id) {
+                    return rating;
+                }
             }
         }
         return null;

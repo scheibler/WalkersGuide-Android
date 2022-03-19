@@ -30,6 +30,7 @@ import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
 import timber.log.Timber;
+import org.walkersguide.android.database.util.AccessDatabase;
 
 
 public class ManagePoiProfileDialog extends DialogFragment implements FragmentResultListener {
@@ -267,7 +268,7 @@ public class ManagePoiProfileDialog extends DialogFragment implements FragmentRe
                 }
 
                 // check for name duplicates
-                for (PoiProfile existingProfile : PoiProfile.allProfiles()) {
+                for (PoiProfile existingProfile : AccessDatabase.getInstance().getPoiProfileList()) {
                     if (profileName.equals(existingProfile.getName())
                             && (
                                    profile == null

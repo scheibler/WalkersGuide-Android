@@ -12,6 +12,9 @@
         android:id="@+id/menuItemRecalculateReturnRoute"
         android:title="@string/menuItemRecalculateReturnRoute" />
     <item
+        android:id="@+id/menuItemLoadPreviousRoute"
+        android:title="@string/menuItemLoadPreviousRoute" />
+    <item
         android:id="@+id/menuItemSkipToFirstRoutePoint"
         android:title="@string/menuItemSkipToFirstRoutePoint" />
     <item

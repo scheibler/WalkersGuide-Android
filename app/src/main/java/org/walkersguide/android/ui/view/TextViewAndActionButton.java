@@ -1,5 +1,7 @@
         package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
+import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import androidx.appcompat.app.AppCompatActivity;
@@ -49,6 +51,8 @@ import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import android.content.res.TypedArray;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
+import org.walkersguide.android.data.angle.Bearing;
 
 
 public class TextViewAndActionButton extends LinearLayout {
@@ -102,10 +106,12 @@ public class TextViewAndActionButton extends LinearLayout {
     private SettingsManager settingsManagerInstance;
 
     private String prefix = null;
+    private boolean includeDistanceOrBearingInformation = false;
     private boolean compact = false;
 
     private ObjectWithId objectWithId;
     private int isFavoriteModeHide, isFavoriteModeVisible;
+    private boolean autoUpdate;
 
     private ImageView imageViewIsFavorite;
     private TextView label;
@@ -116,10 +122,9 @@ public class TextViewAndActionButton extends LinearLayout {
         this.initUi(context);
     }
 
-    public TextViewAndActionButton(Context context, String prefix, boolean compact) {
+    public TextViewAndActionButton(Context context, boolean includeDistanceOrBearingInformation) {
         super(context);
-        this.prefix = prefix;
-        this.compact = compact;
+        this.includeDistanceOrBearingInformation = includeDistanceOrBearingInformation;
         this.initUi(context);
     }
 
@@ -132,6 +137,8 @@ public class TextViewAndActionButton extends LinearLayout {
         if (attributeArray != null) {
             this.prefix = attributeArray.getString(
                     R.styleable.TextViewAndActionButton_prefix);
+            this.includeDistanceOrBearingInformation = attributeArray.getBoolean(
+                    R.styleable.TextViewAndActionButton_includeDistanceOrBearingInformation, false);
             this.compact = attributeArray.getBoolean(
                     R.styleable.TextViewAndActionButton_compact, false);
             attributeArray.recycle();
@@ -188,6 +195,7 @@ public class TextViewAndActionButton extends LinearLayout {
 
         this.onObjectDefaultActionListener = null;
         this.showDetailsAction = false;
+        this.autoUpdate = false;
         this.reset();
     }
 
@@ -205,6 +213,10 @@ public class TextViewAndActionButton extends LinearLayout {
                 GlobalInstance.getStringResource(R.string.labelNothingSelected));
     }
 
+    public void setAutoUpdate(boolean newState) {
+        this.autoUpdate = newState;
+    }
+
     public void configureAsListItem(ObjectWithId object, boolean showIsFavoriteIndicator, OnUpdateListRequestListener listener) {
         this.reset();
         if (object != null) {
@@ -214,15 +226,7 @@ public class TextViewAndActionButton extends LinearLayout {
                 this.isFavoriteModeHide = View.INVISIBLE;
             }
             this.onUpdateListRequestListener = listener;
-
-            String labelText = object.toString();
-            if (object instanceof Point) {
-                String distanceAndBearing = ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation();
-                if (! TextUtils.isEmpty(distanceAndBearing)) {
-                    labelText += String.format("\n%1$s", distanceAndBearing);
-                }
-            }
-            this.setLabelAndButtonText(labelText);
+            this.setLabelAndButtonText(object.toString());
         }
     }
 
@@ -236,15 +240,20 @@ public class TextViewAndActionButton extends LinearLayout {
 
     public void configureAsSingleObject(ObjectWithId object, String labelText, OnLayoutResetListener listener) {
         this.reset();
-        if (object != null && labelText != null) {
-            this.objectWithId = object;
-            this.isFavoriteModeVisible = View.VISIBLE;
-            this.onLayoutResetListener = listener;
+        if (labelText != null) {
+            if (object != null) {
+                this.objectWithId = object;
+                this.isFavoriteModeVisible = View.VISIBLE;
+                this.onLayoutResetListener = listener;
+            }
             this.setLabelAndButtonText(labelText);
         }
     }
 
     private void setLabelAndButtonText(String labelText) {
+        this.label.setTag(labelText);
+
+        // prepare complete label text
         if (this.prefix != null) {
             labelText = String.format(
                     "%1$s%2$s%3$s",
@@ -252,9 +261,28 @@ public class TextViewAndActionButton extends LinearLayout {
                     this.compact ? ": " : ":\n",
                     labelText);
         }
+        if (this.includeDistanceOrBearingInformation) {
+            String distanceOrBearing = null;
+            if (this.objectWithId instanceof Point) {
+                distanceOrBearing = ((Point) this.objectWithId).formatDistanceAndRelativeBearingFromCurrentLocation();
+                if (! TextUtils.isEmpty(distanceOrBearing)) {
+                    labelText = String.format(
+                            "%1$s\n%2$s", labelText, distanceOrBearing);
+                }
+            } else if (this.objectWithId instanceof IntersectionSegment) {
+                distanceOrBearing = ((IntersectionSegment) this.objectWithId).formatRelativeBearingFromCurrentLocation();
+                if (! TextUtils.isEmpty(distanceOrBearing)) {
+                    labelText = String.format(
+                            "%1$s: %2$s", distanceOrBearing, labelText);
+                }
+            }
+        }
         this.label.setText(labelText);
-        updateFavoriteIndicator(labelText);
 
+        // favorite indicator
+        updateFavoriteIndicator();
+
+        // action button
         if (this.objectWithId != null
                 && settingsManagerInstance.getShowActionButton()) {
             this.buttonActionFor.setContentDescription(
@@ -269,7 +297,7 @@ public class TextViewAndActionButton extends LinearLayout {
         }
     }
 
-    private void updateFavoriteIndicator(String labelText) {
+    private void updateFavoriteIndicator() {
         int favoriteIndicatorVisibilityMode = isFavoriteModeHide;
         if (this.objectWithId != null && this.objectWithId.isFavorite()) {
             favoriteIndicatorVisibilityMode = isFavoriteModeVisible;
@@ -282,12 +310,57 @@ public class TextViewAndActionButton extends LinearLayout {
                     String.format(
                         "%1$s: %2$s",
                         GlobalInstance.getStringResource(R.string.labelIsFavorite),
-                        labelText)
+                        this.label.getText().toString())
                     );
         } else {
             this.label.setContentDescription(null);
         }
     }
+
+
+    /**
+     * auto update distance and bearing
+     */
+
+    @Override public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(newLocationReceiver);
+    }
+
+    @Override public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (this.autoUpdate && this.includeDistanceOrBearingInformation) {
+            Timber.d("onAttachedToWindow");
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(PositionManager.ACTION_NEW_LOCATION);
+            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
+            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(newLocationReceiver, filter);
+        }
+    }
+
+    private BroadcastReceiver newLocationReceiver = new BroadcastReceiver() {
+        private AcceptNewPosition acceptNewPosition = AcceptNewPosition.newInstanceForTextViewAndActionButtonUpdate();
+        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForTextViewAndActionButtonUpdate();
+
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
+                if (currentLocation != null
+                        && (
+                               intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)
+                            || acceptNewPosition.updatePoint(currentLocation))) {
+                    setLabelAndButtonText((String) label.getTag());
+                }
+
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
+                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
+                if (currentBearing != null
+                        && acceptNewBearing.updateBearing(currentBearing)) {
+                    setLabelAndButtonText((String) label.getTag());
+                }
+            }
+        }
+    };
 
 
     /**
@@ -300,8 +373,9 @@ public class TextViewAndActionButton extends LinearLayout {
 
     private static final int MENU_ITEM_DETAILS = 1;
     private static final int MENU_ITEM_DEPARTURES = 2;
-    private static final int MENU_ITEM_LOAD = 3;
-    private static final int MENU_ITEM_STREET_COURSE = 4;
+    private static final int MENU_ITEM_ENTRANCES = 3;
+    private static final int MENU_ITEM_LOAD = 4;
+    private static final int MENU_ITEM_STREET_COURSE = 5;
     private static final int MENU_ITEM_ADD_TO_FAVORITES = 10;
     private static final int MENU_ITEM_REMOVE_FROM_FAVORITES = 11;
     private static final int MENU_ITEM_START_LOCATION_SIMULATION = 12;
@@ -332,9 +406,15 @@ public class TextViewAndActionButton extends LinearLayout {
             contextMenu.getMenu().add(
                     MENU_GROUP_1, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemDetails));
         }
-        if (object instanceof Station) {
-            contextMenu.getMenu().add(
-                    MENU_GROUP_1, MENU_ITEM_DEPARTURES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemDepartures));
+        if (object instanceof POI) {
+            if (object instanceof Station) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_1, MENU_ITEM_DEPARTURES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemDepartures));
+            }
+            if (((POI) object).hasEntrance()) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_1, MENU_ITEM_ENTRANCES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemEntrances));
+            }
         } else if (object instanceof Route
                 && ! ((Route) object).equals(settingsManagerInstance.getSelectedRoute())) {
             contextMenu.getMenu().add(
@@ -488,8 +568,7 @@ public class TextViewAndActionButton extends LinearLayout {
                     this.onUpdateListRequestListener.onUpdateListRequested(TextViewAndActionButton.this);
                 }
             }
-            updateFavoriteIndicator(
-                    this.label.getText().toString());
+            updateFavoriteIndicator();
 
         } else if (menuItemId == MENU_ITEM_RENAME) {
             RenameObjectDialog roDialog = RenameObjectDialog.newInstance(object);
@@ -516,6 +595,12 @@ public class TextViewAndActionButton extends LinearLayout {
             if (point instanceof Station) {
                 PointDetailsActivity.startAtTab(
                         context, (Station) point, PointDetailsActivity.Tab.DEPARTURES);
+            }
+
+        } else if (menuItemId == MENU_ITEM_ENTRANCES) {
+            if (point instanceof POI) {
+                PointDetailsActivity.startAtTab(
+                        context, (POI) point, PointDetailsActivity.Tab.ENTRANCES);
             }
 
         } else if (menuItemId == MENU_ITEM_START_LOCATION_SIMULATION) {

@@ -41,9 +41,16 @@ import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
 import org.walkersguide.android.util.GlobalInstance;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import timber.log.Timber;
+import org.walkersguide.android.util.Helper;
 
 
-public class TripDetailsFragment extends Fragment implements Runnable {
+public class TripDetailsFragment extends Fragment implements OnRefreshListener, Runnable {
 
 
     // instance constructors
@@ -59,6 +66,7 @@ public class TripDetailsFragment extends Fragment implements Runnable {
 
 
     // fragment
+    private static final String KEY_CACHED_STOP_LIST = "cachedStopList";
     private static final String KEY_TASK_ID = "taskId";
     private static final String KEY_STATION = "station";
     private static final String KEY_DEPARTURE = "departure";
@@ -68,12 +76,13 @@ public class TripDetailsFragment extends Fragment implements Runnable {
     private long taskId;
 	private Handler nextDeparturesHandler = new Handler(Looper.getMainLooper());
 
+    private ArrayList<Stop> cachedStopList;
     private Location station;
     private Departure departure;
     private int listPosition;
 
 	// ui components
-    private ImageButton buttonRefresh;
+    private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewTrip;
     private TextView labelHeading, labelEmptyListView;
 
@@ -84,11 +93,50 @@ public class TripDetailsFragment extends Fragment implements Runnable {
 
 
     /**
+     * menu
+     */
+
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_toolbar_trip_details_fragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemCancel));
+        } else {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemRefresh));
+        }
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menuItemRefresh) {
+            if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                serverTaskExecutorInstance.cancelTask(taskId);
+            } else if (station != null && departure != null) {
+                cachedStopList = null;
+                listPosition = 0;
+                prepareRequest();
+            }
+
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+
+    /**
      * create view
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_heading_and_list_view_with_refresh_button, container, false);
+        setHasOptionsMenu(true);
+		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -97,9 +145,11 @@ public class TripDetailsFragment extends Fragment implements Runnable {
         station = (Location) getArguments().getSerializable(KEY_STATION);
         departure = (Departure) getArguments().getSerializable(KEY_DEPARTURE);
         if (savedInstanceState != null) {
+            cachedStopList = (ArrayList<Stop>) savedInstanceState.getSerializable(KEY_CACHED_STOP_LIST);
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {
+            cachedStopList = null;
             taskId = ServerTaskExecutor.NO_TASK_ID;
             listPosition = 0;
         }
@@ -107,20 +157,8 @@ public class TripDetailsFragment extends Fragment implements Runnable {
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
 
-        buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
-        buttonRefresh.setVisibility(View.GONE);
-        buttonRefresh.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-                    serverTaskExecutorInstance.cancelTask(taskId);
-                } else if (listViewTrip.getAdapter() != null) {
-                    updateListView();
-                } else if (station != null && departure != null) {
-                    listPosition = 0;
-                    prepareRequest();
-                }
-            }
-        });
+        swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
+        swipeRefreshListView.setOnRefreshListener(this);
 
         listViewTrip = (ListView) view.findViewById(R.id.listView);
         listViewTrip.setVisibility(View.GONE);
@@ -136,24 +174,36 @@ public class TripDetailsFragment extends Fragment implements Runnable {
             }
         });
 
+        swipeRefreshEmptyTextView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshEmptyTextView);
+        swipeRefreshEmptyTextView.setOnRefreshListener(this);
+        listViewTrip.setEmptyView(swipeRefreshEmptyTextView);
         labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
         labelEmptyListView.setVisibility(View.GONE);
-        listViewTrip.setEmptyView(labelEmptyListView);
 
         if (station != null && departure != null) {
-            // show controls
             labelHeading.setVisibility(View.VISIBLE);
-            labelHeading.setVisibility(View.VISIBLE);
-            buttonRefresh.setVisibility(View.VISIBLE);
             listViewTrip.setVisibility(View.VISIBLE);
             labelEmptyListView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override public void onRefresh() {
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)
+                && (station != null && departure != null)) {
+            Helper.vibrateOnce(
+                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+            cachedStopList = null;
+            listPosition = 0;
+            prepareRequest();
         }
     }
 
     @Override public void onResume() {
         super.onResume();
         // prepare request
-        if (station != null && departure != null) {
+        if (cachedStopList != null) {
+            tripTaskWasSuccessful(cachedStopList);
+        } else if (station != null && departure != null) {
             prepareRequest();
         }
 
@@ -174,6 +224,7 @@ public class TripDetailsFragment extends Fragment implements Runnable {
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_CACHED_STOP_LIST, cachedStopList);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
     }
@@ -192,7 +243,6 @@ public class TripDetailsFragment extends Fragment implements Runnable {
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelHeading.setText(
                 getResources().getQuantityString(R.plurals.station, 0, 0));
-        updateRefreshButton(true);
 
         // list view
         listViewTrip.setAdapter(null);
@@ -204,6 +254,9 @@ public class TripDetailsFragment extends Fragment implements Runnable {
 
         nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            swipeRefreshListView.setRefreshing(true);
+            swipeRefreshEmptyTextView.setRefreshing(true);
+
             taskId = serverTaskExecutorInstance.executeTask(
                     new TripDetailsTask(
                         SettingsManager.getInstance().getSelectedNetworkId(),
@@ -227,6 +280,7 @@ public class TripDetailsFragment extends Fragment implements Runnable {
                             (ArrayList<Stop>) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_STOP_LIST));
 
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+                    Timber.d("cancelled");
                     labelEmptyListView.setText(
                             GlobalInstance.getStringResource(R.string.errorReqRequestCancelled));
 
@@ -239,32 +293,11 @@ public class TripDetailsFragment extends Fragment implements Runnable {
                     }
                 }
 
-                updateRefreshButton(false);
+                swipeRefreshListView.setRefreshing(false);
+                swipeRefreshEmptyTextView.setRefreshing(false);
             }
         }
     };
-
-    private void updateRefreshButton(boolean requestInProgress) {
-        if (requestInProgress) {
-            buttonRefresh.setContentDescription(
-                    GlobalInstance.getStringResource(R.string.buttonCancel));
-            buttonRefresh.setImageResource(R.drawable.cancel);
-        } else {
-            buttonRefresh.setContentDescription(
-                    GlobalInstance.getStringResource(R.string.buttonRefresh));
-            buttonRefresh.setImageResource(R.drawable.refresh);
-        }
-    }
-
-    private void updateListView() {
-        TripAdapter tripAdapter = (TripAdapter) listViewTrip.getAdapter();
-        if (tripAdapter != null) {
-            tripAdapter.notifyDataSetChanged();
-            labelHeading.setText(
-                    getResources().getQuantityString(
-                        R.plurals.station, tripAdapter.getCount(), tripAdapter.getCount()));
-        }
-    }
 
 
     /**
@@ -272,6 +305,8 @@ public class TripDetailsFragment extends Fragment implements Runnable {
      */
 
     private void tripTaskWasSuccessful(ArrayList<Stop> stopList) {
+        this.cachedStopList = stopList;
+
         // listview
         listViewTrip.setAdapter(
                 new TripAdapter(TripDetailsFragment.this.getContext(), stopList));
@@ -284,7 +319,6 @@ public class TripDetailsFragment extends Fragment implements Runnable {
         labelHeading.setText(
                 getResources().getQuantityString(
                     R.plurals.station, stopList.size(), stopList.size()));
-        updateRefreshButton(false);
 
         // list position
         listViewTrip.setSelection(listPosition);
@@ -304,14 +338,23 @@ public class TripDetailsFragment extends Fragment implements Runnable {
     // update trip every 60 seconds
 
     @Override public void run() {
-        ViewCompat.setAccessibilityLiveRegion(
-                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
-        updateListView();
-        ViewCompat.setAccessibilityLiveRegion(
-                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
         TripAdapter tripAdapter = (TripAdapter) listViewTrip.getAdapter();
-        if (tripAdapter != null && tripAdapter.getCount() > 0) {
-            nextDeparturesHandler.postDelayed(TripDetailsFragment.this, 60000);
+        if (tripAdapter != null) {
+            tripAdapter.notifyDataSetChanged();
+
+            // update heading
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
+            labelHeading.setText(
+                    getResources().getQuantityString(
+                        R.plurals.station, tripAdapter.getCount(), tripAdapter.getCount()));
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
+
+            // plan next update
+            if (tripAdapter.getCount() > 0) {
+                nextDeparturesHandler.postDelayed(TripDetailsFragment.this, 60000);
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment.object_list.extended;
 
-import org.walkersguide.android.ui.fragment.ObjectListFragment.DialogMode;
+import android.widget.Toast;
 import org.walkersguide.android.data.profile.ProfileGroup;
 import org.walkersguide.android.database.profile.FavoritesProfile;
 import org.walkersguide.android.database.DatabaseProfileRequest;
@@ -47,41 +47,49 @@ import android.content.DialogInterface;
 public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment implements FragmentResultListener {
 
 
-	public static ObjectListFromDatabaseFragment createDialog(DatabaseProfile profile, boolean enableSelection) {
-        return newInstance(
-                enableSelection ? DialogMode.SELECT : DialogMode.DEFAULT,
-                new DatabaseProfileRequest(profile),
-                null);
+    public static class BundleBuilder extends ExtendedObjectListFragment.BundleBuilder {
+        public BundleBuilder(DatabaseProfileRequest request) {
+            super();
+            bundle.putSerializable(KEY_REQUEST, request);
+        }
     }
 
-	public static ObjectListFromDatabaseFragment createFavoritesFragment() {
-        return newInstance(
-                null,
-                new DatabaseProfileRequest(
-                    FavoritesProfile.favoritePoints(), null, SortMethod.DISTANCE_ASC),
-                ProfileGroup.FAVORITES);
+	public static ObjectListFromDatabaseFragment createDialog(DatabaseProfile profile, boolean enableSelection) {
+		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
+        fragment.setArguments(
+                new BundleBuilder(
+                    new DatabaseProfileRequest(profile))
+                .setIsDialog(enableSelection)
+                .build());
+		return fragment;
+    }
+
+	public static ObjectListFromDatabaseFragment createFragment(DatabaseProfile profile, SortMethod sortMethod) {
+		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
+        fragment.setArguments(
+                new BundleBuilder(
+                    new DatabaseProfileRequest(profile, null, sortMethod))
+                .build());
+		return fragment;
     }
 
 	public static ObjectListFromDatabaseFragment createPointHistoryFragment() {
-        return newInstance(
-                null,
-                new DatabaseProfileRequest(DatabaseProfile.allPoints()),
-                ProfileGroup.POINT_HISTORY);
+		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
+        fragment.setArguments(
+                new BundleBuilder(
+                    new DatabaseProfileRequest(DatabaseProfile.allPoints()))
+                .setProfileGroup(ProfileGroup.POINT_HISTORY)
+                .build());
+		return fragment;
     }
 
 	public static ObjectListFromDatabaseFragment createRouteHistoryFragment() {
-        return newInstance(
-                null,
-                new DatabaseProfileRequest(DatabaseProfile.allRoutes()),
-                ProfileGroup.ROUTE_HISTORY);
-    }
-
-	private static ObjectListFromDatabaseFragment newInstance(
-            DialogMode dialogMode, DatabaseProfileRequest request, ProfileGroup profileGroup) {
 		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
-        Bundle args = ExtendedObjectListFragment.createArgsBundle(dialogMode, profileGroup);
-        args.putSerializable(KEY_REQUEST, request);
-        fragment.setArguments(args);
+        fragment.setArguments(
+                new BundleBuilder(
+                    new DatabaseProfileRequest(DatabaseProfile.allRoutes()))
+                .setProfileGroup(ProfileGroup.ROUTE_HISTORY)
+                .build());
 		return fragment;
     }
 
@@ -180,27 +188,48 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
      */
 
     @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_database_point_list_fragment, menu);
+        inflater.inflate(R.menu.menu_toolbar_object_list_from_database_fragment, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        MenuItem menuItemClearProfile = menu.findItem(R.id.menuItemClearProfile);
-        menuItemClearProfile.setVisible(
-                   request != null
-                && request.hasProfile()
-                && (
-                       getProfileGroup() == ProfileGroup.POINT_HISTORY
-                    || getProfileGroup() == ProfileGroup.ROUTE_HISTORY));
+        // enable the following menu items for a DatabaseProfile with points
+        boolean isPointDatabaseProfile = request != null
+            && request.hasProfile()
+            && request.getProfile().isForPoints();
+        MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
+        menuItemAutoUpdate.setVisible(isPointDatabaseProfile);
+        MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
+        menuItemFilterResult.setVisible(isPointDatabaseProfile);
+        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
+        menuItemAnnounceObjectAhead.setVisible(isPointDatabaseProfile);
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemSortMethod) {
-            SelectSortMethodDialog.newInstance(request.getSortMethod())
+            if (request == null || request.getProfile() == null) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.messageNoProfileSelected),
+                        Toast.LENGTH_LONG)
+                    .show();
+                return true;
+            }
+            SelectSortMethodDialog.newInstance(
+                    request.getProfile().getSupportedSortMethodList(),
+                    request.getSortMethod())
                 .show(getChildFragmentManager(), "SelectSortMethodDialog");
 
         } else if (item.getItemId() == R.id.menuItemClearProfile) {
+            if (request == null || request.getProfile() == null) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.messageNoProfileSelected),
+                        Toast.LENGTH_LONG)
+                    .show();
+                return true;
+            }
             Dialog clearProfileDialog = new AlertDialog.Builder(getActivity())
                 .setMessage(
                         String.format(
@@ -241,14 +270,17 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
     @Override public void onStart() {
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
-        if(dialog != null) {
+        if (dialog != null) {
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setText(
                     getResources().getString(R.string.menuItemSortMethod));
-            buttonNeutral.setVisibility(View.VISIBLE);
+            buttonNeutral.setVisibility(
+                    request != null && request.hasProfile() ? View.VISIBLE : View.GONE);
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    SelectSortMethodDialog.newInstance(request.getSortMethod())
+                    SelectSortMethodDialog.newInstance(
+                            request.getProfile().getSupportedSortMethodList(),
+                            request.getSortMethod())
                         .show(getChildFragmentManager(), "SelectSortMethodDialog");
                 }
             });
@@ -284,8 +316,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                 if (isAdded()) {
                     super.populateUiAfterRequestWasSuccessful(
                             String.format(
-                                "%1$s\n%2$s",
-                                GlobalInstance.getPluralResource(getPluralResourceId(), objectList.size()),
+                                GlobalInstance.getStringResource(R.string.labelHeadingSecondLineSortMethod),
                                 request.getSortMethod().toString()),
                             objectList,
                             ! (request.getProfile() instanceof FavoritesProfile));

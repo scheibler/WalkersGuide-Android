@@ -29,11 +29,20 @@
             android:name=".ui.activity.toolbar.tabs.MainActivity"
             android:label="@string/app_name"
             android:exported="true" >
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <activity
+            android:name=".ui.activity.ShortcutActivity"
+            android:taskAffinity="" />
 
         <activity
             android:name=".ui.activity.toolbar.tabs.PointDetailsActivity"
@@ -43,6 +52,10 @@
         <activity
             android:name=".ui.activity.toolbar.tabs.SegmentDetailsActivity"
             android:label="@string/segmentDetailsActivityTitle"
+            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
+
+        <activity
+            android:name=".ui.activity.toolbar.tabs.PointAndRouteTabActivity"
             android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
 
         <activity

@@ -32,9 +32,11 @@ public class RelativeBearing extends Angle implements Serializable {
                 Angle.Quadrant.Q7, GlobalInstance.getStringResource(R.string.directionLeftSlightly));
 
         public static Direction newInstance(Quadrant quadrant) {
-            for (Direction direction : Direction.values()) {
-                if (direction.quadrant == quadrant) {
-                    return direction;
+            if (quadrant != null) {
+                for (Direction direction : Direction.values()) {
+                    if (direction.quadrant == quadrant) {
+                        return direction;
+                    }
                 }
             }
             return null;

@@ -55,7 +55,6 @@ public class SettingsManager {
     public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.ROUTER;
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
-    public static final boolean DEFAULT_ENABLE_SEARCH_TERM_HISTORY = true;
     // bearing sensor
     public static final BearingSensor DEFAULT_BEARING_SENSOR = BearingSensor.COMPASS;
     // poi settings
@@ -69,7 +68,6 @@ public class SettingsManager {
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
-    private static final String KEY_ENABLE_SEARCH_TERM_HISTORY = "enableSearchTermHistory";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
     // WalkersGuide server
     private static final String KEY_WG_SERVER_URL = "wgServerUrl";
@@ -83,7 +81,7 @@ public class SettingsManager {
     private static final String KEY_SIMULATED_BEARING = "simulatedBearing";
     // location sensor
     private static final String KEY_GPS_LOCATION = "gpsLocation";
-    private static final String KEY_SIMULATED_POINT = "simulatedPoint";
+    private static final String KEY_SIMULATED_POINT_ID = "simulatedPointId";
     // poi settings
     private static final String KEY_SELECTED_POI_PROFILE_ID = "selectedPoiProfileId";
     // p2p route settings
@@ -206,16 +204,6 @@ public class SettingsManager {
 
     // search term history
 
-    public boolean getEnableSearchTermHistory() {
-        return settings.getBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, DEFAULT_ENABLE_SEARCH_TERM_HISTORY);
-    }
-
-    public void setEnableSearchTermHistory(boolean enableSearchTermHistory) {
-        Editor editor = settings.edit();
-        editor.putBoolean(KEY_ENABLE_SEARCH_TERM_HISTORY, enableSearchTermHistory);
-        editor.apply();
-    }
-
     public ArrayList<String> getSearchTermHistory() {
         ArrayList<String> searchTermHistory = gson.fromJson(
                 settings.getString(KEY_SEARCH_TERM_HISTORY, "[]"),
@@ -284,6 +272,8 @@ public class SettingsManager {
         Editor editor = settings.edit();
         editor.putString(KEY_WG_SERVER_URL, newServerURL);
         editor.apply();
+        // clear caches
+        GlobalInstance.getInstance().clearCaches();
     }
 
     public OSMMap getSelectedMap() {
@@ -297,6 +287,8 @@ public class SettingsManager {
         editor.putString(
                 KEY_SELECTED_MAP, gson.toJson(newMap));
         editor.apply();
+        // clear caches
+        GlobalInstance.getInstance().clearCaches();
     }
 
 
@@ -394,14 +386,18 @@ public class SettingsManager {
     }
 
     public Point getSimulatedPoint() {
-        return gson.fromJson(
-                settings.getString(KEY_SIMULATED_POINT, ""), Point.class);
+        return Point.load(
+                settings.getLong(KEY_SIMULATED_POINT_ID, -1));
     }
 
     public void setSimulatedPoint(Point newPoint) {
         Editor editor = settings.edit();
-        editor.putString(
-                KEY_SIMULATED_POINT, gson.toJson(newPoint));
+        if (newPoint != null
+                && DatabaseProfile.allPoints().add(newPoint)) {
+            editor.putLong(KEY_SIMULATED_POINT_ID, newPoint.getId());
+        } else if (settings.contains(KEY_SIMULATED_POINT_ID)) {
+            editor.remove(KEY_SIMULATED_POINT_ID);
+        }
         editor.apply();
     }
 

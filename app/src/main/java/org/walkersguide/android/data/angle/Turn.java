@@ -32,9 +32,11 @@ public class Turn extends Angle implements Serializable {
                 Angle.Quadrant.Q7, GlobalInstance.getStringResource(R.string.instructionTurnLeftSlightly));
 
         public static Instruction newInstance(Quadrant quadrant) {
-            for (Instruction instruction : Instruction.values()) {
-                if (instruction.quadrant == quadrant) {
-                    return instruction;
+            if (quadrant != null) {
+                for (Instruction instruction : Instruction.values()) {
+                    if (instruction.quadrant == quadrant) {
+                        return instruction;
+                    }
                 }
             }
             return null;

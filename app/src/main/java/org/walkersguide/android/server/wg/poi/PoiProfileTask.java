@@ -30,15 +30,18 @@ public class PoiProfileTask extends ServerTask {
 
     private PoiProfileRequest request;
     private RequestAction action;
-    private Point newCenter;
+    private Point newLocation;
 
-    public PoiProfileTask(PoiProfileRequest request, RequestAction action, Point newCenter) {
+    public PoiProfileTask(PoiProfileRequest request, RequestAction action, Point newLocation) {
         this.request = request;
         this.action = action;
-        this.newCenter = newCenter;
+        this.newLocation = newLocation;
     }
 
     @Override public void execute() throws WgException {
+        //try {
+       //     Thread.sleep(7000);
+        //} catch (InterruptedException e) {}
         AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
 
         // does any poi profile exist?
@@ -50,7 +53,7 @@ public class PoiProfileTask extends ServerTask {
             throw new WgException(WgException.RC_NO_POI_PROFILE_SELECTED);
         }
         // check new center point
-        if (this.newCenter == null) {
+        if (this.newLocation == null) {
             throw new WgException(WgException.RC_BAD_REQUEST);
         }
 
@@ -59,8 +62,8 @@ public class PoiProfileTask extends ServerTask {
             .getInstance()
             .getCachedPoiProfileResult(this.request);
         boolean distanceToLastPOIProfileCenterPointTooLarge = 
-            cachedResult == null
-            || cachedResult.getCenter().distanceTo(newCenter) > (cachedResult.getLookupRadius() / 2);
+               cachedResult == null
+            || cachedResult.getCenter().distanceTo(newLocation) > (cachedResult.getLookupRadius() * 0.33);
         int initialRadius;
         if (this.request.getProfile().getPoiCategoryList().isEmpty()) {
             initialRadius = PoiProfileResult.INITIAL_LOCAL_FAVORITES_RADIUS;
@@ -70,17 +73,20 @@ public class PoiProfileTask extends ServerTask {
             initialRadius = PoiProfileResult.INITIAL_RADIUS;
         }
 
-        // new values for radius and number of results
+        // new values for center, radius and number of results
+        Point newCenter;
         int newRadius, newNumberOfResults;
         if (distanceToLastPOIProfileCenterPointTooLarge) {
             // new location
             // (re)start with initial values
+            newCenter = newLocation;
             newRadius = initialRadius;
             newNumberOfResults = PoiProfileResult.INITIAL_NUMBER_OF_RESULTS;
         } else {
             // more or less the same position again
             // note: "cachedResult" can't be null in this "else" condition
             //       see creation of distanceToLastPOIProfileCenterPointTooLarge for details
+            newCenter = cachedResult.getCenter();
             newRadius = cachedResult.getRadius();
             newNumberOfResults = cachedResult.getNumberOfResults();
             // increase radius, numberOfResults or both
@@ -108,6 +114,7 @@ public class PoiProfileTask extends ServerTask {
                 && this.action == RequestAction.UPDATE) {
             // server poi from cache
             newOnlyPoiList = cachedResult.getOnlyPoiList();
+            Timber.d("from cache");
 
         } else if (! this.request.getProfile().getPoiCategoryList().isEmpty()) {
 
@@ -115,8 +122,8 @@ public class PoiProfileTask extends ServerTask {
             JSONObject jsonServerParams = null;
             try {
                 jsonServerParams = WgUtility.createServerParamList();
-                jsonServerParams.put("lat", newCenter.getLatitude());
-                jsonServerParams.put("lon", newCenter.getLongitude());
+                jsonServerParams.put("lat", newLocation.getLatitude());
+                jsonServerParams.put("lon", newLocation.getLongitude());
                 jsonServerParams.put("radius", newRadius);
                 jsonServerParams.put("number_of_results", newNumberOfResults);
                 jsonServerParams.put("tags", PoiCategory.listToJson(this.request.getProfile().getPoiCategoryList()));
@@ -174,15 +181,14 @@ public class PoiProfileTask extends ServerTask {
             }
         }
 
+        Collections.sort(
+                newAllPointList,
+                new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
         // reset list position
         boolean newResetListPosition = this.action == RequestAction.UPDATE
             && (
                        cachedResult == null
-                    || cachedResult.getCenter().distanceTo(newCenter) > 100);
-
-        Collections.sort(
-                newAllPointList,
-                new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
+                    || ! PoiProfileResult.hasSameFirstPoi(cachedResult.getAllPointList(), newAllPointList));
         PoiProfileResult newResult = new PoiProfileResult(newRadius, newNumberOfResults,
                 newCenter, newAllPointList, newOnlyPoiList, newResetListPosition);
 

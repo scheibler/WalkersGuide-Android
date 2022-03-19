@@ -37,10 +37,11 @@ public abstract class Angle implements Comparable<Angle>, Serializable {
             return null;
         }
 
-        public int min, max;
+        public int min, mean, max;
 
         private Quadrant(int min, int max) {
             this.min = min;
+            this.mean = min + ((max - min) / 2);
             this.max = max;
         }
     }

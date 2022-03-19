@@ -61,8 +61,8 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionCode 3
-            versionName '2.0.0-b3'
+            versionCode 4
+            versionName '2.0.0-b4'
             signingConfig signingConfigs.beta
             // internal
             // database
@@ -125,16 +125,17 @@ dependencies {
 
     // material design
     implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     // google helpers
-    implementation 'com.google.guava:guava:28.2-android'
+    implementation 'com.google.guava:guava:31.0.1-android'
     implementation 'com.google.code.gson:gson:2.8.9'
 
     // logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2021-08-07@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2022-01-31@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.12'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.12'
     implementation 'org.slf4j:slf4j-api:1.7.30'

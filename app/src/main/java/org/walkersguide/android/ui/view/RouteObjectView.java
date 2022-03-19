@@ -43,6 +43,7 @@ public class RouteObjectView extends LinearLayout {
 
     private TextViewAndActionButton layoutRouteSegment, layoutRouteSegmentSelected;
     private TextViewAndActionButton layoutRoutePoint;
+    private TextView labelRoutePointOptionalDetails;
 
     public RouteObjectView(Context context) {
         super(context);
@@ -61,6 +62,7 @@ public class RouteObjectView extends LinearLayout {
         layoutRouteSegment = (TextViewAndActionButton) view.findViewById(R.id.layoutRouteSegment);
         layoutRouteSegmentSelected = (TextViewAndActionButton) view.findViewById(R.id.layoutRouteSegmentSelected);
         layoutRoutePoint = (TextViewAndActionButton) view.findViewById(R.id.layoutRoutePoint);
+        labelRoutePointOptionalDetails = (TextView) view.findViewById(R.id.labelRoutePointOptionalDetails);
 
         reset();
     }
@@ -76,6 +78,7 @@ public class RouteObjectView extends LinearLayout {
         this.layoutRouteSegmentSelected.reset();
         this.layoutRouteSegmentSelected.setVisibility(View.GONE);
         this.layoutRoutePoint.reset();
+        this.labelRoutePointOptionalDetails.setVisibility(View.GONE);
     }
 
     public void configureAsListItem(RouteObject object, boolean isSelected) {
@@ -91,6 +94,12 @@ public class RouteObjectView extends LinearLayout {
         if (object != null) {
             this.routeObject = object;
             this.configureRouteObjectView(false);
+
+            String optionalPointDetails = object.formatOptionalPointDetails();
+            if (! TextUtils.isEmpty(optionalPointDetails)) {
+                labelRoutePointOptionalDetails.setText(optionalPointDetails);
+                labelRoutePointOptionalDetails.setVisibility(View.VISIBLE);
+            }
         }
     }
 

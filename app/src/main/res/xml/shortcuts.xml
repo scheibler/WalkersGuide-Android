@@ -1,0 +1,38 @@
+<shortcuts
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <shortcut
+        android:shortcutId="shortcutPlanRoute"
+        android:shortcutShortLabel="@string/menuItemPlanRoute"
+        tools:ignore="UnusedAttribute" >
+
+        <intent
+            android:action="org.walkersguide.android.action.OPEN_PLAN_ROUTE_DIALOG"
+            android:targetPackage="org.walkersguide.android"
+            android:targetClass="org.walkersguide.android.ui.activity.ShortcutActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcutSaveCurrentLocation"
+        android:shortcutShortLabel="@string/menuItemSaveCurrentLocation"
+        tools:ignore="UnusedAttribute" >
+
+        <intent
+            android:action="org.walkersguide.android.action.OPEN_SAVE_CURRENT_LOCATION_DIALOG"
+            android:targetPackage="org.walkersguide.android"
+            android:targetClass="org.walkersguide.android.ui.activity.ShortcutActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcutWhereAmI"
+        android:shortcutShortLabel="@string/menuItemWhereAmI"
+        tools:ignore="UnusedAttribute" >
+
+        <intent
+            android:action="org.walkersguide.android.action.OPEN_WHERE_AM_I_DIALOG"
+            android:targetPackage="org.walkersguide.android"
+            android:targetClass="org.walkersguide.android.ui.activity.ShortcutActivity" />
+    </shortcut>
+
+</shortcuts>

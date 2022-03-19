@@ -8,6 +8,7 @@
     <declare-styleable name="TextViewAndActionButton">
         <attr name="prefix" format="string" />
         <attr name="compact" format="boolean" />
+        <attr name="includeDistanceOrBearingInformation" format="boolean" />
     </declare-styleable>
 
 </resources>

@@ -4,7 +4,7 @@ import org.walkersguide.android.util.TTSWrapper;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.data.angle.Bearing;
-import org.walkersguide.android.sensor.bearing.AcceptNewQuadrant;
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity.AbstractTabAdapter;
@@ -42,6 +42,7 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.sensor.PositionManager;
 import timber.log.Timber;
+import org.walkersguide.android.data.ObjectWithId;
 
 
 public class PointDetailsActivity extends TabLayoutActivity {
@@ -90,15 +91,10 @@ public class PointDetailsActivity extends TabLayoutActivity {
                     // nothing should happen here
                 }
             }, false);
-            layoutSelectedPoint.configureAsSingleObject(point, point.getName());
+            layoutSelectedPoint.configureAsSingleObject(
+                    point, point.formatNameAndSubType());
 
-            // type and distance
-    		TextView labelPointType = (TextView) findViewById(R.id.labelPointType);
-            labelPointType.setText(
-                    String.format(
-                        getResources().getString(R.string.labelPointType),
-                        point.getSubType())
-                    );
+            // distance
     		labelPointDistanceAndBearing = (TextView) findViewById(R.id.labelPointDistanceAndBearing);
 
             // prepare tab list
@@ -157,16 +153,20 @@ public class PointDetailsActivity extends TabLayoutActivity {
      */
 
     private BroadcastReceiver newLocationAndDirectionReceiver = new BroadcastReceiver() {
-        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        // distance label
         private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
-        private AcceptNewQuadrant acceptNewQuadrant = AcceptNewQuadrant.newInstanceForObjectListSort();
+        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
+
+        // tts
+        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
         private TTSWrapper ttsWrapperInstance = TTSWrapper.getInstance();
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
                 if (currentLocation != null) {
-                    if (acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
+                    if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)
+                            || acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
                         updateDistanceAndBearingLabel();
                     }
                     if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
@@ -178,7 +178,7 @@ public class PointDetailsActivity extends TabLayoutActivity {
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
                 if (currentBearing != null
-                        && acceptNewQuadrant.updateQuadrant(currentBearing.getQuadrant())) {
+                        && acceptNewBearing.updateBearing(currentBearing)) {
                     updateDistanceAndBearingLabel();
                 }
             }

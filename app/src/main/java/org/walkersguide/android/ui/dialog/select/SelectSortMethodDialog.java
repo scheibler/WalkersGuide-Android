@@ -33,9 +33,11 @@ public class SelectSortMethodDialog extends DialogFragment {
 
     // instance constructors
 
-    public static SelectSortMethodDialog newInstance(SortMethod selectedSortMethod) {
+    public static SelectSortMethodDialog newInstance(
+            ArrayList<SortMethod> sortMethodList, SortMethod selectedSortMethod) {
         SelectSortMethodDialog dialog= new SelectSortMethodDialog();
         Bundle args = new Bundle();
+        args.putSerializable(KEY_SORT_METHOD_LIST, sortMethodList);
         args.putSerializable(KEY_SELECTED_SORT_METHOD, selectedSortMethod);
         dialog.setArguments(args);
         return dialog;
@@ -43,11 +45,14 @@ public class SelectSortMethodDialog extends DialogFragment {
 
 
     // dialog
+    private static final String KEY_SORT_METHOD_LIST = "sortMethodList";
     private static final String KEY_SELECTED_SORT_METHOD = "selectedSortMethod";
 
+    private ArrayList<SortMethod> sortMethodList;
     private SortMethod selectedSortMethod;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        sortMethodList = (ArrayList<SortMethod>) getArguments().getSerializable(KEY_SORT_METHOD_LIST);
         selectedSortMethod = (SortMethod) getArguments().getSerializable(KEY_SELECTED_SORT_METHOD);
 
         return new AlertDialog.Builder(getActivity())
@@ -89,7 +94,6 @@ public class SelectSortMethodDialog extends DialogFragment {
             });
 
             // fill listview
-            ArrayList<SortMethod> sortMethodList = new ArrayList<SortMethod>(Arrays.asList(SortMethod.values()));
             listViewItems.setAdapter(
                     new ArrayAdapter<SortMethod>(
                         getActivity(), android.R.layout.select_dialog_singlechoice, sortMethodList));

@@ -10,10 +10,6 @@ import org.walkersguide.android.database.util.AccessDatabase;
 public class PoiProfile extends Profile implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    public static ArrayList<PoiProfile> allProfiles() {
-        return AccessDatabase.getInstance().getPoiProfileList();
-    }
-
     public static PoiProfile create(String name,
             ArrayList<PoiCategory> poiCategoryList, boolean includeFavorites) {
         return AccessDatabase.getInstance().addPoiProfile(name, poiCategoryList, includeFavorites);
@@ -52,6 +48,10 @@ public class PoiProfile extends Profile implements Serializable {
 
     public boolean removeFromDatabase() {
         return AccessDatabase.getInstance().removePoiProfile(this);
+    }
+
+    public boolean isModifiable() {
+        return true;
     }
 
 }

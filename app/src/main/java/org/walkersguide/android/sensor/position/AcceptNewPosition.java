@@ -8,24 +8,35 @@ import org.walkersguide.android.sensor.PositionManager;
 public class AcceptNewPosition implements Serializable {
     private static final long serialVersionUID = 1l;
 
+    public static AcceptNewPosition newInstanceForPoiListUpdate() {
+        return new AcceptNewPosition(
+                30, 30, PositionManager.getInstance().getCurrentLocation());
+    }
+
     public static AcceptNewPosition newInstanceForTtsAnnouncement() {
-        return new AcceptNewPosition(20, 10);
+        return new AcceptNewPosition(
+                20, 10, PositionManager.getInstance().getCurrentLocation());
+    }
+
+    public static AcceptNewPosition newInstanceForTextViewAndActionButtonUpdate() {
+        return new AcceptNewPosition(6, 4, null);
     }
 
     public static AcceptNewPosition newInstanceForDistanceLabelUpdate() {
-        return new AcceptNewPosition(3, 3);
+        return new AcceptNewPosition(3, 3, null);
     }
+
 
     private final int distanceThreshold, timeThreshold;
 
     private Point lastAcceptedPoint;
     private long lastAcceptedPointTimestamp;
 
-    private AcceptNewPosition(int distanceThresholdInMeters, int timeThresholdInSeconds) {
+    private AcceptNewPosition(int distanceThresholdInMeters, int timeThresholdInSeconds, Point initAcceptedPoint) {
         this.distanceThreshold = distanceThresholdInMeters;
         this.timeThreshold = timeThresholdInSeconds;
-        this.lastAcceptedPoint = null;
-        this.lastAcceptedPointTimestamp = System.currentTimeMillis();
+        this.lastAcceptedPoint = initAcceptedPoint;
+        this.lastAcceptedPointTimestamp = 0l;
     }
 
     public boolean updatePoint(Point newPoint) {

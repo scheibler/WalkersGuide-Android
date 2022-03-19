@@ -8,11 +8,10 @@ import org.walkersguide.android.data.object_with_id.point.PedestrianCrossing;
 
 public class PedestrianCrossingListFragment extends SimpleObjectListFragment {
 
-
 	public static PedestrianCrossingListFragment newInstance(ArrayList<PedestrianCrossing> pedestrianCrossingList) {
 		PedestrianCrossingListFragment fragment = new PedestrianCrossingListFragment();
         fragment.setArguments(
-                SimpleObjectListFragment.createArgsBundle(pedestrianCrossingList));
+                new SimpleObjectListFragment.BundleBuilder(pedestrianCrossingList).build());
 		return fragment;
 	}
 

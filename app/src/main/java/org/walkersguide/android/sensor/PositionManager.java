@@ -44,6 +44,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import android.annotation.SuppressLint;
 import java.util.Locale;
+import org.walkersguide.android.util.Helper;
+import timber.log.Timber;
 
 
 public class PositionManager implements android.location.LocationListener {
@@ -154,6 +156,7 @@ public class PositionManager implements android.location.LocationListener {
      */
     public static final String ACTION_NEW_LOCATION = "new_location";
     public static final String EXTRA_NEW_LOCATION = "newLocation";
+    public static final String EXTRA_IS_IMPORTANT = "isImportant";
 
     public Point getCurrentLocation() {
         if (this.simulationEnabled) {
@@ -168,12 +171,13 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     public void requestCurrentLocation() {
-        broadcastCurrentLocation();
+        broadcastCurrentLocation(false);
     }
 
-    private void broadcastCurrentLocation() {
+    private void broadcastCurrentLocation(boolean isImportant) {
         Intent intent = new Intent(ACTION_NEW_LOCATION);
         intent.putExtra(EXTRA_NEW_LOCATION, getCurrentLocation());
+        intent.putExtra(EXTRA_IS_IMPORTANT, isImportant);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
@@ -241,21 +245,23 @@ public class PositionManager implements android.location.LocationListener {
 
         // compare
         if (isBetterLocation(getGPSLocation(), newLocation)) {
+            boolean isAtLeastFiftyMetersAway = getGPSLocation() == null
+                || getGPSLocation().distanceTo(newLocation) >= 50;
             settingsManagerInstance.setGPSLocation(newLocation);
 
             // broadcast new gps position action
             broadcastGPSLocation();
             // broadcast new location action
             if (! this.simulationEnabled) {
-                broadcastCurrentLocation();
+                broadcastCurrentLocation(
+                        ! gpsFixFound && isAtLeastFiftyMetersAway);
             }
 
             // first gps fix
             if (! gpsFixFound) {
                 gpsFixFound = true;
                 // notify user about first gps fix after app start
-                ((Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE))
-                    .vibrate(new long[]{250, 50, 250, 50}, -1);
+                Helper.vibratePattern(new long[] {250, 50, 250, 50});
             }
         }
     }
@@ -353,7 +359,7 @@ public class PositionManager implements android.location.LocationListener {
         intent.putExtra(EXTRA_SIMULATION_ENABLED, enabled);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
 
-        broadcastCurrentLocation();
+        broadcastCurrentLocation(true);
     }
 
     // change simulated location
@@ -382,7 +388,7 @@ public class PositionManager implements android.location.LocationListener {
             broadcastSimulatedLocation();
             // broadcast new location action
             if (this.simulationEnabled) {
-                broadcastCurrentLocation();
+                broadcastCurrentLocation(true);
             }
         }
     }

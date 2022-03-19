@@ -19,6 +19,8 @@ import timber.log.Timber;
 import java.io.IOException;
 import java.util.Date;
 import java.util.ArrayList;
+import org.walkersguide.android.server.ServerUtility;
+import org.walkersguide.android.server.ServerException;
 
 
 public class TripDetailsTask extends ServerTask {
@@ -43,6 +45,8 @@ public class TripDetailsTask extends ServerTask {
             throw new PtException(PtException.RC_NO_STATION);
         } else if (this.departure == null) {
             throw new PtException(PtException.RC_NO_DEPARTURE_DATE);
+        } else if (! ServerUtility.isInternetAvailable()) {
+            throw new PtException( ServerException.RC_NO_INTERNET_CONNECTION);
         }
 
         Timber.d("Request: from %1$s to %2$s at %3$s", this.station.toString(), this.departure.toString(), departure.plannedTime.toString());

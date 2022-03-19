@@ -6,7 +6,6 @@ import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.data.profile.ProfileGroup;
 import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.fragment.ObjectListFragment;
-import org.walkersguide.android.ui.fragment.ObjectListFragment.DialogMode;
 import org.walkersguide.android.data.ObjectWithId;
 
 import java.util.ArrayList;
@@ -38,15 +37,21 @@ import org.walkersguide.android.util.SettingsManager;
 import android.widget.LinearLayout;
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
 import timber.log.Timber;
+import android.view.Menu;
+import android.view.MenuItem;
 
 
 public abstract class ExtendedObjectListFragment extends ObjectListFragment {
 
-
-    public static Bundle createArgsBundle(DialogMode dialogMode, ProfileGroup profileGroup) {
-        Bundle args = ObjectListFragment.createArgsBundle(dialogMode);
-        args.putSerializable(KEY_GROUP, profileGroup);
-        return args;
+    public static class BundleBuilder extends ObjectListFragment.BundleBuilder {
+        public BundleBuilder() {
+            super();
+            setProfileGroup(null);
+        }
+        public BundleBuilder setProfileGroup(ProfileGroup newProfileGroup) {
+            bundle.putSerializable(KEY_GROUP, newProfileGroup);
+            return this;
+        }
     }
 
 
@@ -77,7 +82,8 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         buttonSelectProfile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (getProfileGroup() != null) {
-                    SelectProfileDialog.newInstance(getProfileGroup(), getProfile())
+                    SelectProfileDialog.newInstance(
+                            getProfileGroup(), getProfile(), getProfileGroup().getCanCreateNewProfile())
                         .show(getChildFragmentManager(), "SelectProfileDialog");
                 }
             }
@@ -146,6 +152,17 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         } else if (TextUtils.isEmpty(editSearch.getText()) && buttonClearSearch.getVisibility() == View.VISIBLE) {
             buttonClearSearch.setVisibility(View.GONE);
         }
+    }
+
+
+    /**
+     * menu
+     */
+
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemJumpToTop = menu.findItem(R.id.menuItemJumpToTop);
+        menuItemJumpToTop.setVisible(true);
     }
 
 

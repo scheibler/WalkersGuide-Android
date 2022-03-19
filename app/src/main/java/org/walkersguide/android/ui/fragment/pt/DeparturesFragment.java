@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.fragment.pt;
 
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.os.Handler;
 import android.os.Looper;
 import timber.log.Timber;
@@ -80,9 +82,11 @@ import org.walkersguide.android.server.pt.NearbyStationsTask;
 import org.walkersguide.android.server.pt.StationDeparturesTask;
 import org.walkersguide.android.server.pt.PtException;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
+import org.walkersguide.android.util.Helper;
 
 
-public class DeparturesFragment extends Fragment implements FragmentResultListener, Runnable {
+public class DeparturesFragment extends Fragment
+        implements FragmentResultListener, OnRefreshListener, Runnable {
 
 
     // constructors
@@ -118,19 +122,22 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
 
 
     // fragment
+    private static final String KEY_CACHED_DEPARTURE_LIST = "cachedDepartureList";
     private static final String KEY_TASK_ID = "taskId";
     private static final String KEY_LIST_POSITION = "listPosition";
 
     private SettingsManager settingsManagerInstance;
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
+
+    private ArrayList<Departure> cachedDepartureList;
     private int listPosition;
 	private Handler nextDeparturesHandler;
 
 	// ui components
-    private ImageButton buttonRefresh;
+    private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewDepartures;
-    private TextView labelHeading, labelEmptyListView, labelMoreResultsFooter;
+    private TextView labelHeading, labelEmptyListView;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -172,6 +179,7 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
             departureTime = (Date) bundle.getSerializable(SelectDepartureDateAndTimeDialog.EXTRA_DEPARTURE_TIME);
         }
 
+        cachedDepartureList = null;
         listPosition = 0;
         prepareRequest();
     }
@@ -186,14 +194,39 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+    @Override public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
+        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemCancel));
+        } else {
+            menuItemRefresh.setTitle(
+                    getResources().getString(R.string.menuItemRefresh));
+        }
+    }
+
     @Override public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menuItemPublicTransportProvider) {
+        if (item.getItemId() == R.id.menuItemRefresh) {
+            if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                serverTaskExecutorInstance.cancelTask(taskId);
+            } else if (coordinatesForStationRequest != null || station != null) {
+                cachedDepartureList = null;
+                station = null;
+                departureTime = null;
+                listPosition = 0;
+                prepareRequest();
+            }
+
+        } else if (item.getItemId() == R.id.menuItemPublicTransportProvider) {
             SelectPublicTransportProviderDialog.newInstance(
                     settingsManagerInstance.getSelectedNetworkId())
                 .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
+
         } else if (item.getItemId() == R.id.menuItemSelectDepartureDateAndTime) {
             SelectDepartureDateAndTimeDialog.newInstance(departureTime)
                 .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
+
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -215,11 +248,13 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
 
         coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
         if (savedInstanceState != null) {
+            cachedDepartureList = (ArrayList<Departure>) savedInstanceState.getSerializable(KEY_CACHED_DEPARTURE_LIST);
             station = (Location) savedInstanceState.getSerializable(KEY_STATION);
             departureTime = (Date) savedInstanceState.getSerializable(KEY_DEPARTURE_TIME);
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {
+            cachedDepartureList = null;
             station = (Location) getArguments().getSerializable(KEY_STATION);
             departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
             taskId = ServerTaskExecutor.NO_TASK_ID;
@@ -232,22 +267,8 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
 
-        buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
-        buttonRefresh.setVisibility(View.GONE);
-        buttonRefresh.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-                    serverTaskExecutorInstance.cancelTask(taskId);
-                } else if (listViewDepartures.getAdapter() != null) {
-                    updateListView();
-                } else if (coordinatesForStationRequest != null || station != null) {
-                    station = null;
-                    departureTime = null;
-                    listPosition = 0;
-                    prepareRequest();
-                }
-            }
-        });
+        swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
+        swipeRefreshListView.setOnRefreshListener(this);
 
         listViewDepartures = (ListView) view.findViewById(R.id.listView);
         listViewDepartures.setVisibility(View.GONE);
@@ -261,13 +282,14 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
             }
         });
 
+        swipeRefreshEmptyTextView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshEmptyTextView);
+        swipeRefreshEmptyTextView.setOnRefreshListener(this);
+        listViewDepartures.setEmptyView(swipeRefreshEmptyTextView);
         labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
         labelEmptyListView.setVisibility(View.GONE);
-        listViewDepartures.setEmptyView(labelEmptyListView);
 
         if (coordinatesForStationRequest != null || station != null) {
             labelHeading.setVisibility(View.VISIBLE);
-            buttonRefresh.setVisibility(View.VISIBLE);
             listViewDepartures.setVisibility(View.VISIBLE);
             labelEmptyListView.setVisibility(View.VISIBLE);
 
@@ -295,10 +317,25 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
         }
     }
 
+    @Override public void onRefresh() {
+        if (! serverTaskExecutorInstance.taskInProgress(taskId)
+                && (coordinatesForStationRequest != null || station != null)) {
+            Helper.vibrateOnce(
+                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+            cachedDepartureList = null;
+            station = null;
+            departureTime = null;
+            listPosition = 0;
+            prepareRequest();
+        }
+    }
+
     @Override public void onResume() {
         super.onResume();
         // prepare request
-        if (coordinatesForStationRequest != null || station != null) {
+        if (cachedDepartureList != null) {
+            departureTaskWasSuccessful(cachedDepartureList);
+        } else if (coordinatesForStationRequest != null || station != null) {
             prepareRequest();
         }
 
@@ -320,6 +357,7 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_CACHED_DEPARTURE_LIST, cachedDepartureList);
         savedInstanceState.putSerializable(KEY_STATION, station);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putSerializable(KEY_DEPARTURE_TIME, departureTime);
@@ -341,7 +379,6 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
         labelHeading.setText(
                 getResources().getQuantityString(
                     R.plurals.departure, 0, 0));
-        updateRefreshButton(true);
 
         // list view
         listViewDepartures.setAdapter(null);
@@ -353,6 +390,9 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
         nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
 
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            swipeRefreshListView.setRefreshing(true);
+            swipeRefreshEmptyTextView.setRefreshing(true);
+
             if (station != null) {
                 taskId = serverTaskExecutorInstance.executeTask(
                         new StationDeparturesTask(
@@ -406,32 +446,11 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
                     }
                 }
 
-                updateRefreshButton(false);
+                swipeRefreshListView.setRefreshing(false);
+                swipeRefreshEmptyTextView.setRefreshing(false);
             }
         }
     };
-
-    private void updateRefreshButton(boolean requestInProgress) {
-        if (requestInProgress) {
-            buttonRefresh.setContentDescription(
-                    GlobalInstance.getStringResource(R.string.buttonCancel));
-            buttonRefresh.setImageResource(R.drawable.cancel);
-        } else {
-            buttonRefresh.setContentDescription(
-                    GlobalInstance.getStringResource(R.string.buttonRefresh));
-            buttonRefresh.setImageResource(R.drawable.refresh);
-        }
-    }
-
-    private void updateListView() {
-        DepartureAdapter departureAdapter = getDepartureAdapterFromListView();
-        if (departureAdapter != null) {
-            departureAdapter.notifyDataSetChanged();
-            labelHeading.setText(
-                    getResources().getQuantityString(
-                        R.plurals.departure, departureAdapter.getCount(), departureAdapter.getCount()));
-        }
-    }
 
 
     /**
@@ -439,7 +458,6 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
      */
 
     public void stationTaskWasSuccessful(ArrayList<Location> stationList) {
-        updateRefreshButton(false);
         // filter station list by distance
         ArrayList<Location> nearbyStationList = new ArrayList<Location>();
         for (Location station : stationList) {
@@ -614,13 +632,14 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
      */
 
     public void departureTaskWasSuccessful(ArrayList<Departure> departureList) {
+        this.cachedDepartureList = departureList;
+
         // heading
         ViewCompat.setAccessibilityLiveRegion(
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
         labelHeading.setText(
                 getResources().getQuantityString(
                     R.plurals.departure, departureList.size(), departureList.size()));
-        updateRefreshButton(false);
 
         // listview
         DepartureAdapter departureAdapter = new DepartureAdapter(
@@ -658,15 +677,23 @@ public class DeparturesFragment extends Fragment implements FragmentResultListen
 
     @Override public void run() {
         // update departure list every 60 seconds
-        ViewCompat.setAccessibilityLiveRegion(
-                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
-        updateListView();
-        ViewCompat.setAccessibilityLiveRegion(
-                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-        // plan next update
-        DepartureAdapter departureAdapter = (DepartureAdapter) listViewDepartures.getAdapter();
+        DepartureAdapter departureAdapter = getDepartureAdapterFromListView();
         if (departureAdapter != null) {
-            nextDeparturesHandler.postDelayed(DeparturesFragment.this, 60000);
+            departureAdapter.notifyDataSetChanged();
+
+            // update heading
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
+            labelHeading.setText(
+                    getResources().getQuantityString(
+                        R.plurals.departure, departureAdapter.getCount(), departureAdapter.getCount()));
+            ViewCompat.setAccessibilityLiveRegion(
+                    labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
+
+            // plan next update
+            if (departureAdapter.getCount() > 0) {
+                nextDeparturesHandler.postDelayed(DeparturesFragment.this, 60000);
+            }
         }
     }
 

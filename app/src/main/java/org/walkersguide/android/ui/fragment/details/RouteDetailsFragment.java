@@ -49,9 +49,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import timber.log.Timber;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
+import org.walkersguide.android.util.Helper;
 
 
-public class RouteDetailsFragment extends Fragment implements FragmentResultListener {
+public class RouteDetailsFragment extends Fragment implements FragmentResultListener, OnRefreshListener {
 
 
     // instance constructors
@@ -89,7 +92,7 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
     private int listPosition;
 
     private TextView labelDescription;
-    private ImageButton buttonRefresh;
+    private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewRoute;
     private TextView labelHeading, labelEmptyListView;
 
@@ -111,6 +114,38 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
             requestStreetCourse();
         }
+    }
+
+
+    /**
+     * menu
+     */
+
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if (modeStreetCourse()) {
+            inflater.inflate(R.menu.menu_toolbar_route_details_fragment_street_course, menu);
+        }
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menuItemRefresh) {
+            if (modeStreetCourse()) {
+                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                    serverTaskExecutorInstance.cancelTask(taskId);
+                } else {
+                    requestStreetCourse();
+                }
+            }
+        } else if (item.getItemId() == R.id.menuItemLoadRoute) {
+            if (route != null) {
+                MainActivity.loadRoute(
+                        RouteDetailsFragment.this.getContext(), route);
+            }
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
 
@@ -137,54 +172,31 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
         }
 
         labelDescription = (TextView) view.findViewById(R.id.labelDescription);
-
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
-        buttonRefresh = (ImageButton) view.findViewById(R.id.buttonRefresh);
-        buttonRefresh.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                if (modeStreetCourse()) {
-                    if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-                        serverTaskExecutorInstance.cancelTask(taskId);
-                    } else {
-                        requestStreetCourse();
-                    }
-                }
-            }
-        });
 
+        swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
+        swipeRefreshListView.setOnRefreshListener(this);
         listViewRoute = (ListView) view.findViewById(R.id.listView);
+
+        swipeRefreshEmptyTextView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshEmptyTextView);
+        swipeRefreshEmptyTextView.setOnRefreshListener(this);
+        listViewRoute.setEmptyView(swipeRefreshEmptyTextView);
         labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
-        listViewRoute.setEmptyView(labelEmptyListView);
     }
-
-    /**
-     * menu
-     */
-
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (modeStreetCourse()) {
-            inflater.inflate(R.menu.menu_toolbar_route_details_fragment_street_course, menu);
-        }
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menuItemLoadRoute) {
-            if (route != null) {
-                MainActivity.loadRoute(
-                        RouteDetailsFragment.this.getContext(), route);
-            }
-        } else {
-            return super.onOptionsItemSelected(item);
-        }
-        return true;
-    }
-
 
     /**
      * pause and resume
      */
 
+
+    @Override public void onRefresh() {
+        if (modeStreetCourse()
+                && ! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            Helper.vibrateOnce(
+                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+            requestStreetCourse();
+        }
+    }
 
     @Override public void onResume() {
         super.onResume();
@@ -238,7 +250,6 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
         labelHeading.setText(
                 GlobalInstance.getPluralResource(R.plurals.point, 0));
-        updateRefreshButton(true);
 
         // list view
         listViewRoute.setAdapter(null);
@@ -250,21 +261,12 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
 
         // start request
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
+            swipeRefreshListView.setRefreshing(true);
+            swipeRefreshEmptyTextView.setRefreshing(true);
             taskId = serverTaskExecutorInstance.executeTask(new StreetCourseTask(request));
         }
     }
 
-    private void updateRefreshButton(boolean requestInProgress) {
-        if (requestInProgress) {
-            buttonRefresh.setContentDescription(
-                    GlobalInstance.getStringResource(R.string.buttonCancel));
-            buttonRefresh.setImageResource(R.drawable.cancel);
-        } else {
-            buttonRefresh.setContentDescription(
-                    GlobalInstance.getStringResource(R.string.buttonRefresh));
-            buttonRefresh.setImageResource(R.drawable.refresh);
-        }
-    }
 
     // background task results
 
@@ -305,7 +307,8 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
                     }
                 }
 
-                updateRefreshButton(false);
+                swipeRefreshListView.setRefreshing(false);
+                swipeRefreshEmptyTextView.setRefreshing(false);
             }
         }
     };

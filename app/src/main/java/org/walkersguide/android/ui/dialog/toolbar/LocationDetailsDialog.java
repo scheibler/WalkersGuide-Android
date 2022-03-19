@@ -49,6 +49,7 @@ import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
+import timber.log.Timber;
 
 
 public class LocationDetailsDialog extends DialogFragment implements FragmentResultListener {
@@ -118,7 +119,6 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 if (positionManagerInstance.getSimulationEnabled() != isChecked) {
                     // check or uncheck simulation
-                    positionManagerInstance.setSimulationEnabled(isChecked);
                     if (isChecked && positionManagerInstance.getCurrentLocation() == null) {
                         // no simulated point selected
                         Toast.makeText(
@@ -127,12 +127,15 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                                 Toast.LENGTH_LONG).show();
                         positionManagerInstance.setSimulationEnabled(false);
                         buttonEnableSimulation.setChecked(false);
+                    } else {
+                        positionManagerInstance.setSimulationEnabled(isChecked);
                     }
                 }
             }
         });
 
         layoutSimulationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutSimulationPoint);
+        layoutSimulationPoint.setAutoUpdate(true);
         layoutSimulationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(

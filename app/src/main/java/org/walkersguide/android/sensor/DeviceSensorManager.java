@@ -90,6 +90,18 @@ public class DeviceSensorManager implements SensorEventListener {
             IntentFilter filter = new IntentFilter();
             filter.addAction(PositionManager.ACTION_NEW_GPS_LOCATION);
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(mMessageReceiver, filter);
+
+            // set defaults
+            if (getBearingValueFromCompass() == null) {
+                settingsManagerInstance.setBearingSensorValue(
+                        BearingSensor.COMPASS,
+                        new BearingSensorValue(
+                            0, System.currentTimeMillis(), BearingSensorAccuracyRating.LOW));
+            }
+            if (getBearingValueFromSatellite() == null
+                    && getSelectedBearingSensor() == BearingSensor.SATELLITE) {
+                settingsManagerInstance.setSelectedBearingSensor(BearingSensor.COMPASS);
+            }
         }
     }
 

@@ -21,7 +21,6 @@ import android.content.IntentFilter;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
 
 import androidx.fragment.app.DialogFragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -57,6 +56,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.util.Helper;
 
 
 public class PlanRouteDialog extends DialogFragment implements FragmentResultListener {
@@ -70,7 +70,6 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     // query in progress vibration
     private Handler progressHandler;
     private ProgressUpdater progressUpdater;
-    private Vibrator vibrator;
 
     // ui components
     private TextViewAndActionButton layoutStartPoint, layoutDestinationPoint;
@@ -90,7 +89,6 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
-        this.vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
 
         // fragment result listener
         getChildFragmentManager()
@@ -152,6 +150,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         View view = inflater.inflate(R.layout.dialog_plan_route, nullParent);
 
         layoutStartPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutStartPoint);
+        layoutStartPoint.setAutoUpdate(true);
         layoutStartPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
@@ -161,6 +160,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         });
 
         layoutDestinationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutDestinationPoint);
+        layoutDestinationPoint.setAutoUpdate(true);
         layoutDestinationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
@@ -386,7 +386,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                 if (intent.getAction().equals(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL)) {
                     Route newRoute = (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE);
                     DatabaseProfile.plannedRoutes().add(newRoute);
-                    vibrator.vibrate(250);
+                    Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                     MainActivity.loadRoute(
                             PlanRouteDialog.this.getContext(), newRoute);
                     dismiss();
@@ -416,7 +416,8 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
     private class ProgressUpdater implements Runnable {
         public void run() {
-            vibrator.vibrate(50);
+            Helper.vibrateOnce(
+                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
             progressHandler.postDelayed(this, 2000);
         }
     }
