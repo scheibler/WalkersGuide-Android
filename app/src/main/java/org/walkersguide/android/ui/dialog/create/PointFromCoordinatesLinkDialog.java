@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import java.util.concurrent.Executors;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
 import android.app.AlertDialog;
@@ -29,6 +30,15 @@ import android.content.ClipboardManager;
 import android.content.ClipData;
 import org.json.JSONException;
 import org.walkersguide.android.database.DatabaseProfile;
+import java.net.URL;
+import javax.net.ssl.HttpsURLConnection;
+import timber.log.Timber;
+import java.io.IOException;
+import android.os.Handler;
+import android.os.Looper;
+import org.walkersguide.android.server.address.AddressException;
+import org.walkersguide.android.server.ServerUtility;
+import org.json.JSONObject;
 
 public class PointFromCoordinatesLinkDialog extends DialogFragment {
     public static final String REQUEST_FROM_COORDINATES_LINK = "fromCoordinatesLink";
@@ -61,10 +71,7 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
                 ClipData.Item clipItem = clipData.getItemAt(0);
                 if (clipItem != null) {
                     String clipText = clipItem.coerceToText(getActivity()).toString();
-                    if (clipText.contains(LINK_APPLE_MAPS)
-                            || clipText.contains(LINK_GOOGLE_MAPS)
-                            || clipText.contains(LINK_OSM_AND)
-                            || clipText.contains(LINK_OSM_ORG)) {
+                    if (Pattern.compile("^https?://").matcher(clipText).find()) {
                         linkUrl = clipText;
                     }
                 }
@@ -139,101 +146,202 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
 
 
     // extract coordinates
-    private static final String LINK_APPLE_MAPS = "maps.apple.com";
-    private static final String LINK_GOOGLE_MAPS = "maps.google.com";
-    private static final String LINK_OSM_AND = "osmand.net";
-    private static final String LINK_OSM_ORG = "openstreetmap.org";
+    private final static String PATTERN_FLOATING_POINT_NUMBER = "(-?[0-9]+\\.[0-9]+)";
 
     private void tryToExtractCoordinates() {
-        Double latitude = null, longitude = null;
-        String errorMessage = null;
-
-        String linkUrl = layoutLinkUrl.getInputText();
+        final String linkUrl = layoutLinkUrl.getInputText();
         if (TextUtils.isEmpty(linkUrl)) {
-            errorMessage = getResources().getString(R.string.messageLinkUrlMissing);
+            showErrorMessage(
+                    getResources().getString(R.string.messageLinkUrlMissing));
 
-        } else if (linkUrl.contains(LINK_APPLE_MAPS)) {
+        } else if (linkUrl.contains("goo.gl")) {
+            // resolve shortened google url
+            Executors.newSingleThreadExecutor().execute(() -> {
+                final String resolvedGoogleMapsUrl = resolveShortenedUrl(linkUrl);
+                Timber.d("resolvedGoogleMapsUrl: %1$s", resolvedGoogleMapsUrl);
+                (new Handler(Looper.getMainLooper())).post(() -> {
+                    if (isAdded()) {
+                        if (! TextUtils.isEmpty(resolvedGoogleMapsUrl)) {
+                            tryToExtractCoordinatesFromGoogleMapsUrl(resolvedGoogleMapsUrl);
+                        } else {
+                            showErrorMessage(
+                                    getResources().getString(R.string.messageCouldNotResolveShortenedUrl));
+                        }
+                    }
+                });
+            });
 
-            Pattern appleMapsPattern = Pattern.compile(
-                    "https?://maps\\.apple\\.com/?\\?.*ll=([0-9.]+),([0-9.]+)");
-            Matcher appleMapsMatcher = appleMapsPattern.matcher(linkUrl);
-            if (appleMapsMatcher.find()) {
-                try {
-                    latitude = Double.valueOf(appleMapsMatcher.group(1));
-                    longitude = Double.valueOf(appleMapsMatcher.group(2));
-                } catch (NumberFormatException e) {}
-            } else {
-                errorMessage = getResources().getString(R.string.messageAppleMapsUrlFormatUnknown);
-            }
-
-        } else if (linkUrl.contains(LINK_GOOGLE_MAPS)) {
-
-            Pattern googleMapsPattern = Pattern.compile(
-                    "https?://maps\\.google\\.com/maps\\?q=([0-9.]+)(%2[Cc]|,)([0-9.]+)");
-            Matcher googleMapsMatcher = googleMapsPattern.matcher(linkUrl);
-            if (googleMapsMatcher.find()) {
-                try {
-                    latitude = Double.valueOf(googleMapsMatcher.group(1));
-                    longitude = Double.valueOf(googleMapsMatcher.group(3));
-                } catch (NumberFormatException e) {}
-            } else {
-                errorMessage = getResources().getString(R.string.messageGoogleMapsUrlFormatUnknown);
-            }
-
-        } else if (linkUrl.contains(LINK_OSM_AND)) {
-
-            Pattern osmAndPattern = Pattern.compile(
-                    "https?://osmand\\.net/go\\?lat=([0-9.]+)&lon=([0-9.]+)");
-            Matcher osmAndMatcher = osmAndPattern.matcher(linkUrl);
-            if (osmAndMatcher.find()) {
-                try {
-                    latitude = Double.valueOf(osmAndMatcher.group(1));
-                    longitude = Double.valueOf(osmAndMatcher.group(2));
-                } catch (NumberFormatException e) {}
-            } else {
-                errorMessage = getResources().getString(R.string.messageOsmAndUrlFormatUnknown);
-            }
-
-        } else if (linkUrl.contains(LINK_OSM_ORG)) {
-
-            Pattern osmOrgPattern = Pattern.compile(
-                    "https?://www\\.openstreetmap\\.org/\\?mlat=([0-9.]+)&mlon=([0-9.]+)");
-            Matcher osmOrgMatcher = osmOrgPattern.matcher(linkUrl);
-            if (osmOrgMatcher.find()) {
-                try {
-                    latitude = Double.valueOf(osmOrgMatcher.group(1));
-                    longitude = Double.valueOf(osmOrgMatcher.group(2));
-                } catch (NumberFormatException e) {}
-            } else {
-                errorMessage = getResources().getString(R.string.messageOsmOrgUrlFormatUnknown);
-            }
+        } else if (linkUrl.contains("apple") && linkUrl.contains("maps")) {
+            tryToExtractCoordinatesFromAppleMapsUrl(linkUrl);
+        } else if (linkUrl.contains("google") && linkUrl.contains("maps")) {
+            tryToExtractCoordinatesFromGoogleMapsUrl(linkUrl);
+        } else if (linkUrl.contains("osmand.net")) {
+            tryToExtractCoordinatesFromOsmAndUrl(linkUrl);
+        } else if (linkUrl.contains("openstreetmap.org")) {
+            tryToExtractCoordinatesFromOsmOrgUrl(linkUrl);
 
         } else {
-            errorMessage = getResources().getString(R.string.messageLinkUrlFormatUnknown);
+            showErrorMessage(
+                    getResources().getString(R.string.messageLinkUrlFormatUnknown));
         }
+    }
 
-        // try to build point
-        GPS extractedCoordinates = null;
+    private void tryToExtractCoordinatesFromAppleMapsUrl(String coordinatesUrl) {
+        Pattern patternCoordinatesApple = Pattern.compile(
+                String.format("ll=%1$s,%1$s", PATTERN_FLOATING_POINT_NUMBER));
+        Matcher matcherCoordinatesApple = patternCoordinatesApple.matcher(coordinatesUrl);
+        Matcher matcherCoordinatesDefault = getDefaultCoordinatesMatcher(coordinatesUrl);
+        if (matcherCoordinatesApple.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesApple);
+        } else if (matcherCoordinatesDefault.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesDefault);
+        } else {
+            showErrorMessage(
+                    getResources().getString(R.string.messageAppleMapsUrlFormatUnknown));
+        }
+    }
+
+    private void tryToExtractCoordinatesFromGoogleMapsUrl(String coordinatesUrl) {
+        Pattern patternCoordinatesGoogle = Pattern.compile(
+                String.format("@%1$s,%1$s", PATTERN_FLOATING_POINT_NUMBER));
+        Matcher matcherCoordinatesGoogle = patternCoordinatesGoogle.matcher(coordinatesUrl);
+        Matcher matcherCoordinatesDefault = getDefaultCoordinatesMatcher(coordinatesUrl);
+        if (matcherCoordinatesGoogle.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesGoogle);
+        } else if (matcherCoordinatesDefault.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesDefault);
+        } else {
+            showErrorMessage(
+                    getResources().getString(R.string.messageGoogleMapsUrlFormatUnknown));
+        }
+    }
+
+    private void tryToExtractCoordinatesFromOsmAndUrl(String coordinatesUrl) {
+        Pattern patternCoordinatesOsmAnd = Pattern.compile(
+                String.format("lat=%1$s&lon=%1$s", PATTERN_FLOATING_POINT_NUMBER));
+        Matcher matcherCoordinatesOsmAnd = patternCoordinatesOsmAnd.matcher(coordinatesUrl);
+        Matcher matcherCoordinatesDefault = getDefaultCoordinatesMatcher(coordinatesUrl);
+        if (matcherCoordinatesOsmAnd.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesOsmAnd);
+        } else if (matcherCoordinatesDefault.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesDefault);
+        } else {
+            showErrorMessage(
+                    getResources().getString(R.string.messageOsmAndUrlFormatUnknown));
+        }
+    }
+
+    private void tryToExtractCoordinatesFromOsmOrgUrl(String coordinatesUrl) {
+        Pattern patternNodeId = Pattern.compile(
+                "node/([0-9]+)");
+        Pattern patternCoordinatesOsmOrg = Pattern.compile(
+                String.format("mlat=%1$s&mlon=%1$s", PATTERN_FLOATING_POINT_NUMBER));
+        Matcher matcherNodeId = patternNodeId.matcher(coordinatesUrl);
+        Matcher matcherCoordinatesOsmOrg = patternCoordinatesOsmOrg.matcher(coordinatesUrl);
+        Matcher matcherCoordinatesDefault = getDefaultCoordinatesMatcher(coordinatesUrl);
+
+        if (matcherNodeId.find()) {
+            final String nodeId = matcherNodeId.group(1);
+            Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    JSONObject nodeInformation = ServerUtility.performRequestAndReturnJsonObject(
+                            "https://overpass-api.de/api/interpreter",
+                            String.format("[out:json];node(%1$s);out;", nodeId),
+                            AddressException.class)
+                        .getJSONArray("elements")
+                        .getJSONObject(0);
+                    final double latitude = nodeInformation.getDouble("lat");
+                    final double longitude = nodeInformation.getDouble("lon");
+                    (new Handler(Looper.getMainLooper())).post(() -> {
+                        if (isAdded()) {
+                            createPointAndDismissDialogOrShowErrorMessage(latitude, longitude);
+                        }
+                    });
+
+                } catch (Exception e) {
+                    (new Handler(Looper.getMainLooper())).post(() -> {
+                        if (isAdded()) {
+                            showErrorMessage(
+                                    getResources().getString(R.string.messageCouldNotObtainCoordinatesForOsmOrgNodeId));
+                        }
+                    });
+                }
+            });
+
+        } else if (matcherCoordinatesOsmOrg.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesOsmOrg);
+        } else if (matcherCoordinatesDefault.find()) {
+            parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(matcherCoordinatesDefault);
+        } else {
+            showErrorMessage(
+                    getResources().getString(R.string.messageOsmOrgUrlFormatUnknown));
+        }
+    }
+
+    // helpers
+
+    private void parseCoordinatesAndCreatePointAndDismissDialogOrShowErrorMessage(Matcher matcher) {
+        Double latitude = null, longitude = null;
+        try {
+            latitude = Double.valueOf(matcher.group(1));
+            longitude = Double.valueOf(matcher.group(2));
+        } catch (Exception e) {}
         if (latitude != null && longitude != null) {
-            try {
-                extractedCoordinates = new GPS.Builder(latitude, longitude).build();
-            } catch (JSONException e) {
-                errorMessage = getResources().getString(R.string.messageLinkContainsInvalidCoordinates);
-            }
+            createPointAndDismissDialogOrShowErrorMessage(latitude, longitude);
+        } else {
+            showErrorMessage(
+                    getResources().getString(R.string.messageLinkContainsInvalidCoordinates));
         }
+    }
 
-        // return point or show error message
+    private void createPointAndDismissDialogOrShowErrorMessage(double latitude, double longitude) {
+        GPS extractedCoordinates = null;
+        try {
+            extractedCoordinates = new GPS.Builder(latitude, longitude).build();
+        } catch (JSONException e) {}
         if (extractedCoordinates != null
                 && DatabaseProfile.allPoints().add(extractedCoordinates)) {
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, extractedCoordinates);
             getParentFragmentManager().setFragmentResult(REQUEST_FROM_COORDINATES_LINK, result);
             dismiss();
-        } else if (errorMessage != null) {
-            Toast.makeText(
-                    getActivity(), errorMessage, Toast.LENGTH_LONG)
-                .show();
+        } else {
+            showErrorMessage(
+                    getResources().getString(R.string.messageLinkContainsInvalidCoordinates));
         }
+    }
+
+    private void showErrorMessage(String errorMessage) {
+        Toast.makeText(
+                getActivity(), errorMessage, Toast.LENGTH_LONG)
+            .show();
+    }
+
+    private String resolveShortenedUrl(String shortenedUrl) {
+        HttpsURLConnection connection = null;
+        String resolvedUrl = null;
+        try {
+            URL url = new URL(shortenedUrl);
+            if (ServerUtility.isInternetAvailable()) {
+                connection = (HttpsURLConnection) url.openConnection();
+                connection.setInstanceFollowRedirects(false);
+                connection.connect();
+                resolvedUrl = connection.getHeaderField("location");
+            }
+        } catch (IOException e) {
+            Timber.e("error: %1$s", e.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+        return resolvedUrl;
+    }
+
+    private Matcher getDefaultCoordinatesMatcher(String coordinatesUrl) {
+        Pattern pattern = Pattern.compile(
+                String.format("%1$s[^0-9.-]+%1$s", PATTERN_FLOATING_POINT_NUMBER));
+        return pattern.matcher(coordinatesUrl);
     }
 
 }

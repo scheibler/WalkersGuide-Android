@@ -43,7 +43,7 @@ import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.util.SettingsManager;
-import org.walkersguide.android.util.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Point;
@@ -60,6 +60,8 @@ import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.util.Helper;
+import android.os.Handler;
+import android.os.Looper;
 
 
 public class RouterFragment extends Fragment implements FragmentResultListener {
@@ -247,6 +249,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
     /**
      * pause and resume
      */
+    private AcceptNewPosition acceptNewPositionForTtsAnnouncement;
 
     @Override public void onPause() {
         super.onPause();
@@ -282,7 +285,13 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(routeBroadcastReceiver, filter);
 
             // request current location for labelDistanceAndBearing field
-            PositionManager.getInstance().requestCurrentLocation();
+            acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override public void run() {
+                    // wait, until onResume is finished and the ui has focus
+                    PositionManager.getInstance().requestCurrentLocation();
+                }
+            }, 200);
 
         } else {
             labelHeading.setText(
@@ -292,7 +301,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
 
     private void onPostProcessSkipRouteObjectManually(boolean skipWasSuccessful) {
         if (skipWasSuccessful) {
-            ttsWrapperInstance.announceToScreenReader(
+            ttsWrapperInstance.announce(
                     route.getCurrentRouteObject().formatSegmentInstruction());
         }
         updateUiExceptDistanceLabel();
@@ -312,7 +321,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
 
     private void updateDistanceAndBearingLabel(RouteObject currentRouteObject) {
         labelDistanceAndBearing.setText(
-                currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation());
+                currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
     }
 
 
@@ -323,15 +332,18 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
 
-        // tts
-        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+        private RouteObject lastRouteObject = null;
         private boolean announceNextInstruction = false;
 
-        private RouteObject lastRouteObject = null;
         private boolean shortlyBeforeArrivalAnnounced, arrivalAnnounced;
         private long arrivalTime;
 
         @Override public void onReceive(Context context, Intent intent) {
+            if (! getActivity().hasWindowFocus()) {
+                Timber.d("no window focus");
+                return;
+            }
+
             RouteObject currentRouteObject = route.getCurrentRouteObject();
             if (! currentRouteObject.equals(lastRouteObject)) {
                 // skipped to next route object
@@ -349,13 +361,13 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                         updateDistanceAndBearingLabel(currentRouteObject);
                     }
                     if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
-                        if (announceNextInstruction) {
-                            ttsWrapperInstance.announceToScreenReader(
+                        if (this.announceNextInstruction) {
+                            ttsWrapperInstance.announce(
                                     currentRouteObject.formatSegmentInstruction());
-                            announceNextInstruction = false;
+                            this.announceNextInstruction = false;
                         } else {
-                            ttsWrapperInstance.announceToScreenReader(
-                                    currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation());
+                            ttsWrapperInstance.announce(
+                                    currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
                         }
                     }
                 }
@@ -436,14 +448,14 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
 
         private void announceShortlyBeforeArrival(RouteObject currentRouteObject) {
             shortlyBeforeArrivalAnnounced = true;
-            ttsWrapperInstance.announceToEveryone(
+            ttsWrapperInstance.announce(
                     route.formatShortlyBeforeArrivalAtPointMessage());
         }
 
         private void announceArrival(RouteObject currentRouteObject) {
             shortlyBeforeArrivalAnnounced = true;
             arrivalAnnounced = true;
-            ttsWrapperInstance.announceToEveryone(
+            ttsWrapperInstance.announce(
                     route.formatArrivalAtPointMessage());
             Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
 

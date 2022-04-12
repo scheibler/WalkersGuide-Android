@@ -21,14 +21,6 @@ public class Entrance extends PointWithAddressData implements Serializable {
         return this.label;
     }
 
-    @Override public String getOriginalName() {
-        if (this.label != null) {
-            return String.format(
-                    "%1$s, %2$s", super.formatAddressMediumLength(), this.label);
-        }
-        return super.formatAddressMediumLength();
-    }
-
 
     /**
      * to json

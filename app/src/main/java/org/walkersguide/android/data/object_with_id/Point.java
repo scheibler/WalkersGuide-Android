@@ -99,12 +99,12 @@ public class Point extends ObjectWithId implements Serializable {
 
     public abstract static class Builder {
         public JSONObject inputData;
-        public Builder(Type type, String name, String subType, double latitude, double longitude) {
+        public Builder(Type type, String name, double latitude, double longitude) {
             this.inputData = new JSONObject();
             try {
                 this.inputData.put(KEY_TYPE, type.toString());
                 this.inputData.put(KEY_NAME, name);
-                this.inputData.put(KEY_SUB_TYPE, subType);
+                this.inputData.put(KEY_SUB_TYPE, "");
                 this.inputData.put(KEY_LATITUDE, latitude);
                 this.inputData.put(KEY_LONGITUDE, longitude);
             } catch (JSONException e) {}
@@ -121,7 +121,7 @@ public class Point extends ObjectWithId implements Serializable {
     private String name, type, subType;
     private double latitude, longitude;
     // optional params
-    private String altName, oldName, note;
+    private String description, altName, oldName, note;
     private TactilePaving tactilePaving;
     private Wheelchair wheelchair;
 
@@ -136,6 +136,7 @@ public class Point extends ObjectWithId implements Serializable {
         this.longitude = inputData.getDouble(KEY_LONGITUDE);
 
         // optional parameters
+        this.description = Helper.getNullableStringFromJsonObject(inputData, KEY_DESCRIPTION);
         this.altName = Helper.getNullableStringFromJsonObject(inputData, KEY_ALT_NAME);
         this.oldName = Helper.getNullableStringFromJsonObject(inputData, KEY_OLD_NAME);
         this.note = Helper.getNullableStringFromJsonObject(inputData, KEY_NOTE);
@@ -178,6 +179,10 @@ public class Point extends ObjectWithId implements Serializable {
      * optional params
      */
 
+    public String getDescription() {
+        return this.description;
+    }
+
     public String getAltName() {
         return this.altName;
     }
@@ -205,9 +210,10 @@ public class Point extends ObjectWithId implements Serializable {
 
     public String formatNameAndSubType() {
         String customOrOriginalName = getName();
-        if (! TextUtils.isEmpty(this.subType)
-                && ! customOrOriginalName.equals(this.subType)) {
-            return String.format("%1$s (%2$s)", customOrOriginalName, this.subType);
+        if (! TextUtils.isEmpty(getSubType())
+                && ! customOrOriginalName.toLowerCase(Locale.getDefault())
+                        .contains(getSubType().toLowerCase(Locale.getDefault()))) {
+            return String.format("%1$s (%2$s)", customOrOriginalName, getSubType());
         }
         return customOrOriginalName;
     }
@@ -237,7 +243,7 @@ public class Point extends ObjectWithId implements Serializable {
                 this.longitude);
     }
 
-    public String formatDistanceAndRelativeBearingFromCurrentLocation() {
+    public String formatDistanceAndRelativeBearingFromCurrentLocation(int distancePluralResourceId) {
         Integer distance = distanceFromCurrentLocation();
         Bearing bearing = bearingFromCurrentLocation();
         if (distance != null && bearing != null) {
@@ -246,7 +252,7 @@ public class Point extends ObjectWithId implements Serializable {
                 return String.format(
                         Locale.getDefault(),
                         "%1$s, %2$s",
-                        GlobalInstance.getPluralResource(R.plurals.inMeters, distance),
+                        GlobalInstance.getPluralResource(distancePluralResourceId, distance),
                         relativeBearing.getDirection());
             }
         }
@@ -369,6 +375,7 @@ public class Point extends ObjectWithId implements Serializable {
     // optional params
     public static final String KEY_TACTILE_PAVING = "tactile_paving";
     public static final String KEY_WHEELCHAIR = "wheelchair";
+    public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_ALT_NAME = "alt_name";
     public static final String KEY_OLD_NAME = "old_name";
     public static final String KEY_NOTE = "note";
@@ -385,6 +392,9 @@ public class Point extends ObjectWithId implements Serializable {
         jsonObject.put(KEY_LONGITUDE, this.longitude);
 
         // optional parameters
+        if (this.description != null) {
+            jsonObject.put(KEY_DESCRIPTION, this.description);
+        }
         if (this.altName != null) {
             jsonObject.put(KEY_ALT_NAME, this.altName);
         }

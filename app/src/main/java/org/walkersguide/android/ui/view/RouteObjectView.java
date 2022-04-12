@@ -1,5 +1,6 @@
         package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
     import org.walkersguide.android.data.object_with_id.route.RouteObject;
 import timber.log.Timber;
@@ -96,7 +97,8 @@ public class RouteObjectView extends LinearLayout {
             this.configureRouteObjectView(false);
 
             String optionalPointDetails = object.formatOptionalPointDetails();
-            if (! TextUtils.isEmpty(optionalPointDetails)) {
+            if (! TextUtils.isEmpty(optionalPointDetails)
+                    && BuildConfig.DEBUG) {
                 labelRoutePointOptionalDetails.setText(optionalPointDetails);
                 labelRoutePointOptionalDetails.setVisibility(View.VISIBLE);
             }

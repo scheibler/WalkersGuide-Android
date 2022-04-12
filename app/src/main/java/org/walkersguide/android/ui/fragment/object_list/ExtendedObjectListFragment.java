@@ -39,6 +39,7 @@ import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
 import timber.log.Timber;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 
 
 public abstract class ExtendedObjectListFragment extends ObjectListFragment {
@@ -107,6 +108,8 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    UiHelper.hideKeyboard(ExtendedObjectListFragment.this);
+                    editSearch.dismissDropDown();
                     resetListPosition();
                     requestUiUpdate();
                     return true;
@@ -137,12 +140,15 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         buttonClearSearch.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 // clear edit text
-                onSearchTermChanged(null);
+                updateSearchTerm(null);
                 resetListPosition();
                 requestUiUpdate();
             }
         });
 
+        // don't show keyboard automatically
+        getActivity().getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         return view;
     }
 
@@ -210,7 +216,11 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
     }
 
     public void updateSearchTerm(String searchTerm) {
-        editSearch.setText(searchTerm);
+        if (! TextUtils.isEmpty(searchTerm)) {
+            editSearch.setText(searchTerm);
+        } else {
+            editSearch.setText("");
+        }
     }
 
     public abstract void onSearchTermChanged(String newSearchTerm);

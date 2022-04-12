@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
-import org.walkersguide.android.util.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.server.address.AddressException;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -209,7 +209,7 @@ public class WhereAmIDialog extends DialogFragment {
                             layoutCurrentAddress.configureAsSingleObject(addressPoint);
                             // announce
                             if (announceNewAddress) {
-                                TTSWrapper.getInstance().announceToScreenReader(addressPoint.toString());
+                                TTSWrapper.getInstance().screenReader(addressPoint.toString());
                             }
                         }
                     }

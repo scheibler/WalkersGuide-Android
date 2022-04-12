@@ -1,4 +1,4 @@
-package org.walkersguide.android.util;
+package org.walkersguide.android.tts;
 
 import android.annotation.TargetApi;
 
@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Locale;
 import android.media.AudioAttributes;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import timber.log.Timber;
+import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class TTSWrapper extends UtteranceProgressListener {
@@ -71,26 +74,24 @@ public class TTSWrapper extends UtteranceProgressListener {
     }
 
     public boolean isScreenReaderEnabled() {
-        return accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN).size() > 0;
+        return ! accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN).isEmpty();
     }
 
-    public void announceToScreenReader(String message) {
-        announceToScreenReader(message, false);
-    }
-
-    public void announceToScreenReader(String message, boolean interrupt) {
+    public void screenReader(String message) {
         if (isScreenReaderEnabled()) {
-            announce(message, interrupt);
+            speak(message);
         }
     }
 
-    public void announceToEveryone(String message) {
-        announce(message, true);
+    public void announce(String message) {
+        if (SettingsManager.getInstance().getTtsSettings().getAnnouncementsEnabled()) {
+            speak(message);
+        }
     }
 
-    private void announce(String message, boolean interrupt) {
+    private void speak(String message) {
         if (isInitialized()) {
-            if (interrupt) {
+            if (isSpeaking()) {
                 tts.stop();
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -112,15 +113,16 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void ttsAtLeastApi21(String message) {
+        Timber.d("isScreenReaderEnabled: %1$s", isScreenReaderEnabled());
         // set audio attributes
-        AudioAttributes.Builder audioAttributesBuilder = new AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
-        if (isScreenReaderEnabled()) {
-            audioAttributesBuilder.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY);
-        } else {
-            audioAttributesBuilder.setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE);
-        }
-        tts.setAudioAttributes(audioAttributesBuilder.build());
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .setUsage(
+                    isScreenReaderEnabled()
+                    ? AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY
+                    : AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+            .build();
+        tts.setAudioAttributes(audioAttributes);
 
         // speak
         for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {

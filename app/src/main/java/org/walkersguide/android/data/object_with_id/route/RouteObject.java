@@ -79,6 +79,12 @@ public class RouteObject implements Serializable {
     public String formatSegmentInstruction() {
         if (this.isFirstRouteObject) {
             return "";
+        } else if (segment.getBewareBicyclists() != null
+                && this.segment.getBewareBicyclists()) {
+            return String.format(
+                    "%1$s\n%2$s",
+                    this.segment.toString(),
+                    GlobalInstance.getStringResource(R.string.routeSegmentBewareCyclists));
         } else {
             return this.segment.toString();
         }

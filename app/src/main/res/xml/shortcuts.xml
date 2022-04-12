@@ -4,6 +4,7 @@
 
     <shortcut
         android:shortcutId="shortcutPlanRoute"
+        android:icon="@drawable/ic_launcher"
         android:shortcutShortLabel="@string/menuItemPlanRoute"
         tools:ignore="UnusedAttribute" >
 
@@ -15,6 +16,7 @@
 
     <shortcut
         android:shortcutId="shortcutSaveCurrentLocation"
+        android:icon="@drawable/ic_launcher"
         android:shortcutShortLabel="@string/menuItemSaveCurrentLocation"
         tools:ignore="UnusedAttribute" >
 
@@ -26,6 +28,7 @@
 
     <shortcut
         android:shortcutId="shortcutWhereAmI"
+        android:icon="@drawable/ic_launcher"
         android:shortcutShortLabel="@string/menuItemWhereAmI"
         tools:ignore="UnusedAttribute" >
 

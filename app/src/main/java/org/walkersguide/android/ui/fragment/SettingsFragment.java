@@ -1,6 +1,7 @@
 package org.walkersguide.android.ui.fragment;
 
 import timber.log.Timber;
+import org.walkersguide.android.ui.dialog.TtsSettingsDialog;
 import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
 import org.walkersguide.android.ui.dialog.select.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.select.SelectShakeIntensityDialog;
@@ -193,6 +194,14 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                 SelectShakeIntensityDialog.newInstance(
                         settingsManagerInstance.getSelectedShakeIntensity())
                     .show(getChildFragmentManager(), "SelectShakeIntensityDialog");
+            }
+        });
+
+        Button buttonShowTtsSettingsDialog = (Button) view.findViewById(R.id.buttonShowTtsSettingsDialog);
+        buttonShowTtsSettingsDialog.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                TtsSettingsDialog.newInstance()
+                    .show(getChildFragmentManager(), "TtsSettingsDialog");
             }
         });
 

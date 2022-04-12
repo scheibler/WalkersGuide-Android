@@ -18,8 +18,8 @@ public abstract class PointWithAddressData extends Point implements Serializable
     private static final long serialVersionUID = 1l;
 
     public abstract static class Builder extends Point.Builder {
-        public Builder(Type type, String name, String subType, double latitude, double longitude) {
-            super(type, name, subType, latitude, longitude);
+        public Builder(Type type, String name, double latitude, double longitude) {
+            super(type, name, latitude, longitude);
         }
 
         // optional params

@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
-import org.walkersguide.android.util.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.data.angle.Bearing;
@@ -43,6 +43,8 @@ import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.sensor.PositionManager;
 import timber.log.Timber;
 import org.walkersguide.android.data.ObjectWithId;
+import android.os.Handler;
+import android.os.Looper;
 
 
 public class PointDetailsActivity extends TabLayoutActivity {
@@ -120,6 +122,12 @@ public class PointDetailsActivity extends TabLayoutActivity {
         }
     }
 
+
+    /**
+     * pause and resume
+     */
+    private AcceptNewPosition acceptNewPositionForTtsAnnouncement;
+
     @Override public void onPause() {
         super.onPause();
         if (point != null) {
@@ -135,7 +143,13 @@ public class PointDetailsActivity extends TabLayoutActivity {
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(this).registerReceiver(newLocationAndDirectionReceiver, filter);
             // request current location to update the ui
-            PositionManager.getInstance().requestCurrentLocation();
+            acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override public void run() {
+                    // wait, until onResume is finished and the ui has focus
+                    PositionManager.getInstance().requestCurrentLocation();
+                }
+            }, 200);
         }
     }
 
@@ -143,7 +157,7 @@ public class PointDetailsActivity extends TabLayoutActivity {
         labelPointDistanceAndBearing.setText(
                 String.format(
                     GlobalInstance.getStringResource(R.string.labelPointDistanceAndBearing),
-                    point.formatDistanceAndRelativeBearingFromCurrentLocation())
+                    point.formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter))
                 );
     }
 
@@ -157,11 +171,13 @@ public class PointDetailsActivity extends TabLayoutActivity {
         private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
 
-        // tts
-        private AcceptNewPosition acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
         private TTSWrapper ttsWrapperInstance = TTSWrapper.getInstance();
 
         @Override public void onReceive(Context context, Intent intent) {
+            if (! hasWindowFocus()) {
+                return;
+            }
+
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
                 if (currentLocation != null) {
@@ -170,8 +186,8 @@ public class PointDetailsActivity extends TabLayoutActivity {
                         updateDistanceAndBearingLabel();
                     }
                     if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
-                        ttsWrapperInstance.announceToScreenReader(
-                                point.formatDistanceAndRelativeBearingFromCurrentLocation());
+                        ttsWrapperInstance.announce(
+                                point.formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
                     }
                 }
 

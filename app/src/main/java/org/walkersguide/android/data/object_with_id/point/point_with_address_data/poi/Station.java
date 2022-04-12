@@ -63,10 +63,6 @@ public class Station extends POI implements Serializable {
             description += "\n" + String.format(
                     GlobalInstance.getStringResource(R.string.stationLines),
                     TextUtils.join(", ", this.lineList));
-        } else if (! this.vehicleList.isEmpty()) {
-            description += "\n" + String.format(
-                    GlobalInstance.getStringResource(R.string.stationLines),
-                    TextUtils.join(", ", this.vehicleList));
         }
         return description;
     }

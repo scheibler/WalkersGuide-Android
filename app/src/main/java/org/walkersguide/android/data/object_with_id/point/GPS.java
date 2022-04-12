@@ -28,7 +28,6 @@ public class GPS extends Point {
                     Point.Type.GPS,
                     String.format(
                         Locale.getDefault(), "%1$f, %2$f", latitude, longitude),
-                    GlobalInstance.getStringResource(R.string.gpsPointSubtype),
                     latitude,
                     longitude);
             try {
@@ -117,6 +116,10 @@ public class GPS extends Point {
                         inputData.getJSONObject(KEY_BEARING_SENSOR_VALUE));
             } catch (JSONException e) {}
         }
+    }
+
+    @Override public String getSubType() {
+        return "";
     }
 
 

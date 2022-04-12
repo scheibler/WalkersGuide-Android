@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.tts.TtsSettings;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 
@@ -74,6 +75,8 @@ public class SettingsManager {
     private static final String KEY_SELECTED_MAP = "selectedMap";
     // public transport
     private static final String KEY_SELECTED_NETWORK_ID = "selectedNetworkId";
+    // tts
+    private static final String KEY_TTS_SETTINGS = "ttsSettings";
     // bearing sensor
     private static final String KEY_SELECTED_BEARING_SENSOR = "selectedBearingSensor";
     private static final String KEY_BEARING_SENSOR_VALUE_FROM_COMPASS = "bearingSensorValueFromCompass";
@@ -215,21 +218,25 @@ public class SettingsManager {
     }
 
     public void addToSearchTermHistory(String newSearchTerm) {
-        if (! TextUtils.isEmpty(newSearchTerm)) {
+        final int MIN_LENGTH = 3;
+        if (newSearchTerm != null && newSearchTerm.length() >= MIN_LENGTH) {
             ArrayList<String> searchTermHistory = getSearchTermHistory();
 
             // add every single word at least four chars long
             for (String word : newSearchTerm.split("\\s")) {
-                if (word.length() > 3
-                        && ! searchTermHistory.contains(word)) {
+                if (word.length() >= MIN_LENGTH) {
+                    if (searchTermHistory.contains(word)) {
+                        searchTermHistory.remove(word);
+                    }
                     searchTermHistory.add(0, word);
                 }
             }
 
             // add complete phrase
-            if (! searchTermHistory.contains(newSearchTerm)) {
-                searchTermHistory.add(0, newSearchTerm);
+            if (searchTermHistory.contains(newSearchTerm)) {
+                searchTermHistory.remove(newSearchTerm);
             }
+            searchTermHistory.add(0, newSearchTerm);
 
             // clear odd entries
             int numberOfOddEntries = searchTermHistory.size() - MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES;
@@ -307,6 +314,31 @@ public class SettingsManager {
         Editor editor = settings.edit();
         editor.putString(
                 KEY_SELECTED_NETWORK_ID, gson.toJson(newId));
+        editor.apply();
+    }
+
+
+    /**
+     * tts settings
+     */
+
+    public TtsSettings getTtsSettings() {
+        TtsSettings ttsSettings = null;
+        try {
+            ttsSettings = gson.fromJson(
+                    settings.getString(KEY_TTS_SETTINGS, ""),
+                    TtsSettings.class);
+        } catch (ClassCastException e) {}
+        if (ttsSettings == null) {
+            ttsSettings = TtsSettings.getDefault();
+        }
+        return ttsSettings;
+    }
+
+    public void setTtsSettings(TtsSettings newTtsSettings) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_TTS_SETTINGS, gson.toJson(newTtsSettings));
         editor.apply();
     }
 

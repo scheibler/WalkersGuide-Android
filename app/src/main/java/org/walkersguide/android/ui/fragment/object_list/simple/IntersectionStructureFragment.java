@@ -2,7 +2,7 @@ package org.walkersguide.android.ui.fragment.object_list.simple;
 
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.Angle;
-import org.walkersguide.android.util.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.ui.fragment.object_list.SimpleObjectListFragment;
 import org.walkersguide.android.ui.fragment.ObjectListFragment.ObjectWithIdAdapter;

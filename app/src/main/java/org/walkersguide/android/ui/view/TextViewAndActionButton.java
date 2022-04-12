@@ -264,7 +264,8 @@ public class TextViewAndActionButton extends LinearLayout {
         if (this.includeDistanceOrBearingInformation) {
             String distanceOrBearing = null;
             if (this.objectWithId instanceof Point) {
-                distanceOrBearing = ((Point) this.objectWithId).formatDistanceAndRelativeBearingFromCurrentLocation();
+                distanceOrBearing = ((Point) this.objectWithId)
+                    .formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.inMeters);
                 if (! TextUtils.isEmpty(distanceOrBearing)) {
                     labelText = String.format(
                             "%1$s\n%2$s", labelText, distanceOrBearing);

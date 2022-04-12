@@ -609,6 +609,19 @@ public class PointDetailsFragment extends Fragment {
             }
         }
 
+        // description
+        if (point.getDescription() != null) {
+            layoutAttributes.addView(
+                    new TextViewBuilder(
+                            PointDetailsFragment.this.getContext(),
+                            String.format(
+                                "%1$s: %2$s",
+                                getResources().getString(R.string.labelSegmentFootwayDescription),
+                                point.getDescription()))
+                        .create()
+                    );
+        }
+
         // alt_name, old_name and note
         if (point.getAltName() != null) {
             layoutAttributes.addView(

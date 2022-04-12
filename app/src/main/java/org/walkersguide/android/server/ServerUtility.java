@@ -31,6 +31,7 @@ import java.net.CookieManager;
 import java.net.CookieHandler;
 import timber.log.Timber;
 import java.nio.charset.StandardCharsets;
+import java.lang.Object;
 
 
 public class ServerUtility {
@@ -38,7 +39,7 @@ public class ServerUtility {
     private static final int READ_TIMEOUT = 180000;
 
     public static <T extends ServerException> JSONArray performRequestAndReturnJsonArray(
-            String queryURL, JSONObject postParameters, Class<T> exceptionClass) throws T {
+            String queryURL, Object postParameters, Class<T> exceptionClass) throws T {
         try {
             return new JSONArray(
                     performRequestAndReturnString(
@@ -49,7 +50,7 @@ public class ServerUtility {
     }
 
     public static <T extends ServerException> JSONObject performRequestAndReturnJsonObject(
-            String queryURL, JSONObject postParameters, Class<T> exceptionClass) throws T {
+            String queryURL, Object postParameters, Class<T> exceptionClass) throws T {
         try {
             return new JSONObject(
                     performRequestAndReturnString(
@@ -60,7 +61,7 @@ public class ServerUtility {
     }
 
     public static <T extends ServerException> String performRequestAndReturnString(
-            String queryURL, JSONObject postParameters, Class<T> exceptionClass) throws T {
+            String queryURL, Object postParameters, Class<T> exceptionClass) throws T {
         HttpsURLConnection connection = null;
 
         // remove all cookies from cookie manager, if available

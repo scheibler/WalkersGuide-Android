@@ -14,6 +14,7 @@ import timber.log.Timber;
 import android.content.Intent;
 import java.util.Locale;
 import org.walkersguide.android.util.GlobalInstance;
+import android.graphics.drawable.Icon;
 
 
 public class PinnedShortcutUtility {
@@ -43,6 +44,7 @@ public class PinnedShortcutUtility {
                         PINNED_ACTION_OPEN_POI_PROFILE,
                         poiProfileId))
                 .setShortLabel(shortcutName)
+                .setIcon(Icon.createWithResource(GlobalInstance.getContext(), R.drawable.ic_launcher))
                 .setIntent(intent)
                 .build();
             ((ShortcutManager) GlobalInstance.getContext().getSystemService(ShortcutManager.class))

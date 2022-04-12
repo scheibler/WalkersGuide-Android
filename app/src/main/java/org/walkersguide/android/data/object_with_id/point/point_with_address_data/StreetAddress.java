@@ -19,7 +19,6 @@ public class StreetAddress extends PointWithAddressData {
             super(
                     Point.Type.STREET_ADDRESS,
                     name,
-                    GlobalInstance.getStringResource(R.string.streetAddressPointSubtype),
                     latitude,
                     longitude);
         }
@@ -37,6 +36,10 @@ public class StreetAddress extends PointWithAddressData {
 
     @Override public String getOriginalName() {
         return super.formatAddressMediumLength();
+    }
+
+    @Override public String getSubType() {
+        return "";
     }
 
 }

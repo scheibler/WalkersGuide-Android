@@ -48,9 +48,9 @@ public class GlobalInstance extends Application {
 
     @Override public void onCreate() {
         super.onCreate();
-        //if (BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
-        //}
+        }
         // app context
         this.globalInstance = this;
         // session

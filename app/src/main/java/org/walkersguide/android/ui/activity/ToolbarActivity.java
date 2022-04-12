@@ -65,7 +65,6 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
 
     public abstract int getLayoutResourceId();
 
-
     private GlobalInstance globalInstance;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;

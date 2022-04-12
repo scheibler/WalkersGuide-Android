@@ -3,6 +3,8 @@ package org.walkersguide.android.sensor.position;
 import java.io.Serializable;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.sensor.PositionManager;
+import timber.log.Timber;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class AcceptNewPosition implements Serializable {
@@ -15,7 +17,9 @@ public class AcceptNewPosition implements Serializable {
 
     public static AcceptNewPosition newInstanceForTtsAnnouncement() {
         return new AcceptNewPosition(
-                20, 10, PositionManager.getInstance().getCurrentLocation());
+                SettingsManager.getInstance().getTtsSettings().getDistanceAnnouncementInterval(),
+                10,
+                PositionManager.getInstance().getCurrentLocation());
     }
 
     public static AcceptNewPosition newInstanceForTextViewAndActionButtonUpdate() {

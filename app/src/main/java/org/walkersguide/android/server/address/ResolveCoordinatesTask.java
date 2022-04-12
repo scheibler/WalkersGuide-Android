@@ -13,6 +13,7 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.database.SortMethod;
 import android.location.Location;
 import java.util.Locale;
+import org.json.JSONObject;
 
 
 public class ResolveCoordinatesTask extends ServerTask {
@@ -56,9 +57,14 @@ public class ResolveCoordinatesTask extends ServerTask {
                     AddressUtility.ADDRESS_RESOLVER_URL,
                     this.latitude, this.longitude,
                     Locale.getDefault().getLanguage());
-            newAddress = AddressUtility.createStreetAddressFromOSM(
-                    ServerUtility.performRequestAndReturnJsonObject(
-                        requestUrl, null, AddressException.class));
+            JSONObject jsonStreetAddress = ServerUtility.performRequestAndReturnJsonObject(
+                    requestUrl, null, AddressException.class);
+            if (jsonStreetAddress.has("error")) {
+                throw new AddressException(
+                        AddressException.RC_NO_ADDRESS_FOR_COORDINATES);
+            } else {
+                newAddress = AddressUtility.createStreetAddressFromOSM(jsonStreetAddress);
+            }
         } catch (JSONException e) {
             Timber.e("JSONException: %1$s", e.getMessage());
             throw new AddressException(

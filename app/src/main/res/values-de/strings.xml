@@ -78,7 +78,7 @@
     <string name="pointSelectFromEnterCoordinates">Koordinaten eingeben</string>
     <string name="pointSelectFromFavoritePoints">Favoriten</string>
     <string name="pointSelectFromHistoryPoints">Letzte Punkte</string>
-    <string name="pointSelectFromPOI">POI</string>
+    <string name="pointSelectFromPOI">Punkte in der Nähe</string>
     <string name="pointSelectFromCoordinatesLink">Aus Link importieren</string>
 
     <!-- enter address dialog -->
@@ -102,6 +102,8 @@
     <string name="messageOsmOrgUrlFormatUnknown">Konnte die Koordinaten nicht extrahieren. Das OpenStreetMap Url format ist unbekannt.</string>
     <string name="messageOsmAndUrlFormatUnknown">Konnte die Koordinaten nicht extrahieren. Das OsmAnd Url format ist unbekannt.</string>
     <string name="messageLinkContainsInvalidCoordinates">Ungültige Koordinaten gefunden.</string>
+    <string name="messageCouldNotResolveShortenedUrl">Die verkürzte Url konnte nicht aufgelöst werden.</string>
+    <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">Die Koordinaten für die eingegebene OSM Node Id konnten nicht ermittelt werden.</string>
     <string name="messageLinkUrlFormatUnknown">Das Koordinaten-Url Format ist unbekannt. Bitte gib entweder eine OpenStreetMap, Google Maps oder Apple Maps Url an.</string>
 
     <!-- plan route dialog -->
@@ -196,10 +198,10 @@
     <string name="clearProfileDialogTitle">Möchtest du alle Einträge des Profils \"%1$s\" entfernen?</string>
 
     <!-- PoiListFromServerFragment -->
-    <string name="fragmentPOIName">POI</string>
+    <string name="fragmentPOIName">Punkte</string>
     <string name="buttonSelectProfileWithPoiCategories">Profil: %1$s.\nAusgewählte Kategorien: %2$s</string>
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
-    <string name="labelMoreResults">Weitere POI laden</string>
+    <string name="labelMoreResults">Weitere Punkte laden</string>
 
     <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
     <string name="selectProfileDialogTitle">Profil auswählen:</string>
@@ -209,7 +211,7 @@
     <string name="poiProfileMenuItemRemove">Löschen</string>
 
     <!-- SelectPoiCategoriesDialog -->
-    <string name="selectPoiCategoriesDialogTitle">POI Kategorien auswählen:</string>
+    <string name="selectPoiCategoriesDialogTitle">Punktkategorien auswählen:</string>
 
     <!-- ManagePoiProfileDialog -->
     <string name="newProfileDialogTitle">Profil erstellen:</string>
@@ -217,7 +219,7 @@
     <string name="removeProfileDialogTitle">Möchtest du das Profil %1$s löschen?</string>
     <string name="labelProfileName">Name:</string>
     <string name="switchIncludeFavorites">Favoriten einbeziehen</string>
-    <string name="buttonSelectPoiCategories">POI Kategorien: %1$d selected</string>
+    <string name="buttonSelectPoiCategories">Punktkategorien: %1$d selected</string>
     <string name="messageProfileNameMissing">Bitte gib einen Profilnamen ein.</string>
     <string name="messageProfileExists">Das Profil namens %1$s existiert bereits.</string>
     <string name="messageCouldNotCreateProfile">Das Profil konnte nicht angelegt werden.</string>
@@ -230,7 +232,7 @@
     <!-- EnterLauncherShortcutNameDialog / SelectPoiProfileDialog -->
     <string name="enterLauncherShortcutNameDialogTitle">Name des Shortcuts eingeben:</string>
     <string name="messageShortcutNameMissing">Bitte gib einen Namen für den Shortcut ein.</string>
-    <string name="messageCorrespondingPoiProfileNotFound">Das POI Profil für diesen Shortcut konnte nicht gefunden werden. Vielleicht wurde es entfernt.</string>
+    <string name="messageCorrespondingPoiProfileNotFound">Das Punktprofil für diesen Shortcut konnte nicht gefunden werden. Vielleicht wurde es entfernt.</string>
 
 
     <!--
@@ -330,7 +332,7 @@
     <string name="labelSegmentFootwayWidth">Breite:</string>
     <string name="labelSegmentFootwayNumberOfLanes">Anzahl der Spuren:</string>
     <string name="labelSegmentFootwayMaxSpeed">Max. Geschwindigkeit (standard=km/h)</string>
-    <string name="labelSegmentFootwaySegregated">Getrennter eg:</string>
+    <string name="labelSegmentFootwaySegregated">Getrennter Rad- und Fußweg:</string>
     <string name="labelSegmentFootwayTram">Straßenbahnschienen:</string>
 
 
@@ -382,7 +384,7 @@
     <string name="buttonShowActionButton">Aktion-Button anzeigen</string>
     <string name="buttonShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
     <string name="buttonShakeIntensity">Schüttelintensität</string>
-    <string name="buttonShakeIntensityHint">Schütteln, um den "Wo bin ich" Dialog und die "POI" Ansicht zu aktualisieren.</string>
+    <string name="buttonShakeIntensityHint">Schütteln, um den "Wo bin ich" Dialog und den "Punkte" Tab zu aktualisieren.</string>
     <string name="labelImportAndExportSettingsHeader">Import und Export:</string>
     <string name="buttonImportSettings">Einstellungen importieren</string>
     <string name="buttonExportSettings">Einstellungen exportieren</string>
@@ -403,6 +405,12 @@
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Schüttelintensität auswählen:</string>
+
+    <!-- TtsSettingsDialog -->
+    <string name="ttsSettingsDialogTitle">Sprachausgabeeinstellungen</string>
+    <string name="switchAnnouncementsEnabled">Sprachansagen einschalten</string>
+    <string name="labelDistanceAnnouncementInterval">Intervall für Entfernungsansagen</string>
+    <string name="labelDistanceAnnouncementIntervalUnit">Meter</string>
 
     <!-- info fragment -->
     <string name="fragmentInfoName">Info</string>
@@ -527,9 +535,6 @@
     <string name="wheelchairLimited">Teilweise</string>
     <string name="wheelchairYes">Ja</string>
 
-    <!-- gps point -->
-    <string name="gpsPointSubtype">GPS Position</string>
-
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Kreuzung mit %1$s</string>
     <string name="intersectionNumberOfCrossingsNearby">%1$s in der Nähe:</string>
@@ -541,9 +546,6 @@
 
     <!-- StationPoint -->
     <string name="stationLines">Linien: %1$s</string>
-
-    <!-- StreetAddress -->
-    <string name="streetAddressPointSubtype">Adresse</string>
 
 
     <!--
@@ -684,6 +686,7 @@
     <string name="messageArrivedAtRouteDestination">Zielpunkt der Route erreicht.</string>
 
     <!-- RouteObject -->
+    <string name="routeSegmentBewareCyclists">Achtung: Radverkehr</string>
     <string name="routePointInstructionStart">Startpunkt:\n%1$s</string>
     <string name="routePointInstructionIntermediateTurn">Dann:\nAn %2$s %1$s</string>
     <string name="routePointInstructionIntermediateCross">Dann:\n%2$s %1$s</string>
@@ -782,7 +785,7 @@
     <string name="errorWgReqInternalServerError">Interner Serverfehler.</string>
     <string name="errorWgReqBadGateway">Der ÖPNV Abfrageserver ist nicht erreichbar.</string>
     <string name="errorWgReqServiceUnavailableOrBusy">Der Server ist ausgelastet. Bitte später erneut versuchen.</string>
-    <string name="errorWgReqNoPOITagsSelected">Keine POI Kategorien ausgewählt.</string>
+    <string name="errorWgReqNoPOITagsSelected">Keine Punktkategorien ausgewählt.</string>
     <string name="errorWgReqMapLoadingFailed">Die ausgewählte Karte wird vom Server nicht angeboten oder ist veraltet.</string>
     <string name="errorWgReqWrongMapSelected">Die Region, in der du dich befindest, liegt außerhalb der ausgewählten Karte.</string>
     <string name="errorWgReqMapOutdated">Diese Funktion bietet die ausgewählte Karte noch nicht an.</string>
@@ -793,9 +796,9 @@
 
     <!-- app errorWgReqs -->
     <!-- poi -->
-    <string name="errorWgReqNoPOIProfileCreated">Bitte erstelle mindestens ein POI Profil.</string>
-    <string name="errorWgReqNoPOIProfileSelected">Kein POI Profil ausgewählt.</string>
-    <string name="errorWgReqPOIProfileParsing">Das ausgewählte POI Profil konnte nicht geladen werden.</string>
+    <string name="errorWgReqNoPOIProfileCreated">Bitte erstelle mindestens ein Punktprofil.</string>
+    <string name="errorWgReqNoPOIProfileSelected">Kein Punktprofil ausgewählt.</string>
+    <string name="errorWgReqPOIProfileParsing">Das ausgewählte Punktprofil konnte nicht geladen werden.</string>
     <string name="errorWgReqUnsupportedPOIRequestAction">Die ausgewählte POI-Abfrageaktion wird nicht unterstützt.</string>
     <!-- route -->
     <string name="errorWgReqNoRouteCreated">Es wurde noch keine Route geplant.</string>
@@ -941,8 +944,8 @@
 
     <plurals
         name="poi">
-        <item quantity="one">1 POI</item>
-        <item quantity="other">%d POI</item>
+        <item quantity="one">1 Punkt</item>
+        <item quantity="other">%d Punkte</item>
     </plurals>
 
     <plurals

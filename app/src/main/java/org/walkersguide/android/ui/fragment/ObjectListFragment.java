@@ -61,7 +61,7 @@ import android.widget.HeaderViewListAdapter;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
-import org.walkersguide.android.util.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper;
 
 
 public abstract class ObjectListFragment extends DialogFragment
@@ -237,9 +237,6 @@ public abstract class ObjectListFragment extends DialogFragment
             }
         });
 
-        // don't show keyboard automatically
-        getActivity().getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         return view;
     }
 
@@ -367,6 +364,10 @@ public abstract class ObjectListFragment extends DialogFragment
         private ObjectWithId lastClosestObject = null;
 
         @Override public void onReceive(Context context, Intent intent) {
+            if (! getActivity().hasWindowFocus()) {
+                return;
+            }
+
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
                 if (currentLocation != null) {
@@ -456,7 +457,7 @@ public abstract class ObjectListFragment extends DialogFragment
                             message = closestObject.getName();
                         }
                         Timber.d("new object ahead: %1$s, %2$d°", message, closestRelativeBearing.getDegree());
-                        TTSWrapper.getInstance().announceToScreenReader(message, true);
+                        TTSWrapper.getInstance().screenReader(message);
                     }
                 }
 

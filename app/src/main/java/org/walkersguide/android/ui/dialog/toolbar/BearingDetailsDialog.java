@@ -8,7 +8,7 @@ import org.walkersguide.android.sensor.DeviceSensorManager;
 import android.text.InputFilter;
 import android.text.Spanned;
 import java.lang.NumberFormatException;
-import org.walkersguide.android.util.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.ui.TextChangedListener;
 import org.walkersguide.android.ui.UiHelper;
 
@@ -151,7 +151,7 @@ public class BearingDetailsDialog extends DialogFragment {
                 buttonEnableSimulation.setChecked(true);
                 TTSWrapper
                     .getInstance()
-                    .announceToScreenReader(
+                    .screenReader(
                             (new Bearing(newBearingInDegree)).toString());
             }
         });
@@ -204,7 +204,7 @@ public class BearingDetailsDialog extends DialogFragment {
                 buttonEnableSimulation.setChecked(true);
                 TTSWrapper
                     .getInstance()
-                    .announceToScreenReader(
+                    .screenReader(
                             (new Bearing(newBearingInDegree)).toString());
             }
         });

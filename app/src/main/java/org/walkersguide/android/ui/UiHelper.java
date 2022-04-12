@@ -16,6 +16,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import android.app.Dialog;
 import android.app.Activity;
+import androidx.fragment.app.FragmentActivity;
+import java.util.List;
+import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
 
 
 public class UiHelper {
@@ -26,25 +29,24 @@ public class UiHelper {
      */
 
     public static void hideKeyboard(Activity activity) {
-        Timber.d("hideKeyboard: activity");
         if (activity != null) {
             hideKeyboard(activity.getWindow());
         }
     }
 
     public static void hideKeyboard(Fragment fragment) {
-        Timber.d("hideKeyboard: fragment");
         if (fragment != null) {
             hideKeyboard(fragment.getActivity());
         }
     }
 
     public static void hideKeyboard(DialogFragment dialogFragment) {
-        Timber.d("hideKeyboard: dialogFragment");
         if (dialogFragment != null) {
             Dialog dialog = dialogFragment.getDialog();
             if (dialog != null) {
                 hideKeyboard(dialog.getWindow());
+            } else {
+                hideKeyboard(dialogFragment.getActivity());
             }
         }
     }

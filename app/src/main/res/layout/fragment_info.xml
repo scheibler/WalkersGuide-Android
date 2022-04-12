@@ -92,5 +92,6 @@
             android:layout_height="wrap_content"
             android:focusable="true"
             android:text="@string/labelSelectedMapCreated" />
+
     </LinearLayout>
 </ScrollView>

@@ -94,7 +94,7 @@ public class Intersection extends Point implements Serializable {
     }
 
     @Override public String toString() {
-        String description = super.getName();
+        String description = super.toString();
         // second line: number of streets
         String numberOfStreetsFormatted = formatNumberOfStreets();
         if (! TextUtils.isEmpty(numberOfStreetsFormatted)) {

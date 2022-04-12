@@ -83,7 +83,7 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     private Integer lanes, maxSpeed;
     private Double width;
     private String description, smoothness, surface;
-    private Boolean segregated, tram;
+    private Boolean bewareBicyclists, segregated, tram;
     private Sidewalk sidewalk;
     private TactilePaving tactilePaving;
     private Wheelchair wheelchair;
@@ -105,6 +105,12 @@ public abstract class Segment extends ObjectWithId implements Serializable {
         this.surface = Helper.getNullableStringFromJsonObject(inputData, KEY_SURFACE);
 
         // int to bool
+        Integer bewareBicyclistsInteger = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_BEWARE_BICYCLISTS);
+        if (bewareBicyclistsInteger != null) {
+            this.bewareBicyclists = bewareBicyclistsInteger == 1 ? true : false;
+        } else {
+            this.bewareBicyclists = null;
+        }
         Integer segregatedInteger = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_SEGREGATED);
         if (segregatedInteger != null) {
             this.segregated = segregatedInteger == 1 ? true : false;
@@ -142,9 +148,10 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
     public String formatNameAndSubType() {
         String customOrOriginalName = getName();
-        if (! TextUtils.isEmpty(this.subType)
-                && ! customOrOriginalName.equals(this.subType)) {
-            return String.format("%1$s (%2$s)", customOrOriginalName, this.subType);
+        if (! TextUtils.isEmpty(getSubType())
+                && ! customOrOriginalName.toLowerCase(Locale.getDefault())
+                        .contains(getSubType().toLowerCase(Locale.getDefault()))) {
+            return String.format("%1$s (%2$s)", customOrOriginalName, getSubType());
         }
         return customOrOriginalName;
     }
@@ -174,6 +181,10 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
     public String getSurface() {
         return this.surface;
+    }
+
+    public Boolean getBewareBicyclists() {
+        return this.bewareBicyclists;
     }
 
     public Boolean getSegregated() {
@@ -278,6 +289,7 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_SMOOTHNESS = "smoothness";
     public static final String KEY_SURFACE = "surface";
+    public static final String KEY_BEWARE_BICYCLISTS = "beware_bicyclists";
     public static final String KEY_SEGREGATED = "segregated";
     public static final String KEY_TRAM = "tram";
     public static final String KEY_SIDEWALK = "sidewalk";
@@ -314,6 +326,9 @@ public abstract class Segment extends ObjectWithId implements Serializable {
         }
 
         // bool to int
+        if (this.bewareBicyclists != null) {
+            jsonObject.put(KEY_BEWARE_BICYCLISTS, this.bewareBicyclists ? 1 : 0);
+        }
         if (this.segregated != null) {
             jsonObject.put(KEY_SEGREGATED, this.segregated ? 1 : 0);
         }

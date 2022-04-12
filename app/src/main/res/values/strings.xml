@@ -72,7 +72,7 @@
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromFavoritePoints">Favorites</string>
     <string name="pointSelectFromHistoryPoints">history</string>
-    <string name="pointSelectFromPOI">Select from POI</string>
+    <string name="pointSelectFromPOI">Select from nearby points</string>
     <string name="pointSelectFromCoordinatesLink">Import from url</string>
 
     <!-- enter address dialog -->
@@ -96,6 +96,8 @@
     <string name="messageOsmOrgUrlFormatUnknown">Could not extract latitude and longitude. The OpenStreetMap Coordinates url format is unknown.</string>
     <string name="messageOsmAndUrlFormatUnknown">Could not extract latitude and longitude. The OsmAnd Coordinates url format is unknown.</string>
     <string name="messageLinkContainsInvalidCoordinates">Found invalid coordinates.</string>
+    <string name="messageCouldNotResolveShortenedUrl">Could not resolve the shortened url.</string>
+    <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">Could not obtain the coordinates for the entered node id.</string>
     <string name="messageLinkUrlFormatUnknown">Coordinates url format is unknown. Please enter either an OpenStreetMap, a Google maps or an Apple maps coordinates url.</string>
 
     <!-- plan route dialog -->
@@ -190,10 +192,10 @@
     <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
 
     <!-- PoiListFromServerFragment -->
-    <string name="fragmentPOIName">POI</string>
+    <string name="fragmentPOIName">Points</string>
     <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
-    <string name="labelMoreResults">Get more POI</string>
+    <string name="labelMoreResults">Get more points</string>
 
     <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
     <string name="selectProfileDialogTitle">Select profile:</string>
@@ -203,7 +205,7 @@
     <string name="poiProfileMenuItemRemove">Remove</string>
 
     <!-- SelectPoiCategoriesDialog -->
-    <string name="selectPoiCategoriesDialogTitle">Select POI categories:</string>
+    <string name="selectPoiCategoriesDialogTitle">Select point categories:</string>
 
     <!-- ManagePoiProfileDialog -->
     <string name="newProfileDialogTitle">Create profile</string>
@@ -211,7 +213,7 @@
     <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
     <string name="labelProfileName">Name:</string>
     <string name="switchIncludeFavorites">Include favorites</string>
-    <string name="buttonSelectPoiCategories">POI categories: %1$d selected</string>
+    <string name="buttonSelectPoiCategories">Point categories: %1$d selected</string>
     <string name="messageProfileNameMissing">Please enter a profile name.</string>
     <string name="messageProfileExists">The profile with the name %1$s already exists.</string>
     <string name="messageCouldNotCreateProfile">The profile could not be created.</string>
@@ -325,7 +327,7 @@
     <string name="labelSegmentFootwayWidth">Width</string>
     <string name="labelSegmentFootwayNumberOfLanes">Number of Lanes</string>
     <string name="labelSegmentFootwayMaxSpeed">Max. speed (default=km/h)</string>
-    <string name="labelSegmentFootwaySegregated">Cycleway segregated</string>
+    <string name="labelSegmentFootwaySegregated">Cycleway and footway segregated</string>
     <string name="labelSegmentFootwayTram">Tram rails</string>
 
 
@@ -377,7 +379,7 @@
     <string name="buttonShowActionButton">Show action button</string>
     <string name="buttonShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
-    <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "POI" Tab.</string>
+    <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "Points" Tab.</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
     <string name="buttonExportSettings">Export application settings</string>
@@ -398,6 +400,12 @@
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
+
+    <!-- TtsSettingsDialog -->
+    <string name="ttsSettingsDialogTitle">speech settings</string>
+    <string name="switchAnnouncementsEnabled">Enable speech announcements</string>
+    <string name="labelDistanceAnnouncementInterval">Distance announcement interval</string>
+    <string name="labelDistanceAnnouncementIntervalUnit">meters</string>
 
     <!-- info fragment -->
     <string name="fragmentInfoName">Info</string>
@@ -522,9 +530,6 @@
     <string name="wheelchairLimited">Limited</string>
     <string name="wheelchairYes">Yes</string>
 
-    <!-- gps point -->
-    <string name="gpsPointSubtype">GPS location</string>
-
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Intersection with %1$s</string>
     <string name="intersectionNumberOfCrossingsNearby">%1$s nearby</string>
@@ -536,9 +541,6 @@
 
     <!-- StationPoint -->
     <string name="stationLines">Lines: %1$s</string>
-
-    <!-- StreetAddress -->
-    <string name="streetAddressPointSubtype">Address</string>
 
 
     <!--
@@ -679,6 +681,7 @@
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
 
     <!-- RouteObject -->
+    <string name="routeSegmentBewareCyclists">Attention: bicycle traffic</string>
     <string name="routePointInstructionStart">Start:\n%1$s</string>
     <string name="routePointInstructionIntermediateCross">Then:\n%1$s %2$s</string>
     <string name="routePointInstructionIntermediateTurn">Then:\n%1$s at %2$s</string>
@@ -777,7 +780,7 @@
     <string name="errorWgReqInternalServerError">Internal server error.</string>
     <string name="errorWgReqBadGateway">The public transport query server is not accessible.</string>
     <string name="errorWgReqServiceUnavailableOrBusy">The server is busy. Please retry later.</string>
-    <string name="errorWgReqNoPOITagsSelected">No POI categories selected.</string>
+    <string name="errorWgReqNoPOITagsSelected">No Point categories selected.</string>
     <string name="errorWgReqMapLoadingFailed">The selected map is either not available on the server or outdated.</string>
     <string name="errorWgReqWrongMapSelected">The given location lays outside of the selected map.</string>
     <string name="errorWgReqMapOutdated">The selected map does not offer this feature.</string>
@@ -788,9 +791,9 @@
 
     <!-- app errorWgReqs -->
     <!-- poi -->
-    <string name="errorWgReqNoPOIProfileCreated">Please create at least one POI profile.</string>
-    <string name="errorWgReqNoPOIProfileSelected">No POI profile selected.</string>
-    <string name="errorWgReqPOIProfileParsing">POI profile parsing error.</string>
+    <string name="errorWgReqNoPOIProfileCreated">Please create at least one point profile.</string>
+    <string name="errorWgReqNoPOIProfileSelected">No point profile selected.</string>
+    <string name="errorWgReqPOIProfileParsing">Point profile parsing error.</string>
     <string name="errorWgReqUnsupportedPOIRequestAction">Unsupported POI request action</string>
     <!-- route -->
     <string name="errorWgReqNoRouteCreated">No route created.</string>
@@ -932,8 +935,8 @@
 
     <plurals
         name="poi">
-        <item quantity="one">1 POI</item>
-        <item quantity="other">%d POI</item>
+        <item quantity="one">1 point</item>
+        <item quantity="other">%d points</item>
     </plurals>
 
     <plurals
