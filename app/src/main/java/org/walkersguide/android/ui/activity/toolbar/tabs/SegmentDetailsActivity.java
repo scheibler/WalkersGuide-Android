@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
+import androidx.core.app.NavUtils;
+import android.view.MenuItem;
 
 
 public class SegmentDetailsActivity extends TabLayoutActivity {
@@ -86,6 +88,15 @@ public class SegmentDetailsActivity extends TabLayoutActivity {
 
             initializeViewPagerAndTabLayout(
                     new TabAdapter(SegmentDetailsActivity.this, tabList));
+        }
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

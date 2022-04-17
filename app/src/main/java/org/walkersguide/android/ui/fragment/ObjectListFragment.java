@@ -365,6 +365,12 @@ public abstract class ObjectListFragment extends DialogFragment
 
         @Override public void onReceive(Context context, Intent intent) {
             if (! getActivity().hasWindowFocus()) {
+                if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
+                        && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
+                        && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
+                    Timber.d("update cause of important while window doesnt have focus");
+                    requestUiUpdate();
+                }
                 return;
             }
 

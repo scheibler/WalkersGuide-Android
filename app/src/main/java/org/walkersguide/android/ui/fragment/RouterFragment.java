@@ -339,12 +339,17 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         private long arrivalTime;
 
         @Override public void onReceive(Context context, Intent intent) {
+            RouteObject currentRouteObject = route.getCurrentRouteObject();
+
             if (! getActivity().hasWindowFocus()) {
-                Timber.d("no window focus");
+                if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
+                        && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
+                        && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
+                    updateDistanceAndBearingLabel(currentRouteObject);
+                }
                 return;
             }
 
-            RouteObject currentRouteObject = route.getCurrentRouteObject();
             if (! currentRouteObject.equals(lastRouteObject)) {
                 // skipped to next route object
                 this.lastRouteObject = currentRouteObject;

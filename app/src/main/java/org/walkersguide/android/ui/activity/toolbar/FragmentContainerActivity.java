@@ -33,6 +33,8 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.ui.fragment.details.PointDetailsFragment;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.ui.fragment.details.SegmentDetailsFragment;
+import android.view.MenuItem;
+import androidx.core.app.NavUtils;
 
 
 public class FragmentContainerActivity extends ToolbarActivity {
@@ -171,6 +173,15 @@ public class FragmentContainerActivity extends ToolbarActivity {
                     .replace(R.id.fragmentContainerView, fragment, tag)
                     .commit();
             }
+        }
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

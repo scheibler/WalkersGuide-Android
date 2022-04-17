@@ -16,6 +16,7 @@ import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.GlobalInstance;
 import android.content.Context;
 import android.view.Gravity;
+import android.text.method.LinkMovementMethod;
 
 
 public class TextViewBuilder {
@@ -84,6 +85,7 @@ public class TextViewBuilder {
 
     public TextViewBuilder containsUrl() {
         this.label.setAutoLinkMask(Linkify.WEB_URLS);
+        this.label.setMovementMethod(LinkMovementMethod.getInstance());
         return this;
     }
 

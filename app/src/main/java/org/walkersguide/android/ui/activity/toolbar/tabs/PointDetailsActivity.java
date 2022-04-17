@@ -45,6 +45,8 @@ import timber.log.Timber;
 import org.walkersguide.android.data.ObjectWithId;
 import android.os.Handler;
 import android.os.Looper;
+import androidx.core.app.NavUtils;
+import android.view.MenuItem;
 
 
 public class PointDetailsActivity extends TabLayoutActivity {
@@ -122,6 +124,15 @@ public class PointDetailsActivity extends TabLayoutActivity {
         }
     }
 
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
 
     /**
      * pause and resume
@@ -175,6 +186,11 @@ public class PointDetailsActivity extends TabLayoutActivity {
 
         @Override public void onReceive(Context context, Intent intent) {
             if (! hasWindowFocus()) {
+                if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
+                        && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
+                        && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
+                    updateDistanceAndBearingLabel();
+                }
                 return;
             }
 

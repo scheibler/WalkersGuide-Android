@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+//apply plugin: 'kotlin-android'
 apply plugin: 'android-rocket-launcher'
 
 // get signing properties
@@ -77,8 +77,8 @@ android {
         prod {
             applicationId "org.walkersguide.android"
             dimension "version"
-            versionCode 17
-            versionName '1.2.0'
+            versionCode 18
+            versionName '2.0.0'
             signingConfig signingConfigs.prod
             // internal
             // database
@@ -112,8 +112,8 @@ android {
 
 dependencies {
     // kotlin
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    //implementation 'androidx.core:core-ktx:1.7.0'
+    //implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     // androidX
     implementation 'androidx.appcompat:appcompat:1.4.0'

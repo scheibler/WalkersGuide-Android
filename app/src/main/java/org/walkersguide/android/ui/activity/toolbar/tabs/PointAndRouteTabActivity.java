@@ -33,6 +33,7 @@ import android.content.Intent;
 import org.walkersguide.android.data.object_with_id.Route;
 import org.walkersguide.android.database.profile.FavoritesProfile;
 import org.walkersguide.android.database.SortMethod;
+import androidx.core.app.NavUtils;
 
 
 public class PointAndRouteTabActivity extends TabLayoutActivity {
@@ -79,6 +80,15 @@ public class PointAndRouteTabActivity extends TabLayoutActivity {
 
         if (tabAdapter != null) {
             initializeViewPagerAndTabLayout(tabAdapter, Tab.POINTS);
+        }
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

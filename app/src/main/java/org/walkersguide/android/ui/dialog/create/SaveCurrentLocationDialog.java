@@ -127,7 +127,7 @@ public class SaveCurrentLocationDialog extends DialogFragment {
         }
 
         // current sensor location
-        Point currentSensorLocation = PositionManager.getInstance().getGPSLocation();
+        GPS currentSensorLocation = PositionManager.getInstance().getGPSLocation();
         if (currentSensorLocation == null) {
             Toast.makeText(
                     getActivity(),
@@ -138,10 +138,16 @@ public class SaveCurrentLocationDialog extends DialogFragment {
 
         GPS newLocation = null;
         try {
-            newLocation = new GPS.Builder(
+            GPS.Builder newLocationBuilder = new GPS.Builder(
                     currentSensorLocation.getLatitude(), currentSensorLocation.getLongitude())
-                .setName(name)
-                .build();
+                .setName(name);
+            if (currentSensorLocation.getAccuracy() != null) {
+                newLocationBuilder.setAccuracy(currentSensorLocation.getAccuracy());
+            }
+            if (currentSensorLocation.getAltitude() != null) {
+                newLocationBuilder.setAltitude(currentSensorLocation.getAltitude());
+            }
+            newLocation = newLocationBuilder.build();
         } catch (JSONException e) {}
         if (newLocation != null
                 && FavoritesProfile.favoritePoints().add(newLocation)) {

@@ -135,11 +135,12 @@ public class PositionManager implements android.location.LocationListener {
                 gpsFixFound = false;
             }
 
+            /*
             if (BuildConfig.DEBUG) {
                 appendToLog(
                         "newLocationAttributes",
                         dateAndTimeFormatter.format(new Date(System.currentTimeMillis())));
-            }
+            }*/
         }
     }
 
