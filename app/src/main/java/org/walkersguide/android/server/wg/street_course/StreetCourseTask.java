@@ -60,59 +60,7 @@ public class StreetCourseTask extends ServerTask {
             if (pointList.size() <= 1) {
                 throw new WgException(WgException.RC_BAD_RESPONSE);
             }
-
-            // create route
-            Route.Builder routeBuilder = new Route.Builder(
-                    pointList.get(0), pointList.get(pointList.size()-1));
-            IntersectionSegment cachedSourceSegment = null;
-            Point lastAddedPoint = null;
-            for (int i=0; i<pointList.size(); i++) {
-
-                Point current = pointList.get(i);
-                if (i == 0) {
-                    lastAddedPoint = current;
-                    routeBuilder.addFirstRouteObject(current);
-                    continue;
-                }
-
-                Point previous = pointList.get(i-1);
-                if (previous instanceof Intersection) {
-                    // update cached source segment
-                    for (IntersectionSegment intersectionSegment : ((Intersection) previous).getSegmentList()) {
-                        if (current.getId() == intersectionSegment.getNextNodeId()) {
-                            cachedSourceSegment = intersectionSegment;
-                            break;
-                        }
-                    }
-                }
-
-                RouteSegment betweenPreviousAndCurrent = null;
-                try {
-                    betweenPreviousAndCurrent = RouteSegment.create(
-                            cachedSourceSegment,
-                            previous.bearingTo(current),
-                            lastAddedPoint.distanceTo(current));
-                } catch (JSONException e) {
-                    throw new WgException(WgException.RC_BAD_RESPONSE);
-                }
-
-                if (i == pointList.size() - 1) {
-                    lastAddedPoint = current;
-                    routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current);
-                } else {
-                    Turn turn = betweenPreviousAndCurrent.getBearing().turnTo(
-                            current.bearingTo(pointList.get(i+1)));
-                    if (turn.getInstruction() != Turn.Instruction.CROSS
-                            || (
-                                   current instanceof Intersection
-                                && ((Intersection) current).isImportant())) {
-                        lastAddedPoint = current;
-                        routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
-                    }
-                }
-            }
-
-            route = routeBuilder.build();
+            route = Route.fromPointList(pointList, false);
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_RESPONSE);
         }

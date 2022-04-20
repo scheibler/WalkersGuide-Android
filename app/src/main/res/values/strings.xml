@@ -100,6 +100,17 @@
     <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">Could not obtain the coordinates for the entered node id.</string>
     <string name="messageLinkUrlFormatUnknown">Coordinates url format is unknown. Please enter either an OpenStreetMap, a Google maps or an Apple maps coordinates url.</string>
 
+    <!-- route from gpx file dialog -->
+    <string name="routeFromGpxFileDialogTitle">Import route from GPX file</string>
+    <string name="buttonGpxFile">Select GPX file</string>
+    <string name="layoutRouteName">Route name</string>
+    <string name="switchFilterRedundantPoints">Filter redundant points</string>
+    <string name="messageOpenGpxFileFailed">Could not open the selected GPX file.</string>
+    <string name="messageInvalidGpxFileContents">Invalid GPX file.</string>
+    <string name="messageRoutePointParsingFailed">Failed to parse at least one route point.</string>
+    <string name="messageMultipleTracksFound">The selected GPX file contains multiple routes.</string>
+    <string name="messageNoTracksFound">The selected GPX file contains no route points.</string>
+
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
     <string name="switchShowViaPointList">Show via points</string>
@@ -139,10 +150,11 @@
     <string name="buttonNextRouteObject">Next</string>
     <string name="buttonNextRouteObjectCD">Next route point</string>
     <!-- more options menu -->
-    <string name="menuItemLoadPreviousRoute">Load previous route</string>
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
+    <string name="menuItemLoadPreviousRoute">Load previous route</string>
+    <string name="menuItemRouteFromGpxFile">Import from GPX file</string>
     <string name="menuItemSkipToFirstRoutePoint">Back to first point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
 
@@ -616,6 +628,7 @@
     <string name="databaseProfileExcludedFromRouting">Excluded ways from routing</string>
     <!-- route -->
     <string name="databaseProfilePlannedRoutes">Planned routes</string>
+    <string name="databaseProfileRoutesFromGpxFile">GPX file imports</string>
     <string name="databaseProfileStreetCourses">Street courses</string>
     <string name="databaseProfileAllRoutes">All routes</string>
 

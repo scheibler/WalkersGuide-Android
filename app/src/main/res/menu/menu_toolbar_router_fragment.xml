@@ -15,6 +15,9 @@
         android:id="@+id/menuItemLoadPreviousRoute"
         android:title="@string/menuItemLoadPreviousRoute" />
     <item
+        android:id="@+id/menuItemRouteFromGpxFile"
+        android:title="@string/menuItemRouteFromGpxFile" />
+    <item
         android:id="@+id/menuItemSkipToFirstRoutePoint"
         android:title="@string/menuItemSkipToFirstRoutePoint" />
     <item

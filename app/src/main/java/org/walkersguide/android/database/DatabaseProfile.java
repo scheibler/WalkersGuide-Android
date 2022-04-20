@@ -33,6 +33,8 @@ public class DatabaseProfile extends Profile implements Serializable {
 
         } else if (id == ID_PLANNED_ROUTES) {
             return plannedRoutes();
+        } else if (id == ID_ROUTES_FROM_GPX_FILE) {
+            return routesFromGpxFile();
         } else if (id == ID_STREET_COURSES) {
             return streetCourses();
         } else if (id == ID_ALL_ROUTES) {
@@ -97,6 +99,7 @@ public class DatabaseProfile extends Profile implements Serializable {
 
     // for routes
     private static final long ID_PLANNED_ROUTES = 5501000;
+    private static final long ID_ROUTES_FROM_GPX_FILE = 5501500;
     private static final long ID_STREET_COURSES = 5502000;
     private static final long ID_ALL_ROUTES = 5999999;
 
@@ -104,6 +107,13 @@ public class DatabaseProfile extends Profile implements Serializable {
         return new DatabaseProfile(
                 ID_PLANNED_ROUTES,
                 GlobalInstance.getStringResource(R.string.databaseProfilePlannedRoutes),
+                ForObject.ROUTES);
+    }
+
+    public static DatabaseProfile routesFromGpxFile() {
+        return new DatabaseProfile(
+                ID_ROUTES_FROM_GPX_FILE,
+                GlobalInstance.getStringResource(R.string.databaseProfileRoutesFromGpxFile),
                 ForObject.ROUTES);
     }
 

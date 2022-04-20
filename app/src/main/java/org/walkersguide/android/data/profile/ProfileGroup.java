@@ -25,6 +25,7 @@ public enum ProfileGroup {
             ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
             profileList.add(FavoritesProfile.favoriteRoutes());
             profileList.add(DatabaseProfile.plannedRoutes());
+            profileList.add(DatabaseProfile.routesFromGpxFile());
             profileList.add(DatabaseProfile.streetCourses());
             return profileList;
 
@@ -41,6 +42,7 @@ public enum ProfileGroup {
             ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
             profileList.add(DatabaseProfile.allRoutes());
             profileList.add(DatabaseProfile.plannedRoutes());
+            profileList.add(DatabaseProfile.routesFromGpxFile());
             profileList.add(DatabaseProfile.streetCourses());
             return profileList;
 

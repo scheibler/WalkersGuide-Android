@@ -12,7 +12,6 @@ import java.util.Random;
 import java.lang.Math;
 import android.text.TextUtils;
 import org.walkersguide.android.database.util.AccessDatabase;
-import timber.log.Timber;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Locale;
@@ -27,10 +26,11 @@ public abstract class ObjectWithId implements Serializable {
     /**
      * id generation
      */
-    private static final long FIRST_LOCAL_ID = Long.MAX_VALUE - Integer.MAX_VALUE;
+    public static final int NUMBER_OF_LOCAL_IDS = Integer.MAX_VALUE - 1;
+    public static final long FIRST_LOCAL_ID = Long.MAX_VALUE - NUMBER_OF_LOCAL_IDS;
 
     public static long generateId() {
-        return FIRST_LOCAL_ID + (new Random()).nextInt(Integer.MAX_VALUE);
+        return FIRST_LOCAL_ID + (new Random()).nextInt(NUMBER_OF_LOCAL_IDS);
     }
 
 

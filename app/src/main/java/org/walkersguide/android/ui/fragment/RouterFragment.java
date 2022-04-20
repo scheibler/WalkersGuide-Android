@@ -54,6 +54,7 @@ import androidx.annotation.NonNull;
 import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
 import androidx.core.view.ViewCompat;
 import java.util.Locale;
+import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
 import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
 import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
@@ -138,11 +139,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menuItemLoadPreviousRoute) {
-            SelectProfileDialog.newInstance(ProfileGroup.LOAD_PREVIOUS_ROUTE)
-                .show(getChildFragmentManager(), "SelectProfileDialog");
-
-        } else if (item.getItemId() == R.id.menuItemRecalculate
+        if (item.getItemId() == R.id.menuItemRecalculate
                 || item.getItemId() == R.id.menuItemRecalculateWithCurrentPosition
                 || item.getItemId() == R.id.menuItemRecalculateReturnRoute) {
             P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
@@ -186,6 +183,14 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
             PlanRouteDialog.newInstance()
                 .show(getActivity().getSupportFragmentManager(), "PlanRouteDialog");
+
+        } else if (item.getItemId() == R.id.menuItemLoadPreviousRoute) {
+            SelectProfileDialog.newInstance(ProfileGroup.LOAD_PREVIOUS_ROUTE)
+                .show(getChildFragmentManager(), "SelectProfileDialog");
+
+        } else if (item.getItemId() == R.id.menuItemRouteFromGpxFile) {
+            RouteFromGpxFileDialog.newInstance()
+                .show(getChildFragmentManager(), "RouteFromGpxFileDialog");
 
         } else if (item.getItemId() == R.id.menuItemSkipToFirstRoutePoint) {
             if (route != null) {

@@ -18,11 +18,11 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.GlobalInstance;
-import timber.log.Timber;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.segment.RouteSegment;
 import org.walkersguide.android.data.object_with_id.route.RouteObject;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
+import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 
 
 public class Route extends ObjectWithId implements Serializable {
@@ -42,6 +42,57 @@ public class Route extends ObjectWithId implements Serializable {
             return (Route) object;
         }
         return null;
+    }
+
+    public static Route fromPointList(ArrayList<? extends Point> pointList, boolean includeAllPoints) throws JSONException {
+        Route.Builder routeBuilder = new Route.Builder(
+                pointList.get(0), pointList.get(pointList.size()-1));
+
+        IntersectionSegment cachedSourceSegment = null;
+        Point lastAddedPoint = null;
+        for (int i=0; i<pointList.size(); i++) {
+
+            Point current = pointList.get(i);
+            if (i == 0) {
+                lastAddedPoint = current;
+                routeBuilder.addFirstRouteObject(current);
+                continue;
+            }
+
+            Point previous = pointList.get(i-1);
+            if (previous instanceof Intersection) {
+                // update cached source segment
+                for (IntersectionSegment intersectionSegment : ((Intersection) previous).getSegmentList()) {
+                    if (current.getId() == intersectionSegment.getNextNodeId()) {
+                        cachedSourceSegment = intersectionSegment;
+                        break;
+                    }
+                }
+            }
+
+            RouteSegment betweenPreviousAndCurrent = RouteSegment.create(
+                    cachedSourceSegment,
+                    previous.bearingTo(current),
+                    lastAddedPoint.distanceTo(current));
+
+            if (i == pointList.size() - 1) {
+                lastAddedPoint = current;
+                routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current);
+            } else {
+                Turn turn = betweenPreviousAndCurrent.getBearing().turnTo(
+                        current.bearingTo(pointList.get(i+1)));
+                if (includeAllPoints
+                        || turn.getInstruction() != Turn.Instruction.CROSS
+                        || (
+                               current instanceof Intersection
+                            && ((Intersection) current).isImportant())) {
+                    lastAddedPoint = current;
+                    routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
+                }
+            }
+        }
+
+        return routeBuilder.build();
     }
 
 
@@ -376,19 +427,18 @@ public class Route extends ObjectWithId implements Serializable {
         return jsonRoute;
     }
 
-    public static long createDatabaseV10RouteId(JSONArray jsonRouteObjectList) throws JSONException {
+    private static long createDatabaseV10RouteId(JSONArray jsonRouteObjectList) throws JSONException {
         final int prime = 31;
-        int result = 1;
+        int result = jsonRouteObjectList.length();
         for (int i=1; i<jsonRouteObjectList.length(); i++) {
             // start at index '1' is intentional, route object at '0' has no segment
             int distance = jsonRouteObjectList
                 .getJSONObject(i)
                 .getJSONObject("segment")
                 .getInt("distance");
-            result = prime * result + distance;
+            result = ((prime * result) + distance) % NUMBER_OF_LOCAL_IDS;
         }
-        result = prime * result + jsonRouteObjectList.length();
-        return result;
+        return FIRST_LOCAL_ID + result;
     }
 
 }

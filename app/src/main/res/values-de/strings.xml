@@ -106,6 +106,17 @@
     <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">Die Koordinaten für die eingegebene OSM Node Id konnten nicht ermittelt werden.</string>
     <string name="messageLinkUrlFormatUnknown">Das Koordinaten-Url Format ist unbekannt. Bitte gib entweder eine OpenStreetMap, Google Maps oder Apple Maps Url an.</string>
 
+    <!-- route from gpx file dialog -->
+    <string name="routeFromGpxFileDialogTitle">Route aus GPX Datei importieren</string>
+    <string name="buttonGpxFile">GPX Datei auswählen</string>
+    <string name="layoutRouteName">Routenname</string>
+    <string name="switchFilterRedundantPoints">Überflüssige Punkte filtern.</string>
+    <string name="messageOpenGpxFileFailed">Die ausgewählte GPX Datei konnte nicht geöffnet werden.</string>
+    <string name="messageInvalidGpxFileContents">Die ausgewählte Datei ist nicht im GPX Format.</string>
+    <string name="messageRoutePointParsingFailed">Einer oder mehrere Routenpunkte konnten nicht extrahiert werden.</string>
+    <string name="messageMultipleTracksFound">Die ausgewählte GPX Datei enthält mehr als eine Route.</string>
+    <string name="messageNoTracksFound">Die ausgewählte GPX Datei enthält keine Routenpunkte.</string>
+
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Route planen</string>
     <string name="switchShowViaPointList">Zwischenziele anzeigen</string>
@@ -145,10 +156,11 @@
     <string name="buttonNextRouteObject">Nächster</string>
     <string name="buttonNextRouteObjectCD">Nächster Routenpunkt</string>
     <!-- more options menu -->
-    <string name="menuItemLoadPreviousRoute">Frühere Route laden</string>
     <string name="menuItemRecalculate">Neu berechnen</string>
     <string name="menuItemRecalculateWithCurrentPosition">Mit aktueller Position neu berechnen</string>
     <string name="menuItemRecalculateReturnRoute">Rückweg berechnen</string>
+    <string name="menuItemLoadPreviousRoute">Frühere Route laden</string>
+    <string name="menuItemRouteFromGpxFile">Aus GPX Datei importieren</string>
     <string name="menuItemSkipToFirstRoutePoint">Zum Routenanfang springen</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. weiterschalten</string>
 
@@ -621,6 +633,7 @@
     <string name="databaseProfileExcludedFromRouting">Vom Routing ausgeschlossene Wege</string>
     <!-- route -->
     <string name="databaseProfilePlannedRoutes">Geplante Routen</string>
+    <string name="databaseProfileRoutesFromGpxFile">GPX Dateiimporte</string>
     <string name="databaseProfileStreetCourses">Wegverläufe</string>
     <string name="databaseProfileAllRoutes">Alle Routen</string>
 
