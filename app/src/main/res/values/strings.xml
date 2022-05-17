@@ -694,11 +694,11 @@
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
 
     <!-- RouteObject -->
+    <string name="routePointInstructionStart">Start: %1$s</string>
+    <string name="routePointInstructionIntermediateCross">%1$s %2$s</string>
+    <string name="routePointInstructionIntermediateTurn">%1$s at %2$s</string>
+    <string name="routePointInstructionDestination">Destination: %1$s</string>
     <string name="routeSegmentBewareCyclists">Attention: bicycle traffic</string>
-    <string name="routePointInstructionStart">Start:\n%1$s</string>
-    <string name="routePointInstructionIntermediateCross">Then:\n%1$s %2$s</string>
-    <string name="routePointInstructionIntermediateTurn">Then:\n%1$s at %2$s</string>
-    <string name="routePointInstructionDestination">Destination:\n%1$s</string>
 
     <!-- WayClassType -->
     <string name="wayClassTypeBigStreets">Big streets</string>

@@ -699,11 +699,11 @@
     <string name="messageArrivedAtRouteDestination">Zielpunkt der Route erreicht.</string>
 
     <!-- RouteObject -->
+    <string name="routePointInstructionStart">Startpunkt: %1$s</string>
+    <string name="routePointInstructionIntermediateTurn">An %2$s %1$s</string>
+    <string name="routePointInstructionIntermediateCross">%2$s %1$s</string>
+    <string name="routePointInstructionDestination">Zielpunkt: %1$s</string>
     <string name="routeSegmentBewareCyclists">Achtung: Radverkehr</string>
-    <string name="routePointInstructionStart">Startpunkt:\n%1$s</string>
-    <string name="routePointInstructionIntermediateTurn">Dann:\nAn %2$s %1$s</string>
-    <string name="routePointInstructionIntermediateCross">Dann:\n%2$s %1$s</string>
-    <string name="routePointInstructionDestination">Zielpunkt:\n%1$s</string>
 
     <!-- WayClassType -->
     <string name="wayClassTypeBigStreets">Große Straßen</string>

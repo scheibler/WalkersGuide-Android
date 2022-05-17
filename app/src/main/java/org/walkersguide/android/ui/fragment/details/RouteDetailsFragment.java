@@ -62,6 +62,7 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
     private static final String KEY_STREET_COURSE_REQUEST = "streetCourseRequest";
 
 	public static RouteDetailsFragment newInstance(Route route) {
+        DatabaseProfile.allRoutes().add(route);
 		RouteDetailsFragment fragment = new RouteDetailsFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ROUTE, route);
