@@ -32,7 +32,7 @@ import android.text.TextUtils;
 import org.json.JSONException;
 
 public class SaveCurrentLocationDialog extends DialogFragment {
-    public static final String REQUEST__LOCATION_SAVED_SUCCESSFULLY = "locationSavedSuccessfully";
+
 
     private EditTextAndClearInputButton layoutName;
 
@@ -149,10 +149,7 @@ public class SaveCurrentLocationDialog extends DialogFragment {
             }
             newLocation = newLocationBuilder.build();
         } catch (JSONException e) {}
-        if (newLocation != null
-                && FavoritesProfile.favoritePoints().add(newLocation)) {
-            Bundle result = new Bundle();
-            getParentFragmentManager().setFragmentResult(REQUEST__LOCATION_SAVED_SUCCESSFULLY, result);
+        if (newLocation != null && newLocation.addToFavorites()) {
             dismiss();
 
         } else {

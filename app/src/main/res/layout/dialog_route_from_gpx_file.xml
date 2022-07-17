@@ -8,26 +8,17 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
-        <Button
-            android:id="@+id/buttonGpxFile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="@dimen/minHeight"
-            android:text="@string/buttonGpxFile" />
-
         <org.walkersguide.android.ui.view.EditTextAndClearInputButton
             android:id="@+id/layoutRouteName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_height="wrap_content" />
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switchFilterRedundantPoints"
+        <TextView
+            android:id="@+id/labelRouteDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="@dimen/minHeight"
-            android:text="@string/switchFilterRedundantPoints" />
+            android:layout_marginTop="10dp"
+            android:focusable="true" />
 
     </LinearLayout>
 </ScrollView>

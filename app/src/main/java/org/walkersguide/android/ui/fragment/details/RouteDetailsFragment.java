@@ -169,7 +169,7 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
             route = (Route) getArguments().getSerializable(KEY_ROUTE);
-            listPosition = 0;
+            listPosition = route != null ? route.getCurrentPosition() : 0;
         }
 
         labelDescription = (TextView) view.findViewById(R.id.labelDescription);

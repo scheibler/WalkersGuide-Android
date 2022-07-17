@@ -17,6 +17,9 @@ import org.json.JSONException;
 import java.util.Locale;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.sensor.DeviceSensorManager;
+import android.content.Intent;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public abstract class ObjectWithId implements Serializable {
@@ -62,6 +65,7 @@ public abstract class ObjectWithId implements Serializable {
     }
 
     // name
+    public static final String ACTION_NAME_CHANGED = "nameChanged";
 
     public String getName() {
         String customName = getCustomName();
@@ -80,10 +84,16 @@ public abstract class ObjectWithId implements Serializable {
     public abstract String getOriginalName();
 
     public boolean rename(String newName) {
-        return AccessDatabase.getInstance().addObjectWithId(this, newName);
+        boolean success = AccessDatabase.getInstance().addObjectWithId(this, newName);
+        if (success) {
+            Intent nameChangedIntent = new Intent(ACTION_NAME_CHANGED);
+            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(nameChangedIntent);
+        }
+        return success;
     }
 
     // favorite
+    public static final String ACTION_FAVORITE_STATUS_CHANGED = "favoriteStatusChanged";
 
     public abstract FavoritesProfile getDefaultFavoritesProfile();
 
@@ -100,14 +110,24 @@ public abstract class ObjectWithId implements Serializable {
 
     public boolean addToFavorites() {
         if (hasDefaultFavoritesProfile()) {
-            return getDefaultFavoritesProfile().add(this);
+            boolean success = getDefaultFavoritesProfile().add(this);
+            if (success) {
+                Intent favoriteStatusChangedIntent = new Intent(ACTION_FAVORITE_STATUS_CHANGED);
+                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(favoriteStatusChangedIntent);
+            }
+            return success;
         }
         return false;
     }
 
     public boolean removeFromFavorites() {
         if (hasDefaultFavoritesProfile()) {
-            return getDefaultFavoritesProfile().remove(this);
+            boolean success = getDefaultFavoritesProfile().remove(this);
+            if (success) {
+                Intent favoriteStatusChangedIntent = new Intent(ACTION_FAVORITE_STATUS_CHANGED);
+                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(favoriteStatusChangedIntent);
+            }
+            return success;
         }
         return false;
     }

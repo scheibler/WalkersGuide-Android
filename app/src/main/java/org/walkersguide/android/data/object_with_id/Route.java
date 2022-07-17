@@ -44,7 +44,7 @@ public class Route extends ObjectWithId implements Serializable {
         return null;
     }
 
-    public static Route fromPointList(ArrayList<? extends Point> pointList, boolean includeAllPoints) throws JSONException {
+    public static Route fromPointList(ArrayList<? extends Point> pointList, boolean filterRedundantPoints) throws JSONException {
         Route.Builder routeBuilder = new Route.Builder(
                 pointList.get(0), pointList.get(pointList.size()-1));
 
@@ -81,7 +81,7 @@ public class Route extends ObjectWithId implements Serializable {
             } else {
                 Turn turn = betweenPreviousAndCurrent.getBearing().turnTo(
                         current.bearingTo(pointList.get(i+1)));
-                if (includeAllPoints
+                if (! filterRedundantPoints
                         || turn.getInstruction() != Turn.Instruction.CROSS
                         || (
                                current instanceof Intersection
@@ -138,13 +138,18 @@ public class Route extends ObjectWithId implements Serializable {
         }
 
         public Route build() throws JSONException {
+            String routeDescription = String.format(
+                    GlobalInstance.getStringResource(R.string.descriptionStreetCourse),
+                    GlobalInstance.getPluralResource(R.plurals.meter, this.totalDistance),
+                    this.numberOfIntersections > 0
+                    ? GlobalInstance.getPluralResource(
+                        R.plurals.intersection, this.numberOfIntersections)
+                    : GlobalInstance.getPluralResource(
+                        R.plurals.point, this.inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST).length())
+                    );
+            // build and return
             inputData.put(KEY_ID, Route.createDatabaseV10RouteId(inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST)));
-            inputData.put(
-                    KEY_DESCRIPTION,
-                    String.format(
-                        GlobalInstance.getStringResource(R.string.descriptionStreetCourse),
-                        GlobalInstance.getPluralResource(R.plurals.meter, this.totalDistance),
-                        this.numberOfIntersections));
+            inputData.put(KEY_DESCRIPTION, routeDescription);
             return new Route(inputData);
         }
     }
@@ -226,8 +231,32 @@ public class Route extends ObjectWithId implements Serializable {
             return String.format(
                     GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePoint),
                     getCurrentPosition()+1,
-                    currentRouteObject.getTurn().getInstruction());
+                    currentRouteObject.getTurn().getInstruction(),
+                    this.routeObjectList.get(getCurrentPosition()+1).formatSegmentInstruction());
         }
+    }
+
+    public int getElapsedLength() {
+        return getLengthUntil(getCurrentPosition());
+    }
+
+    public int getTotalLength() {
+        return getLengthUntil(getRouteObjectList().size()-1);
+    }
+
+    private int getLengthUntil(int maxPosition) {
+        int position = 0, length = 0;
+        for (RouteObject routeObject : getRouteObjectList()) {
+            if (position <= maxPosition) {
+                RouteSegment routeSegment = routeObject.getSegment();
+                // first route segment is null
+                if (routeSegment != null) {
+                    length += routeSegment.getDistance();
+                }
+            }
+            position += 1;
+        }
+        return length;
     }
 
 

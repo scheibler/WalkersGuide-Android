@@ -244,16 +244,29 @@ public class Point extends ObjectWithId implements Serializable {
     }
 
     public String formatDistanceAndRelativeBearingFromCurrentLocation(int distancePluralResourceId) {
+        return formatDistanceAndRelativeBearingFromCurrentLocation(distancePluralResourceId, false);
+    }
+
+    public String formatDistanceAndRelativeBearingFromCurrentLocation(
+            int distancePluralResourceId, boolean showPreciseBearingValues) {
         Integer distance = distanceFromCurrentLocation();
         Bearing bearing = bearingFromCurrentLocation();
         if (distance != null && bearing != null) {
             RelativeBearing relativeBearing = bearing.relativeToCurrentBearing();
             if (relativeBearing != null) {
-                return String.format(
+                String output = String.format(
                         Locale.getDefault(),
                         "%1$s, %2$s",
                         GlobalInstance.getPluralResource(distancePluralResourceId, distance),
                         relativeBearing.getDirection());
+                if (showPreciseBearingValues) {
+                    output += " ";
+                    output += String.format(
+                            Locale.ROOT,
+                            GlobalInstance.getStringResource(R.string.preciseBearingValues),
+                            relativeBearing.getDegree());
+                }
+                return output;
             }
         }
         return "";

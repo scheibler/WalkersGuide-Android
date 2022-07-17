@@ -1,27 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/menuItemPlanRoute"
         android:title="@string/menuItemPlanRoute" />
     <item
         android:id="@+id/menuItemWhereAmI"
         android:title="@string/menuItemWhereAmI" />
+
     <item
-        android:id="@+id/menuItemSaveCurrentLocation"
-        android:title="@string/menuItemSaveCurrentLocation" />
+        android:id="@+id/menuItemCreateFavorite"
+        android:title="@string/menuItemCreateFavorite" >
+        <menu>
+            <item
+                android:id="@+id/menuItemCreateFavoriteCurrentPosition"
+                android:title="@string/menuItemCreateFavoriteCurrentPosition" />
+            <item
+                android:id="@+id/menuItemCreateFavoriteAddress"
+                android:title="@string/menuItemCreateFavoriteAddress" />
+            <item
+                android:id="@+id/menuItemCreateFavoriteCoordinates"
+                android:title="@string/menuItemCreateFavoriteCoordinates" />
+            <item
+                android:id="@+id/menuItemCreateFavoriteUrl"
+                android:title="@string/menuItemCreateFavoriteUrl" />
+        </menu>
+    </item>
+
     <item
-        android:id="@+id/menuItemFavorites"
-        android:title="@string/menuItemFavorites" />
+        android:id="@+id/menuItemFavoritesAndHistory"
+        android:title="@string/menuItemFavoritesAndHistory" >
+        <menu>
+            <item
+                android:id="@+id/menuItemOpenFavorites"
+                android:title="@string/menuItemOpenFavorites" />
+            <item
+                android:id="@+id/menuItemOpenHistory"
+                android:title="@string/menuItemOpenHistory" />
+        </menu>
+    </item>
+
     <item
-        android:id="@+id/menuItemHistory"
-        android:title="@string/menuItemHistory" />
-    <item
-        android:id="@+id/menuItemSettings"
-        android:title="@string/menuItemSettings" />
-    <item
-        android:id="@+id/menuItemInfo"
-        android:title="@string/menuItemInfo" />
-    <item
-        android:id="@+id/menuItemContactMe"
-        android:title="@string/menuItemContactMe" />
+        android:id="@+id/menuItemMisc"
+        android:title="@string/menuItemMisc" >
+        <menu>
+            <item
+                android:id="@+id/menuItemSettings"
+                android:title="@string/menuItemSettings" />
+            <item
+                android:id="@+id/menuItemInfo"
+                android:title="@string/menuItemInfo" />
+            <item
+                android:id="@+id/menuItemContactMe"
+                android:title="@string/menuItemContactMe" />
+        </menu>
+    </item>
+
 </menu>

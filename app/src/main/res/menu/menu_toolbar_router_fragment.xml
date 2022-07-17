@@ -4,13 +4,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menuItemRecalculate"
-        android:title="@string/menuItemRecalculate" />
-    <item
-        android:id="@+id/menuItemRecalculateWithCurrentPosition"
-        android:title="@string/menuItemRecalculateWithCurrentPosition" />
-    <item
-        android:id="@+id/menuItemRecalculateReturnRoute"
-        android:title="@string/menuItemRecalculateReturnRoute" />
+        android:title="@string/menuItemRecalculate" >
+        <menu>
+            <item
+                android:id="@+id/menuItemRecalculateWithCurrentPosition"
+                android:title="@string/menuItemRecalculateWithCurrentPosition" />
+            <item
+                android:id="@+id/menuItemRecalculateOriginalRoute"
+                android:title="@string/menuItemRecalculateOriginalRoute" />
+            <item
+                android:id="@+id/menuItemRecalculateReturnRoute"
+                android:title="@string/menuItemRecalculateReturnRoute" />
+        </menu>
+    </item>
     <item
         android:id="@+id/menuItemLoadPreviousRoute"
         android:title="@string/menuItemLoadPreviousRoute" />
@@ -18,10 +24,18 @@
         android:id="@+id/menuItemRouteFromGpxFile"
         android:title="@string/menuItemRouteFromGpxFile" />
     <item
-        android:id="@+id/menuItemSkipToFirstRoutePoint"
-        android:title="@string/menuItemSkipToFirstRoutePoint" />
-    <item
         android:id="@+id/menuItemAutoSkipToNextRoutePoint"
         android:title="@string/menuItemAutoSkipToNextRoutePoint"
         android:checkable="true" />
+    <item
+        android:id="@+id/menuItemShowPreciseBearingValues"
+        android:title="@string/menuItemShowPreciseBearingValues"
+        android:checkable="true" />
+    <item
+        android:id="@+id/menuItemShowIntersectionLayoutDetails"
+        android:title="@string/menuItemShowIntersectionLayoutDetails"
+        android:checkable="true" />
+    <item
+        android:id="@+id/menuItemJumpToRoutePoint"
+        android:title="@string/menuItemJumpToRoutePoint" />
 </menu>

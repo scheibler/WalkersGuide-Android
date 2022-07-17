@@ -80,13 +80,6 @@ public class TextViewAndActionButton extends LinearLayout {
         this.onObjectDefaultActionListener = listener;
     }
 
-    // parent list update request
-
-    public interface OnUpdateListRequestListener {
-        public void onUpdateListRequested(TextViewAndActionButton view);
-    }
-
-    private OnUpdateListRequestListener onUpdateListRequestListener;
 
     // reset layout action
 
@@ -207,7 +200,6 @@ public class TextViewAndActionButton extends LinearLayout {
         this.objectWithId = null;
         this.isFavoriteModeHide = View.GONE;
         this.isFavoriteModeVisible = View.GONE;
-        this.onUpdateListRequestListener = null;
         this.onLayoutResetListener = null;
         this.setLabelAndButtonText(
                 GlobalInstance.getStringResource(R.string.labelNothingSelected));
@@ -217,7 +209,7 @@ public class TextViewAndActionButton extends LinearLayout {
         this.autoUpdate = newState;
     }
 
-    public void configureAsListItem(ObjectWithId object, boolean showIsFavoriteIndicator, OnUpdateListRequestListener listener) {
+    public void configureAsListItem(ObjectWithId object, boolean showIsFavoriteIndicator) {
         this.reset();
         if (object != null) {
             this.objectWithId = object;
@@ -225,7 +217,6 @@ public class TextViewAndActionButton extends LinearLayout {
                 this.isFavoriteModeVisible = View.VISIBLE;
                 this.isFavoriteModeHide = View.INVISIBLE;
             }
-            this.onUpdateListRequestListener = listener;
             this.setLabelAndButtonText(object.toString());
         }
     }
@@ -333,6 +324,7 @@ public class TextViewAndActionButton extends LinearLayout {
         if (this.autoUpdate && this.includeDistanceOrBearingInformation) {
             Timber.d("onAttachedToWindow");
             IntentFilter filter = new IntentFilter();
+            filter.addAction(ObjectWithId.ACTION_NAME_CHANGED);
             filter.addAction(PositionManager.ACTION_NEW_LOCATION);
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(newLocationReceiver, filter);
@@ -344,7 +336,10 @@ public class TextViewAndActionButton extends LinearLayout {
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForTextViewAndActionButtonUpdate();
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+            if (intent.getAction().equals(ObjectWithId.ACTION_NAME_CHANGED)) {
+                setLabelAndButtonText((String) label.getTag());
+
+            } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
                 if (currentLocation != null
                         && (
@@ -564,10 +559,6 @@ public class TextViewAndActionButton extends LinearLayout {
                 object.addToFavorites();
             } else {
                 object.removeFromFavorites();
-                // notify parent list update
-                if (this.onUpdateListRequestListener != null) {
-                    this.onUpdateListRequestListener.onUpdateListRequested(TextViewAndActionButton.this);
-                }
             }
             updateFavoriteIndicator();
 
@@ -579,10 +570,10 @@ public class TextViewAndActionButton extends LinearLayout {
             }
 
         } else if (menuItemId == MENU_ITEM_RESET_LAYOUT) {
-            this.reset();
             if (onLayoutResetListener != null) {
                 onLayoutResetListener.onLayoutReset(TextViewAndActionButton.this);
             }
+            this.reset();
 
         } else {
             return false;
@@ -682,13 +673,12 @@ public class TextViewAndActionButton extends LinearLayout {
         } else if (menuItemId == MENU_ITEM_END_BEARING_SIMULATION) {
             deviceSensorManagerInstance.setSimulationEnabled(false);
 
-        } else if (menuItemId == MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING) {
-            segment.excludeFromRouting();
-        } else if (menuItemId == MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING) {
-            segment.includeIntoRouting();
-            // notify parent list update
-            if (this.onUpdateListRequestListener != null) {
-                this.onUpdateListRequestListener.onUpdateListRequested(TextViewAndActionButton.this);
+        } else if (menuItemId == MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING
+                || menuItemId == MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING) {
+            if (menuItemId == MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING) {
+                segment.excludeFromRouting();
+            } else {
+                segment.includeIntoRouting();
             }
 
         } else {

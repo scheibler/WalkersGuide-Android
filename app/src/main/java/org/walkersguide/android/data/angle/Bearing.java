@@ -88,7 +88,7 @@ public class Bearing extends Angle implements Serializable {
     public Turn turnTo(Bearing bearing) {
         if (bearing != null) {
             return new Turn(
-                    super.getDegree() - bearing.getDegree());
+                    bearing.getDegree() - super.getDegree());
         }
         return null;
     }

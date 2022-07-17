@@ -9,11 +9,11 @@ public enum WayClassType {
     BIG_STREETS(
             "big_streets",
             GlobalInstance.getStringResource(R.string.wayClassTypeBigStreets),
-            WayClassWeight.SLIGHTLY_PREFERABLE),
+            WayClassWeight.SLIGHTLY_PREFER),
     SMALL_STREETS(
             "small_streets",
             GlobalInstance.getStringResource(R.string.wayClassTypeSmallStreets),
-            WayClassWeight.VERY_PREFERABLE),
+            WayClassWeight.STRONGLY_PREFER),
     PAVED_WAYS(
             "paved_ways",
             GlobalInstance.getStringResource(R.string.wayClassTypePavedWays),
@@ -21,15 +21,15 @@ public enum WayClassType {
     UNPAVED_WAYS(
             "unpaved_ways",
             GlobalInstance.getStringResource(R.string.wayClassTypeUnpavedWays),
-            WayClassWeight.NEGLIGIBLE),
+            WayClassWeight.AVOID),
     STEPS(
             "steps",
             GlobalInstance.getStringResource(R.string.wayClassTypeSteps),
-            WayClassWeight.SLIGHTLY_NEGLIGIBLE),
+            WayClassWeight.SLIGHTLY_AVOID),
     UNCLASSIFIED_WAYS(
             "unclassified_ways",
             GlobalInstance.getStringResource(R.string.wayClassTypeUnclassifiedWays),
-            WayClassWeight.NEGLIGIBLE);
+            WayClassWeight.AVOID);
 
 
     public String id, name;

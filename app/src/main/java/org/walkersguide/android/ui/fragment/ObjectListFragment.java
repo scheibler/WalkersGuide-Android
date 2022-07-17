@@ -350,6 +350,8 @@ public abstract class ObjectListFragment extends DialogFragment
         filter.addAction(PositionManager.ACTION_NEW_LOCATION);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
         filter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
+        filter.addAction(ObjectWithId.ACTION_FAVORITE_STATUS_CHANGED);
+        filter.addAction(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
         filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
         LocalBroadcastManager
             .getInstance(getActivity())
@@ -364,17 +366,20 @@ public abstract class ObjectListFragment extends DialogFragment
         private ObjectWithId lastClosestObject = null;
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (! getActivity().hasWindowFocus()) {
+            if (intent.getAction().equals(ObjectWithId.ACTION_FAVORITE_STATUS_CHANGED)
+                    || intent.getAction().equals(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED)) {
+                Timber.d("ACTION_FAVORITE_STATUS_CHANGED: request update");
+                requestUiUpdate();
+
+            } else if (! getActivity().hasWindowFocus()) {
                 if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
                         && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
                         && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
                     Timber.d("update cause of important while window doesnt have focus");
                     requestUiUpdate();
                 }
-                return;
-            }
 
-            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+            } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
                 if (currentLocation != null) {
                     if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
@@ -645,13 +650,7 @@ public abstract class ObjectListFragment extends DialogFragment
 
             layoutTextViewAndActionButton.setAutoUpdate(autoUpdate);
             layoutTextViewAndActionButton.configureAsListItem(
-                    getItem(position),
-                    this.showIsFavoriteIndicator,
-                    new TextViewAndActionButton.OnUpdateListRequestListener() {
-                        @Override public void onUpdateListRequested(TextViewAndActionButton view) {
-                            requestUiUpdate();
-                        }
-                    });
+                    getItem(position), this.showIsFavoriteIndicator);
             return layoutTextViewAndActionButton;
         }
 

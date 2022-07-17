@@ -14,9 +14,15 @@
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemWhereAmI">Where am I?</string>
-    <string name="menuItemSaveCurrentLocation">Save current location</string>
-    <string name="menuItemFavorites">Favorites</string>
-    <string name="menuItemHistory">History</string>
+    <string name="menuItemCreateFavorite">Create favorite point:</string>
+    <string name="menuItemCreateFavoriteCurrentPosition">Save current location</string>
+    <string name="menuItemCreateFavoriteAddress">Enter address</string>
+    <string name="menuItemCreateFavoriteCoordinates">Enter coordinates</string>
+    <string name="menuItemCreateFavoriteUrl">Extract from link</string>
+    <string name="menuItemFavoritesAndHistory">Favorites and history:</string>
+    <string name="menuItemOpenFavorites">Favorites</string>
+    <string name="menuItemOpenHistory">History</string>
+    <string name="menuItemMisc">Miscellaneous:</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
@@ -84,6 +90,7 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Enter Coordinates:</string>
+    <string name="labelOptionalName">Name is optional:</string>
     <string name="messageLatitudeMissing">Missing or invalid latitude value.</string>
     <string name="messageLongitudeMissing">Missing or invalid longitude value.</string>
 
@@ -101,15 +108,16 @@
     <string name="messageLinkUrlFormatUnknown">Coordinates url format is unknown. Please enter either an OpenStreetMap, a Google maps or an Apple maps coordinates url.</string>
 
     <!-- route from gpx file dialog -->
-    <string name="routeFromGpxFileDialogTitle">Import route from GPX file</string>
-    <string name="buttonGpxFile">Select GPX file</string>
+    <string name="routeFromGpxFileDialogTitle">Select GPX file</string>
     <string name="layoutRouteName">Route name</string>
-    <string name="switchFilterRedundantPoints">Filter redundant points</string>
-    <string name="messageOpenGpxFileFailed">Could not open the selected GPX file.</string>
-    <string name="messageInvalidGpxFileContents">Invalid GPX file.</string>
-    <string name="messageRoutePointParsingFailed">Failed to parse at least one route point.</string>
-    <string name="messageMultipleTracksFound">The selected GPX file contains multiple routes.</string>
-    <string name="messageNoTracksFound">The selected GPX file contains no route points.</string>
+    <string name="messageGpxRouteNameMissing">Please enter a name for the route.</string>
+    <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
+    <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
+    <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
+    <string name="messageNoGpxTracksFound">The selected GPX file contains no route points.</string>
+    <string name="messageMultipleGpxTracksFound">The selected GPX file contains multiple routes.</string>
+    <string name="messageGpxRoutePointParsingFailed">Failed to parse at least one route point.</string>
+    <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
@@ -141,10 +149,11 @@
     <string name="app_name">WalkersGuide</string>
     <string name="openNavigationDrawer">Open menu</string>
     <string name="closeNavigationDrawer">Close menu</string>
+    <string name="errorFavoriteCreationFailed">Couldn\'t create favorite.</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
-    <string name="labelRoutePosition">Instruction %1$d of %2$d</string>
+    <string name="labelRoutePosition">Instruction %1$d of %2$d, %3$d of %4$s</string>
     <string name="buttonPreviousRouteObject">Previous</string>
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
     <string name="buttonNextRouteObject">Next</string>
@@ -152,11 +161,18 @@
     <!-- more options menu -->
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
+    <string name="menuItemRecalculateOriginalRoute">Recalculate original route</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
     <string name="menuItemLoadPreviousRoute">Load previous route</string>
     <string name="menuItemRouteFromGpxFile">Import from GPX file</string>
-    <string name="menuItemSkipToFirstRoutePoint">Back to first point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
+    <string name="menuItemShowPreciseBearingValues">Show precise bearing values</string>
+    <string name="menuItemShowIntersectionLayoutDetails">Show intersection layout details</string>
+    <string name="menuItemJumpToRoutePoint">Jump to route point</string>
+
+    <!-- JumpToRoutePointDialog -->
+    <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>
+    <string name="buttonScrollToClosestPoint">Scroll to closest point</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
@@ -469,7 +485,7 @@
     <string name="objectMenuItemStreetCourse">Street course</string>
     <string name="objectMenuItemSave">Save</string>
     <string name="objectMenuItemRename">Rename</string>
-    <string name="objectMenuItemResetLayout">Clear</string>
+    <string name="objectMenuItemResetLayout">Remove</string>
     <string name="objectMenuItemAddToFavorites">Add to favorites</string>
     <string name="objectMenuItemRemoveFromFavorites">Remove from favorites</string>
     <string name="objectMenuItemAddToExcludeFromRouting">Exclude from routing</string>
@@ -519,6 +535,7 @@
     <string name="dialogClear">Clear</string>
     <string name="dialogCalculate">Calculate</string>
     <string name="dialogDefault">Default</string>
+    <string name="dialogImport">Import</string>
     <string name="dialogNew">New</string>
     <string name="dialogNow">Now</string>
     <string name="dialogOptions">Options</string>
@@ -533,6 +550,7 @@
     -->
 
     <!-- Point -->
+    <string name="preciseBearingValues">at %1$d°</string>
     <!-- TactilePaving -->
     <string name="tactilePavingNo">No</string>
     <string name="tactilePavingYes">Yes</string>
@@ -685,12 +703,12 @@
     <string name="hikingTrailToString">%1$s\nClosest distance: %2$s</string>
 
     <!-- Route -->
-    <string name="descriptionStreetCourse">Total distance: %1$s\nNumber of intersections: %2$d</string>
+    <string name="descriptionStreetCourse">The route is %1$s long and contains %2$s.</string>
     <string name="messageAlmostArrivedAtRouteStart">Almost at start point</string>
     <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>
     <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
-    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s</string>
+    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s.\nThen: %3$s</string>
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
 
     <!-- RouteObject -->
@@ -709,14 +727,14 @@
     <string name="wayClassTypeUnclassifiedWays">Unclassified ways</string>
 
     <!-- WayClassWeight -->
-    <string name="wayClassWeightVeryPreferable">Strongly preferable</string>
-    <string name="wayClassWeightPreferable">Preferable</string>
-    <string name="wayClassWeightSlightlyPreferable">Slightly preferable</string>
+    <string name="wayClassWeightStronglyPrefer">Strongly prefer</string>
+    <string name="wayClassWeightPrefer">Prefer</string>
+    <string name="wayClassWeightSlightlyPrefer">Slightly prefer</string>
     <string name="wayClassWeightNeutral">Neutral</string>
-    <string name="wayClassWeightSlightlyNegligible">Slightly negligible</string>
-    <string name="wayClassWeightNegligible">Negligible</string>
-    <string name="wayClassWeightVeryNegligible">Strongly negligible</string>
-    <string name="wayClassWeightIgnore">Ignore</string>
+    <string name="wayClassWeightSlightlyAvoid">Slightly avoid</string>
+    <string name="wayClassWeightAvoid">Avoid</string>
+    <string name="wayClassWeightStronglyAvoid">Strongly avoid</string>
+    <string name="wayClassWeightExclude">Exclude</string>
 
 
     <!-- 
@@ -944,6 +962,12 @@
         name="entrance">
         <item quantity="one">1 entrance</item>
         <item quantity="other">%d entrances</item>
+    </plurals>
+
+    <plurals
+        name="intersection">
+        <item quantity="one">1 intersection</item>
+        <item quantity="other">%d intersections</item>
     </plurals>
 
     <plurals

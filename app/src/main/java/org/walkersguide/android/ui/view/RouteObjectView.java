@@ -42,9 +42,9 @@ public class RouteObjectView extends LinearLayout {
 
     private RouteObject routeObject;
 
-    private TextViewAndActionButton layoutRouteSegment, layoutRouteSegmentSelected;
+    private TextView labelSelectedRouteObject;
+    private TextViewAndActionButton layoutRouteSegment;
     private TextViewAndActionButton layoutRoutePoint;
-    private TextView labelRoutePointOptionalDetails;
 
     public RouteObjectView(Context context) {
         super(context);
@@ -60,10 +60,9 @@ public class RouteObjectView extends LinearLayout {
         setOrientation(LinearLayout.VERTICAL);
 
         View view = inflate(context, R.layout.layout_route_object_view, this);
+        labelSelectedRouteObject = (TextView) view.findViewById(R.id.labelSelectedRouteObject);
         layoutRouteSegment = (TextViewAndActionButton) view.findViewById(R.id.layoutRouteSegment);
-        layoutRouteSegmentSelected = (TextViewAndActionButton) view.findViewById(R.id.layoutRouteSegmentSelected);
         layoutRoutePoint = (TextViewAndActionButton) view.findViewById(R.id.layoutRoutePoint);
-        labelRoutePointOptionalDetails = (TextView) view.findViewById(R.id.labelRoutePointOptionalDetails);
 
         reset();
     }
@@ -74,19 +73,20 @@ public class RouteObjectView extends LinearLayout {
 
     public void reset() {
         this.routeObject = null;
+        this.labelSelectedRouteObject.setVisibility(View.GONE);
         this.layoutRouteSegment.reset();
         this.layoutRouteSegment.setVisibility(View.GONE);
-        this.layoutRouteSegmentSelected.reset();
-        this.layoutRouteSegmentSelected.setVisibility(View.GONE);
         this.layoutRoutePoint.reset();
-        this.labelRoutePointOptionalDetails.setVisibility(View.GONE);
     }
 
     public void configureAsListItem(RouteObject object, boolean isSelected) {
         this.reset();
         if (object != null) {
             this.routeObject = object;
-            this.configureRouteObjectView(isSelected);
+            if (isSelected) {
+                this.labelSelectedRouteObject.setVisibility(View.VISIBLE);
+            }
+            this.configureRouteObjectView();
         }
     }
 
@@ -94,28 +94,15 @@ public class RouteObjectView extends LinearLayout {
         this.reset();
         if (object != null) {
             this.routeObject = object;
-            this.configureRouteObjectView(false);
-
-            String optionalPointDetails = object.formatOptionalPointDetails();
-            if (! TextUtils.isEmpty(optionalPointDetails)
-                    && BuildConfig.DEBUG) {
-                labelRoutePointOptionalDetails.setText(optionalPointDetails);
-                labelRoutePointOptionalDetails.setVisibility(View.VISIBLE);
-            }
+            this.configureRouteObjectView();
         }
     }
 
-    private void configureRouteObjectView(boolean isSelected) {
+    private void configureRouteObjectView() {
         if (! this.routeObject.getIsFirstRouteObject()) {
-            if (isSelected) {
-                this.layoutRouteSegmentSelected.configureAsSingleObject(
-                        this.routeObject.getSegment(), this.routeObject.formatSegmentInstruction());
-                this.layoutRouteSegmentSelected.setVisibility(View.VISIBLE);
-            } else {
-                this.layoutRouteSegment.configureAsSingleObject(
-                        this.routeObject.getSegment(), this.routeObject.formatSegmentInstruction());
-                this.layoutRouteSegment.setVisibility(View.VISIBLE);
-            }
+            this.layoutRouteSegment.configureAsSingleObject(
+                    this.routeObject.getSegment(), this.routeObject.formatSegmentInstruction());
+            this.layoutRouteSegment.setVisibility(View.VISIBLE);
         }
         this.layoutRoutePoint.configureAsSingleObject(
                 this.routeObject.getPoint(),

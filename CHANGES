@@ -3,6 +3,22 @@ Change Log
 
 
 
+v2.1.0: 2022-07-17
+------------------
+
+Router tab:
+- Basic GPX file import
+- Added dialog to jump to any route object
+- Show elapsed / total distance in instruction label
+- New option to show the exact bearing in degree to the next route point
+
+Other:
+- Additional options to create favorite points from the apps main menu
+- Allow negative latitude / longitude values in the "Enter coordinates" dialog
+- Several small bug fixes in the plan route dialog
+
+
+
 v2.0.0: 2022-04-17
 ------------------
 

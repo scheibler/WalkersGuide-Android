@@ -45,6 +45,7 @@ import org.walkersguide.android.data.object_with_id.Route;
 import de.schildbach.pte.NetworkId;
 import com.google.gson.GsonBuilder;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 
 
 public class SettingsManager {
@@ -63,6 +64,8 @@ public class SettingsManager {
     // p2p route settings
     public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
     public static final boolean DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT = true;
+    public static final boolean DEFAULT_SHOW_PRECISE_BEARING_VALUES = false;
+    public static final boolean DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS = false;
 
     // keys
     // ui settings
@@ -92,6 +95,8 @@ public class SettingsManager {
     private static final String KEY_WAY_CLASS_SETTINGS = "wayClassWeightSettings";
     private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
     private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
+    private static final String KEY_SHOW_PRECISE_BEARING_VALUES = "showPreciseBearingValues";
+    private static final String KEY_SHOW_INTERSECTION_LAYOUT_DETAILS = "showIntersectionLayoutDetails";
 
 
     // class variables
@@ -479,15 +484,29 @@ public class SettingsManager {
     }
 
     public WayClassWeightSettings getWayClassWeightSettings() {
+        // load
         WayClassWeightSettings wayClassWeightSettings = null;
         try {
             wayClassWeightSettings = gson.fromJson(
                     settings.getString(KEY_WAY_CLASS_SETTINGS, ""),
                     WayClassWeightSettings.class);
         } catch (ClassCastException e) {}
+        // check
+        boolean resetToDefaults = false;
         if (wayClassWeightSettings == null) {
+            resetToDefaults = true;
+        } else {
+            for (WayClassType type : WayClassType.values()) {
+                if (wayClassWeightSettings.getWeightFor(type) == null) {
+                    resetToDefaults = true;
+                    break;
+                }
+            }
+        }
+        if (resetToDefaults) {
             wayClassWeightSettings = WayClassWeightSettings.getDefault();
         }
+        // return
         return wayClassWeightSettings;
     }
 
@@ -522,6 +541,26 @@ public class SettingsManager {
     public void setAutoSkipToNextRoutePoint(boolean newValue) {
         Editor editor = settings.edit();
         editor.putBoolean(KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT, newValue);
+        editor.apply();
+    }
+
+    public boolean getShowPreciseBearingValues() {
+        return settings.getBoolean(KEY_SHOW_PRECISE_BEARING_VALUES, DEFAULT_SHOW_PRECISE_BEARING_VALUES);
+    }
+
+    public void setShowPreciseBearingValues(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_SHOW_PRECISE_BEARING_VALUES, newValue);
+        editor.apply();
+    }
+
+    public boolean getShowIntersectionLayoutDetails() {
+        return settings.getBoolean(KEY_SHOW_INTERSECTION_LAYOUT_DETAILS, DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS);
+    }
+
+    public void setShowIntersectionLayoutDetails(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_SHOW_INTERSECTION_LAYOUT_DETAILS, newValue);
         editor.apply();
     }
 

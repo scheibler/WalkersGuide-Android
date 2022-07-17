@@ -29,6 +29,7 @@ import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import android.text.InputType;
 import org.json.JSONException;
+import android.text.TextUtils;
 
 
 public class EnterCoordinatesDialog extends DialogFragment {
@@ -46,6 +47,7 @@ public class EnterCoordinatesDialog extends DialogFragment {
 
     // dialog
     private EditTextAndClearInputButton layoutLatitude, layoutLongitude;
+    private EditTextAndClearInputButton layoutOptionalName;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         // custom view
@@ -55,7 +57,7 @@ public class EnterCoordinatesDialog extends DialogFragment {
 
         layoutLatitude = (EditTextAndClearInputButton) view.findViewById(R.id.layoutLatitude);
         layoutLatitude.setInputType(
-                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
         layoutLatitude.setLabelText(
                 getResources().getString(R.string.labelGPSLatitude));
         layoutLatitude.setEditorAction(
@@ -68,10 +70,21 @@ public class EnterCoordinatesDialog extends DialogFragment {
 
         layoutLongitude = (EditTextAndClearInputButton) view.findViewById(R.id.layoutLongitude);
         layoutLongitude.setInputType(
-                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
         layoutLongitude.setLabelText(
                 getResources().getString(R.string.labelGPSLongitude));
         layoutLongitude.setEditorAction(
+                EditorInfo.IME_ACTION_NEXT,
+                new EditTextAndClearInputButton.OnSelectedActionClickListener() {
+                    @Override public void onSelectedActionClicked() {
+                        layoutOptionalName.requestFocus();
+                    }
+                });
+
+        layoutOptionalName = (EditTextAndClearInputButton) view.findViewById(R.id.layoutOptionalName);
+        layoutOptionalName.setLabelText(
+                getResources().getString(R.string.labelOptionalName));
+        layoutOptionalName.setEditorAction(
                 EditorInfo.IME_ACTION_DONE,
                 new EditTextAndClearInputButton.OnSelectedActionClickListener() {
                     @Override public void onSelectedActionClicked() {
@@ -169,6 +182,14 @@ public class EnterCoordinatesDialog extends DialogFragment {
         } catch (JSONException e) {}
         if (newLocation != null
                 && DatabaseProfile.allPoints().add(newLocation)) {
+
+            // rename if a name was given
+            String newName = layoutOptionalName.getInputText();
+            if (! TextUtils.isEmpty(newName)) {
+                newLocation.rename(newName);
+            }
+
+            // push results and dismiss dialog
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, newLocation);
             getParentFragmentManager().setFragmentResult(REQUEST_ENTER_COORDINATES, result);

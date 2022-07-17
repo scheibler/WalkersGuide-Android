@@ -6,22 +6,22 @@ import org.walkersguide.android.util.GlobalInstance;
 
 public enum WayClassWeight {
 
-    VERY_PREFERABLE(
-            0.25, GlobalInstance.getStringResource(R.string.wayClassWeightVeryPreferable)),
-    PREFERABLE(
-            0.5, GlobalInstance.getStringResource(R.string.wayClassWeightPreferable)),
-    SLIGHTLY_PREFERABLE(
-            0.75, GlobalInstance.getStringResource(R.string.wayClassWeightSlightlyPreferable)),
+    STRONGLY_PREFER(
+            0.25, GlobalInstance.getStringResource(R.string.wayClassWeightStronglyPrefer)),
+    PREFER(
+            0.5, GlobalInstance.getStringResource(R.string.wayClassWeightPrefer)),
+    SLIGHTLY_PREFER(
+            0.75, GlobalInstance.getStringResource(R.string.wayClassWeightSlightlyPrefer)),
     NEUTRAL(
             1.0, GlobalInstance.getStringResource(R.string.wayClassWeightNeutral)),
-    SLIGHTLY_NEGLIGIBLE(
-            1.33, GlobalInstance.getStringResource(R.string.wayClassWeightSlightlyNegligible)),
-    NEGLIGIBLE(
-            2.0, GlobalInstance.getStringResource(R.string.wayClassWeightNegligible)),
-    VERY_NEGLIGIBLE(
-            4.0, GlobalInstance.getStringResource(R.string.wayClassWeightVeryNegligible)),
-    IGNORE(
-            -1.0, GlobalInstance.getStringResource(R.string.wayClassWeightIgnore));
+    SLIGHTLY_AVOID(
+            1.33, GlobalInstance.getStringResource(R.string.wayClassWeightSlightlyAvoid)),
+    AVOID(
+            2.0, GlobalInstance.getStringResource(R.string.wayClassWeightAvoid)),
+    STRONGLY_AVOID(
+            4.0, GlobalInstance.getStringResource(R.string.wayClassWeightStronglyAvoid)),
+    EXCLUDE(
+            -1.0, GlobalInstance.getStringResource(R.string.wayClassWeightExclude));
 
 
     public double weight;

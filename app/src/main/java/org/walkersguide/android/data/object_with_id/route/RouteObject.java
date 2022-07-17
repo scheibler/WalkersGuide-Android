@@ -112,45 +112,6 @@ public class RouteObject implements Serializable {
         }
     }
 
-    public String formatOptionalPointDetails() {
-        String message = "";
-        if (this.point instanceof Intersection) {
-            // add intersection structure
-            Intersection intersection = (Intersection) this.point;
-
-            Bearing inverseBearingOfPreviousRouteSegment = null;
-            ArrayList<IntersectionSegment> relevantIntersectionSegmentList = new ArrayList<IntersectionSegment>();
-            for (IntersectionSegment intersectionSegment : intersection.getSegmentList()) {
-                if (intersectionSegment.isPartOfPreviousRouteSegment()) {
-                    inverseBearingOfPreviousRouteSegment = intersectionSegment.getBearing().inverse();
-                } else {
-                    relevantIntersectionSegmentList.add(intersectionSegment);
-                }
-            }
-
-            if (inverseBearingOfPreviousRouteSegment != null
-                    && ! relevantIntersectionSegmentList.isEmpty()) {
-                Collections.sort(
-                        relevantIntersectionSegmentList,
-                        // bearing offset = 157 -> sort the ways, which are strongly to the left of the user, to the top of the list
-                        new ObjectWithId.SortByBearingRelativeTo(
-                            inverseBearingOfPreviousRouteSegment, Angle.Quadrant.Q3.max, true));
-
-                ArrayList<String> formattedRelevantIntersectionSegmentList = new ArrayList<String>();
-                for (IntersectionSegment intersectionSegment : relevantIntersectionSegmentList) {
-                    formattedRelevantIntersectionSegmentList.add(
-                            String.format(
-                                "%1$s: %2$s",
-                                intersectionSegment.getBearing().relativeTo(inverseBearingOfPreviousRouteSegment).getDirection(),
-                                intersectionSegment.formatNameAndSubType())
-                            );
-                }
-                message = TextUtils.join("\n", formattedRelevantIntersectionSegmentList);
-            }
-        }
-        return message;
-    }
-
 	@Override public int hashCode() {
         return this.point.hashCode();
 	}

@@ -1,5 +1,8 @@
 package org.walkersguide.android.data.object_with_id;
 
+import android.content.Intent;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.database.profile.FavoritesProfile;
 
@@ -247,23 +250,39 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
 
     /**
-     * super class methods
+     * include or exclude from route calculation
      */
-
-    @Override public FavoritesProfile getDefaultFavoritesProfile() {
-        return null;
-    }
+    public static final String ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED = "excludedFromRoutingStatusChanged";
 
     public boolean isExcludedFromRouting() {
         return DatabaseProfile.excludedRoutingSegments().contains(this);
     }
 
     public boolean excludeFromRouting() {
-        return DatabaseProfile.excludedRoutingSegments().add(this);
+        boolean success = DatabaseProfile.excludedRoutingSegments().add(this);
+        if (success) {
+            Intent excludedFromRoutingStatusChangedIntent = new Intent(ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
+            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(excludedFromRoutingStatusChangedIntent);
+        }
+        return success;
     }
 
     public boolean includeIntoRouting() {
-        return DatabaseProfile.excludedRoutingSegments().remove(this);
+        boolean success = DatabaseProfile.excludedRoutingSegments().remove(this);
+        if (success) {
+            Intent excludedFromRoutingStatusChangedIntent = new Intent(ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
+            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(excludedFromRoutingStatusChangedIntent);
+        }
+        return success;
+    }
+
+
+    /**
+     * super class methods
+     */
+
+    @Override public FavoritesProfile getDefaultFavoritesProfile() {
+        return null;
     }
 
     @Override public String toString() {

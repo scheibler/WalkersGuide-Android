@@ -5,29 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <TextView
+        android:id="@+id/labelSelectedRouteObject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:text="@string/labelSelectedRouteObject"
+        android:theme="@style/HeadingTextView" />
+
     <org.walkersguide.android.ui.view.TextViewAndActionButton
         android:id="@+id/layoutRouteSegment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <org.walkersguide.android.ui.view.TextViewAndActionButton
-        android:id="@+id/layoutRouteSegmentSelected"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:prefix="@string/labelSelectedRouteObject" />
-
-    <org.walkersguide.android.ui.view.TextViewAndActionButton
         android:id="@+id/layoutRoutePoint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp" />
-
-    <TextView
-        android:id="@+id/labelRoutePointOptionalDetails"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        android:layout_marginTop="5dp"
-        android:focusable="true" />
 
 </merge>

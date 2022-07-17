@@ -25,10 +25,10 @@ import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
 import android.widget.Toast;
 import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.ui.activity.ToolbarActivity;
 
 
 public class RenameObjectDialog extends DialogFragment {
-    public static final String REQUEST_RENAME_OBJECT_SUCCESSFUL = "renameObjectSuccessful";
 
 
     // instance constructors
@@ -138,9 +138,6 @@ public class RenameObjectDialog extends DialogFragment {
 
     private void tryToRenameObject() {
         if (selectedObject.rename(layoutNewName.getInputText())) {
-            // send result via fragment result api and dismiss
-            Bundle result = new Bundle();
-            getParentFragmentManager().setFragmentResult(REQUEST_RENAME_OBJECT_SUCCESSFUL, result);
             dismiss();
         } else {
             Toast.makeText(

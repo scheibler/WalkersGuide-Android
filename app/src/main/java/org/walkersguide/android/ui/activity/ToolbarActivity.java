@@ -61,7 +61,7 @@ import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 
 
-public abstract class ToolbarActivity extends AppCompatActivity implements FragmentResultListener {
+public abstract class ToolbarActivity extends AppCompatActivity {
 
     public abstract int getLayoutResourceId();
 
@@ -86,13 +86,6 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
         positionManagerInstance = PositionManager.getInstance();
 		settingsManagerInstance = SettingsManager.getInstance();
 
-        getSupportFragmentManager()
-            .setFragmentResultListener(
-                    RenameObjectDialog.REQUEST_RENAME_OBJECT_SUCCESSFUL, this, this);
-        getSupportFragmentManager()
-            .setFragmentResultListener(
-                    SaveCurrentLocationDialog.REQUEST__LOCATION_SAVED_SUCCESSFULLY, this, this);
-
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
@@ -113,13 +106,6 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
                     .show(getSupportFragmentManager(), "LocationDetailsDialog");
             }
         });
-    }
-
-    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(RenameObjectDialog.REQUEST_RENAME_OBJECT_SUCCESSFUL)
-                || requestKey.equals(SaveCurrentLocationDialog.REQUEST__LOCATION_SAVED_SUCCESSFULLY)) {
-            ToolbarActivity.this.recreate();
-        }
     }
 
     public Toolbar getToolbar() {
@@ -294,9 +280,6 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
     /**
      * broadcast receiver
      */
-    private static final int PERMISSION_REQUEST_ENABLE_GPS = 1;
-    private static final int PERMISSION_REQUEST_APP_SETTINGS = 2;
-    private static final int PERMISSION_REQUEST_FOREGROUND_LOCATION = 3;
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -377,6 +360,12 @@ public abstract class ToolbarActivity extends AppCompatActivity implements Fragm
             }
         }
     };
+
+
+    // acquire permission results
+    private static final int PERMISSION_REQUEST_ENABLE_GPS = 1;
+    private static final int PERMISSION_REQUEST_APP_SETTINGS = 2;
+    private static final int PERMISSION_REQUEST_FOREGROUND_LOCATION = 3;
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

@@ -1,5 +1,8 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentResultListener;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -40,9 +43,16 @@ import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.database.profile.FavoritesProfile;
 import timber.log.Timber;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
+import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
+import org.walkersguide.android.ui.dialog.create.EnterCoordinatesDialog;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.point.GPS;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 
 
-public class MainActivity extends TabLayoutActivity {
+public class MainActivity extends TabLayoutActivity implements FragmentResultListener {
 
     public static void loadRoute(Context context, Route route) {
         SettingsManager settingsManagerInstance = SettingsManager.getInstance();
@@ -78,6 +88,17 @@ public class MainActivity extends TabLayoutActivity {
 		super.onCreate(savedInstanceState);
 		settingsManagerInstance = SettingsManager.getInstance();
 
+        // fragment result listener
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    EnterAddressDialog.REQUEST_ENTER_ADDRESS, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES, this, this);
+
         // navigation drawer
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         navigationView = (NavigationView) findViewById(R.id.navigationView);
@@ -92,12 +113,21 @@ public class MainActivity extends TabLayoutActivity {
                 } else if (menuItem.getItemId() == R.id.menuItemWhereAmI) {
                     WhereAmIDialog.newInstance()
                         .show(getSupportFragmentManager(), "WhereAmIDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemSaveCurrentLocation) {
+                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCurrentPosition) {
                     SaveCurrentLocationDialog.newInstance()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemFavorites) {
+                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteAddress) {
+                    EnterAddressDialog.newInstance()
+                        .show(getSupportFragmentManager(), "EnterAddressDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCoordinates) {
+                    EnterCoordinatesDialog.newInstance()
+                        .show(getSupportFragmentManager(), "EnterCoordinatesDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteUrl) {
+                    PointFromCoordinatesLinkDialog.newInstance()
+                        .show(getSupportFragmentManager(), "PointFromCoordinatesLinkDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemOpenFavorites) {
                     PointAndRouteTabActivity.showFavorites(MainActivity.this);
-                } else if (menuItem.getItemId() == R.id.menuItemHistory) {
+                } else if (menuItem.getItemId() == R.id.menuItemOpenHistory) {
                     PointAndRouteTabActivity.showHistory(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemSettings) {
                     FragmentContainerActivity.showSettings(MainActivity.this);
@@ -142,6 +172,26 @@ public class MainActivity extends TabLayoutActivity {
             drawerLayout.closeDrawers();
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)
+                || requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)
+                || requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
+            Point newFavorite = null;
+            if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
+                newFavorite = (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
+            } else if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
+                newFavorite = (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS);
+            } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
+                newFavorite = (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES);
+            }
+            if (newFavorite == null || ! newFavorite.addToFavorites()) {
+                SimpleMessageDialog.newInstance(
+                        getResources().getString(R.string.errorFavoriteCreationFailed))
+                    .show(getSupportFragmentManager(), "SimpleMessageDialog");
+            }
         }
     }
 
