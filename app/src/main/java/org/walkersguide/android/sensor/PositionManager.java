@@ -46,6 +46,7 @@ import android.annotation.SuppressLint;
 import java.util.Locale;
 import org.walkersguide.android.util.Helper;
 import timber.log.Timber;
+import java.util.function.Consumer;
 
 
 public class PositionManager implements android.location.LocationListener {
@@ -130,9 +131,19 @@ public class PositionManager implements android.location.LocationListener {
                 LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(locationPermissionDeniedIntent);
 
             } else {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);
                 gpsFixFound = false;
+
+                // get the last known location
+                Location lastKnownLocationObject = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (lastKnownLocationObject != null) {
+                    processNewLocationObject(lastKnownLocationObject);
+                }
+
+                // listen for new locations
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER, 0, 0, this);
+                locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER, 10000, 0, this);
             }
 
             /*
@@ -203,6 +214,14 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     @Override public void onLocationChanged(Location newLocationObject) {
+        processNewLocationObject(newLocationObject);
+    }
+
+    @Override public void onStatusChanged(String provider, int status, Bundle extras) {}
+    @Override public void onProviderEnabled(String provider) {}
+    @Override public void onProviderDisabled(String provider) {}
+
+    private void processNewLocationObject(Location newLocationObject) {
         // try to create gps point from location object
         GPS.Builder gpsBuilder = new GPS.Builder(
                 newLocationObject.getLatitude(), newLocationObject.getLongitude());
@@ -266,10 +285,6 @@ public class PositionManager implements android.location.LocationListener {
             }
         }
     }
-
-    @Override public void onStatusChanged(String provider, int status, Bundle extras) {}
-    @Override public void onProviderEnabled(String provider) {}
-    @Override public void onProviderDisabled(String provider) {}
 
     private static boolean isBetterLocation(GPS currentLocation, GPS newLocation) {
         if (newLocation == null) {

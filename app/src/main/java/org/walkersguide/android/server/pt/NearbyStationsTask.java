@@ -70,9 +70,9 @@ public class NearbyStationsTask extends ServerTask {
                 nearbyResult = provider.queryNearbyLocations(
                         EnumSet.of(LocationType.STATION),
                         new Location(LocationType.COORD, null, this.position),
-                        1000, 0);
+                        0, 0);
             } catch (IOException e) {
-                Timber.e("e: %1$s", e.getMessage());
+                Timber.e("e: %1$s", e.toString());
                 nearbyResult = null;
             } finally {
                 if (nearbyResult == null) {
@@ -81,6 +81,7 @@ public class NearbyStationsTask extends ServerTask {
                     stationList = new ArrayList<Location>();
                     for (Location location : nearbyResult.locations) {
                         if (! stationList.contains(location)) {
+                            Timber.d("  %1$s", location.toString());
                             stationList.add(location);
                         }
                     }

@@ -132,6 +132,16 @@ public abstract class ObjectWithId implements Serializable {
         return false;
     }
 
+    // remove from database
+
+    public boolean removeFromDatabase() {
+        return AccessDatabase
+            .getInstance()
+            .removeObject(this);
+    }
+
+    // super class methods
+
 	@Override public int hashCode() {
         return new Long(this.id).hashCode();
 	}

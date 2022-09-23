@@ -82,7 +82,7 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
     @Override public void requestUiUpdate() {
         this.prepareRequest();
         if (objectList != null) {
-            super.populateUiAfterRequestWasSuccessful(null, objectList, true);
+            super.populateUiAfterRequestWasSuccessful(null, objectList, true, false);
             successfulViewPopulationFinished();
         } else {
             super.populateUiAfterRequestFailed("");

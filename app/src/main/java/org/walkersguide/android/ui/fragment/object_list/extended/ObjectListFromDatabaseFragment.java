@@ -319,7 +319,9 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                                 GlobalInstance.getStringResource(R.string.labelHeadingSecondLineSortMethod),
                                 request.getSortMethod().toString()),
                             objectList,
-                            ! (request.getProfile() instanceof FavoritesProfile));
+                            ! (request.getProfile() instanceof FavoritesProfile),
+                               getProfileGroup() == ProfileGroup.POINT_HISTORY
+                            || getProfileGroup() == ProfileGroup.ROUTE_HISTORY);
                 }
             });
         });

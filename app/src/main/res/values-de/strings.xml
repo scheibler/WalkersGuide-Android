@@ -814,7 +814,6 @@
     <string name="errorWgReqBadRequest">WalkersGuide server: Ungültige Anfrageparameter</string>
     <string name="errorWgReqRequestInProgress">Eine frühere Anfrage an den Server wird noch verarbeitet. Bitte später erneut versuchen.</string>
     <string name="errorWgReqInternalServerError">Interner Serverfehler.</string>
-    <string name="errorWgReqBadGateway">Der ÖPNV Abfrageserver ist nicht erreichbar.</string>
     <string name="errorWgReqServiceUnavailableOrBusy">Der Server ist ausgelastet. Bitte später erneut versuchen.</string>
     <string name="errorWgReqNoPOITagsSelected">Keine Punktkategorien ausgewählt.</string>
     <string name="errorWgReqMapLoadingFailed">Die ausgewählte Karte wird vom Server nicht angeboten oder ist veraltet.</string>

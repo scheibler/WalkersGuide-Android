@@ -14,7 +14,6 @@ public class WgException extends ServerException {
     public static final int RC_REQUEST_IN_PROGRESS = 429;
     // errors caused by the server
     public static final int RC_INTERNAL_SERVER_ERROR = 500;
-    public static final int RC_BAD_GATEWAY = 502;
     public static final int RC_SERVICE_UNAVAILABLE = 503;
     // walkersguide specific errors
     public static final int RC_CANCELLED_BY_CLIENT = 550;
@@ -60,8 +59,6 @@ public class WgException extends ServerException {
             // caused by server
             case RC_INTERNAL_SERVER_ERROR:
                 return GlobalInstance.getStringResource(R.string.errorWgReqInternalServerError);
-            case RC_BAD_GATEWAY:
-                return GlobalInstance.getStringResource(R.string.errorWgReqBadGateway);
             case RC_SERVICE_UNAVAILABLE:
                 return GlobalInstance.getStringResource(R.string.errorWgReqServiceUnavailableOrBusy);
             // walkersguide custom errorWgReqs

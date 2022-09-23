@@ -519,7 +519,8 @@ public abstract class ObjectListFragment extends DialogFragment
     }
 
     public void populateUiAfterRequestWasSuccessful(String headingSecondLine,
-            ArrayList<? extends ObjectWithId> objectList, boolean showIsFavoriteIndicator) {
+            ArrayList<? extends ObjectWithId> objectList,
+            boolean showIsFavoriteIndicator, boolean showMenuItemRemoveObject) {
         labelHeading.setTag(headingSecondLine);
         swipeRefreshListView.setRefreshing(false);
         swipeRefreshEmptyTextView.setRefreshing(false);
@@ -527,7 +528,8 @@ public abstract class ObjectListFragment extends DialogFragment
         // fill list view
         listViewObject.setAdapter(
                 new ObjectWithIdAdapter(
-                    ObjectListFragment.this.getContext(), objectList, showIsFavoriteIndicator));
+                    ObjectListFragment.this.getContext(), objectList,
+                    showIsFavoriteIndicator, showMenuItemRemoveObject));
         labelEmptyListView.setText(getEmptyObjectListMessage());
 
         // list position
@@ -551,7 +553,8 @@ public abstract class ObjectListFragment extends DialogFragment
 
     public void populateUiAndShowMoreResultsFooterAfterRequestWasSuccessful(
             String headingSecondLine, ArrayList<? extends ObjectWithId> objectList) {
-        populateUiAfterRequestWasSuccessful(headingSecondLine, objectList, true);
+        // only poi profiles call this function for now
+        populateUiAfterRequestWasSuccessful(headingSecondLine, objectList, true, false);
 
         // more results
         if (getListAdapter().isEmpty()) {
@@ -614,15 +617,16 @@ public abstract class ObjectListFragment extends DialogFragment
 
         private Context context;
         private ArrayList<? extends ObjectWithId> objectList, filteredObjectList;
-        private boolean showIsFavoriteIndicator;
+        private boolean showIsFavoriteIndicator, showMenuItemRemoveObject;
         private Comparator<ObjectWithId> listComparator;
 
-        public ObjectWithIdAdapter(Context context,
-                ArrayList<? extends ObjectWithId> objectList, boolean showIsFavoriteIndicator) {
+        public ObjectWithIdAdapter(Context context, ArrayList<? extends ObjectWithId> objectList,
+                boolean showIsFavoriteIndicator, boolean showMenuItemRemoveObject) {
             this.context = context;
             this.objectList = objectList;
             this.filteredObjectList = populateFilteredObjectList();
             this.showIsFavoriteIndicator = showIsFavoriteIndicator;
+            this.showMenuItemRemoveObject = showMenuItemRemoveObject;
             this.listComparator = null;
         }
 
@@ -648,9 +652,22 @@ public abstract class ObjectListFragment extends DialogFragment
                 });
             }
 
+            TextViewAndActionButton.OnLayoutResetListener listenerRemoveObject = null;
+            if (this.showMenuItemRemoveObject) {
+                listenerRemoveObject = new TextViewAndActionButton.OnLayoutResetListener() {
+                    @Override public void onLayoutReset(TextViewAndActionButton view) {
+                        ObjectWithId objectToRemove = view.getObject();
+                        if (objectToRemove != null) {
+                            objectToRemove.removeFromDatabase();
+                            requestUiUpdate();
+                        }
+                    }
+                };
+            }
+
             layoutTextViewAndActionButton.setAutoUpdate(autoUpdate);
             layoutTextViewAndActionButton.configureAsListItem(
-                    getItem(position), this.showIsFavoriteIndicator);
+                    getItem(position), this.showIsFavoriteIndicator, listenerRemoveObject);
             return layoutTextViewAndActionButton;
         }
 

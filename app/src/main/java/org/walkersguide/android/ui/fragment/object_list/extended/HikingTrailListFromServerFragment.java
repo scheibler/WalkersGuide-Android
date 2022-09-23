@@ -223,8 +223,7 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
                     GlobalInstance.getStringResource(R.string.labelHeadingSecondLineRadius),
                     GlobalInstance.getPluralResource(
                         R.plurals.kiloMeter, HikingTrailsTask.DEFAULT_TRAIL_RADIUS / 1000)),
-                hikingTrailList,
-                false);
+                hikingTrailList, false, false);
     }
 
 }

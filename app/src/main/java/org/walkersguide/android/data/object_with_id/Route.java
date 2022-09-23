@@ -189,6 +189,9 @@ public class Route extends ObjectWithId implements Serializable {
                     new RouteObject(
                         jsonRouteObjectList.getJSONObject(j)));
         }
+        if (this.routeObjectList.isEmpty()) {
+            throw new JSONException("Parsing error: Route is empty");
+        }
     }
 
     public String getOriginalName() {

@@ -209,7 +209,7 @@ public class TextViewAndActionButton extends LinearLayout {
         this.autoUpdate = newState;
     }
 
-    public void configureAsListItem(ObjectWithId object, boolean showIsFavoriteIndicator) {
+    public void configureAsListItem(ObjectWithId object, boolean showIsFavoriteIndicator, OnLayoutResetListener listener) {
         this.reset();
         if (object != null) {
             this.objectWithId = object;
@@ -217,6 +217,7 @@ public class TextViewAndActionButton extends LinearLayout {
                 this.isFavoriteModeVisible = View.VISIBLE;
                 this.isFavoriteModeHide = View.INVISIBLE;
             }
+            this.onLayoutResetListener = listener;
             this.setLabelAndButtonText(object.toString());
         }
     }

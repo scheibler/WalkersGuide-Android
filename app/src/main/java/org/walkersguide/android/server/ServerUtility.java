@@ -115,7 +115,11 @@ public class ServerUtility {
             Timber.d("%1$d -- Request: %2$s", returnCode, queryURL);
             if (returnCode != HttpsURLConnection.HTTP_OK) {
                 cleanUp(connection, null);
-                throw createException(exceptionClass, returnCode);
+                if (returnCode == HttpsURLConnection.HTTP_BAD_GATEWAY) {
+                    throw createException(exceptionClass, ServerException.RC_REQUEST_FAILED);
+                } else {
+                    throw createException(exceptionClass, returnCode);
+                }
             }
         } catch (IOException e) {
             Timber.e("Server connection failed: %1$s", e.getMessage());

@@ -179,6 +179,21 @@ public class AccessDatabase {
         }
     }
 
+    public boolean removeObject(ObjectWithId object) {
+        int numberOfRemovedRows = 0;
+        if (object != null) {
+            // remove from all database profiles
+            removeObjectFromDatabaseProfile(object, null);
+            // remove from objects table
+            numberOfRemovedRows = database.delete(
+                    SQLiteHelper.TABLE_OBJECTS,
+                    String.format(
+                        Locale.ROOT, "%1$s = ?", SQLiteHelper.OBJECTS_ID),
+                    new String[] { String.valueOf(object.getId()) });
+        }
+        return numberOfRemovedRows > 0 ? true : false;
+    }
+
 
     /**
      * object mapping
@@ -387,13 +402,24 @@ public class AccessDatabase {
     }
 
     public boolean removeObjectFromDatabaseProfile(ObjectWithId object, DatabaseProfile profile) {
-        int numberOfRemovedRows = database.delete(
-                SQLiteHelper.TABLE_MAPPING,
-                String.format(
-                    Locale.ROOT,
-                    "%1$s = ? AND %2$s = ?", SQLiteHelper.MAPPING_PROFILE_ID, SQLiteHelper.MAPPING_OBJECT_ID),
-                new String[] {
-                    String.valueOf(profile.getId()), String.valueOf(object.getId())});
+        int numberOfRemovedRows = 0;
+        if (object != null) {
+            if (profile != null) {
+                numberOfRemovedRows = database.delete(
+                        SQLiteHelper.TABLE_MAPPING,
+                        String.format(
+                            Locale.ROOT,
+                            "%1$s = ? AND %2$s = ?", SQLiteHelper.MAPPING_PROFILE_ID, SQLiteHelper.MAPPING_OBJECT_ID),
+                        new String[] {
+                            String.valueOf(profile.getId()), String.valueOf(object.getId())});
+            } else {
+                numberOfRemovedRows = database.delete(
+                        SQLiteHelper.TABLE_MAPPING,
+                        String.format(
+                            Locale.ROOT, "%1$s = ?", SQLiteHelper.MAPPING_OBJECT_ID),
+                        new String[] { String.valueOf(object.getId()) });
+            }
+        }
         return numberOfRemovedRows > 0 ? true : false;
     }
 

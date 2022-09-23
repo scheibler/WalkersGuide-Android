@@ -809,7 +809,6 @@
     <string name="errorWgReqBadRequest">WalkersGuide server: Invalid request parameters.</string>
     <string name="errorWgReqRequestInProgress">A prior request is still running. Please retry later.</string>
     <string name="errorWgReqInternalServerError">Internal server error.</string>
-    <string name="errorWgReqBadGateway">The public transport query server is not accessible.</string>
     <string name="errorWgReqServiceUnavailableOrBusy">The server is busy. Please retry later.</string>
     <string name="errorWgReqNoPOITagsSelected">No Point categories selected.</string>
     <string name="errorWgReqMapLoadingFailed">The selected map is either not available on the server or outdated.</string>

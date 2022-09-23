@@ -137,8 +137,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             int newIndex = bundle.getInt(JumpToRoutePointDialog.EXTRA_ROUTE_POINT_INDEX, -1);
             if (route != null && newIndex >= 0) {
                 route.jumpToRouteObjectAt(newIndex);
-                updateUiExceptDistanceLabel();
-                updateDistanceAndBearingLabel(route.getCurrentRouteObject());
+                updateUi();
             }
         }
     }
@@ -237,14 +236,14 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             settingsManagerInstance.setShowPreciseBearingValues(
                     ! settingsManagerInstance.getShowPreciseBearingValues());
             if (route != null) {
-                updateDistanceAndBearingLabel(route.getCurrentRouteObject());
+                updateUi();
             }
 
         } else if (item.getItemId() == R.id.menuItemShowIntersectionLayoutDetails) {
             settingsManagerInstance.setShowIntersectionLayoutDetails(
                     ! settingsManagerInstance.getShowIntersectionLayoutDetails());
             if (route != null) {
-                updateUiExceptDistanceLabel();
+                updateUi();
             }
 
         } else if (item.getItemId() == R.id.menuItemJumpToRoutePoint) {
@@ -333,7 +332,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             labelDistanceAndBearing.setVisibility(View.VISIBLE);
             buttonPreviousRouteObject.setVisibility(View.VISIBLE);
             buttonNextRouteObject.setVisibility(View.VISIBLE);
-            updateUiExceptDistanceLabel();
+            updateUi();
 
             // broadcast filter
             IntentFilter filter = new IntentFilter();
@@ -362,11 +361,12 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             ttsWrapperInstance.announce(
                     route.getCurrentRouteObject().formatSegmentInstruction());
         }
-        updateUiExceptDistanceLabel();
-        updateDistanceAndBearingLabel(route.getCurrentRouteObject());
+        updateUi();
     }
 
-    private void updateUiExceptDistanceLabel() {
+    private void updateUi() {
+        RouteObject currentRouteObject = route.getCurrentRouteObject();
+
         layoutRoute.configureAsSingleObject(route);
         labelHeading.setText(
                 String.format(
@@ -376,12 +376,12 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                     route.getElapsedLength(),
                     GlobalInstance.getPluralResource(R.plurals.meter, route.getTotalLength()))
                 );
-        layoutCurrentRouteObject.configureAsSingleObject(route.getCurrentRouteObject());
+        layoutCurrentRouteObject.configureAsSingleObject(currentRouteObject);
 
         // intersection layout details
-        if (route.getCurrentRouteObject().getPoint() instanceof Intersection) {
+        if (currentRouteObject.getPoint() instanceof Intersection) {
             // add intersection structure
-            Intersection intersection = (Intersection) route.getCurrentRouteObject().getPoint();
+            Intersection intersection = (Intersection) currentRouteObject.getPoint();
 
             Bearing inverseBearingOfPreviousRouteSegment = null;
             ArrayList<IntersectionSegment> relevantIntersectionSegmentList = new ArrayList<IntersectionSegment>();
@@ -417,6 +417,8 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                         settingsManagerInstance.getShowIntersectionLayoutDetails() ? View.VISIBLE : View.GONE);
             }
         }
+
+        updateDistanceAndBearingLabel(currentRouteObject);
     }
 
     private void updateDistanceAndBearingLabel(RouteObject currentRouteObject) {
@@ -564,8 +566,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             if (route.hasNextRouteObject()
                     && settingsManagerInstance.getAutoSkipToNextRoutePoint()) {
                 route.skipToNextRouteObject();
-                updateUiExceptDistanceLabel();
-                updateDistanceAndBearingLabel(currentRouteObject);
+                updateUi();
             }
         }
     }

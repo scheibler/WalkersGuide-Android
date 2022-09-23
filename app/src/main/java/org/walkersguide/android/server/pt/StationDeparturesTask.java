@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.ArrayList;
 import org.walkersguide.android.server.ServerUtility;
 import org.walkersguide.android.server.ServerException;
+import java.util.Collections;
+import java.util.Comparator;
 
 
 public class StationDeparturesTask extends ServerTask {
@@ -51,13 +53,20 @@ public class StationDeparturesTask extends ServerTask {
                 && departureList.size() < maxNumberOfDepartures
                 && nextDepartureDate.before(maxDepartureDate)) {
 
+            // delay for some time on second and later requests
+            if (numberOfRequests > 0) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {}
+            }
+
             // query departures
+            Timber.d("request: stationId=%1$s, date=%2$s", this.station.id, nextDepartureDate.toString());
             try {
-                Timber.d("request: stationId=%1$s, date=%2$s", this.station.id, nextDepartureDate.toString());
                 departuresResult = provider.queryDepartures(
-                        this.station.id, nextDepartureDate, 100, false);
+                        this.station.id, nextDepartureDate, 100, true);
             } catch (IOException e) {
-                Timber.e("DepartureManager query error: %1$s", e.getMessage());
+                Timber.e("DepartureManager query error: %1$s", e.toString());
                 departuresResult = null;
             } finally {
                 if (departuresResult == null) {
@@ -67,19 +76,33 @@ public class StationDeparturesTask extends ServerTask {
             }
 
             // parse departures
+            boolean newDepartureFound = false;
             for (StationDepartures stationDepartures  : departuresResult.stationDepartures) {
                 for (Departure departure : stationDepartures.departures) {
-                    if (! departureList.contains(departure)) {
+                    if (! departureList.contains(departure)
+                            && PtUtility.getDepartureTime(departure) != null) {
                         departureList.add(departure);
+                        newDepartureFound = true;
                     }
                 }
             }
-
-            // update next departure date
-            if (! departureList.isEmpty()) {
-                nextDepartureDate = PtUtility.getDepartureTime(
-                        departureList.get(departureList.size()-1));
+            if (! newDepartureFound) {
+                // no additional departures found
+                break;
             }
+
+            // sort departure list
+            Collections.sort(
+                    departureList,
+                    new Comparator<Departure>() {
+                        @Override public int compare(Departure departure1, Departure departure2) {
+                            return PtUtility.getDepartureTime(departure1)
+                                .compareTo(PtUtility.getDepartureTime(departure2));
+                        }
+                    });
+            // update next departure date
+            nextDepartureDate = PtUtility.getDepartureTime(
+                    departureList.get(departureList.size()-1));
             // increment request counter
             numberOfRequests += 1;
         }
