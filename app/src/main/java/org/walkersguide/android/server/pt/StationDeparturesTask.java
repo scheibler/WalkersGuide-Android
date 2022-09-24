@@ -53,13 +53,6 @@ public class StationDeparturesTask extends ServerTask {
                 && departureList.size() < maxNumberOfDepartures
                 && nextDepartureDate.before(maxDepartureDate)) {
 
-            // delay for some time on second and later requests
-            if (numberOfRequests > 0) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {}
-            }
-
             // query departures
             Timber.d("request: stationId=%1$s, date=%2$s", this.station.id, nextDepartureDate.toString());
             try {

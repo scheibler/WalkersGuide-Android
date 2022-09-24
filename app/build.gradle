@@ -21,12 +21,12 @@ if (keystoreProperties.isEmpty()) {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     defaultConfig {
         resConfigs "en", "de"
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 33
         multiDexEnabled true
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
@@ -115,15 +115,15 @@ dependencies {
     //implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     // androidX
-    implementation 'androidx.appcompat:appcompat:1.4.0'
-    implementation 'androidx.core:core:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.core:core:1.9.0'
     implementation 'androidx.drawerlayout:drawerlayout:1.1.1'
-    implementation 'androidx.fragment:fragment:1.4.0'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
-    implementation 'androidx.viewpager:viewpager:1.0.0'
+    implementation 'androidx.fragment:fragment:1.5.3'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
     // material design
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     // google helpers
@@ -134,7 +134,7 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2022-09-21@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2022-09-24@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'org.slf4j:slf4j-api:1.7.36'

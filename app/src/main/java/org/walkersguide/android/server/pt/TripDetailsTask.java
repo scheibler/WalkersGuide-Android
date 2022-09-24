@@ -137,12 +137,15 @@ public class TripDetailsTask extends ServerTask {
                         && trip.isTravelable()
                         && trip.getNumChanges() == 0) {
                     String tripLineLabel = trip.getFirstPublicLeg().line.label;
-                    Date tripDepartureTime = PtUtility.getDepartureTime(trip.getFirstPublicLeg().departureStop);
+                    Date tripDepartureTime = PtUtility.getDepartureTime(
+                            trip.getFirstPublicLeg().departureStop);
+                    long absoluteDepartureDifference = Math.abs(
+                            departureTime.getTime() - tripDepartureTime.getTime());
                     Timber.d("    line: %1$s, %2$s / %3$s", lineLabel.equals(tripLineLabel), lineLabel.toString(), tripLineLabel.toString());
-                    Timber.d("    time: %1$s, %2$s / %3$s", departureTime.equals(tripDepartureTime), departureTime.toString(), tripDepartureTime.toString());
+                    Timber.d("    timeDiff: %1$d, %2$s / %3$s", absoluteDepartureDifference, departureTime.toString(), tripDepartureTime.toString());
 
                     if (lineLabel.equals(tripLineLabel)
-                            && departureTime.equals(tripDepartureTime)) {
+                            && absoluteDepartureDifference <= 60*1000) {
 
                         // trip found
                         ArrayList<Stop> stopList = new ArrayList<Stop>();

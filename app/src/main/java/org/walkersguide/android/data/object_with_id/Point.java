@@ -282,7 +282,7 @@ public class Point extends ObjectWithId implements Serializable {
 
     public Integer distanceTo(Point other) {
         if (other != null) {
-            return new Integer(
+            return Integer.valueOf(
                     (int) Math.round(
                         this.getLocationObject().distanceTo(other.getLocationObject())));
         }
