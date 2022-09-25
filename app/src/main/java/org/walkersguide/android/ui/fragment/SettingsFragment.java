@@ -124,17 +124,20 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                 SelectMapDialog.newInstance(null)
                     .show(getChildFragmentManager(), "SelectMapDialog");
             }
+            updateUI();
         } else if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
             settingsManagerInstance.setSelectedMap(
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
+            updateUI();
         } else if (requestKey.equals(SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER)) {
             settingsManagerInstance.setSelectedNetworkId(
                     (NetworkId) bundle.getSerializable(SelectPublicTransportProviderDialog.EXTRA_NETWORK_ID));
+            updateUI();
         } else if (requestKey.equals(SelectShakeIntensityDialog.REQUEST_SELECT_SHAKE_INTENSITY)) {
             settingsManagerInstance.setSelectedShakeIntensity(
                     (ShakeIntensity) bundle.getSerializable(SelectShakeIntensityDialog.EXTRA_SHAKE_INTENSITY));
+            updateUI();
         }
-        updateUI();
     }
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

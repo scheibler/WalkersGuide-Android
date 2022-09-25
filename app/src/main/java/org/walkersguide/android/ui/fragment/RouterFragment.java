@@ -99,7 +99,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
 
     private TextViewAndActionButton layoutRoute;
     private RouteObjectView layoutCurrentRouteObject;
-    private TextView labelHeading, labelDistanceAndBearing, labelIntersectionLayoutDetails;
+    private TextView labelHeading, labelDistanceAndBearing, labelIntersectionStructure;
     private Button buttonPreviousRouteObject, buttonNextRouteObject;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
@@ -275,7 +275,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         layoutRoute = (TextViewAndActionButton) view.findViewById(R.id.layoutRoute);
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         layoutCurrentRouteObject = (RouteObjectView) view.findViewById(R.id.layoutCurrentRouteObject);
-        labelIntersectionLayoutDetails = (TextView) view.findViewById(R.id.labelIntersectionLayoutDetails);
+        labelIntersectionStructure = (TextView) view.findViewById(R.id.labelIntersectionStructure);
 
         // bottom layout
         labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
@@ -319,7 +319,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         Timber.d("onResume");
         layoutRoute.setVisibility(View.GONE);
         layoutCurrentRouteObject.setVisibility(View.GONE);
-        labelIntersectionLayoutDetails.setVisibility(View.GONE);
+        labelIntersectionStructure.setVisibility(View.GONE);
         labelDistanceAndBearing.setVisibility(View.GONE);
         buttonPreviousRouteObject.setVisibility(View.GONE);
         buttonNextRouteObject.setVisibility(View.GONE);
@@ -378,9 +378,11 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                 );
         layoutCurrentRouteObject.configureAsSingleObject(currentRouteObject);
 
-        // intersection layout details
-        if (currentRouteObject.getPoint() instanceof Intersection) {
-            // add intersection structure
+        // intersection structure
+        labelIntersectionStructure.setText("");
+        labelIntersectionStructure.setVisibility(View.GONE);
+        if (currentRouteObject.getPoint() instanceof Intersection
+                && settingsManagerInstance.getShowIntersectionLayoutDetails()) {
             Intersection intersection = (Intersection) currentRouteObject.getPoint();
 
             Bearing inverseBearingOfPreviousRouteSegment = null;
@@ -411,10 +413,13 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                             );
                 }
 
-                labelIntersectionLayoutDetails.setText(
-                        TextUtils.join("\n", formattedRelevantIntersectionSegmentList));
-                labelIntersectionLayoutDetails.setVisibility(
-                        settingsManagerInstance.getShowIntersectionLayoutDetails() ? View.VISIBLE : View.GONE);
+                labelIntersectionStructure.setText(
+                        String.format(
+                            "%1$s:\n%2$s",
+                            GlobalInstance.getStringResource(R.string.labelIntersectionStructure),
+                            TextUtils.join("\n", formattedRelevantIntersectionSegmentList))
+                        );
+                labelIntersectionStructure.setVisibility(View.VISIBLE);
             }
         }
 

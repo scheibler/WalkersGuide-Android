@@ -3,6 +3,17 @@ Change Log
 
 
 
+v2.1.1: 2022-09-25
+------------------
+
+- New context menu option "delete" for point and route history
+- Query departures for equivalent stations for a more complete result
+- Support for Android 13 (API 33)
+- public transport enabler library updated (2022-09-24): Repairs the inaccessible VVO provider
+- Smaller bug fixes in the router tab
+
+
+
 v2.1.0: 2022-07-17
 ------------------
 

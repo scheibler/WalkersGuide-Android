@@ -154,6 +154,7 @@
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
     <string name="labelRoutePosition">Instruction %1$d of %2$d, %3$d of %4$s</string>
+    <string name="labelIntersectionStructure">Intersection structure</string>
     <string name="buttonPreviousRouteObject">Previous</string>
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
     <string name="buttonNextRouteObject">Next</string>

@@ -64,6 +64,11 @@ public class ServerUtility {
             String queryURL, Object postParameters, Class<T> exceptionClass) throws T {
         HttpsURLConnection connection = null;
 
+        // check network state
+        if (! isInternetAvailable()) {
+            throw createException(exceptionClass, ServerException.RC_NO_INTERNET_CONNECTION);
+        }
+
         // remove all cookies from cookie manager, if available
         // just a precaution
         CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
@@ -106,9 +111,6 @@ public class ServerUtility {
         }
 
         // connect
-        if (! isInternetAvailable()) {
-            throw createException(exceptionClass, ServerException.RC_NO_INTERNET_CONNECTION);
-        }
         try {
             connection.connect();
             int returnCode = connection.getResponseCode();

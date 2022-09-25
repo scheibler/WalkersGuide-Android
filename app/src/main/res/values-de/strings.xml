@@ -160,6 +160,7 @@
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
     <string name="labelRoutePosition">Anweisung %1$d von %2$d, %3$d von %4$s</string>
+    <string name="labelIntersectionStructure">Kreuzungsaufbau</string>
     <string name="buttonPreviousRouteObject">Vorheriger</string>
     <string name="buttonPreviousRouteObjectCD">Vorheriger Routenpunkt</string>
     <string name="buttonNextRouteObject">Nächster</string>
