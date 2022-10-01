@@ -1,5 +1,9 @@
 package org.walkersguide.android.sensor;
 
+import android.os.Handler;
+import android.os.Looper;
+import java.lang.Runnable;
+
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
@@ -133,17 +137,22 @@ public class PositionManager implements android.location.LocationListener {
             } else {
                 gpsFixFound = false;
 
-                // get the last known location
-                Location lastKnownLocationObject = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if (lastKnownLocationObject != null) {
-                    processNewLocationObject(lastKnownLocationObject);
-                }
-
                 // listen for new locations
                 locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER, 0, 0, this);
                 locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+
+                // get last known location after a short pause
+                (new Handler(Looper.getMainLooper())).postDelayed(
+                        new Runnable() {
+                            @Override public void run() {
+                                Location lastKnownLocationObject = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                if (! gpsFixFound && lastKnownLocationObject != null) {
+                                    processNewLocationObject(lastKnownLocationObject, false);
+                                }
+                            }
+                        }, 1000l);
             }
 
             /*
@@ -214,17 +223,18 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     @Override public void onLocationChanged(Location newLocationObject) {
-        processNewLocationObject(newLocationObject);
+        processNewLocationObject(newLocationObject, true);
     }
 
     @Override public void onStatusChanged(String provider, int status, Bundle extras) {}
     @Override public void onProviderEnabled(String provider) {}
     @Override public void onProviderDisabled(String provider) {}
 
-    private void processNewLocationObject(Location newLocationObject) {
+    private void processNewLocationObject(Location newLocationObject, boolean fromLocationSensor) {
         // try to create gps point from location object
         GPS.Builder gpsBuilder = new GPS.Builder(
-                newLocationObject.getLatitude(), newLocationObject.getLongitude());
+                newLocationObject.getLatitude(), newLocationObject.getLongitude())
+            .updateTime(newLocationObject.getTime());
 
         // optional args
         if (newLocationObject.getProvider() != null) {
@@ -271,17 +281,20 @@ public class PositionManager implements android.location.LocationListener {
 
             // broadcast new gps position action
             broadcastGPSLocation();
+
             // broadcast new location action
             if (! this.simulationEnabled) {
                 broadcastCurrentLocation(
-                        ! gpsFixFound && isAtLeastFiftyMetersAway);
+                        (! fromLocationSensor || ! gpsFixFound) && isAtLeastFiftyMetersAway);
             }
 
             // first gps fix
-            if (! gpsFixFound) {
-                gpsFixFound = true;
-                // notify user about first gps fix after app start
-                Helper.vibratePattern(new long[] {250, 50, 250, 50});
+            if (fromLocationSensor) {
+                if (! gpsFixFound) {
+                    gpsFixFound = true;
+                    // notify user about first gps fix after app start
+                    Helper.vibratePattern(new long[] {250, 50, 250, 50});
+                }
             }
         }
     }

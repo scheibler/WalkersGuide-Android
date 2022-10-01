@@ -31,9 +31,16 @@ public class GPS extends Point {
                     latitude,
                     longitude);
             try {
-                super.inputData.put(
-                        KEY_TIMESTAMP, System.currentTimeMillis());
+                super.inputData.put(KEY_TIMESTAMP, System.currentTimeMillis());
             } catch (JSONException e) {}
+        }
+
+        // update timestamp
+        public Builder updateTime(final long newTime) {
+            try {
+                super.inputData.put(KEY_TIMESTAMP, newTime);
+            } catch (JSONException e) {}
+            return this;
         }
 
         // optional params
