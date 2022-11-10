@@ -39,6 +39,8 @@ import android.os.Looper;
 import org.walkersguide.android.server.address.AddressException;
 import org.walkersguide.android.server.ServerUtility;
 import org.json.JSONObject;
+import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
 
 public class PointFromCoordinatesLinkDialog extends DialogFragment {
     public static final String REQUEST_FROM_COORDINATES_LINK = "fromCoordinatesLink";
@@ -149,7 +151,14 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
     private final static String PATTERN_FLOATING_POINT_NUMBER = "(-?[0-9]+\\.[0-9]+)";
 
     private void tryToExtractCoordinates() {
-        final String linkUrl = layoutLinkUrl.getInputText();
+        String linkUrlFromEditText = layoutLinkUrl.getInputText();
+        if (linkUrlFromEditText != null) {
+            try {
+                linkUrlFromEditText = URLDecoder.decode(linkUrlFromEditText, "UTF-8");
+            } catch (UnsupportedEncodingException e) {}
+        }
+        final String linkUrl = linkUrlFromEditText;
+
         if (TextUtils.isEmpty(linkUrl)) {
             showErrorMessage(
                     getResources().getString(R.string.messageLinkUrlMissing));
