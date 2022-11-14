@@ -3,6 +3,14 @@ Change Log
 
 
 
+v2.1.2: 2022-11-14
+------------------
+
+- Minor improvements for the retrieval of the last known location
+- PointFromCoordinatesLink dialog: Decode URL before parsing
+
+
+
 v2.1.1: 2022-09-25
 ------------------
 
