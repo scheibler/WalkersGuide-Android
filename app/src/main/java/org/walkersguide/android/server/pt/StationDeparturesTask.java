@@ -57,7 +57,7 @@ public class StationDeparturesTask extends ServerTask {
             Timber.d("request: stationId=%1$s, date=%2$s", this.station.id, nextDepartureDate.toString());
             try {
                 departuresResult = provider.queryDepartures(
-                        this.station.id, nextDepartureDate, 100, true);
+                        this.station.id, nextDepartureDate, 100, false);
             } catch (IOException e) {
                 Timber.e("DepartureManager query error: %1$s", e.toString());
                 departuresResult = null;

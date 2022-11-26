@@ -596,7 +596,7 @@ public class DeparturesFragment extends Fragment
                 // available vehicle types
                 if (station.products != null && ! station.products.isEmpty()) {
                     stationDescriptionList.add(
-                            PtUtility.vehicleTypesToString(context, station.products));
+                            PtUtility.vehicleTypesToString(station.products));
                 }
                 // distance to current position
                 if (this.position != null) {
@@ -727,13 +727,12 @@ public class DeparturesFragment extends Fragment
 
             String labelText = String.format(
                     context.getResources().getString(R.string.labelDepartureAdapter),
-                    PtUtility.getVehicleName(context, departure.line.product),
-                    departure.line.label,
+                    PtUtility.getLineLabel(departure.line, true),
                     PtUtility.getLocationName(departure.destination),
                     PtUtility.formatRelativeDepartureTime(
-                        context, PtUtility.getDepartureTime(departure), false),
+                        PtUtility.getDepartureTime(departure), false),
                     PtUtility.formatAbsoluteDepartureTime(
-                        context, PtUtility.getDepartureTime(departure)));
+                        PtUtility.getDepartureTime(departure)));
             if (departure.position != null) {
                 labelText += "\n" + String.format(
                         context.getResources().getString(R.string.labelFromPlatform),
@@ -743,15 +742,14 @@ public class DeparturesFragment extends Fragment
 
             String labelContentDescription = String.format(
                     context.getResources().getString(R.string.labelDepartureAdapterCD),
-                    PtUtility.getVehicleName(context, departure.line.product),
-                    departure.line.label,
+                    PtUtility.getLineLabel(departure.line, true),
                     PtUtility.getLocationName(departure.destination),
                     PtUtility.formatRelativeDepartureTime(
-                        context, PtUtility.getDepartureTime(departure), true),
+                        PtUtility.getDepartureTime(departure), true),
                     PtUtility.formatAbsoluteDepartureTime(
-                        context, PtUtility.getDepartureTime(departure)));
+                        PtUtility.getDepartureTime(departure)));
             if (departure.position != null) {
-                labelContentDescription += ",\n" + String.format(
+                labelContentDescription += ", " + String.format(
                         context.getResources().getString(R.string.labelFromPlatform),
                         departure.position.toString());
             }

@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.ArrayList;
 import org.walkersguide.android.server.ServerUtility;
 import org.walkersguide.android.server.ServerException;
+import de.schildbach.pte.dto.Line;
 
 
 public class TripDetailsTask extends ServerTask {
@@ -50,7 +51,6 @@ public class TripDetailsTask extends ServerTask {
         }
 
         Timber.d("Request: from %1$s to %2$s at %3$s", this.station.toString(), this.departure.toString(), departure.plannedTime.toString());
-        String lineLabel = this.departure.line.label;
         Date departureTime = PtUtility.getDepartureTime(this.departure);
         TripOptions options = new TripOptions(null, Optimize.LEAST_CHANGES, null, null, null);
         if (this.departure.line != null && this.departure.line.product != null) {
@@ -71,7 +71,8 @@ public class TripDetailsTask extends ServerTask {
         }
         try {
             sendBroadcastAndFinish(
-                    parseTripsResult(lineLabel, departureTime, tripsResult));
+                    parseTripsResult(
+                        this.departure.line, departureTime, tripsResult));
         } catch (PtException e) {
             if (e.destinationIsAmbiguous()
                     && tripsResult.ambiguousTo != null) {
@@ -112,7 +113,8 @@ public class TripDetailsTask extends ServerTask {
             // post-processing
             try {
                 sendBroadcastAndFinish(
-                        parseTripsResult(lineLabel, departureTime, ambDestinationTripsResult));
+                        parseTripsResult(
+                            this.departure.line, departureTime, ambDestinationTripsResult));
             } catch (PtException e) {
                 if (e.hasNoTrips()) {
                     ;   // skip to next block
@@ -126,25 +128,31 @@ public class TripDetailsTask extends ServerTask {
         throw new PtException(PtException.RC_AMBIGUOUS_DESTINATION);
     }
 
-    private static ArrayList<Stop> parseTripsResult(String lineLabel, Date departureTime,
+    private static ArrayList<Stop> parseTripsResult(Line line, Date departureTime,
             QueryTripsResult tripsResult) throws PtException {
         if (tripsResult != null
                 && tripsResult.status == QueryTripsResult.Status.OK) {
+
+            if (line == null
+                    || line.label == null
+                    || departureTime == null) {
+                throw new PtException(PtException.RC_NO_TRIPS);
+            }
 
             for (Trip trip : tripsResult.trips) {
 
                 if (trip.getFirstPublicLeg() != null
                         && trip.isTravelable()
                         && trip.getNumChanges() == 0) {
-                    String tripLineLabel = trip.getFirstPublicLeg().line.label;
+                    Line tripLine = trip.getFirstPublicLeg().line;
                     Date tripDepartureTime = PtUtility.getDepartureTime(
                             trip.getFirstPublicLeg().departureStop);
                     long absoluteDepartureDifference = Math.abs(
                             departureTime.getTime() - tripDepartureTime.getTime());
-                    Timber.d("    line: %1$s, %2$s / %3$s", lineLabel.equals(tripLineLabel), lineLabel.toString(), tripLineLabel.toString());
+                    Timber.d("    line: %1$s, %2$s / %3$s", line.label.equals(tripLine.label), line.label, tripLine.label);
                     Timber.d("    timeDiff: %1$d, %2$s / %3$s", absoluteDepartureDifference, departureTime.toString(), tripDepartureTime.toString());
 
-                    if (lineLabel.equals(tripLineLabel)
+                    if (line.label.equals(tripLine.label)
                             && absoluteDepartureDifference <= 60*1000) {
 
                         // trip found

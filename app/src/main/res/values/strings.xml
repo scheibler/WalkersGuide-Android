@@ -371,8 +371,8 @@
     <string name="labelNearby">Nearby</string>
     <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
     <!-- DepartureAdapter -->
-    <string name="labelDepartureAdapter">%1$s %2$s\nto %3$s\n%4$s %5$s</string>
-    <string name="labelDepartureAdapterCD">%1$s %2$s,\nto %3$s,\n%4$s, %5$s</string>
+    <string name="labelDepartureAdapter">%1$s\nto %2$s\n%3$s %4$s</string>
+    <string name="labelDepartureAdapterCD">%1$s to %2$s, %3$s, %4$s</string>
     <string name="labelFromPlatform">From platform %1$s</string>
 
     <!-- SelectPtStationDialog -->
@@ -388,7 +388,7 @@
     <string name="labelNoMoreStops">The line arrived at its destination stop.</string>
     <!-- TripAdapter -->
     <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
-    <string name="labelTripAdapterCD">%1$s.\n%2$s, %3$s.</string>
+    <string name="labelTripAdapterCD">%1$s, %2$s, %3$s</string>
 
 
     <!--

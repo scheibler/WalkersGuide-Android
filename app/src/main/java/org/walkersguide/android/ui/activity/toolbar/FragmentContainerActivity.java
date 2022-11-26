@@ -35,6 +35,7 @@ import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.ui.fragment.details.SegmentDetailsFragment;
 import android.view.MenuItem;
 import androidx.core.app.NavUtils;
+import timber.log.Timber;
 
 
 public class FragmentContainerActivity extends ToolbarActivity {
@@ -143,9 +144,8 @@ public class FragmentContainerActivity extends ToolbarActivity {
                     fragment = TripDetailsFragment.newInstance(tripStation, tripDeparture);
                     FragmentContainerActivity.this.setToolbarTitle(
                             String.format(
-                                "%1$s%2$s, %3$s",
-                                tripDeparture.line.product.code,
-                                tripDeparture.line.label,
+                                "%1$s, %2$s",
+                                PtUtility.getLineLabel(tripDeparture.line, false),
                                 PtUtility.getLocationName(tripDeparture.destination))
                             );
                     break;

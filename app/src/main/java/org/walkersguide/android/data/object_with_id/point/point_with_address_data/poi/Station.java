@@ -13,6 +13,11 @@ import org.walkersguide.android.R;
 import java.io.Serializable;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Comparator;
+import timber.log.Timber;
+import java.lang.NumberFormatException;
 
 
 public class Station extends POI implements Serializable {
@@ -60,11 +65,45 @@ public class Station extends POI implements Serializable {
     @Override public String toString() {
         String description = super.toString();
         if (! this.lineList.isEmpty()) {
+            // unique line numbers
+            Set<String> lineNrSet = new TreeSet<String>(new LineNrComparator());
+            for (Line line : this.lineList) {
+                lineNrSet.add(line.getNr());
+            }
             description += "\n" + String.format(
                     GlobalInstance.getStringResource(R.string.stationLines),
-                    TextUtils.join(", ", this.lineList));
+                    TextUtils.join(", ", lineNrSet));
         }
         return description;
+    }
+
+    private class LineNrComparator implements Comparator<String>{
+        @Override public int compare(String nr1, String nr2) {
+            String nr1LeadingString = extractLeadingString(nr1);
+            String nr2LeadingString = extractLeadingString(nr2);
+            if (nr1LeadingString.equalsIgnoreCase(nr2LeadingString)) {
+                return Integer.compare(
+                        extractInt(nr1), extractInt(nr2));
+            } else {
+                return nr1LeadingString.compareTo(nr2LeadingString);
+            }
+        }
+
+        private String extractLeadingString(String s) {
+            String leadingString = "";
+            try {
+                leadingString = s.split("[0-9]+")[0];
+            } catch(ArrayIndexOutOfBoundsException e) {}
+            return leadingString;
+        }
+
+        private int extractInt(String s) {
+            int number = 0;
+            try {
+                number =Integer.parseInt(s.replaceAll("\\D", ""));
+            } catch (NumberFormatException e) {}
+            return number;
+        }
     }
 
 

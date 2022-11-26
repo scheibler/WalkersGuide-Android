@@ -389,9 +389,9 @@ public class TripDetailsFragment extends Fragment implements OnRefreshListener, 
                         context.getResources().getString(R.string.labelTripAdapter),
                         PtUtility.getLocationName(stop.location),
                         PtUtility.formatRelativeDepartureTime(
-                            context, PtUtility.getDepartureTime(stop), false),
+                            PtUtility.getDepartureTime(stop), false),
                         PtUtility.formatAbsoluteDepartureTime(
-                            context, PtUtility.getDepartureTime(stop)))
+                            PtUtility.getDepartureTime(stop)))
                     );
 
             holder.label.setContentDescription(
@@ -399,9 +399,9 @@ public class TripDetailsFragment extends Fragment implements OnRefreshListener, 
                         context.getResources().getString(R.string.labelTripAdapterCD),
                         PtUtility.getLocationName(stop.location),
                         PtUtility.formatRelativeDepartureTime(
-                            context, PtUtility.getDepartureTime(stop), true),
+                            PtUtility.getDepartureTime(stop), true),
                         PtUtility.formatAbsoluteDepartureTime(
-                            context, PtUtility.getDepartureTime(stop)))
+                            PtUtility.getDepartureTime(stop)))
                     );
 
             return convertView;
