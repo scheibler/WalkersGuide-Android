@@ -53,6 +53,9 @@
             <item
                 android:id="@+id/menuItemContactMe"
                 android:title="@string/menuItemContactMe" />
+            <item
+                android:id="@+id/menuItemA11yCanvasExample"
+                android:title="A11y canvas example" />
         </menu>
     </item>
 

@@ -3,6 +3,7 @@ package org.walkersguide.android.data;
 import java.io.Serializable;
 import java.lang.Comparable;
 import java.util.Locale;
+import java.lang.Math;
 
 
 public abstract class Angle implements Comparable<Angle>, Serializable {

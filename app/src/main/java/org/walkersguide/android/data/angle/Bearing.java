@@ -1,5 +1,7 @@
 package org.walkersguide.android.data.angle;
 
+import timber.log.Timber;
+
 import java.io.Serializable;
 
 import org.walkersguide.android.sensor.DeviceSensorManager;
@@ -7,11 +9,11 @@ import org.walkersguide.android.data.Angle;
 import org.walkersguide.android.data.Angle.Quadrant;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.R;
+import java.lang.Math;
 
 
 public class Bearing extends Angle implements Serializable {
     private static final long serialVersionUID = 1l;
-
 
     public enum Orientation {
 

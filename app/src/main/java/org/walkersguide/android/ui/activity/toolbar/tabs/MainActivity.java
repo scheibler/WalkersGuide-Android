@@ -51,6 +51,8 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 
+import org.walkersguide.android.ui.activity.A11yCanvasExampleActivity;
+
 
 public class MainActivity extends TabLayoutActivity implements FragmentResultListener {
 
@@ -137,6 +139,10 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
                     SendFeedbackDialog.newInstance(
                             SendFeedbackDialog.FeedbackToken.QUESTION)
                         .show(getSupportFragmentManager(), "SendFeedbackDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemA11yCanvasExample) {
+                    Intent a11yCanvasExampleIntent = new Intent(MainActivity.this, A11yCanvasExampleActivity.class);
+                    //intent.putExtra(KEY_SHOW_FRAGMENT, Show.INFO);
+                    startActivity(a11yCanvasExampleIntent);
                 } else {
                     return false;
                 }
