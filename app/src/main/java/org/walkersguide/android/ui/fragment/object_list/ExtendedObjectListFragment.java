@@ -107,7 +107,7 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         editSearch = (AutoCompleteTextView) view.findViewById(R.id.editSearch);
         editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                if (UiHelper.isDoSomeThingEditorAction(actionId, EditorInfo.IME_ACTION_SEARCH, event)) {
                     UiHelper.hideKeyboard(ExtendedObjectListFragment.this);
                     editSearch.dismissDropDown();
                     resetListPosition();

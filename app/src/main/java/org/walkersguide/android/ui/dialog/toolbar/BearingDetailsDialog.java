@@ -181,7 +181,7 @@ public class BearingDetailsDialog extends DialogFragment {
         });
         editDegree.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (UiHelper.isDoSomeThingEditorAction(actionId, EditorInfo.IME_ACTION_DONE, event)) {
                     buttonEnableSimulation.setChecked(true);
                     UiHelper.hideKeyboard(BearingDetailsDialog.this);
                     return true;

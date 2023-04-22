@@ -19,6 +19,8 @@ import android.app.Activity;
 import androidx.fragment.app.FragmentActivity;
 import java.util.List;
 import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 
 
 public class UiHelper {
@@ -27,6 +29,12 @@ public class UiHelper {
     /**
      * keyboard
      */
+
+    public static boolean isDoSomeThingEditorAction(int givenActionId, int wantedActionId, KeyEvent event) {
+        return givenActionId == wantedActionId
+            || (   givenActionId == EditorInfo.IME_ACTION_UNSPECIFIED
+                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER);
+    }
 
     public static void hideKeyboard(Activity activity) {
         if (activity != null) {

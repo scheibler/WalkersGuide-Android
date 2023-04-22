@@ -1,5 +1,6 @@
         package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.UiHelper;
 import timber.log.Timber;
 
 
@@ -132,8 +133,8 @@ public class EditTextAndClearInputButton extends LinearLayout {
     public void setEditorAction(final int imeAction, final OnSelectedActionClickListener listener) {
         editInput.setImeOptions(imeAction);
         editInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            public boolean onEditorAction(TextView view, int action, KeyEvent event) {
-                if (action == imeAction) {
+            public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
+                if (UiHelper.isDoSomeThingEditorAction(actionId, imeAction, event)) {
                     if (listener != null) {
                         listener.onSelectedActionClicked();
                     }

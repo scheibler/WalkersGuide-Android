@@ -114,7 +114,7 @@ public class TtsSettingsDialog extends DialogFragment {
         });
         editDistanceAnnouncementInterval.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (UiHelper.isDoSomeThingEditorAction(actionId, EditorInfo.IME_ACTION_DONE, event)) {
                     UiHelper.hideKeyboard(TtsSettingsDialog.this);
                     return true;
                 }
