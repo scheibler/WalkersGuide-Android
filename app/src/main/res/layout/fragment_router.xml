@@ -73,13 +73,30 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/labelHeading"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:focusable="true"
-                android:theme="@style/HeadingTextView" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:id="@+id/labelHeading"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.0"
+                    android:focusable="true"
+                    android:theme="@style/HeadingTextView" />
+
+                <ImageButton
+                    android:id="@+id/buttonJumpToRoutePoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@null"
+                    app:tint="@color/image"
+                    android:src="@drawable/chevron_right"
+                    android:contentDescription="@string/buttonJumpToRoutePoint" />
+            </LinearLayout>
 
             <org.walkersguide.android.ui.view.RouteObjectView
                 android:id="@+id/layoutCurrentRouteObject"

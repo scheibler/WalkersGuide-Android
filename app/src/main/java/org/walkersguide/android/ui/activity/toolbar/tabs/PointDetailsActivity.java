@@ -92,7 +92,12 @@ public class PointDetailsActivity extends TabLayoutActivity {
             TextViewAndActionButton layoutSelectedPoint = (TextViewAndActionButton) findViewById(R.id.layoutSelectedPoint);
             layoutSelectedPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
                 @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                    // nothing should happen here
+                    // show context menu instead of details again (prevent loop)
+                    TextView label = view.getLabel();
+                    ObjectWithId objectWithId = view.getObject();
+                    if (label != null && objectWithId != null) {
+                        view.showContextMenu(label, objectWithId);
+                    }
                 }
             }, false);
             layoutSelectedPoint.configureAsSingleObject(

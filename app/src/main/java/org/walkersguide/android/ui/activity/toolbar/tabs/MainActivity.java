@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
@@ -118,15 +119,18 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
                 } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCurrentPosition) {
                     SaveCurrentLocationDialog.newInstance()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteAddress) {
+                } else if (menuItem.getItemId() == R.id.menuItemImportPointFromPostAddress) {
                     EnterAddressDialog.newInstance()
                         .show(getSupportFragmentManager(), "EnterAddressDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCoordinates) {
+                } else if (menuItem.getItemId() == R.id.menuItemImportPointFromCoordinates) {
                     EnterCoordinatesDialog.newInstance()
                         .show(getSupportFragmentManager(), "EnterCoordinatesDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteUrl) {
+                } else if (menuItem.getItemId() == R.id.menuItemImportPointFromUrl) {
                     PointFromCoordinatesLinkDialog.newInstance()
                         .show(getSupportFragmentManager(), "PointFromCoordinatesLinkDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemRouteFromGpxFile) {
+                    RouteFromGpxFileDialog.newInstance()
+                        .show(getSupportFragmentManager(), "RouteFromGpxFileDialog");
                 } else if (menuItem.getItemId() == R.id.menuItemOpenFavorites) {
                     PointAndRouteTabActivity.showFavorites(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemOpenHistory) {
@@ -193,7 +197,10 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
                 newFavorite = (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES);
             }
-            if (newFavorite == null || ! newFavorite.addToFavorites()) {
+            //if (newFavorite == null || ! newFavorite.addToFavorites()) {
+            if (newFavorite != null) {
+                PointDetailsActivity.start(this, newFavorite);
+            } else {
                 SimpleMessageDialog.newInstance(
                         getResources().getString(R.string.errorFavoriteCreationFailed))
                     .show(getSupportFragmentManager(), "SimpleMessageDialog");

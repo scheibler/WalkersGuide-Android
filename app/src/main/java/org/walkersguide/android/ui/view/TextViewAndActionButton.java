@@ -1,5 +1,8 @@
         package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.UiHelper;
+import androidx.core.view.ViewCompat;
+
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
@@ -192,6 +195,10 @@ public class TextViewAndActionButton extends LinearLayout {
         this.reset();
     }
 
+    public TextView getLabel() {
+        return this.label;
+    }
+
     public ObjectWithId getObject() {
         return this.objectWithId;
     }
@@ -239,6 +246,8 @@ public class TextViewAndActionButton extends LinearLayout {
                 this.onLayoutResetListener = listener;
             }
             this.setLabelAndButtonText(labelText);
+            ViewCompat.setAccessibilityDelegate(
+                    this.label, UiHelper.getAccessibilityDelegateViewClassButton());
         }
     }
 
@@ -393,7 +402,7 @@ public class TextViewAndActionButton extends LinearLayout {
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT = 104;
 
 
-    private void showContextMenu(final View view, final ObjectWithId object) {
+    public void showContextMenu(final View view, final ObjectWithId object) {
         PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
         MenuCompat.setGroupDividerEnabled(contextMenu.getMenu(), true);
         int orderId = 0;

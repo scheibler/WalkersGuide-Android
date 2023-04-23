@@ -7,23 +7,26 @@
     <item
         android:id="@+id/menuItemWhereAmI"
         android:title="@string/menuItemWhereAmI" />
+    <item
+        android:id="@+id/menuItemCreateFavoriteCurrentPosition"
+        android:title="@string/menuItemCreateFavoriteCurrentPosition" />
 
     <item
-        android:id="@+id/menuItemCreateFavorite"
-        android:title="@string/menuItemCreateFavorite" >
+        android:id="@+id/menuItemImport"
+        android:title="@string/menuItemImport" >
         <menu>
             <item
-                android:id="@+id/menuItemCreateFavoriteCurrentPosition"
-                android:title="@string/menuItemCreateFavoriteCurrentPosition" />
+                android:id="@+id/menuItemImportPointFromPostAddress"
+                android:title="@string/menuItemImportPointFromPostAddress" />
             <item
-                android:id="@+id/menuItemCreateFavoriteAddress"
-                android:title="@string/menuItemCreateFavoriteAddress" />
+                android:id="@+id/menuItemImportPointFromCoordinates"
+                android:title="@string/menuItemImportPointFromCoordinates" />
             <item
-                android:id="@+id/menuItemCreateFavoriteCoordinates"
-                android:title="@string/menuItemCreateFavoriteCoordinates" />
+                android:id="@+id/menuItemImportPointFromUrl"
+                android:title="@string/menuItemImportPointFromUrl" />
             <item
-                android:id="@+id/menuItemCreateFavoriteUrl"
-                android:title="@string/menuItemCreateFavoriteUrl" />
+                android:id="@+id/menuItemRouteFromGpxFile"
+                android:title="@string/menuItemRouteFromGpxFile" />
         </menu>
     </item>
 
