@@ -21,9 +21,6 @@
         android:id="@+id/menuItemLoadPreviousRoute"
         android:title="@string/menuItemLoadPreviousRoute" />
     <item
-        android:id="@+id/menuItemRouteFromGpxFile"
-        android:title="@string/menuItemRouteFromGpxFile" />
-    <item
         android:id="@+id/menuItemAutoSkipToNextRoutePoint"
         android:title="@string/menuItemAutoSkipToNextRoutePoint"
         android:checkable="true" />
@@ -35,7 +32,4 @@
         android:id="@+id/menuItemShowIntersectionLayoutDetails"
         android:title="@string/menuItemShowIntersectionLayoutDetails"
         android:checkable="true" />
-    <item
-        android:id="@+id/menuItemJumpToRoutePoint"
-        android:title="@string/menuItemJumpToRoutePoint" />
 </menu>

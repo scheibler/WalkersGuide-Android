@@ -14,11 +14,12 @@
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemWhereAmI">Where am I?</string>
-    <string name="menuItemCreateFavorite">Create favorite point:</string>
     <string name="menuItemCreateFavoriteCurrentPosition">Save current location</string>
-    <string name="menuItemCreateFavoriteAddress">Enter address</string>
-    <string name="menuItemCreateFavoriteCoordinates">Enter coordinates</string>
-    <string name="menuItemCreateFavoriteUrl">Extract from link</string>
+    <string name="menuItemImport">Import:</string>
+    <string name="menuItemImportPointFromPostAddress">Enter address</string>
+    <string name="menuItemImportPointFromCoordinates">Enter coordinates</string>
+    <string name="menuItemImportPointFromUrl">Extract from link</string>
+    <string name="menuItemRouteFromGpxFile">Import from GPX file</string>
     <string name="menuItemFavoritesAndHistory">Favorites and history:</string>
     <string name="menuItemOpenFavorites">Favorites</string>
     <string name="menuItemOpenHistory">History</string>
@@ -154,6 +155,7 @@
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
     <string name="labelRoutePosition">Instruction %1$d of %2$d, %3$d of %4$s</string>
+    <string name="buttonJumpToRoutePoint">Jump to route point</string>
     <string name="labelIntersectionStructure">Intersection structure</string>
     <string name="buttonPreviousRouteObject">Previous</string>
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
@@ -165,11 +167,9 @@
     <string name="menuItemRecalculateOriginalRoute">Recalculate original route</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
     <string name="menuItemLoadPreviousRoute">Load previous route</string>
-    <string name="menuItemRouteFromGpxFile">Import from GPX file</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
     <string name="menuItemShowPreciseBearingValues">Show precise bearing values</string>
     <string name="menuItemShowIntersectionLayoutDetails">Show intersection layout details</string>
-    <string name="menuItemJumpToRoutePoint">Jump to route point</string>
 
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>

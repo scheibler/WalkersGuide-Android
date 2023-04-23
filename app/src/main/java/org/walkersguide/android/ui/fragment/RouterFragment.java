@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment;
 
+import android.widget.ImageButton;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.data.profile.ProfileGroup;
@@ -54,7 +55,6 @@ import androidx.annotation.NonNull;
 import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
 import androidx.core.view.ViewCompat;
 import java.util.Locale;
-import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
 import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
 import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
@@ -224,10 +224,6 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             SelectProfileDialog.newInstance(ProfileGroup.LOAD_PREVIOUS_ROUTE)
                 .show(getChildFragmentManager(), "SelectProfileDialog");
 
-        } else if (item.getItemId() == R.id.menuItemRouteFromGpxFile) {
-            RouteFromGpxFileDialog.newInstance()
-                .show(getChildFragmentManager(), "RouteFromGpxFileDialog");
-
         } else if (item.getItemId() == R.id.menuItemAutoSkipToNextRoutePoint) {
             settingsManagerInstance.setAutoSkipToNextRoutePoint(
                     ! settingsManagerInstance.getAutoSkipToNextRoutePoint());
@@ -244,12 +240,6 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                     ! settingsManagerInstance.getShowIntersectionLayoutDetails());
             if (route != null) {
                 updateUi();
-            }
-
-        } else if (item.getItemId() == R.id.menuItemJumpToRoutePoint) {
-            if (route != null) {
-                JumpToRoutePointDialog.newInstance(route)
-                    .show(getChildFragmentManager(), "JumpToRoutePointDialog");
             }
 
         } else {
@@ -276,6 +266,16 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         layoutCurrentRouteObject = (RouteObjectView) view.findViewById(R.id.layoutCurrentRouteObject);
         labelIntersectionStructure = (TextView) view.findViewById(R.id.labelIntersectionStructure);
+
+        ImageButton buttonJumpToRoutePoint = (ImageButton) view.findViewById(R.id.buttonJumpToRoutePoint);
+        buttonJumpToRoutePoint.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                if (route != null) {
+                    JumpToRoutePointDialog.newInstance(route)
+                        .show(getChildFragmentManager(), "JumpToRoutePointDialog");
+                }
+            }
+        });
 
         // bottom layout
         labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);

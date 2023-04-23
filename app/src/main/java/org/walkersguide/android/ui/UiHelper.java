@@ -1,5 +1,8 @@
 package org.walkersguide.android.ui;
 
+import androidx.core.view.AccessibilityDelegateCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+
 import androidx.core.content.ContextCompat;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -21,6 +24,9 @@ import java.util.List;
 import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
+import android.view.View;
+import androidx.annotation.NonNull;
+import android.widget.Button;
 
 
 public class UiHelper {
@@ -64,6 +70,21 @@ public class UiHelper {
             (new WindowInsetsControllerCompat(window, window.getDecorView()))
                 .hide(WindowInsetsCompat.Type.ime());
         }
+    }
+
+
+    /**
+     * an accessibility delegate, that tells talkback, that the selected ui element is a button
+     */
+
+    public static AccessibilityDelegateCompat getAccessibilityDelegateViewClassButton() {
+        return new AccessibilityDelegateCompat() {
+            @Override public void onInitializeAccessibilityNodeInfo(
+                    @NonNull View host, @NonNull AccessibilityNodeInfoCompat info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Button.class.getName());
+            }
+        };
     }
 
 
