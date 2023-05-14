@@ -411,10 +411,19 @@
     <string name="buttonPublicTransportProvider">ÖPNV Betreiber: %1$s</string>
     <string name="buttonPublicTransportProviderNoSelection">ÖPNV Betreiber: Keiner ausgewählt</string>
     <string name="labelInterfaceSettingsHeader">Benutzungsoberfläche:</string>
-    <string name="buttonShowActionButton">Aktion-Button anzeigen</string>
-    <string name="buttonShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
+    <string name="switchShowActionButton">Aktion-Button anzeigen</string>
+    <string name="switchShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
     <string name="buttonShakeIntensity">Schüttelintensität</string>
     <string name="buttonShakeIntensityHint">Schütteln, um den "Wo bin ich" Dialog und den "Punkte" Tab zu aktualisieren.</string>
+    <string name="labelTTSSettingsHeader">Sprachausgabe</string>
+    <string name="switchAnnouncementsEnabled">Sprachansagen einschalten</string>
+    <string name="labelDistanceAnnouncementInterval">Intervall für Entfernungsansagen</string>
+    <string name="labelDistanceAnnouncementIntervalUnit">Meter</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAlive">Verbindung zum Bluetooth Kopfhörer offen halten</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Einige Bluetooth Kopfhörer gehen
+        nach ein paar Sekunden Inaktivität in den Standby Modus, aus dem sie anschließend
+        nur verzögert wieder aufwachen. In dem Fall kann es passieren, dass der Anfang
+        einer Sprachansage nicht korrekt wiedergegeben wird.</string>
     <string name="labelImportAndExportSettingsHeader">Import und Export:</string>
     <string name="buttonImportSettings">Einstellungen importieren</string>
     <string name="buttonExportSettings">Einstellungen exportieren</string>
@@ -435,12 +444,6 @@
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Schüttelintensität auswählen:</string>
-
-    <!-- TtsSettingsDialog -->
-    <string name="ttsSettingsDialogTitle">Sprachausgabeeinstellungen</string>
-    <string name="switchAnnouncementsEnabled">Sprachansagen einschalten</string>
-    <string name="labelDistanceAnnouncementInterval">Intervall für Entfernungsansagen</string>
-    <string name="labelDistanceAnnouncementIntervalUnit">Meter</string>
 
     <!-- info fragment -->
     <string name="fragmentInfoName">Info</string>

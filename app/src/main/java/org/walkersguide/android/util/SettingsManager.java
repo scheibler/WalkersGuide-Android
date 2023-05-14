@@ -53,10 +53,12 @@ public class SettingsManager {
     private static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
 	// defaults
-    // ui settings
     public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.ROUTER;
+    // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
+    // tts
+    public static final boolean DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = false;
     // bearing sensor
     public static final BearingSensor DEFAULT_BEARING_SENSOR = BearingSensor.COMPASS;
     // poi settings
@@ -68,18 +70,19 @@ public class SettingsManager {
     public static final boolean DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS = true;
 
     // keys
-    // ui settings
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
+    // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
+    // tts
+    private static final String KEY_TTS_SETTINGS = "ttsSettings";
+    private static final String KEY_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = "keepBluetoothHeadsetConnectionAlive";
     // WalkersGuide server
     private static final String KEY_WG_SERVER_URL = "wgServerUrl";
     private static final String KEY_SELECTED_MAP = "selectedMap";
     // public transport
     private static final String KEY_SELECTED_NETWORK_ID = "selectedNetworkId";
-    // tts
-    private static final String KEY_TTS_SETTINGS = "ttsSettings";
     // bearing sensor
     private static final String KEY_SELECTED_BEARING_SENSOR = "selectedBearingSensor";
     private static final String KEY_BEARING_SENSOR_VALUE_FROM_COMPASS = "bearingSensorValueFromCompass";
@@ -157,11 +160,6 @@ public class SettingsManager {
         }
 	}
 
-
-    /**
-     * ui settings
-     */
-
     public MainActivity.Tab getSelectedTabForMainActivity() {
         MainActivity.Tab selectedTab = null;
         try {
@@ -178,6 +176,11 @@ public class SettingsManager {
                 KEY_SELECTED_TAB_MAIN_ACTIVITY, gson.toJson(newTab));
         editor.apply();
     }
+
+
+    /**
+     * ui settings
+     */
 
     public boolean getShowActionButton() {
         return settings.getBoolean(KEY_SHOW_ACTION_BUTTON, DEFAULT_SHOW_ACTION_BUTTON);
@@ -271,6 +274,38 @@ public class SettingsManager {
         }
     }
 
+    // tts
+
+    public TtsSettings getTtsSettings() {
+        TtsSettings ttsSettings = null;
+        try {
+            ttsSettings = gson.fromJson(
+                    settings.getString(KEY_TTS_SETTINGS, ""),
+                    TtsSettings.class);
+        } catch (ClassCastException e) {}
+        if (ttsSettings == null) {
+            ttsSettings = TtsSettings.getDefault();
+        }
+        return ttsSettings;
+    }
+
+    public void setTtsSettings(TtsSettings newTtsSettings) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_TTS_SETTINGS, gson.toJson(newTtsSettings));
+        editor.apply();
+    }
+
+    public boolean getKeepBluetoothHeadsetConnectionAlive() {
+        return settings.getBoolean(KEY_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE, DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE);
+    }
+
+    public void setKeepBluetoothHeadsetConnectionAlive(boolean keepAlive) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE, keepAlive);
+        editor.apply();
+    }
+
 
     /**
      * WalkersGuide server
@@ -319,31 +354,6 @@ public class SettingsManager {
         Editor editor = settings.edit();
         editor.putString(
                 KEY_SELECTED_NETWORK_ID, gson.toJson(newId));
-        editor.apply();
-    }
-
-
-    /**
-     * tts settings
-     */
-
-    public TtsSettings getTtsSettings() {
-        TtsSettings ttsSettings = null;
-        try {
-            ttsSettings = gson.fromJson(
-                    settings.getString(KEY_TTS_SETTINGS, ""),
-                    TtsSettings.class);
-        } catch (ClassCastException e) {}
-        if (ttsSettings == null) {
-            ttsSettings = TtsSettings.getDefault();
-        }
-        return ttsSettings;
-    }
-
-    public void setTtsSettings(TtsSettings newTtsSettings) {
-        Editor editor = settings.edit();
-        editor.putString(
-                KEY_TTS_SETTINGS, gson.toJson(newTtsSettings));
         editor.apply();
     }
 

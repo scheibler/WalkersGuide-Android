@@ -50,11 +50,11 @@
             android:theme="@style/HeadingTextView" />
 
         <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/buttonShowActionButton"
+            android:id="@+id/switchShowActionButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/buttonShowActionButtonHint"
-            android:text="@string/buttonShowActionButton" />
+            android:hint="@string/switchShowActionButtonHint"
+            android:text="@string/switchShowActionButton" />
 
         <Button
             android:id="@+id/buttonShakeIntensity"
@@ -63,11 +63,62 @@
             android:hint="@string/buttonShakeIntensityHint"
             android:text="@string/buttonShakeIntensity" />
 
-        <Button
-            android:id="@+id/buttonShowTtsSettingsDialog"
+
+        <!-- tts settings -->
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/ttsSettingsDialogTitle" />
+            android:layout_marginTop="10dp"
+            android:focusable="true"
+            android:text="@string/labelTTSSettingsHeader"
+            android:theme="@style/HeadingTextView" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchAnnouncementsEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/switchAnnouncementsEnabled" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:labelFor="@+id/editDistanceAnnouncementInterval"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:text="@string/labelDistanceAnnouncementInterval" />
+
+            <EditText
+                android:id="@+id/editDistanceAnnouncementInterval"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:hint="@string/labelDistanceAnnouncementIntervalUnit"
+                android:inputType="numberDecimal"
+                android:digits="0123456789"
+                android:imeOptions="actionDone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:importantForAccessibility="no"
+                android:text="@string/labelDistanceAnnouncementIntervalUnit" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchKeepBluetoothHeadsetConnectionAlive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/switchKeepBluetoothHeadsetConnectionAliveHint"
+            android:text="@string/switchKeepBluetoothHeadsetConnectionAlive" />
 
 
         <!-- import and export settings -->

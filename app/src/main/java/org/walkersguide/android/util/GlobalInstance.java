@@ -42,6 +42,10 @@ import org.walkersguide.android.data.object_with_id.Route;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
 import java.util.Map;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
+import android.media.AudioManager;
+import android.os.Looper;
 
 
 public class GlobalInstance extends Application {
@@ -123,6 +127,8 @@ public class GlobalInstance extends Application {
                 Executors.newSingleThreadExecutor().execute(() -> {
                     PinnedShortcutUtility.disableObsoletePinnedShortcuts();
                 });
+                // stop playback of silence wav file
+                stopPlaybackOfSilenceWavFile();
             }
         };
         this.mActivityTransitionTimer.schedule(mActivityTransitionTimerTask,
@@ -199,6 +205,65 @@ public class GlobalInstance extends Application {
         } else {
             return PendingIntent.getActivity(
                     this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+    }
+
+
+    /**
+     * sound pool
+     */
+	private Handler soundPoolHandler;
+    private Runnable soundPoolRunnable;
+    private SoundPool soundPool;
+    private int soundSilence;
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @SuppressWarnings("deprecation")
+    public void startPlaybackOfSilenceWavFile() {
+	    soundPoolHandler = new Handler(Looper.getMainLooper());
+        soundPoolRunnable = new Runnable() {
+            @Override public void run() {
+                if (soundPool != null) {
+                    soundPool.play(soundSilence, 1, 1, 1, 0, 1f);
+                }
+                if (soundPoolHandler != null) {
+                    soundPoolHandler.postDelayed(this, 5000);
+                }
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AudioAttributes attributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .build();
+            soundPool = new SoundPool.Builder()
+                .setAudioAttributes(attributes)
+                .build();
+        } else {
+            soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+        }
+
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override public void onLoadComplete (SoundPool soundPool, int sampleId, int status) {
+                if (sampleId == soundSilence && status == 0) {  // success
+                    soundPoolHandler.post(soundPoolRunnable);
+                }
+            }
+        });
+        soundSilence = soundPool.load(getApplicationContext(), R.raw.silence, 1);
+    }
+
+    public void stopPlaybackOfSilenceWavFile() {
+        if (soundPoolHandler != null && soundPoolRunnable != null) {
+            soundPoolHandler.removeCallbacks(soundPoolRunnable);
+            soundPoolHandler = null;
+            soundPoolRunnable = null;
+        }
+        if (soundPool != null) {
+            soundPool.release();
+            soundPool = null;
+            soundSilence = 0;
         }
     }
 

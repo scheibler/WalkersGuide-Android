@@ -270,6 +270,11 @@ public abstract class ToolbarActivity extends AppCompatActivity {
                 }
             }
 
+            // keep bt headset connection alive
+            if (settingsManagerInstance.getKeepBluetoothHeadsetConnectionAlive()) {
+                globalInstance.startPlaybackOfSilenceWavFile();
+            }
+
             // cleanup after app resume
             globalInstance.clearCaches();
             globalInstance.resetEnabledStaticShortcutActions();

@@ -1,7 +1,6 @@
 package org.walkersguide.android.ui.fragment;
 
 import timber.log.Timber;
-import org.walkersguide.android.ui.dialog.TtsSettingsDialog;
 import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
 import org.walkersguide.android.ui.dialog.select.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.select.SelectShakeIntensityDialog;
@@ -72,6 +71,14 @@ import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
 import android.content.Context;
+import android.widget.EditText;
+import org.walkersguide.android.tts.TtsSettings;
+import org.walkersguide.android.ui.TextChangedListener;
+import android.text.Editable;
+import android.widget.TextView;
+import android.view.KeyEvent;
+import org.walkersguide.android.ui.UiHelper;
+import android.view.inputmethod.EditorInfo;
 
 
 public class SettingsFragment extends Fragment implements FragmentResultListener {
@@ -90,7 +97,9 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
-    private SwitchCompat buttonShowActionButton;
+    private SwitchCompat switchShowActionButton;
+    private SwitchCompat switchAnnouncementsEnabled, switchKeepBluetoothHeadsetConnectionAlive;
+    private EditText editDistanceAnnouncementInterval;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -182,8 +191,8 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         });
 
         // ui
-        buttonShowActionButton = (SwitchCompat) view.findViewById(R.id.buttonShowActionButton);
-        buttonShowActionButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switchShowActionButton = (SwitchCompat) view.findViewById(R.id.switchShowActionButton);
+        switchShowActionButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 if (isChecked != settingsManagerInstance.getShowActionButton()) {
                     settingsManagerInstance.setShowActionButton(isChecked);
@@ -200,11 +209,53 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             }
         });
 
-        Button buttonShowTtsSettingsDialog = (Button) view.findViewById(R.id.buttonShowTtsSettingsDialog);
-        buttonShowTtsSettingsDialog.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                TtsSettingsDialog.newInstance()
-                    .show(getChildFragmentManager(), "TtsSettingsDialog");
+        switchAnnouncementsEnabled = (SwitchCompat) view.findViewById(R.id.switchAnnouncementsEnabled);
+        switchAnnouncementsEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
+                if (ttsSettings.getAnnouncementsEnabled() != isChecked) {
+                    ttsSettings.setAnnouncementsEnabled(isChecked);
+                    settingsManagerInstance.setTtsSettings(ttsSettings);
+                }
+            }
+        });
+
+        editDistanceAnnouncementInterval = (EditText) view.findViewById(R.id.editDistanceAnnouncementInterval);
+        editDistanceAnnouncementInterval.addTextChangedListener(new TextChangedListener<EditText>(editDistanceAnnouncementInterval) {
+            @Override public void onTextChanged(EditText view, Editable s) {
+                int newDistanceAnnouncementInterval = 0;
+                try {
+                    newDistanceAnnouncementInterval = Integer.parseInt(view.getText().toString());
+                } catch (NumberFormatException nfe) {}
+                if (newDistanceAnnouncementInterval > 0) {
+                    TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
+                    ttsSettings.setDistanceAnnouncementInterval(newDistanceAnnouncementInterval);
+                    settingsManagerInstance.setTtsSettings(ttsSettings);
+                }
+            }
+        });
+        editDistanceAnnouncementInterval.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (UiHelper.isDoSomeThingEditorAction(actionId, EditorInfo.IME_ACTION_DONE, event)) {
+                    UiHelper.hideKeyboard(SettingsFragment.this);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        switchKeepBluetoothHeadsetConnectionAlive = (SwitchCompat) view.findViewById(R.id.switchKeepBluetoothHeadsetConnectionAlive);
+        switchKeepBluetoothHeadsetConnectionAlive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked != settingsManagerInstance.getKeepBluetoothHeadsetConnectionAlive()) {
+                    GlobalInstance globalInstance = GlobalInstance.getInstance();
+                    if (isChecked) {
+                        globalInstance.startPlaybackOfSilenceWavFile();
+                    } else {
+                        globalInstance.stopPlaybackOfSilenceWavFile();
+                    }
+                    settingsManagerInstance.setKeepBluetoothHeadsetConnectionAlive(isChecked);
+                }
             }
         });
 
@@ -285,13 +336,19 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         }
 
         // ui settings
-        buttonShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
+        switchShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
         buttonShakeIntensity.setText(
                 String.format(
                     "%1$s: %2$s",
                     getResources().getString(R.string.buttonShakeIntensity),
                     settingsManagerInstance.getSelectedShakeIntensity())
                 );
+        TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
+        switchAnnouncementsEnabled.setChecked(ttsSettings.getAnnouncementsEnabled());
+        editDistanceAnnouncementInterval.setText(
+                String.valueOf(ttsSettings.getDistanceAnnouncementInterval()));
+        editDistanceAnnouncementInterval.selectAll();
+        switchKeepBluetoothHeadsetConnectionAlive.setChecked(settingsManagerInstance.getKeepBluetoothHeadsetConnectionAlive());
 
         // request server instance
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {

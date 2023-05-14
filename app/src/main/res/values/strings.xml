@@ -406,10 +406,19 @@
     <string name="buttonPublicTransportProvider">Public transport: %1$s</string>
     <string name="buttonPublicTransportProviderNoSelection">Public transport: None selected</string>
     <string name="labelInterfaceSettingsHeader">User interface:</string>
-    <string name="buttonShowActionButton">Show action button</string>
-    <string name="buttonShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
+    <string name="switchShowActionButton">Show action button</string>
+    <string name="switchShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "Points" Tab.</string>
+    <string name="labelTTSSettingsHeader">Text to speech</string>
+    <string name="switchAnnouncementsEnabled">Enable speech announcements</string>
+    <string name="labelDistanceAnnouncementInterval">Distance announcement interval</string>
+    <string name="labelDistanceAnnouncementIntervalUnit">meters</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAlive">Keep Bluetooth headphone connection alive</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAliveHint">
+        Some Bluetooth headphones go to sleep after some time of inactivity and their subsequent
+        awakening produces a noticeable delay. Then the start of the
+        next voice announcement may be truncated.</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
     <string name="buttonExportSettings">Export application settings</string>
@@ -430,12 +439,6 @@
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
-
-    <!-- TtsSettingsDialog -->
-    <string name="ttsSettingsDialogTitle">speech settings</string>
-    <string name="switchAnnouncementsEnabled">Enable speech announcements</string>
-    <string name="labelDistanceAnnouncementInterval">Distance announcement interval</string>
-    <string name="labelDistanceAnnouncementIntervalUnit">meters</string>
 
     <!-- info fragment -->
     <string name="fragmentInfoName">Info</string>
