@@ -160,9 +160,10 @@
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
-    <string name="labelRoutePosition">Anweisung %1$d von %2$d, %3$d von %4$s</string>
+    <string name="labelTotalDistance">Fortschritt: %1$d von %2$s zurückgelegt</string>
+    <string name="labelRoutePosition">Anweisung %1$d von %2$d</string>
     <string name="buttonJumpToRoutePoint">Zu Routenpunkt springen</string>
-    <string name="labelIntersectionStructure">Kreuzungsaufbau</string>
+    <string name="labelIntersectionStructureHeading">Kreuzungsaufbau</string>
     <string name="buttonPreviousRouteObject">Vorheriger</string>
     <string name="buttonPreviousRouteObjectCD">Vorheriger Routenpunkt</string>
     <string name="buttonNextRouteObject">Nächster</string>
@@ -175,7 +176,7 @@
     <string name="menuItemLoadPreviousRoute">Frühere Route laden</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. weiterschalten</string>
     <string name="menuItemShowPreciseBearingValues">Präzise Richtungsangaben anzeigen</string>
-    <string name="menuItemShowIntersectionLayoutDetails">Kreuzungslayout anzeigen</string>
+    <string name="menuItemShowIntersectionLayoutDetails">Kreuzungsaufbau anzeigen</string>
 
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Springe zu Routenpunkt:</string>
@@ -529,6 +530,10 @@
 
     <!-- RouteObjectView -->
     <string name="labelSelectedRouteObject">Nächstes Wegstück:</string>
+
+    <!-- IntersectionScheme -->
+    <string name="labelIntersectionScheme">Karte</string>
+    <string name="labelIntersectionCenter">Kreuzungsmitte</string>
 
     <!-- dialog button labels -->
     <string name="dialogOK">OK</string>
@@ -920,6 +925,12 @@
     </plurals>
 
     <plurals
+        name="meters">
+        <item quantity="one">1 Meter</item>
+        <item quantity="other">%d Metern</item>
+    </plurals>
+
+    <plurals
         name="inMeters">
         <item quantity="one">In 1 Meter</item>
         <item quantity="other">In %d Metern</item>
@@ -1001,6 +1012,12 @@
         name="street">
         <item quantity="one">1 Straße</item>
         <item quantity="other">%d Straßen</item>
+    </plurals>
+
+    <plurals
+        name="turning">
+        <item quantity="one">1 Abzweigung</item>
+        <item quantity="other">%d Abzweigungen</item>
     </plurals>
 
     <plurals

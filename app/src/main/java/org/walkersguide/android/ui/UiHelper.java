@@ -27,6 +27,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.View;
 import androidx.annotation.NonNull;
 import android.widget.Button;
+import android.text.style.LeadingMarginSpan;
 
 
 public class UiHelper {
@@ -92,11 +93,20 @@ public class UiHelper {
      * format strings
      */
 
-    public static SpannableString boldAndRed(String text) {
-        return boldAndRed(text, 0, text.length());
+    public static SpannableString bold(String text) {
+        return styleString(text, 0, text.length(), true, false, false);
     }
 
-    public static SpannableString boldAndRed(String text, int begin, int end) {
+    public static SpannableString red(String text) {
+        return styleString(text, 0, text.length(), false, true, false);
+    }
+
+    public static SpannableString boldAndRed(String text) {
+        return styleString(text, 0, text.length(), true, true, false);
+    }
+
+    private static SpannableString styleString(String text, int begin, int end,
+            boolean bold, boolean red, boolean indent) {
         if (begin < 0 || begin >= text.length()) {
             begin = 0;
         }
@@ -104,14 +114,23 @@ public class UiHelper {
             end = text.length();
         }
         SpannableString spanString = new SpannableString(text);
-        spanString.setSpan(
-                new StyleSpan(
-                    Typeface.BOLD),
-                begin, end, 0);
-        spanString.setSpan(
-                new ForegroundColorSpan(
-                    ContextCompat.getColor(GlobalInstance.getContext(), R.color.heading)),
-                begin, end, 0);
+        if (bold) {
+            spanString.setSpan(
+                    new StyleSpan(
+                        Typeface.BOLD),
+                    begin, end, 0);
+        }
+        if (red) {
+            spanString.setSpan(
+                    new ForegroundColorSpan(
+                        ContextCompat.getColor(GlobalInstance.getContext(), R.color.heading)),
+                    begin, end, 0);
+        }
+        if (indent) {
+            spanString.setSpan(
+                    new LeadingMarginSpan.Standard(2),
+                    begin, end, 0);
+        }
         return spanString;
     }
 

@@ -24,16 +24,22 @@ import java.lang.Math;
 import org.walkersguide.android.data.angle.Bearing;
 import timber.log.Timber;
 import android.os.VibrationEffect;
-import org.walkersguide.android.data.object_with_id.point.Intersection;
 import androidx.core.util.Pair;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.ui.activity.toolbar.tabs.SegmentDetailsActivity;
+import android.text.TextUtils;
+import org.walkersguide.android.data.Angle;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import org.walkersguide.android.data.angle.RelativeBearing;
 
 
 public class IntersectionScheme extends View {
 
     private SelfVoicingTouchHelper mTouchHelper;
-    private Intersection intersection;
+    private String intersectionName;
+    private LinkedHashMap<RelativeBearing,IntersectionSegment> intersectionSegmentRelativeToInstructionMap;
 
     public IntersectionScheme(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -42,8 +48,10 @@ public class IntersectionScheme extends View {
         ViewCompat.setAccessibilityDelegate(this, mTouchHelper);
     }
 
-    public void configureView(Intersection intersection) {
-        this.intersection = intersection;
+    public void configureView(String intersectionName,
+            LinkedHashMap<RelativeBearing,IntersectionSegment> intersectionSegmentRelativeToInstructionMap) {
+        this.intersectionName = intersectionName;
+        this.intersectionSegmentRelativeToInstructionMap = intersectionSegmentRelativeToInstructionMap;
         this.invalidate();
     }
 
@@ -51,21 +59,24 @@ public class IntersectionScheme extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Timber.d("onDraw: %1$s", intersection);
-        if (intersection == null) {
+        if (this.intersectionSegmentRelativeToInstructionMap == null) {
             return;
         }
         final Paint paint = new Paint();
+        paint.setStrokeWidth(20);
         final Pair<Float,Float> center = getCenterCoordinates();
 
         // intersection segments
-        for (IntersectionSegment segment : intersection.getSegmentList()) {
-            Pair<Float,Float> boundaryCoordinates = getBoundaryCoordinatesFor(segment.getBearing());
-            Timber.d("Segment: name=%1$s   degree=%2$d   stopX=%3$.2f   stopY=%4$.2f",
-                    segment.getName(), segment.getBearing().getDegree(), boundaryCoordinates.first, boundaryCoordinates.second);
-            paint.setColor(Color.RED);
+        for (Map.Entry<RelativeBearing,IntersectionSegment> entry : this.intersectionSegmentRelativeToInstructionMap.entrySet()) {
+            Pair<Float,Float> boundaryCoordinates = getBoundaryCoordinatesFor(entry.getKey());
+            IntersectionSegment segment = entry.getValue();
+            // draw street line
+            paint.setColor(
+                    segment.isPartOfNextRouteSegment() ?  Color.RED : Color.BLACK);
             canvas.drawLine(
                     center.first, center.second, boundaryCoordinates.first, boundaryCoordinates.second, paint);
+            Timber.d("Segment: name=%1$s   degree=%2$d   stopX=%3$.2f   stopY=%4$.2f",
+                    segment.getName(), entry.getKey().getDegree(), boundaryCoordinates.first, boundaryCoordinates.second);
         }
 
         // center
@@ -74,33 +85,26 @@ public class IntersectionScheme extends View {
         canvas.drawCircle(center.first, center.second, getCenterRadius(), paint);
     }
 
-    private Pair<Float,Float> getBoundaryCoordinatesFor(Bearing bearing) {
+    private Pair<Float,Float> getBoundaryCoordinatesFor(Angle angle) {
         float scaledX = 0.0f, scaledY = 0.0f;
-        if (bearing.withinRange(316, 45)) {
-            scaledX = (float) Math.tan( Math.toRadians(bearing.getDegree()) );
+
+        if (angle.withinRange(316, 45)) {
+            scaledX = (float) Math.tan( Math.toRadians(angle.getDegree()) );
             scaledY = 1.0f;
-        } else if (bearing.withinRange(46, 135)) {
+        } else if (angle.withinRange(46, 135)) {
             scaledX = 1.0f;
-            scaledY = (float) Math.tan( Math.toRadians(90-bearing.getDegree()) );
-        } else if (bearing.withinRange(136, 225)) {
-            scaledX = (float) Math.tan( Math.toRadians(-bearing.getDegree()) );
+            scaledY = (float) Math.tan( Math.toRadians(90-angle.getDegree()) );
+        } else if (angle.withinRange(136, 225)) {
+            scaledX = (float) Math.tan( Math.toRadians(-angle.getDegree()) );
             scaledY = -1.0f;
-        } else if (bearing.withinRange(226, 315)) {
+        } else if (angle.withinRange(226, 315)) {
             scaledX = -1.0f;
-            scaledY = (float) Math.tan( Math.toRadians(bearing.getDegree()-90) );
+            scaledY = (float) Math.tan( Math.toRadians(angle.getDegree()-90) );
         }
 
         return Pair.create(
                 (scaledX * getHalfWidth()) + getHalfWidth(),
                 getHalfHeight() - (scaledY * getHalfHeight()) );
-    }
-
-    private Pair<Float,Float> getCenterCoordinates() {
-        return Pair.create(getHalfWidth(), getHalfHeight());
-    }
-
-    private float getCenterRadius() {
-        return getHalfWidth() / 4;
     }
 
     // hover and click
@@ -114,17 +118,19 @@ public class IntersectionScheme extends View {
     }
 
     @Override public boolean onTouchEvent(MotionEvent event) {
-        Timber.d("onTouchEvent: %1$.2f   %2$.2f", event.getX(), event.getY());
+        //Timber.d("onTouchEvent: %1$.2f   %2$.2f", event.getX(), event.getY());
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 return true;
             case MotionEvent.ACTION_UP:
-                if (isAtCenter(event.getX(), event.getY())) {
+                if (isAtCenter(event.getX(), event.getY(), getCenterRadius())) {
                     onCenterClicked();
                 } else {
-                    IntersectionSegment segment = getIntersectionSegmentUnder(event.getX(), event.getY());
-                    if (segment != null) {
-                        onIntersectionSegmentClicked(segment);
+                    Map.Entry<RelativeBearing,IntersectionSegment> relativeBearingAndIntersectionSegmentMapEntry =
+                        getIntersectionSegmentUnder(event.getX(), event.getY());
+                    if (relativeBearingAndIntersectionSegmentMapEntry != null) {
+                        onIntersectionSegmentClicked(
+                                relativeBearingAndIntersectionSegmentMapEntry.getValue());
                     }
                 }
                 return true;
@@ -132,9 +138,8 @@ public class IntersectionScheme extends View {
         return super.onTouchEvent(event);
     }
 
-    private boolean isAtCenter(float x, float y) {
+    private boolean isAtCenter(float x, float y, float radius) {
         final Pair<Float,Float> center = getCenterCoordinates();
-        final float radius = getCenterRadius();
         final float distanceBetweenPointAndCenter =
               (x - center.first) * (x - center.first)
             + (y - center.second) * (y - center.second);
@@ -143,17 +148,14 @@ public class IntersectionScheme extends View {
 
     private void onCenterClicked() {
         Toast.makeText(
-                getContext(),
-                intersection != null
-                ? intersection.toString()
-                : GlobalInstance.getStringResource(R.string.labelNothingSelected),
-                Toast.LENGTH_LONG).show();
+                getContext(), this.intersectionName, Toast.LENGTH_LONG)
+            .show();
     }
 
-    private IntersectionSegment getIntersectionSegmentUnder(float x, float y) {
+    private Map.Entry<RelativeBearing,IntersectionSegment> getIntersectionSegmentUnder(float x, float y) {
         final float scaledX = (x - getHalfWidth()) / getHalfWidth();
         final float scaledY = (getHalfHeight() - y) / getHalfHeight();
-        final int thresholdInDegree = 4;
+        final int thresholdInDegree = 5;
 
         // alpha = arc tangent ( opposite / adjacent )
         // special case for y = 0 (devide by 0)
@@ -165,23 +167,21 @@ public class IntersectionScheme extends View {
             degree += 180;
         }
         final Bearing bearingFromCenter = new Bearing(degree);
-        Timber.d("degree=%1$d   x=%2$.2f   y=%3$.2f", bearingFromCenter.getDegree(), scaledX, scaledY);
+        //Timber.d("degree=%1$d   x=%2$.2f   y=%3$.2f", bearingFromCenter.getDegree(), scaledX, scaledY);
 
         int min = bearingFromCenter.getDegree() - thresholdInDegree;
         int max = bearingFromCenter.getDegree() + thresholdInDegree;
-        for (IntersectionSegment segment : intersection.getSegmentList()) {
-            if (segment.getBearing().withinRange(min, max)) {
-                return segment;
+        for (Map.Entry<RelativeBearing,IntersectionSegment> entry : this.intersectionSegmentRelativeToInstructionMap.entrySet()) {
+            if (entry.getKey().withinRange(min, max)) {
+                return entry;
             }
         }
+
         return null;
     }
 
     private void onIntersectionSegmentClicked(IntersectionSegment segment) {
-        Toast.makeText(
-                getContext(),
-                segment.toString(),
-                Toast.LENGTH_LONG).show();
+        SegmentDetailsActivity.start(getContext(), segment);
     }
 
     // helpers
@@ -192,6 +192,18 @@ public class IntersectionScheme extends View {
 
     private float getHalfHeight() {
         return getHeight() / 2;
+    }
+
+    private float getCenterRadius() {
+        return getHalfWidth() / 6;
+    }
+
+    private float getA11yCenterRadius() {
+        return getHalfWidth() / 4;
+    }
+
+    private Pair<Float,Float> getCenterCoordinates() {
+        return Pair.create(getHalfWidth(), getHalfHeight());
     }
 
 
@@ -209,20 +221,45 @@ public class IntersectionScheme extends View {
         }
 
         @Override protected int getVirtualViewAt(float x, float y) {
-            if (isAtCenter(x, y)) {
+            if (isAtCenter(x, y, getA11yCenterRadius())) {
                 if (! this.atCenter) {
-                    this.ttsWrapperInstance.announce("Kreuzungsmitte");
+                    this.ttsWrapperInstance.announce(
+                            String.format(
+                                "%1$s, %2$s",
+                                GlobalInstance.getStringResource(R.string.labelIntersectionCenter),
+                                GlobalInstance.getPluralResource(
+                                    R.plurals.turning,
+                                    intersectionSegmentRelativeToInstructionMap.size())
+                                )
+                            );
+                    Helper.vibrateOnce(100);
+                    this.lastAnnouncedSegment = null;
                 }
                 this.atCenter = true;
             } else {
-                IntersectionSegment segment = getIntersectionSegmentUnder(x, y);
-                if (segment != null) {
+                Map.Entry<RelativeBearing,IntersectionSegment> relativeBearingAndIntersectionSegmentMapEntry =
+                    getIntersectionSegmentUnder(x, y);
+                if (relativeBearingAndIntersectionSegmentMapEntry != null) {
+                    IntersectionSegment segment = relativeBearingAndIntersectionSegmentMapEntry.getValue();
                     if (this.lastAnnouncedSegment == null
                             || ! this.lastAnnouncedSegment.equals(segment)) {
-                        ttsWrapperInstance.announce(segment.getName());
+                        String announcement = String.format(
+                                "%1$s, %2$s",
+                                segment.formatNameAndSubType(),
+                                relativeBearingAndIntersectionSegmentMapEntry.getKey().getDirection().toString());
+                        if (segment.isPartOfPreviousRouteSegment()) {
+                            announcement += String.format(
+                                    ", %1$s", GlobalInstance.getStringResource(R.string.labelPartOfPreviousRouteSegment));
+                        } else if (segment.isPartOfNextRouteSegment()) {
+                            announcement += String.format(
+                                    ", %1$s", GlobalInstance.getStringResource(R.string.labelPartOfNextRouteSegment));
+                        }
+                        ttsWrapperInstance.announce(announcement);
                     }
                     Helper.vibrateOnce(50);
                     this.lastAnnouncedSegment = segment;
+                } else {
+                    this.lastAnnouncedSegment = null;
                 }
                 this.atCenter = false;
             }
@@ -237,20 +274,21 @@ public class IntersectionScheme extends View {
                 int virtualViewId, AccessibilityNodeInfoCompat node) {
             node.setBoundsInParent(
                     new Rect(0, 0, getWidth(), getHeight()));
-            node.setText("Kreuzungsschema");
+            node.setText(
+                    GlobalInstance.getStringResource(R.string.labelIntersectionScheme));
             node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK);
         }
 
         @Override protected boolean onPerformActionForVirtualView(
                 int virtualViewId, int action, Bundle arguments) {
-            switch (action) {
-                case AccessibilityNodeInfoCompat.ACTION_CLICK:
-                    if (this.atCenter) {
-                        onCenterClicked();
-                    } else if (this.lastAnnouncedSegment != null) {
-                        onIntersectionSegmentClicked(this.lastAnnouncedSegment);
-                    }
+            if (action == AccessibilityNodeInfoCompat.ACTION_CLICK) {
+                if (this.atCenter) {
+                    onCenterClicked();
                     return true;
+                } else if (this.lastAnnouncedSegment != null) {
+                    onIntersectionSegmentClicked(lastAnnouncedSegment);
+                    return true;
+                }
             }
             return false;
         }

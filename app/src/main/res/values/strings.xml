@@ -154,9 +154,10 @@
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
-    <string name="labelRoutePosition">Instruction %1$d of %2$d, %3$d of %4$s</string>
+    <string name="labelTotalDistance">Progress: %1$d of %2$s completed</string>
+    <string name="labelRoutePosition">Instruction %1$d of %2$d</string>
     <string name="buttonJumpToRoutePoint">Jump to route point</string>
-    <string name="labelIntersectionStructure">Intersection structure</string>
+    <string name="labelIntersectionStructureHeading">Intersection structure</string>
     <string name="buttonPreviousRouteObject">Previous</string>
     <string name="buttonPreviousRouteObjectCD">Previous route point</string>
     <string name="buttonNextRouteObject">Next</string>
@@ -168,8 +169,8 @@
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
     <string name="menuItemLoadPreviousRoute">Load previous route</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
-    <string name="menuItemShowPreciseBearingValues">Show precise bearing values</string>
-    <string name="menuItemShowIntersectionLayoutDetails">Show intersection layout details</string>
+    <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
+    <string name="menuItemShowIntersectionLayoutDetails">Show intersection structure</string>
 
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>
@@ -524,6 +525,10 @@
 
     <!-- RouteObjectView -->
     <string name="labelSelectedRouteObject">Next way segment:</string>
+
+    <!-- IntersectionScheme -->
+    <string name="labelIntersectionScheme">Map</string>
+    <string name="labelIntersectionCenter">Intersection center</string>
 
     <!-- dialog button labels -->
     <string name="dialogOK">OK</string>
@@ -911,6 +916,12 @@
     </plurals>
 
     <plurals
+        name="meters">
+        <item quantity="one">1 Meter</item>
+        <item quantity="other">%d Meters</item>
+    </plurals>
+
+    <plurals
         name="inMeters">
         <item quantity="one">In 1 meter</item>
         <item quantity="other">In %d meters</item>
@@ -992,6 +1003,12 @@
         name="street">
         <item quantity="one">1 street</item>
         <item quantity="other">%d streets</item>
+    </plurals>
+
+    <plurals
+        name="turning">
+        <item quantity="one">1 turning</item>
+        <item quantity="other">%d turnings</item>
     </plurals>
 
     <plurals

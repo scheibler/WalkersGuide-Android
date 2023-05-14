@@ -65,7 +65,7 @@ public class SettingsManager {
     public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
     public static final boolean DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT = true;
     public static final boolean DEFAULT_SHOW_PRECISE_BEARING_VALUES = false;
-    public static final boolean DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS = false;
+    public static final boolean DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS = true;
 
     // keys
     // ui settings

@@ -1,5 +1,8 @@
 package org.walkersguide.android.ui.fragment;
 
+import android.os.Build;
+import android.annotation.SuppressLint;
+import org.walkersguide.android.ui.view.IntersectionScheme;
 import android.widget.ImageButton;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 import androidx.fragment.app.FragmentResultListener;
@@ -60,6 +63,7 @@ import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.data.ObjectWithId.SortByBearingRelativeTo;
 import org.walkersguide.android.util.Helper;
 import android.os.Handler;
 import android.os.Looper;
@@ -78,6 +82,13 @@ import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.Angle;
 import java.util.Collections;
 import android.text.TextUtils;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import android.widget.LinearLayout;
+import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
+import org.walkersguide.android.ui.UiHelper;
+import android.text.SpannableString;
 
 
 public class RouterFragment extends Fragment implements FragmentResultListener {
@@ -98,8 +109,16 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
     private TTSWrapper ttsWrapperInstance;
 
     private TextViewAndActionButton layoutRoute;
+    private TextView labelTotalDistance;
+    private TextView labelHeading;
+    private ImageButton buttonJumpToRoutePoint;
     private RouteObjectView layoutCurrentRouteObject;
-    private TextView labelHeading, labelDistanceAndBearing, labelIntersectionStructure;
+    // optional intersection structure details
+    private LinearLayout layoutIntersectionStructure;
+    private TextView labelIntersectionStructure;
+    private IntersectionScheme intersectionScheme;
+    // bottom
+    private TextView labelDistanceAndBearing;
     private Button buttonPreviousRouteObject, buttonNextRouteObject;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
@@ -171,6 +190,10 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         if (menuItemShowIntersectionLayoutDetails != null) {
             menuItemShowIntersectionLayoutDetails.setChecked(
                     settingsManagerInstance.getShowIntersectionLayoutDetails());
+            // only show intersection structure details menu item on android >= 7
+            // due to stream() method in "updateUi"
+            menuItemShowIntersectionLayoutDetails.setVisible(
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N);
         }
     }
 
@@ -262,12 +285,12 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
 		super.onViewCreated(view, savedInstanceState);
 
         // content layout
-        layoutRoute = (TextViewAndActionButton) view.findViewById(R.id.layoutRoute);
-        labelHeading = (TextView) view.findViewById(R.id.labelHeading);
-        layoutCurrentRouteObject = (RouteObjectView) view.findViewById(R.id.layoutCurrentRouteObject);
-        labelIntersectionStructure = (TextView) view.findViewById(R.id.labelIntersectionStructure);
 
-        ImageButton buttonJumpToRoutePoint = (ImageButton) view.findViewById(R.id.buttonJumpToRoutePoint);
+        layoutRoute = (TextViewAndActionButton) view.findViewById(R.id.layoutRoute);
+        labelTotalDistance = (TextView) view.findViewById(R.id.labelTotalDistance);
+
+        labelHeading = (TextView) view.findViewById(R.id.labelHeading);
+        buttonJumpToRoutePoint = (ImageButton) view.findViewById(R.id.buttonJumpToRoutePoint);
         buttonJumpToRoutePoint.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (route != null) {
@@ -276,6 +299,12 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
                 }
             }
         });
+
+        layoutCurrentRouteObject = (RouteObjectView) view.findViewById(R.id.layoutCurrentRouteObject);
+
+        layoutIntersectionStructure = (LinearLayout) view.findViewById(R.id.layoutIntersectionStructure);
+        labelIntersectionStructure = (TextView) view.findViewById(R.id.labelIntersectionStructure);
+        intersectionScheme = (IntersectionScheme) view.findViewById(R.id.intersectionScheme);
 
         // bottom layout
         labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
@@ -318,8 +347,10 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         super.onResume();
         Timber.d("onResume");
         layoutRoute.setVisibility(View.GONE);
+        labelTotalDistance.setVisibility(View.GONE);
+        buttonJumpToRoutePoint.setVisibility(View.GONE);
         layoutCurrentRouteObject.setVisibility(View.GONE);
-        labelIntersectionStructure.setVisibility(View.GONE);
+        layoutIntersectionStructure.setVisibility(View.GONE);
         labelDistanceAndBearing.setVisibility(View.GONE);
         buttonPreviousRouteObject.setVisibility(View.GONE);
         buttonNextRouteObject.setVisibility(View.GONE);
@@ -328,6 +359,8 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         route = settingsManagerInstance.getSelectedRoute();
         if (route != null) {
             layoutRoute.setVisibility(View.VISIBLE);
+            labelTotalDistance.setVisibility(View.VISIBLE);
+            buttonJumpToRoutePoint.setVisibility(View.VISIBLE);
             layoutCurrentRouteObject.setVisibility(View.VISIBLE);
             labelDistanceAndBearing.setVisibility(View.VISIBLE);
             buttonPreviousRouteObject.setVisibility(View.VISIBLE);
@@ -368,58 +401,72 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         RouteObject currentRouteObject = route.getCurrentRouteObject();
 
         layoutRoute.configureAsSingleObject(route);
+        labelTotalDistance.setText(
+                String.format(
+                    GlobalInstance.getStringResource(R.string.labelTotalDistance),
+                    route.getElapsedLength(),
+                    GlobalInstance.getPluralResource(
+                        R.plurals.meters, route.getTotalLength()))
+                );
+
         labelHeading.setText(
                 String.format(
                     GlobalInstance.getStringResource(R.string.labelRoutePosition),
                     route.getCurrentPosition() + 1,
-                    route.getRouteObjectList().size(),
-                    route.getElapsedLength(),
-                    GlobalInstance.getPluralResource(R.plurals.meter, route.getTotalLength()))
+                    route.getRouteObjectList().size())
                 );
         layoutCurrentRouteObject.configureAsSingleObject(currentRouteObject);
 
         // intersection structure
-        labelIntersectionStructure.setText("");
-        labelIntersectionStructure.setVisibility(View.GONE);
+        layoutIntersectionStructure.setVisibility(View.GONE);
         if (currentRouteObject.getPoint() instanceof Intersection
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N   // due to stream() method below
                 && settingsManagerInstance.getShowIntersectionLayoutDetails()) {
             Intersection intersection = (Intersection) currentRouteObject.getPoint();
 
             Bearing inverseBearingOfPreviousRouteSegment = null;
-            ArrayList<IntersectionSegment> relevantIntersectionSegmentList = new ArrayList<IntersectionSegment>();
             for (IntersectionSegment intersectionSegment : intersection.getSegmentList()) {
                 if (intersectionSegment.isPartOfPreviousRouteSegment()) {
                     inverseBearingOfPreviousRouteSegment = intersectionSegment.getBearing().inverse();
-                } else {
-                    relevantIntersectionSegmentList.add(intersectionSegment);
+                    break;
                 }
             }
+            if (inverseBearingOfPreviousRouteSegment != null) {
 
-            if (inverseBearingOfPreviousRouteSegment != null
-                    && ! relevantIntersectionSegmentList.isEmpty()) {
-                Collections.sort(
-                        relevantIntersectionSegmentList,
-                        // bearing offset = 157 -> sort the ways, which are strongly to the left of the user, to the top of the list
-                        new ObjectWithId.SortByBearingRelativeTo(
-                            inverseBearingOfPreviousRouteSegment, Angle.Quadrant.Q3.max, true));
+                CharSequence formattedIntersectionStructure = new SpannableString("");
+                LinkedHashMap<RelativeBearing,IntersectionSegment> intersectionSegmentRelativeToInstructionMap =
+                    new LinkedHashMap<RelativeBearing,IntersectionSegment>();
+                // bearing offset = 157 -> sort the ways, which are strongly to the left of the user, to the top of the list
+                SortByBearingRelativeTo comparator = new ObjectWithId.SortByBearingRelativeTo(
+                        inverseBearingOfPreviousRouteSegment, Angle.Quadrant.Q3.max, true);
 
-                ArrayList<String> formattedRelevantIntersectionSegmentList = new ArrayList<String>();
-                for (IntersectionSegment intersectionSegment : relevantIntersectionSegmentList) {
-                    formattedRelevantIntersectionSegmentList.add(
-                            String.format(
-                                "%1$s: %2$s",
-                                intersectionSegment.getBearing().relativeTo(inverseBearingOfPreviousRouteSegment).getDirection(),
-                                intersectionSegment.formatNameAndSubType())
-                            );
+                int index = 0;
+                for (IntersectionSegment intersectionSegment : intersection.getSegmentList().stream().sorted(comparator).collect(Collectors.toList())) {
+                    RelativeBearing relativeBearingIntersectionSegment = intersectionSegment
+                        .getBearing()
+                        .relativeTo(inverseBearingOfPreviousRouteSegment);
+                    intersectionSegmentRelativeToInstructionMap.put(
+                            relativeBearingIntersectionSegment, intersectionSegment);
+                    // instruction structure label text (preserves text formatting)
+                    formattedIntersectionStructure = TextUtils.concat(
+                            formattedIntersectionStructure,
+                            UiHelper.bold(
+                                relativeBearingIntersectionSegment.getDirection().toString()),
+                            ":\n",
+                            intersectionSegment.isPartOfNextRouteSegment()
+                            ? UiHelper.red(intersectionSegment.getName())
+                            : intersectionSegment.getName());
+                    if (index < intersection.getSegmentList().size()-1) {
+                        formattedIntersectionStructure = TextUtils.concat(
+                                formattedIntersectionStructure, ",\n");
+                    }
+                    index++;
                 }
 
-                labelIntersectionStructure.setText(
-                        String.format(
-                            "%1$s:\n%2$s",
-                            GlobalInstance.getStringResource(R.string.labelIntersectionStructure),
-                            TextUtils.join("\n", formattedRelevantIntersectionSegmentList))
-                        );
-                labelIntersectionStructure.setVisibility(View.VISIBLE);
+                labelIntersectionStructure.setText(formattedIntersectionStructure);
+                intersectionScheme.configureView(
+                        intersection.getName(), intersectionSegmentRelativeToInstructionMap);
+                layoutIntersectionStructure.setVisibility(View.VISIBLE);
             }
         }
 

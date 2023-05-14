@@ -73,10 +73,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <TextView
+                android:id="@+id/labelTotalDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal" >
 
@@ -103,13 +109,47 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/labelIntersectionStructure"
+            <LinearLayout
+                android:id="@+id/layoutIntersectionStructure"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:focusable="true" />
+                android:layout_marginTop="10dp"
+                android:orientation="vertical" >
 
+                <TextView
+                    android:id="@+id/labelIntersectionStructureHeading"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:text="@string/labelIntersectionStructureHeading"
+                    android:theme="@style/HeadingTextView" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" >
+
+                    <TextView
+                        android:id="@+id/labelIntersectionStructure"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/intersectionScheme"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <org.walkersguide.android.ui.view.IntersectionScheme
+                        android:id="@+id/intersectionScheme"
+                        android:layout_width="0dp"
+                        app:layout_constraintWidth_percent="0.62"
+                        android:layout_height="0dp"
+                        app:layout_constraintDimensionRatio="1:1"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/labelIntersectionStructure"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

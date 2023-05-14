@@ -61,11 +61,6 @@
             android:name=".ui.activity.toolbar.FragmentContainerActivity"
             android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
 
-        <activity
-            android:name=".ui.activity.A11yCanvasExampleActivity"
-            android:label="Accessible intersection layout"
-            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
-
     </application>
 
 </manifest>

@@ -25,7 +25,7 @@
         android:minHeight="@dimen/minHeight"
         android:background="@null"
         app:tint="@color/image"
-        android:src="@drawable/expand_more"
+        android:src="@drawable/chevron_right"
         android:contentDescription="@string/buttonActionFor" />
 
 </LinearLayout>
