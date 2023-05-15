@@ -56,6 +56,13 @@
             android:hint="@string/switchShowActionButtonHint"
             android:text="@string/switchShowActionButton" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchDisplayRemainsActive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/switchDisplayRemainsActiveHint"
+            android:text="@string/switchDisplayRemainsActive" />
+
         <Button
             android:id="@+id/buttonShakeIntensity"
             android:layout_width="match_parent"

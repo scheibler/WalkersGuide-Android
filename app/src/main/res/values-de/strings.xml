@@ -413,6 +413,8 @@
     <string name="labelInterfaceSettingsHeader">Benutzungsoberfläche:</string>
     <string name="switchShowActionButton">Aktion-Button anzeigen</string>
     <string name="switchShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
+    <string name="switchDisplayRemainsActive">Bildschirm bleibt während der Benutzung der App aktiv</string>
+    <string name="switchDisplayRemainsActiveHint">Verhindert das automatische Sperren des Bildschirms bei Inaktivität.</string>
     <string name="buttonShakeIntensity">Schüttelintensität</string>
     <string name="buttonShakeIntensityHint">Schütteln, um den "Wo bin ich" Dialog und den "Punkte" Tab zu aktualisieren.</string>
     <string name="labelTTSSettingsHeader">Sprachausgabe</string>

@@ -59,6 +59,7 @@ import androidx.core.app.NavUtils;
 import androidx.core.app.TaskStackBuilder;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
+import android.view.WindowManager;
 
 
 public abstract class ToolbarActivity extends AppCompatActivity {
@@ -106,6 +107,15 @@ public abstract class ToolbarActivity extends AppCompatActivity {
                     .show(getSupportFragmentManager(), "LocationDetailsDialog");
             }
         });
+    }
+
+    public void displayRemainsActiveSettingChanged(boolean remainsActive) {
+        Timber.d("displayRemainsActiveSettingChanged: %1$s", remainsActive);
+        if (remainsActive) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
     }
 
     public Toolbar getToolbar() {
@@ -237,6 +247,8 @@ public abstract class ToolbarActivity extends AppCompatActivity {
     @Override public void onResume() {
         super.onResume();
         globalInstance.stopActivityTransitionTimer();
+        displayRemainsActiveSettingChanged(
+                settingsManagerInstance.getDisplayRemainsActive());
         updateBearingDetailsButton();
         updateLocationDetailsButton();
 

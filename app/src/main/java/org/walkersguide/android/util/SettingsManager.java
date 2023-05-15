@@ -56,6 +56,7 @@ public class SettingsManager {
     public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.ROUTER;
     // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
+    public static final boolean DEFAULT_DISPLAY_REMAINS_ACTIVE = false;
     public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
     // tts
     public static final boolean DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = false;
@@ -73,6 +74,7 @@ public class SettingsManager {
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
     // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
+    private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
     // tts
@@ -189,6 +191,16 @@ public class SettingsManager {
     public void setShowActionButton(boolean showActionButton) {
         Editor editor = settings.edit();
         editor.putBoolean(KEY_SHOW_ACTION_BUTTON, showActionButton);
+        editor.apply();
+    }
+
+    public boolean getDisplayRemainsActive() {
+        return settings.getBoolean(KEY_DISPLAY_REMAINS_ACTIVE, DEFAULT_DISPLAY_REMAINS_ACTIVE);
+    }
+
+    public void setDisplayRemainsActive(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_DISPLAY_REMAINS_ACTIVE, newValue);
         editor.apply();
     }
 

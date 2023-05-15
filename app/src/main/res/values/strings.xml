@@ -408,6 +408,8 @@
     <string name="labelInterfaceSettingsHeader">User interface:</string>
     <string name="switchShowActionButton">Show action button</string>
     <string name="switchShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
+    <string name="switchDisplayRemainsActive">Screen remains active, while the app is in use.</string>
+    <string name="switchDisplayRemainsActiveHint">Disables the auto lock screen feature during navigation.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "Points" Tab.</string>
     <string name="labelTTSSettingsHeader">Text to speech</string>

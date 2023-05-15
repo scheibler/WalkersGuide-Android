@@ -79,6 +79,8 @@ import android.widget.TextView;
 import android.view.KeyEvent;
 import org.walkersguide.android.ui.UiHelper;
 import android.view.inputmethod.EditorInfo;
+import org.walkersguide.android.ui.activity.ToolbarActivity;
+import android.app.Activity;
 
 
 public class SettingsFragment extends Fragment implements FragmentResultListener {
@@ -97,7 +99,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
-    private SwitchCompat switchShowActionButton;
+    private SwitchCompat switchShowActionButton, switchDisplayRemainsActive;
     private SwitchCompat switchAnnouncementsEnabled, switchKeepBluetoothHeadsetConnectionAlive;
     private EditText editDistanceAnnouncementInterval;
 
@@ -196,6 +198,19 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 if (isChecked != settingsManagerInstance.getShowActionButton()) {
                     settingsManagerInstance.setShowActionButton(isChecked);
+                }
+            }
+        });
+
+        switchDisplayRemainsActive = (SwitchCompat) view.findViewById(R.id.switchDisplayRemainsActive);
+        switchDisplayRemainsActive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (settingsManagerInstance.getDisplayRemainsActive() != isChecked) {
+                    Activity parentActivity = getActivity();
+                    if (parentActivity instanceof ToolbarActivity) {
+                        ((ToolbarActivity) parentActivity).displayRemainsActiveSettingChanged(isChecked);
+                    }
+                    settingsManagerInstance.setDisplayRemainsActive(isChecked);
                 }
             }
         });
@@ -337,6 +352,7 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
 
         // ui settings
         switchShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
+        switchDisplayRemainsActive.setChecked(settingsManagerInstance.getDisplayRemainsActive());
         buttonShakeIntensity.setText(
                 String.format(
                     "%1$s: %2$s",
