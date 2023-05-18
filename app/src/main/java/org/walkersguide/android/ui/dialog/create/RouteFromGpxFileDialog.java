@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import androidx.appcompat.widget.SwitchCompat;
 import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
@@ -54,6 +55,9 @@ import org.walkersguide.android.data.object_with_id.Route;
 
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
+import java.util.Collections;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.route.RouteObject;
 
 
 public class RouteFromGpxFileDialog extends DialogFragment implements FragmentResultListener {
@@ -75,6 +79,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
 
     private EditTextAndClearInputButton layoutRouteName;
     private TextView labelRouteDescription;
+    private SwitchCompat switchReverseRoute;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +119,13 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
                 });
 
         labelRouteDescription = (TextView) view.findViewById(R.id.labelRouteDescription);
+
+        switchReverseRoute = (SwitchCompat) view.findViewById(R.id.switchReverseRoute);
+        /*
+        switchReverseRoute.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked != settingsManagerInstance.getShowActionButton()) {
+                */
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -159,6 +171,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
                 buttonPositive.setVisibility(View.GONE);
                 layoutRouteName.setVisibility(View.GONE);
                 labelRouteDescription.setVisibility(View.GONE);
+                switchReverseRoute.setVisibility(View.GONE);
 
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -197,6 +210,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setVisibility(View.VISIBLE);
             layoutRouteName.setVisibility(View.VISIBLE);
             labelRouteDescription.setVisibility(View.VISIBLE);
+            switchReverseRoute.setVisibility(View.VISIBLE);
         }
     }
 
@@ -204,6 +218,25 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
         if (route == null) {
             return;
         }
+
+        if (switchReverseRoute.isChecked()) {
+            ArrayList<Point> reversedPointList = new ArrayList<Point>();
+            for (RouteObject routeObject : route.getRouteObjectList()) {
+                reversedPointList.add(routeObject.getPoint());
+            }
+            Collections.reverse(reversedPointList);
+            try {
+                route = Route.fromPointList(reversedPointList, false);
+            } catch (JSONException e) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.messageGpxRouteParsingFailed),
+                        Toast.LENGTH_LONG)
+                    .show();
+                return;
+            }
+        }
+
         final String routeName = layoutRouteName.getInputText();
         if (TextUtils.isEmpty(routeName)) {
             Toast.makeText(
@@ -214,6 +247,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             return;
         }
         route.rename(routeName);
+
         DatabaseProfile.routesFromGpxFile().add(route);
         MainActivity.loadRoute(
                 RouteFromGpxFileDialog.this.getContext(), route);
@@ -244,7 +278,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
 
             try {
                 final String extractedFileName = extractFileNameFrom(uri);
-                final Route routeFromGpxFile = parseGpxFile(uri, false);
+                final Route routeFromGpxFile = parseGpxFile(uri);
                 (new Handler(Looper.getMainLooper())).post(() -> {
                     if (isAdded()) {
                         layoutRouteName.setInputText(routeFromGpxFile.getName());
@@ -296,7 +330,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
         return fileName;
     }
 
-    private Route parseGpxFile(Uri uri, boolean filterRedundantPoints) throws GpxFileParseException {
+    private Route parseGpxFile(Uri uri) throws GpxFileParseException {
         Route route = null;
         GpxFileParseException parseException = null;
 
@@ -390,7 +424,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
                         GlobalInstance.getStringResource(R.string.messageNoGpxTracksFound));
             }
             try {
-                route = Route.fromPointList(pointList, filterRedundantPoints);
+                route = Route.fromPointList(pointList, false);
             } catch (JSONException e) {
                 throw new GpxFileParseException(
                             GlobalInstance.getStringResource(R.string.messageGpxRouteParsingFailed));

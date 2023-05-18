@@ -109,12 +109,13 @@
     <!-- route from gpx file dialog -->
     <string name="routeFromGpxFileDialogTitle">Select GPX file</string>
     <string name="layoutRouteName">Route name</string>
+    <string name="switchReverseRoute">Import route in reverse order</string>
     <string name="messageGpxRouteNameMissing">Please enter a name for the route.</string>
     <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
     <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
     <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
     <string name="messageNoGpxTracksFound">The selected GPX file contains no route points.</string>
-    <string name="messageMultipleGpxTracksFound">The selected GPX file contains multiple routes.</string>
+    <string name="messageMultipleGpxTracksFound">The selected GPX file contains multiple routes. That\'s not supported at the moment.</string>
     <string name="messageGpxRoutePointParsingFailed">Failed to parse at least one route point.</string>
     <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
 
