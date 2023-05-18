@@ -15,14 +15,12 @@
     <string name="menuItemPlanRoute">Route planen</string>
     <string name="menuItemWhereAmI">Wo bin ich?</string>
     <string name="menuItemCreateFavoriteCurrentPosition">Aktuelle Position sichern</string>
+    <string name="menuItemHistory">Verlauf</string>
     <string name="menuItemImport">Importieren:</string>
     <string name="menuItemImportPointFromPostAddress">Adresse eingeben</string>
     <string name="menuItemImportPointFromCoordinates">Koordinaten eingeben</string>
-    <string name="menuItemImportPointFromUrl">Aus Link extrahieren</string>
-    <string name="menuItemRouteFromGpxFile">Aus GPX Datei importieren</string>
-    <string name="menuItemFavoritesAndHistory">Favoriten und Chronik:</string>
-    <string name="menuItemOpenFavorites">Favoriten öffnen</string>
-    <string name="menuItemOpenHistory">Chronik öffnen</string>
+    <string name="menuItemImportPointFromUrl">Punkt aus Link extrahieren</string>
+    <string name="menuItemRouteFromGpxFile">Route aus GPX Datei importieren</string>
     <string name="menuItemMisc">Verschiedenes:</string>
     <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
@@ -173,7 +171,6 @@
     <string name="menuItemRecalculateWithCurrentPosition">Mit aktueller Position neu berechnen</string>
     <string name="menuItemRecalculateOriginalRoute">Ursprünglichen Weg berechnen</string>
     <string name="menuItemRecalculateReturnRoute">Rückweg berechnen</string>
-    <string name="menuItemLoadPreviousRoute">Frühere Route laden</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. weiterschalten</string>
     <string name="menuItemShowPreciseBearingValues">Präzise Richtungsangaben anzeigen</string>
     <string name="menuItemShowIntersectionLayoutDetails">Kreuzungsaufbau anzeigen</string>
@@ -181,6 +178,14 @@
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Springe zu Routenpunkt:</string>
     <string name="buttonScrollToClosestPoint">Zum nächstliegenden Punkt scrollen</string>
+
+    <!-- TabLayoutFragment -->
+    <!-- favorites -->
+    <string name="fragmentPointFavoritesName">Punkte</string>
+    <string name="fragmentRouteFavoritesName">Routen</string>
+    <!-- object history -->
+    <string name="fragmentPointHistoryName">Letzte Punkte</string>
+    <string name="fragmentRouteHistoryName">Letzte Routen</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Blickrichtung</string>
@@ -215,12 +220,6 @@
     <!-- ObjectListFromDatabaseFragment -->
     <string name="labelHeadingSecondLineSortMethod">Sortiert nach %1$s</string>
     <string name="messageNoProfileSelected">Kein Profil ausgewählt.</string>
-    <!-- favorites -->
-    <string name="fragmentPointFavoritesName">Favorisierte Punkte</string>
-    <string name="fragmentRouteFavoritesName">Favorisierte Routen</string>
-    <!-- object history -->
-    <string name="fragmentPointHistoryName">Letzte Punkte</string>
-    <string name="fragmentRouteHistoryName">Letzte Routen</string>
     <!-- toolbar menu -->
     <string name="menuItemSortMethod">Sortieren</string>
     <string name="menuItemClearProfile">Profil leeren</string>
@@ -421,7 +420,7 @@
     <string name="switchAnnouncementsEnabled">Sprachansagen einschalten</string>
     <string name="labelDistanceAnnouncementInterval">Intervall für Entfernungsansagen</string>
     <string name="labelDistanceAnnouncementIntervalUnit">Meter</string>
-    <string name="switchKeepBluetoothHeadsetConnectionAlive">Verbindung zum Bluetooth Kopfhörer offen halten</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAlive">Verbindung zum Bluetooth Kopfhörer aktiv halten</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Einige Bluetooth Kopfhörer gehen
         nach ein paar Sekunden Inaktivität in den Standby Modus, aus dem sie anschließend
         nur verzögert wieder aufwachen. In dem Fall kann es passieren, dass der Anfang

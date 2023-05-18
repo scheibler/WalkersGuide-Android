@@ -18,9 +18,6 @@
         </menu>
     </item>
     <item
-        android:id="@+id/menuItemLoadPreviousRoute"
-        android:title="@string/menuItemLoadPreviousRoute" />
-    <item
         android:id="@+id/menuItemAutoSkipToNextRoutePoint"
         android:title="@string/menuItemAutoSkipToNextRoutePoint"
         android:checkable="true" />

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import org.walkersguide.android.ui.AbstractTabAdapter;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;

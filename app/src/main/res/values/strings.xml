@@ -15,14 +15,12 @@
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemWhereAmI">Where am I?</string>
     <string name="menuItemCreateFavoriteCurrentPosition">Save current location</string>
+    <string name="menuItemHistory">History</string>
     <string name="menuItemImport">Import:</string>
     <string name="menuItemImportPointFromPostAddress">Enter address</string>
     <string name="menuItemImportPointFromCoordinates">Enter coordinates</string>
-    <string name="menuItemImportPointFromUrl">Extract from link</string>
-    <string name="menuItemRouteFromGpxFile">Import from GPX file</string>
-    <string name="menuItemFavoritesAndHistory">Favorites and history:</string>
-    <string name="menuItemOpenFavorites">Favorites</string>
-    <string name="menuItemOpenHistory">History</string>
+    <string name="menuItemImportPointFromUrl">Extract point from link</string>
+    <string name="menuItemRouteFromGpxFile">Import route from GPX file</string>
     <string name="menuItemMisc">Miscellaneous:</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
@@ -167,7 +165,6 @@
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
     <string name="menuItemRecalculateOriginalRoute">Recalculate original route</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
-    <string name="menuItemLoadPreviousRoute">Load previous route</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
     <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
     <string name="menuItemShowIntersectionLayoutDetails">Show intersection structure</string>
@@ -175,6 +172,14 @@
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>
     <string name="buttonScrollToClosestPoint">Scroll to closest point</string>
+
+    <!-- TabLayoutFragment -->
+    <!-- favorites -->
+    <string name="fragmentPointFavoritesName">Points</string>
+    <string name="fragmentRouteFavoritesName">Routes</string>
+    <!-- object history -->
+    <string name="fragmentPointHistoryName">Last points</string>
+    <string name="fragmentRouteHistoryName">Last routes</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
@@ -209,12 +214,6 @@
     <!-- ObjectListFromDatabaseFragment -->
     <string name="labelHeadingSecondLineSortMethod">Sorted by %1$s</string>
     <string name="messageNoProfileSelected">No profile selected.</string>
-    <!-- favorites -->
-    <string name="fragmentPointFavoritesName">Favorite points</string>
-    <string name="fragmentRouteFavoritesName">Favorite routes</string>
-    <!-- object history -->
-    <string name="fragmentPointHistoryName">Last points</string>
-    <string name="fragmentRouteHistoryName">Last routes</string>
     <!-- toolbar menu -->
     <string name="menuItemSortMethod">Sort method</string>
     <string name="menuItemClearProfile">Clear profile</string>

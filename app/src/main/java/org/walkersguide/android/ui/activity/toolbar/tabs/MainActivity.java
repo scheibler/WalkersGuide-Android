@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import org.walkersguide.android.ui.AbstractTabAdapter;
 import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -8,12 +9,11 @@ import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
+import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
-import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity.AbstractTabAdapter;
-import org.walkersguide.android.ui.activity.toolbar.tabs.PointAndRouteTabActivity;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 import android.os.Bundle;
@@ -118,6 +118,8 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
                 } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCurrentPosition) {
                     SaveCurrentLocationDialog.newInstance()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemHistory) {
+                    FragmentContainerActivity.showHistory(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemImportPointFromPostAddress) {
                     EnterAddressDialog.newInstance()
                         .show(getSupportFragmentManager(), "EnterAddressDialog");
@@ -130,10 +132,6 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
                 } else if (menuItem.getItemId() == R.id.menuItemRouteFromGpxFile) {
                     RouteFromGpxFileDialog.newInstance()
                         .show(getSupportFragmentManager(), "RouteFromGpxFileDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemOpenFavorites) {
-                    PointAndRouteTabActivity.showFavorites(MainActivity.this);
-                } else if (menuItem.getItemId() == R.id.menuItemOpenHistory) {
-                    PointAndRouteTabActivity.showHistory(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemSettings) {
                     FragmentContainerActivity.showSettings(MainActivity.this);
                 } else if (menuItem.getItemId() == R.id.menuItemInfo) {
@@ -209,12 +207,12 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
      */
 
     public enum Tab {
-        FAVORITE_POINTS, ROUTER, POI, HIKING_TRAILS
+        FAVORITES, ROUTER, POI, HIKING_TRAILS
     }
 
     private TabAdapter createTabAdapter() {
         ArrayList<Tab> tabList = new ArrayList<Tab>();
-        tabList.add(Tab.FAVORITE_POINTS);
+        tabList.add(Tab.FAVORITES);
         tabList.add(Tab.ROUTER);
         tabList.add(Tab.POI);
         // hide the hiking trails tab for now
@@ -233,9 +231,8 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case FAVORITE_POINTS:
-                        return ObjectListFromDatabaseFragment.createFragment(
-                                FavoritesProfile.favoritePoints(), SortMethod.DISTANCE_ASC);
+                    case FAVORITES:
+                        return TabLayoutFragment.favorites();
                     case POI:
                         return PoiListFromServerFragment.createPoiFragment();
                     case ROUTER:
@@ -251,7 +248,7 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case FAVORITE_POINTS:
+                    case FAVORITES:
                         return getResources().getString(R.string.favoritesProfile);
                     case POI:
                         return getResources().getString(R.string.fragmentPOIName);

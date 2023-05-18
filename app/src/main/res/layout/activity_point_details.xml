@@ -33,6 +33,6 @@
     </LinearLayout>
 
     <include
-        layout="@layout/layout_view_pager_and_tab_layout" />
+        layout="@layout/layout_view_pager_and_tab_layout_below" />
 
 </LinearLayout>

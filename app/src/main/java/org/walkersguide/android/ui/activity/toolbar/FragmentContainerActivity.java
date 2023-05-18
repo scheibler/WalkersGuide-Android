@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar;
 
+import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.data.object_with_id.HikingTrail;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
@@ -73,7 +74,13 @@ public class FragmentContainerActivity extends ToolbarActivity {
         packageContext.startActivity(intent);
     }
 
-    // settings and info
+    // history, settings and info
+
+    public static void showHistory(Context packageContext) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.HISTORY);
+        packageContext.startActivity(intent);
+    }
 
     public static void showSettings(Context packageContext) {
         Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
@@ -92,7 +99,7 @@ public class FragmentContainerActivity extends ToolbarActivity {
     private static final String KEY_SHOW_FRAGMENT = "show";
 
     private enum Show {
-        DETAILS_FOR_OBJECT_WITH_ID, DEPARTURES, TRIP_DETAILS, SETTINGS, INFO
+        DETAILS_FOR_OBJECT_WITH_ID, DEPARTURES, TRIP_DETAILS, HISTORY, SETTINGS, INFO
     }
 
 
@@ -148,6 +155,12 @@ public class FragmentContainerActivity extends ToolbarActivity {
                                 PtUtility.getLineLabel(tripDeparture.line, false),
                                 PtUtility.getLocationName(tripDeparture.destination))
                             );
+                    break;
+
+                case HISTORY:
+                    fragment = TabLayoutFragment.history();
+                    FragmentContainerActivity.this.setToolbarTitle(
+                            GlobalInstance.getStringResource(R.string.menuItemHistory));
                     break;
 
                 case SETTINGS:

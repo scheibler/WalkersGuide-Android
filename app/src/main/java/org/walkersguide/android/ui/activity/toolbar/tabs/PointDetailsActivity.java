@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar.tabs;
 
+import org.walkersguide.android.ui.AbstractTabAdapter;
 import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.sensor.DeviceSensorManager;
@@ -7,7 +8,6 @@ import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
-import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity.AbstractTabAdapter;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

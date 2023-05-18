@@ -58,7 +58,6 @@ import androidx.annotation.NonNull;
 import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
 import androidx.core.view.ViewCompat;
 import java.util.Locale;
-import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
 import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
@@ -129,30 +128,11 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
 
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    ObjectListFragment.REQUEST_SELECT_OBJECT, this, this);
-        getChildFragmentManager()
-            .setFragmentResultListener(
                     JumpToRoutePointDialog.REQUEST_SELECT_ROUTE_POINT, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
-            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
-            if (selectedProfile instanceof DatabaseProfile) {
-                ObjectListFromDatabaseFragment.createDialog((DatabaseProfile) selectedProfile, true)
-                    .show(getChildFragmentManager(), "SelectPointDialog");
-            }
-        } else if (requestKey.equals(ObjectListFragment.REQUEST_SELECT_OBJECT)) {
-            ObjectWithId newObject = (ObjectWithId) bundle.getSerializable(ObjectListFragment.EXTRA_OBJECT_WITH_ID);
-            Timber.d("selected: %1$s", newObject);
-            if (newObject instanceof Route) {
-                MainActivity.loadRoute(
-                        RouterFragment.this.getContext(), (Route) newObject);
-            }
-        } else if (requestKey.equals(JumpToRoutePointDialog.REQUEST_SELECT_ROUTE_POINT)) {
+        if (requestKey.equals(JumpToRoutePointDialog.REQUEST_SELECT_ROUTE_POINT)) {
             int newIndex = bundle.getInt(JumpToRoutePointDialog.EXTRA_ROUTE_POINT_INDEX, -1);
             if (route != null && newIndex >= 0) {
                 route.jumpToRouteObjectAt(newIndex);
@@ -242,10 +222,6 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
             PlanRouteDialog.newInstance()
                 .show(getActivity().getSupportFragmentManager(), "PlanRouteDialog");
-
-        } else if (item.getItemId() == R.id.menuItemLoadPreviousRoute) {
-            SelectProfileDialog.newInstance(ProfileGroup.LOAD_PREVIOUS_ROUTE)
-                .show(getChildFragmentManager(), "SelectProfileDialog");
 
         } else if (item.getItemId() == R.id.menuItemAutoSkipToNextRoutePoint) {
             settingsManagerInstance.setAutoSkipToNextRoutePoint(

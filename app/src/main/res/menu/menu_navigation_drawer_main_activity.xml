@@ -10,6 +10,9 @@
     <item
         android:id="@+id/menuItemCreateFavoriteCurrentPosition"
         android:title="@string/menuItemCreateFavoriteCurrentPosition" />
+    <item
+        android:id="@+id/menuItemHistory"
+        android:title="@string/menuItemHistory" />
 
     <item
         android:id="@+id/menuItemImport"
@@ -27,19 +30,6 @@
             <item
                 android:id="@+id/menuItemRouteFromGpxFile"
                 android:title="@string/menuItemRouteFromGpxFile" />
-        </menu>
-    </item>
-
-    <item
-        android:id="@+id/menuItemFavoritesAndHistory"
-        android:title="@string/menuItemFavoritesAndHistory" >
-        <menu>
-            <item
-                android:id="@+id/menuItemOpenFavorites"
-                android:title="@string/menuItemOpenFavorites" />
-            <item
-                android:id="@+id/menuItemOpenHistory"
-                android:title="@string/menuItemOpenHistory" />
         </menu>
     </item>
 
