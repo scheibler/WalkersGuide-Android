@@ -75,8 +75,8 @@ android {
         prod {
             applicationId "org.walkersguide.android"
             dimension "version"
-            versionCode 22
-            versionName '2.1.3'
+            versionCode 23
+            versionName '2.2.0'
             signingConfig signingConfigs.prod
             // internal
             // database
@@ -111,7 +111,7 @@ android {
 dependencies {
     // androidX
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.core:core:1.10.0'
+    implementation 'androidx.core:core:1.10.1'
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
     implementation 'androidx.fragment:fragment:1.5.7'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
@@ -129,10 +129,10 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2022-11-25@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2023-05-18@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
 }
 
 configurations.implementation {

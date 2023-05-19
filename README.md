@@ -1,4 +1,4 @@
-#WalkersGuide-Android
+# WalkersGuide-Android
 
 
 WalkersGuide is a navigational aid primarily intended for blind and visual impaired pedestrians. It

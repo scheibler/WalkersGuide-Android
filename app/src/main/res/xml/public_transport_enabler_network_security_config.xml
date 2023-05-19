@@ -12,10 +12,6 @@
     <domain-config cleartextTrafficPermitted="true">
         <!-- Railteam -->
         <domain includeSubdomains="false">railteam.hafas.eu</domain>
-        <!-- VBL -->
-        <domain includeSubdomains="false">mobil.vbl.ch</domain>
-        <!-- VVO -->
-        <domain includeSubdomains="false">efa.vvo-online.de</domain>
     </domain-config>
 
 </network-security-config>

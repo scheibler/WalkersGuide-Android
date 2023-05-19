@@ -43,7 +43,7 @@ proguard/
 /captures
 
 # other documents and files
-coordinate_url_examples.md
+misc/coordinate_url_examples.md
 
 # un-ignore
 #

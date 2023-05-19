@@ -6,9 +6,9 @@
         android:id="@+id/menuItemRefresh"
         android:title="@string/menuItemRefresh" />
     <item
-        android:id="@+id/menuItemPublicTransportProvider"
-        android:title="@string/menuItemPublicTransportProvider" />
-    <item
         android:id="@+id/menuItemSelectDepartureDateAndTime"
         android:title="@string/menuItemSelectDepartureDateAndTime" />
+    <item
+        android:id="@+id/menuItemPublicTransportProvider"
+        android:title="@string/menuItemPublicTransportProvider" />
 </menu>

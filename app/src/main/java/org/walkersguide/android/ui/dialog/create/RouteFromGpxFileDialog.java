@@ -119,13 +119,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
                 });
 
         labelRouteDescription = (TextView) view.findViewById(R.id.labelRouteDescription);
-
         switchReverseRoute = (SwitchCompat) view.findViewById(R.id.switchReverseRoute);
-        /*
-        switchReverseRoute.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked != settingsManagerInstance.getShowActionButton()) {
-                */
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
