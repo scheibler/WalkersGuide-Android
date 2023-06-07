@@ -1,7 +1,6 @@
         package org.walkersguide.android.ui.view;
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
     import org.walkersguide.android.data.object_with_id.route.RouteObject;
 import timber.log.Timber;
 

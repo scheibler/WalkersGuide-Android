@@ -8,7 +8,7 @@ import android.content.pm.ShortcutInfo;
 import java.util.ArrayList;
 import android.content.pm.ShortcutManager;
 import android.os.Bundle;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import org.walkersguide.android.R;
 import timber.log.Timber;
 import android.content.Intent;

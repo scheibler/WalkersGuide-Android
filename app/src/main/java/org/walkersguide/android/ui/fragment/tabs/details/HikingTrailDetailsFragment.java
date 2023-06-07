@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment.details;
+package org.walkersguide.android.ui.fragment.tabs.details;
 
 import org.walkersguide.android.data.object_with_id.HikingTrail;
 

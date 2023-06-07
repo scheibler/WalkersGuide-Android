@@ -47,7 +47,7 @@ import timber.log.Timber;
 import android.text.TextUtils;
 import android.content.pm.ShortcutManager;
 import android.content.pm.ShortcutInfo;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import android.content.Intent;
 import android.annotation.TargetApi;
 import android.os.Build;

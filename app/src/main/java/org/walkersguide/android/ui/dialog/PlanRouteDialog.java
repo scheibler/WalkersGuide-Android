@@ -36,7 +36,7 @@ import android.widget.LinearLayout;
 
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.GlobalInstance;
 import android.widget.CompoundButton;

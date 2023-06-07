@@ -1,19 +1,12 @@
-package org.walkersguide.android.ui.activity.toolbar.tabs;
+package org.walkersguide.android.ui.activity.toolbar;
 
-import org.walkersguide.android.ui.AbstractTabAdapter;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
-import android.content.IntentFilter;
-import android.content.BroadcastReceiver;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
-import org.walkersguide.android.ui.fragment.TabLayoutFragment;
-import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.ui.fragment.tabs.ContainerTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
-import org.walkersguide.android.ui.activity.toolbar.TabLayoutActivity;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 import android.os.Bundle;
@@ -32,7 +25,6 @@ import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
 import org.walkersguide.android.ui.fragment.RouterFragment;
-import android.view.Menu;
 import androidx.fragment.app.FragmentActivity;
 import java.util.ArrayList;
 import org.walkersguide.android.util.SettingsManager;
@@ -40,8 +32,6 @@ import android.content.Context;
 import android.content.Intent;
 import org.walkersguide.android.data.object_with_id.Route;
 import org.walkersguide.android.ui.fragment.object_list.extended.HikingTrailListFromServerFragment;
-import org.walkersguide.android.database.SortMethod;
-import org.walkersguide.android.database.profile.FavoritesProfile;
 import timber.log.Timber;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
@@ -52,9 +42,13 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 
+import org.walkersguide.android.ui.activity.ToolbarActivity;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayout;
 
 
-public class MainActivity extends TabLayoutActivity implements FragmentResultListener {
+public class MainActivity extends ToolbarActivity implements FragmentResultListener {
+    private static String KEY_SELECTED_TAB = "selectedTab";
 
     public static void loadRoute(Context context, Route route) {
         SettingsManager settingsManagerInstance = SettingsManager.getInstance();
@@ -81,6 +75,11 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
 
 	private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+
+	private ViewPager2 viewPager;
+    private TabLayout tabLayout;
+
+    private Tab selectedTab;
 
     @Override public int getLayoutResourceId() {
 		return R.layout.activity_main;
@@ -153,21 +152,69 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
 
-        initializeViewPagerAndTabLayout(
-                createTabAdapter(), settingsManagerInstance.getSelectedTabForMainActivity());
+		viewPager = (ViewPager2) findViewById(R.id.pager);
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override public void onPageSelected(int position) {
+                Timber.d("onPageSelected: %1$d", position);
+                tabLayout.selectTab(tabLayout.getTabAt(position));
+                setToolbarTitle(
+                        tabLayout.getTabAt(position).getText().toString());
+                settingsManagerInstance.setSelectedTabForMainActivity(
+                        ((TabAdapter) viewPager.getAdapter()).getTab(position));
+            }
+        });
+
+		tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+            @Override public void onTabUnselected(TabLayout.Tab tab) {
+            }
+            @Override public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+
+        if (savedInstanceState != null) {
+            selectedTab = (Tab) savedInstanceState.getSerializable(KEY_SELECTED_TAB);
+        } else if (getIntent() != null && getIntent().getExtras() != null) {
+            selectedTab = (Tab) getIntent().getExtras().getSerializable(KEY_SELECTED_TAB);
+        } else {
+            selectedTab = settingsManagerInstance.getSelectedTabForMainActivity();
+        }
+
+        initializeViewPagerAndTabLayout();
     }
 
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        initializeViewPagerAndTabLayout(
-                createTabAdapter(), settingsManagerInstance.getSelectedTabForMainActivity());
+        initializeViewPagerAndTabLayout();
     }
 
-    @Override public void tabSelected(Enum<?> newTab) {
-        super.tabSelected(newTab);
-        if (newTab instanceof Tab) {
-            settingsManagerInstance.setSelectedTabForMainActivity((Tab) newTab);
+    public void initializeViewPagerAndTabLayout() {
+        ArrayList<Tab> tabList = new ArrayList<Tab>();
+        tabList.add(Tab.FAVORITES);
+        tabList.add(Tab.ROUTER);
+        tabList.add(Tab.POI);
+        // hide the hiking trails tab for now
+        //tabList.add(Tab.HIKING_TRAILS);
+        TabAdapter tabAdapter = new TabAdapter(MainActivity.this, tabList);
+
+        // prepare tab layout
+        for (int i=0; i<tabAdapter.getItemCount(); i++) {
+            TabLayout.Tab tab = tabLayout.newTab();
+            tab.setText(tabAdapter.getFragmentName(i));
+            tabLayout.addTab(tab);
         }
+
+        // load fragment
+        viewPager.setAdapter(tabAdapter);
+        viewPager.setCurrentItem(tabAdapter.getTabIndex(selectedTab));
+    }
+
+	@Override public void onSaveInstanceState(Bundle savedInstanceState) {
+		super.onSaveInstanceState(savedInstanceState);
+    	savedInstanceState.putSerializable(KEY_SELECTED_TAB, selectedTab);
     }
 
     @Override public void onBackPressed() {
@@ -190,9 +237,8 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
                 newFavorite = (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES);
             }
-            //if (newFavorite == null || ! newFavorite.addToFavorites()) {
             if (newFavorite != null) {
-                PointDetailsActivity.start(this, newFavorite);
+                FragmentContainerActivity.showObjectDetails(MainActivity.this, newFavorite);
             } else {
                 SimpleMessageDialog.newInstance(
                         getResources().getString(R.string.errorFavoriteCreationFailed))
@@ -210,21 +256,13 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
         FAVORITES, ROUTER, POI, HIKING_TRAILS
     }
 
-    private TabAdapter createTabAdapter() {
-        ArrayList<Tab> tabList = new ArrayList<Tab>();
-        tabList.add(Tab.FAVORITES);
-        tabList.add(Tab.ROUTER);
-        tabList.add(Tab.POI);
-        // hide the hiking trails tab for now
-        //tabList.add(Tab.HIKING_TRAILS);
-        return new TabAdapter(MainActivity.this, tabList);
-    }
 
+    private class TabAdapter extends FragmentStateAdapter {
+        private ArrayList<? extends Enum> tabList;
 
-	private class TabAdapter extends AbstractTabAdapter {
-
-        public TabAdapter(FragmentActivity activity, ArrayList<Tab> tabList) {
-            super(activity, tabList);
+        public TabAdapter(FragmentActivity activity, ArrayList<? extends Enum> tabList) {
+            super(activity);
+            this.tabList = tabList;
         }
 
         @Override public Fragment createFragment(int position) {
@@ -232,7 +270,7 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             if (tab != null) {
                 switch (tab) {
                     case FAVORITES:
-                        return TabLayoutFragment.favorites();
+                        return ContainerTabLayoutFragment.favorites();
                     case POI:
                         return PoiListFromServerFragment.createPoiFragment();
                     case ROUTER:
@@ -244,7 +282,11 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             return null;
         }
 
-        @Override public String getFragmentName(int position) {
+        @Override public int getItemCount() {
+            return this.tabList.size();
+        }
+
+        public String getFragmentName(int position) {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
@@ -260,6 +302,22 @@ public class MainActivity extends TabLayoutActivity implements FragmentResultLis
             }
             return null;
         }
-	}
+
+        public <T extends Enum> T getTab(int index) {
+            if (index >= 0 && index < this.tabList.size()) {
+                return (T) this.tabList.get(index);
+            }
+            return (T) this.tabList.get(0);
+        }
+
+        public int getTabIndex(Enum<?> tab) {
+            int tabIndex = this.tabList.indexOf(tab);
+            Timber.d("getTabIndex: tabIndex=%1$d", tabIndex);
+            if (tabIndex >= 0) {
+                return tabIndex;
+            }
+            return 0;
+        }
+    }
 
 }

@@ -58,7 +58,7 @@ import android.widget.Toast;
 import android.view.MenuItem;
 import androidx.core.app.NavUtils;
 import androidx.core.app.TaskStackBuilder;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import android.annotation.TargetApi;
 

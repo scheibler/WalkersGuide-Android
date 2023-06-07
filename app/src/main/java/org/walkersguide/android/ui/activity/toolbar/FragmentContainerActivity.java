@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.activity.toolbar;
 
-import org.walkersguide.android.ui.fragment.TabLayoutFragment;
+import org.walkersguide.android.ui.fragment.tabs.ContainerTabLayoutFragment;
 import org.walkersguide.android.data.object_with_id.HikingTrail;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
@@ -26,17 +26,17 @@ import org.walkersguide.android.R;
 import android.content.Intent;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.server.pt.PtUtility;
-import org.walkersguide.android.ui.fragment.details.HikingTrailDetailsFragment;
-import org.walkersguide.android.ui.fragment.details.RouteDetailsFragment;
 import org.walkersguide.android.data.object_with_id.Route;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.data.object_with_id.Point;
-import org.walkersguide.android.ui.fragment.details.PointDetailsFragment;
+import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import org.walkersguide.android.data.object_with_id.Segment;
-import org.walkersguide.android.ui.fragment.details.SegmentDetailsFragment;
 import android.view.MenuItem;
 import androidx.core.app.NavUtils;
 import timber.log.Timber;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
+import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
 
 
 public class FragmentContainerActivity extends ToolbarActivity {
@@ -44,10 +44,31 @@ public class FragmentContainerActivity extends ToolbarActivity {
     // show object details
     private static final String KEY_OBJECT_WITH_ID = "objectWithId";
 
-    public static void showDetailsForObjectWithId(Context packageContext, ObjectWithId objectWithId) {
+    public static void showObjectDetails(Context packageContext, ObjectWithId objectWithId) {
         Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
-        intent.putExtra(KEY_SHOW_FRAGMENT, Show.DETAILS_FOR_OBJECT_WITH_ID);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.OBJECT_DETAILS);
         intent.putExtra(KEY_OBJECT_WITH_ID, objectWithId);
+        packageContext.startActivity(intent);
+    }
+
+    public static void showObjectDetailsTabDepartures(Context packageContext, Station station) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.OBJECT_DETAILS_TAB_DEPARTURES);
+        intent.putExtra(KEY_OBJECT_WITH_ID, station);
+        packageContext.startActivity(intent);
+    }
+
+    public static void showObjectDetailsTabEntrances(Context packageContext, POI poi) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.OBJECT_DETAILS_TAB_ENTRANCES);
+        intent.putExtra(KEY_OBJECT_WITH_ID, poi);
+        packageContext.startActivity(intent);
+    }
+
+    public static void showObjectDetailsTabStreetCourse(Context packageContext, IntersectionSegment intersectionSegment) {
+        Intent intent = new Intent(packageContext, FragmentContainerActivity.class);
+        intent.putExtra(KEY_SHOW_FRAGMENT, Show.OBJECT_DETAILS_TAB_STREET_COURSE);
+        intent.putExtra(KEY_OBJECT_WITH_ID, intersectionSegment);
         packageContext.startActivity(intent);
     }
 
@@ -99,7 +120,8 @@ public class FragmentContainerActivity extends ToolbarActivity {
     private static final String KEY_SHOW_FRAGMENT = "show";
 
     private enum Show {
-        DETAILS_FOR_OBJECT_WITH_ID, DEPARTURES, TRIP_DETAILS, HISTORY, SETTINGS, INFO
+        OBJECT_DETAILS, OBJECT_DETAILS_TAB_DEPARTURES, OBJECT_DETAILS_TAB_ENTRANCES, OBJECT_DETAILS_TAB_STREET_COURSE,
+        DEPARTURES, TRIP_DETAILS, HISTORY, SETTINGS, INFO
     }
 
 
@@ -116,24 +138,23 @@ public class FragmentContainerActivity extends ToolbarActivity {
         if (showFragment != null) {
             switch (showFragment) {
 
-                case DETAILS_FOR_OBJECT_WITH_ID:
+                case OBJECT_DETAILS:
+                case OBJECT_DETAILS_TAB_DEPARTURES:
+                case OBJECT_DETAILS_TAB_ENTRANCES:
+                case OBJECT_DETAILS_TAB_STREET_COURSE:
                     ObjectWithId objectWithId = (ObjectWithId) getIntent().getExtras().getSerializable(KEY_OBJECT_WITH_ID);
-                    if (objectWithId instanceof Point) {
-                        fragment = PointDetailsFragment.newInstance((Point) objectWithId);
+                    if (objectWithId != null) {
+                        if (showFragment == Show.OBJECT_DETAILS_TAB_DEPARTURES) {
+                            fragment = ObjectDetailsTabLayoutFragment.departures((Station) objectWithId);
+                        } else if (showFragment == Show.OBJECT_DETAILS_TAB_ENTRANCES) {
+                            fragment = ObjectDetailsTabLayoutFragment.entrances((POI) objectWithId);
+                        } else if (showFragment == Show.OBJECT_DETAILS_TAB_STREET_COURSE) {
+                            fragment = ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) objectWithId);
+                        } else {
+                            fragment = ObjectDetailsTabLayoutFragment.details(objectWithId);
+                        }
                         FragmentContainerActivity.this.setToolbarTitle(
                                 GlobalInstance.getStringResource(R.string.fragmentPointDetailsName));
-                    } else if (objectWithId instanceof HikingTrail) {
-                        fragment = HikingTrailDetailsFragment.newInstance((HikingTrail) objectWithId);
-                        FragmentContainerActivity.this.setToolbarTitle(
-                                GlobalInstance.getStringResource(R.string.fragmentHikingTrailDetailsName));
-                    } else if (objectWithId instanceof Route) {
-                        fragment = RouteDetailsFragment.newInstance((Route) objectWithId);
-                        FragmentContainerActivity.this.setToolbarTitle(
-                                GlobalInstance.getStringResource(R.string.fragmentRouteDetailsName));
-                    } else if (objectWithId instanceof Segment) {
-                        fragment = SegmentDetailsFragment.newInstance((Segment) objectWithId);
-                        FragmentContainerActivity.this.setToolbarTitle(
-                                GlobalInstance.getStringResource(R.string.fragmentSegmentDetailsName));
                     }
                     break;
 
@@ -158,7 +179,7 @@ public class FragmentContainerActivity extends ToolbarActivity {
                     break;
 
                 case HISTORY:
-                    fragment = TabLayoutFragment.history();
+                    fragment = ContainerTabLayoutFragment.history();
                     FragmentContainerActivity.this.setToolbarTitle(
                             GlobalInstance.getStringResource(R.string.menuItemHistory));
                     break;

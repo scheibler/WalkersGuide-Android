@@ -1,5 +1,6 @@
-package org.walkersguide.android.ui.fragment.details;
+package org.walkersguide.android.ui.fragment.tabs.details;
 
+import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 
@@ -28,7 +29,6 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.station.Line;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
 import android.content.Intent;
 import android.net.Uri;
 import java.util.Locale;
@@ -228,7 +228,7 @@ public class PointDetailsFragment extends Fragment {
                         labelOuterBuilding.setTag(poi.getOuterBuilding());
                         labelOuterBuilding.setOnClickListener(new View.OnClickListener() {
                             @Override public void onClick(View view) {
-                                PointDetailsActivity.start(
+                                FragmentContainerActivity.showObjectDetails(
                                         PointDetailsFragment.this.getContext(),
                                         (POI) view.getTag());
                             }

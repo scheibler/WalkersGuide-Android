@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Helper;
 import android.widget.Toast;
@@ -27,7 +28,6 @@ import android.os.VibrationEffect;
 import androidx.core.util.Pair;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.ui.activity.toolbar.tabs.SegmentDetailsActivity;
 import android.text.TextUtils;
 import org.walkersguide.android.data.Angle;
 import java.util.Map;
@@ -181,7 +181,7 @@ public class IntersectionScheme extends View {
     }
 
     private void onIntersectionSegmentClicked(IntersectionSegment segment) {
-        SegmentDetailsActivity.start(getContext(), segment);
+        FragmentContainerActivity.showObjectDetails(getContext(), segment);
     }
 
     // helpers

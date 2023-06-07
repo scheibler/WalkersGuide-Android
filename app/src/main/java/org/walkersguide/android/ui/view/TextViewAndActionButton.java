@@ -5,7 +5,7 @@ import androidx.core.view.ViewCompat;
 
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import androidx.appcompat.app.AppCompatActivity;
 import org.walkersguide.android.ui.dialog.edit.RenameObjectDialog;
@@ -26,7 +26,6 @@ import org.walkersguide.android.R;
 import android.text.TextUtils;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.data.object_with_id.Point;
-import org.walkersguide.android.ui.activity.toolbar.tabs.PointDetailsActivity;
 import android.content.Context;
 import android.widget.ImageView;
 import androidx.appcompat.widget.PopupMenu;
@@ -40,7 +39,6 @@ import android.view.Gravity;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.data.object_with_id.Segment;
-import org.walkersguide.android.ui.activity.toolbar.tabs.SegmentDetailsActivity;
 import androidx.core.view.MenuCompat;
 import android.content.BroadcastReceiver;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -553,15 +551,7 @@ public class TextViewAndActionButton extends LinearLayout {
 
     private boolean executeObjectMenuAction(Context context, ObjectWithId object, int menuItemId) {
         if (menuItemId == MENU_ITEM_DETAILS) {
-            if (object instanceof Point) {
-                PointDetailsActivity.start(context, (Point) object);
-            } else if (object instanceof HikingTrail) {
-                FragmentContainerActivity.showDetailsForObjectWithId(context, (HikingTrail) object);
-            } else if (object instanceof Route) {
-                FragmentContainerActivity.showDetailsForObjectWithId(context, (Route) object);
-            } else if (object instanceof Segment) {
-                SegmentDetailsActivity.start(context, (Segment) object);
-            }
+            FragmentContainerActivity.showObjectDetails(context, object);
 
         } else if (menuItemId == MENU_ITEM_ADD_TO_FAVORITES
                 || menuItemId == MENU_ITEM_REMOVE_FROM_FAVORITES) {
@@ -595,14 +585,12 @@ public class TextViewAndActionButton extends LinearLayout {
     private boolean executePointMenuAction(Context context, Point point, int menuItemId) {
         if (menuItemId == MENU_ITEM_DEPARTURES) {
             if (point instanceof Station) {
-                PointDetailsActivity.startAtTab(
-                        context, (Station) point, PointDetailsActivity.Tab.DEPARTURES);
+                FragmentContainerActivity.showObjectDetailsTabDepartures(context, (Station) point);
             }
 
         } else if (menuItemId == MENU_ITEM_ENTRANCES) {
             if (point instanceof POI) {
-                PointDetailsActivity.startAtTab(
-                        context, (POI) point, PointDetailsActivity.Tab.ENTRANCES);
+            FragmentContainerActivity.showObjectDetailsTabEntrances(context, (POI) point);
             }
 
         } else if (menuItemId == MENU_ITEM_START_LOCATION_SIMULATION) {
@@ -673,8 +661,7 @@ public class TextViewAndActionButton extends LinearLayout {
     private boolean executeSegmentMenuAction(Context context, Segment segment, int menuItemId) {
         if (menuItemId == MENU_ITEM_STREET_COURSE) {
             if (segment instanceof IntersectionSegment) {
-                SegmentDetailsActivity.startAtTab(
-                        context, (IntersectionSegment) segment, SegmentDetailsActivity.Tab.STREET_COURSE);
+                FragmentContainerActivity.showObjectDetailsTabStreetCourse(context, (IntersectionSegment) segment);
             }
 
         } else if (menuItemId == MENU_ITEM_START_BEARING_SIMULATION) {

@@ -44,7 +44,7 @@ import android.text.TextUtils;
 import org.walkersguide.android.data.object_with_id.Route;
 import de.schildbach.pte.NetworkId;
 import com.google.gson.GsonBuilder;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 
 

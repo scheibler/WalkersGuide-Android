@@ -207,6 +207,10 @@ public class Route extends ObjectWithId implements Serializable {
         return this.description;
     }
 
+    public String formatNameAndSubType() {
+        return getName();
+    }
+
     public ArrayList<RouteObject> getRouteObjectList() {
         return this.routeObjectList;
     }

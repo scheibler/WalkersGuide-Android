@@ -67,6 +67,8 @@ public abstract class ObjectWithId implements Serializable {
     // name
     public static final String ACTION_NAME_CHANGED = "nameChanged";
 
+    public abstract String formatNameAndSubType();
+
     public String getName() {
         String customName = getCustomName();
         if (! TextUtils.isEmpty(customName)) {

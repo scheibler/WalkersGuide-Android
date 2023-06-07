@@ -61,6 +61,10 @@ public class HikingTrail extends ObjectWithId implements Serializable {
         return this.name;
     }
 
+    public String formatNameAndSubType() {
+        return getName();
+    }
+
 	public int getDistanceToClosest() {
 		return this.distanceToClosest;
 	}

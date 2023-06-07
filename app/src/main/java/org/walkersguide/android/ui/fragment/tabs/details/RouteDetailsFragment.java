@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment.details;
+package org.walkersguide.android.ui.fragment.tabs.details;
 
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.RouteObjectView;
@@ -44,7 +44,7 @@ import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
-import org.walkersguide.android.ui.activity.toolbar.tabs.MainActivity;
+import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -92,7 +92,6 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
     private Route route;
     private int listPosition;
 
-    private TextView labelDescription;
     private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewRoute;
     private TextView labelHeading, labelEmptyListView;
@@ -156,7 +155,7 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-		return inflater.inflate(R.layout.fragment_route_details, container, false);
+		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -172,7 +171,6 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
             listPosition = route != null ? route.getCurrentPosition() : 0;
         }
 
-        labelDescription = (TextView) view.findViewById(R.id.labelDescription);
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
 
         swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
@@ -201,10 +199,8 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
 
     @Override public void onResume() {
         super.onResume();
-        labelDescription.setVisibility(View.GONE);
 
         if (route != null) {
-            labelDescription.setVisibility(View.VISIBLE);
             showRoute();
 
         } else if (modeStreetCourse()) {
@@ -320,7 +316,6 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
      */
 
     private void showRoute() {
-        labelDescription.setText(route.getDescription());
         labelHeading.setText(
                 GlobalInstance.getPluralResource(
                     R.plurals.point, route.getRouteObjectList().size()));

@@ -26,7 +26,7 @@
         android:name=".util.GlobalInstance" >
 
         <activity
-            android:name=".ui.activity.toolbar.tabs.MainActivity"
+            android:name=".ui.activity.toolbar.MainActivity"
             android:exported="true" >
 
             <intent-filter>
@@ -44,18 +44,8 @@
             android:taskAffinity="" />
 
         <activity
-            android:name=".ui.activity.toolbar.tabs.PointDetailsActivity"
-            android:label="@string/pointDetailsActivityTitle"
-            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
-
-        <activity
-            android:name=".ui.activity.toolbar.tabs.SegmentDetailsActivity"
-            android:label="@string/segmentDetailsActivityTitle"
-            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
-
-        <activity
             android:name=".ui.activity.toolbar.FragmentContainerActivity"
-            android:parentActivityName=".ui.activity.toolbar.tabs.MainActivity" />
+            android:parentActivityName=".ui.activity.toolbar.MainActivity" />
 
     </application>
 
