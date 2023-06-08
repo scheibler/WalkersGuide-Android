@@ -302,6 +302,8 @@
     <string name="labelPointPOIContactOpeningHours">Opening hours:</string>
     <!-- station -->
     <string name="labelPointStationAttributesHeading">Station</string>
+    <string name="labelStationNetwork">Network</string>
+    <string name="labelStationOperator">Operator</string>
     <string name="labelPointStationVehicleTypes">Vehicle type:</string>
     <string name="labelPointStationLinesHeading">Lines</string>
     <!-- point with address -->
@@ -324,9 +326,11 @@
     <string name="labelPointTrafficSignalsSound">Sound:</string>
     <string name="labelPointTrafficSignalsVibration">Vibration:</string>
     <!-- point: alt names -->
+    <string name="labelPointNotesHeading">Notes</string>
     <string name="labelPointAltName">Alternative name</string>
     <string name="labelPointOldName">Old name</string>
     <string name="labelPointNote">Mappers note</string>
+    <string name="labelPointWikidata">More information at wikidata.org</string>
     <!-- point: accessibility -->
     <string name="labelPointAccessibilityHeading">Accessibility</string>
     <string name="labelPointTactilePaving">Tactile paving:</string>

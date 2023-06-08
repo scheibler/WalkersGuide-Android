@@ -18,6 +18,7 @@ import java.util.TreeSet;
 import java.util.Comparator;
 import timber.log.Timber;
 import java.lang.NumberFormatException;
+import org.walkersguide.android.util.Helper;
 
 
 public class Station extends POI implements Serializable {
@@ -25,6 +26,7 @@ public class Station extends POI implements Serializable {
 
     private ArrayList<Line> lineList;
     private ArrayList<String> vehicleList;
+    private String network, operator;
 
     public Station(JSONObject inputData) throws JSONException {
         super(inputData);
@@ -52,6 +54,10 @@ public class Station extends POI implements Serializable {
                 } catch (JSONException e) {}
             }
         }
+
+        // other optional attributes
+        this.network = Helper.getNullableStringFromJsonObject(inputData, KEY_NETWORK);
+        this.operator = Helper.getNullableStringFromJsonObject(inputData, KEY_OPERATOR);
     }
 
     public ArrayList<Line> getLineList() {
@@ -60,6 +66,14 @@ public class Station extends POI implements Serializable {
 
     public ArrayList<String> getVehicleList() {
         return this.vehicleList;
+    }
+
+    public String getNetwork() {
+        return this.network;
+    }
+
+    public String getOperator() {
+        return this.operator;
     }
 
     @Override public String toString() {
@@ -113,6 +127,8 @@ public class Station extends POI implements Serializable {
 
     public static final String KEY_LINE_LIST = "lines";
     public static final String KEY_VEHICLE_LIST = "vehicles";
+    public static final String KEY_NETWORK = "network";
+    public static final String KEY_OPERATOR = "operator";
 
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
@@ -129,6 +145,13 @@ public class Station extends POI implements Serializable {
             jsonVehicleList.put(vehicle);
         }
         jsonObject.put(KEY_VEHICLE_LIST, jsonVehicleList);
+
+        if (this.network != null) {
+            jsonObject.put(KEY_NETWORK, this.network);
+        }
+        if (this.operator != null) {
+            jsonObject.put(KEY_OPERATOR, this.operator);
+        }
 
         return jsonObject;
     }

@@ -17,6 +17,8 @@ import org.walkersguide.android.util.GlobalInstance;
 import android.content.Context;
 import android.view.Gravity;
 import android.text.method.LinkMovementMethod;
+import android.text.Spanned;
+import java.lang.CharSequence;
 
 
 public class TextViewBuilder {
@@ -24,7 +26,7 @@ public class TextViewBuilder {
 
     private TextView label;
 
-    public TextViewBuilder(Context context, String text) {
+    public TextViewBuilder(Context context, CharSequence text) {
         initialize(
                 context,
                 text,
@@ -36,7 +38,7 @@ public class TextViewBuilder {
         initialize(context, text, lp);
     }
 
-    private void initialize(Context context, String text, LayoutParams lp) {
+    private void initialize(Context context, CharSequence text, LayoutParams lp) {
         this.label = new TextView(context);
         this.label.setText(text);
         this.label.setLayoutParams(lp);

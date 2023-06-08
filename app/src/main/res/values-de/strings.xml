@@ -309,6 +309,8 @@
     <string name="labelPointPOIContactOpeningHours">Öffnungszeiten:</string>
     <!-- station -->
     <string name="labelPointStationAttributesHeading">Haltestelle</string>
+    <string name="labelStationNetwork">Verkehrsverbund</string>
+    <string name="labelStationOperator">Betreiber</string>
     <string name="labelPointStationVehicleTypes">Fahrzeugtypen:</string>
     <string name="labelPointStationLinesHeading">Linien</string>
     <!-- point with address -->
@@ -331,9 +333,11 @@
     <string name="labelPointTrafficSignalsSound">Tonsignal:</string>
     <string name="labelPointTrafficSignalsVibration">Vibrationssignal:</string>
     <!-- point: alt names -->
+    <string name="labelPointNotesHeading">Anmerkungen</string>
     <string name="labelPointAltName">Alternativname</string>
     <string name="labelPointOldName">Früherer Name</string>
     <string name="labelPointNote">Notiz des Mappers</string>
+    <string name="labelPointWikidata">Weitere Informationen unter wikidata.org</string>
     <!-- point: accessibility -->
     <string name="labelPointAccessibilityHeading">Barrierefreiheit</string>
     <string name="labelPointTactilePaving">Leitlinie:</string>

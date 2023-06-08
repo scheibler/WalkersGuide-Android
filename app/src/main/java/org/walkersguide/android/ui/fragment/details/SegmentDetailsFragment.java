@@ -87,8 +87,8 @@ public class SegmentDetailsFragment extends Fragment {
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemOpenOsmWebsite) {
-            Intent openBrowserIntent = new Intent(Intent.ACTION_VIEW);
-            openBrowserIntent.setData(
+            Intent openBrowserIntent = new Intent(
+                    Intent.ACTION_VIEW,
                     Uri.parse(
                         String.format(Locale.ROOT, OSM_WAY_URL, segment.getOsmId())));
             getActivity().startActivity(openBrowserIntent);
