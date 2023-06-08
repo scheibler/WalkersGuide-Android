@@ -10,6 +10,7 @@
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">outdated</string>
     <string name="toolbarSensorCalibrationRequired">calibrate</string>
+    <string name="messageNoLocationProviderAvailable">No location sensor hardware available. The app won\'t receive any location updates</string>
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>

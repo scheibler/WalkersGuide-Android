@@ -89,6 +89,7 @@ public class PositionManager implements android.location.LocationListener {
      */
     public static final String ACTION_LOCATION_PROVIDER_DISABLED = "action.LocationProviderDisabled";
     public static final String ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED = "action.foregroundLocationPermissionDenied";
+    public static final String ACTION_NO_LOCATION_PROVIDER_AVAILABLE = "action.NoLocationProviderAvailable";
 
     public static boolean locationServiceEnabled() {
         Context context = GlobalInstance.getContext();
@@ -134,14 +135,31 @@ public class PositionManager implements android.location.LocationListener {
                 Intent locationPermissionDeniedIntent = new Intent(ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED);
                 LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(locationPermissionDeniedIntent);
 
+            } else if (! locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)
+                    && ! locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)
+                    && ! locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
+                locationManager = null;
+                Intent noLocationProviderAvailableIntent = new Intent(ACTION_NO_LOCATION_PROVIDER_AVAILABLE);
+                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(noLocationProviderAvailableIntent);
+
             } else {
                 gpsFixFound = false;
 
                 // listen for new locations
-                locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER, 0, 0, this);
-                locationManager.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+                // first choice should be satellite
+                if (locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER, 0, 0, this);
+                }
+                // additionally use fused or network provider for better results (if available)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                        && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.FUSED_PROVIDER, 0, 0, this);
+                } else if (locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+                }
 
                 // get last known location after a short pause
                 (new Handler(Looper.getMainLooper())).postDelayed(

@@ -10,6 +10,8 @@
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">veraltet</string>
     <string name="toolbarSensorCalibrationRequired">kalibrieren</string>
+    <string name="messageNoLocationProviderAvailable">Die App erhält keine Positionsupdates, da
+        Ihrem Smartphone die Sensoren zur Positionsbestimmung fehlen.</string>
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Route planen</string>
