@@ -254,6 +254,7 @@ public abstract class ToolbarActivity extends AppCompatActivity {
 
         // listen for some actions
         IntentFilter filter = new IntentFilter();
+        filter.addAction(PositionManager.ACTION_NO_LOCATION_PROVIDER_AVAILABLE);
         filter.addAction(PositionManager.ACTION_LOCATION_PROVIDER_DISABLED);
         filter.addAction(PositionManager.ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED);
         filter.addAction(PositionManager.ACTION_NEW_LOCATION);
@@ -301,7 +302,12 @@ public abstract class ToolbarActivity extends AppCompatActivity {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
 
-            if(intent.getAction().equals(PositionManager.ACTION_LOCATION_PROVIDER_DISABLED)) {
+            if (intent.getAction().equals(PositionManager.ACTION_NO_LOCATION_PROVIDER_AVAILABLE)) {
+                skipPositionManagerInitialisationDuringOnResume = true;
+                showMessage(
+                        context.getResources().getString(R.string.messageNoLocationProviderAvailable));
+
+            } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_PROVIDER_DISABLED)) {
                 Dialog enableLocationDialog = new AlertDialog.Builder(ToolbarActivity.this)
                     .setTitle(
                             context.getResources().getString(R.string.enableLocationDialogTitle))

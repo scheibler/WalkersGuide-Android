@@ -45,7 +45,6 @@ import org.walkersguide.android.data.ObjectWithId;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.core.app.NavUtils;
-import android.view.MenuItem;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -108,7 +107,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
     private TextView labelDetails;
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.fragment_object_details, container, false);
 	}
 

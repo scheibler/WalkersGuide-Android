@@ -121,7 +121,7 @@ public class Point extends ObjectWithId implements Serializable {
     private String name, type, subType;
     private double latitude, longitude;
     // optional params
-    private String description, altName, oldName, note;
+    private String description, altName, oldName, note, wikidataId;
     private TactilePaving tactilePaving;
     private Wheelchair wheelchair;
 
@@ -140,6 +140,7 @@ public class Point extends ObjectWithId implements Serializable {
         this.altName = Helper.getNullableStringFromJsonObject(inputData, KEY_ALT_NAME);
         this.oldName = Helper.getNullableStringFromJsonObject(inputData, KEY_OLD_NAME);
         this.note = Helper.getNullableStringFromJsonObject(inputData, KEY_NOTE);
+        this.wikidataId = Helper.getNullableStringFromJsonObject(inputData, KEY_WIKIDATA_ID);
         this.tactilePaving = TactilePaving.lookUpById(
                 Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_TACTILE_PAVING));
         this.wheelchair = Wheelchair.lookUpById(
@@ -178,6 +179,7 @@ public class Point extends ObjectWithId implements Serializable {
     /**
      * optional params
      */
+    private static final String WIKIDATA_BASE_URL = "https://m.wikidata.org/wiki/%1$s";
 
     public String getDescription() {
         return this.description;
@@ -193,6 +195,13 @@ public class Point extends ObjectWithId implements Serializable {
 
     public String getNote() {
         return this.note;
+    }
+
+    public String getWikidataUrl() {
+        if (this.wikidataId != null) {
+            return String.format(WIKIDATA_BASE_URL, this.wikidataId);
+        }
+        return null;
     }
 
     public TactilePaving getTactilePaving() {
@@ -386,12 +395,13 @@ public class Point extends ObjectWithId implements Serializable {
     public static final String KEY_LATITUDE = "lat";
     public static final String KEY_LONGITUDE = "lon";
     // optional params
-    public static final String KEY_TACTILE_PAVING = "tactile_paving";
-    public static final String KEY_WHEELCHAIR = "wheelchair";
     public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_ALT_NAME = "alt_name";
     public static final String KEY_OLD_NAME = "old_name";
     public static final String KEY_NOTE = "note";
+    public static final String KEY_WIKIDATA_ID = "wikidata";
+    public static final String KEY_TACTILE_PAVING = "tactile_paving";
+    public static final String KEY_WHEELCHAIR = "wheelchair";
 
     public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = new JSONObject();
@@ -416,6 +426,9 @@ public class Point extends ObjectWithId implements Serializable {
         }
         if (this.note != null) {
             jsonObject.put(KEY_NOTE, this.note);
+        }
+        if (this.wikidataId != null) {
+            jsonObject.put(KEY_WIKIDATA_ID, this.wikidataId);
         }
         if (this.tactilePaving != null) {
             jsonObject.put(KEY_TACTILE_PAVING, this.tactilePaving.id);

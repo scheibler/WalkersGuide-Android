@@ -28,6 +28,9 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import android.widget.Button;
 import android.text.style.LeadingMarginSpan;
+import android.text.Spanned;
+import android.os.Build;
+import android.text.Html;
 
 
 public class UiHelper {
@@ -38,9 +41,14 @@ public class UiHelper {
      */
 
     public static boolean isDoSomeThingEditorAction(int givenActionId, int wantedActionId, KeyEvent event) {
-        return givenActionId == wantedActionId
-            || (   givenActionId == EditorInfo.IME_ACTION_UNSPECIFIED
-                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER);
+        if (givenActionId == wantedActionId) {
+            return true;
+        } else if (givenActionId == EditorInfo.IME_ACTION_UNSPECIFIED) {
+            return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER
+                || event.getKeyCode() == KeyEvent.KEYCODE_ENTER;
+        } else {
+            return false;
+        }
     }
 
     public static void hideKeyboard(Activity activity) {
@@ -132,6 +140,19 @@ public class UiHelper {
                     begin, end, 0);
         }
         return spanString;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static Spanned fromHtml(String html){
+        if (html == null) {
+            return new SpannableString("");
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // FROM_HTML_MODE_LEGACY is the behaviour that was used for versions below android N
+            // we are using this flag to give a consistent behaviour
+            return Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            return Html.fromHtml(html);
+        }
     }
 
 }

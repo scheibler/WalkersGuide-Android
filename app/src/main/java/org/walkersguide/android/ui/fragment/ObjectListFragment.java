@@ -62,16 +62,19 @@ import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.tts.TTSWrapper;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
 
 
 public abstract class ObjectListFragment extends DialogFragment
-        implements FragmentResultListener, OnRefreshListener {
+        implements FragmentResultListener, MenuProvider, OnRefreshListener {
     public static final String REQUEST_SELECT_OBJECT = "selectObject";
     public static final String EXTRA_OBJECT_WITH_ID = "objectWithId";
 
     public abstract String getDialogTitle();
     public abstract int getPluralResourceId();
 
+    public abstract boolean isUiUpdateRequestInProgress();
     public abstract void requestUiUpdate();
     public abstract void requestMoreResults();
 
@@ -161,7 +164,6 @@ public abstract class ObjectListFragment extends DialogFragment
     }
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
         if (getDialog() != null) {
             // fragment is a dialog
             return super.onCreateView(inflater, container, savedInstanceState);
@@ -210,6 +212,7 @@ public abstract class ObjectListFragment extends DialogFragment
             announceObjectAhead = getArguments().getBoolean(KEY_ANNOUNCE_OBJECT_AHEAD);
             listPosition = 0;
         }
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
@@ -262,6 +265,10 @@ public abstract class ObjectListFragment extends DialogFragment
         return "";
     }
 
+    public int getListPosition() {
+        return this.listPosition;
+    }
+
     public void resetListPosition() {
         listPosition = 0;
     }
@@ -287,25 +294,32 @@ public abstract class ObjectListFragment extends DialogFragment
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_object_list_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_object_list_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        // refresh
+        MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
+        Timber.d("menuItemRefresh: %1$s, isUiUpdateRequestInProgress: %2$s", menuItemRefresh, isUiUpdateRequestInProgress());
+        menuItemRefresh.setTitle(
+                isUiUpdateRequestInProgress()
+                ? getResources().getString(R.string.menuItemCancel)
+                : getResources().getString(R.string.menuItemRefresh));
+
+        // checkboxes
         // list auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
-        menuItemAutoUpdate.setChecked(this.autoUpdate);
+        menuItemAutoUpdate.setChecked(autoUpdate);
         // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
-        menuItemFilterResult.setChecked(this.viewingDirectionFilter);
+        menuItemFilterResult.setChecked(viewingDirectionFilter);
         // announce object ahead
         MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
-        menuItemAnnounceObjectAhead.setChecked(this.announceObjectAhead);
+        menuItemAnnounceObjectAhead.setChecked(announceObjectAhead);
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemRefresh) {
             refreshMenuItemClicked();
         } else if (item.getItemId() == R.id.menuItemAutoUpdate) {
@@ -321,7 +335,7 @@ public abstract class ObjectListFragment extends DialogFragment
         } else if (item.getItemId() == R.id.menuItemAnnounceObjectAhead) {
             announceObjectAhead = ! announceObjectAhead;
         } else {
-            return super.onOptionsItemSelected(item);
+            return false;
         }
         return true;
     }

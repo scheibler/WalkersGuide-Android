@@ -3,24 +3,30 @@
     xmlns:android="http://schemas.android.com/apk/res/android" >
     <item
         android:id="@+id/menuItemRefresh"
-        android:title="@string/menuItemRefresh" />
+        android:title="@string/menuItemRefresh"
+        android:visible="false"
+        android:orderInCategory="5" />
     <item
         android:id="@+id/menuItemAutoUpdate"
         android:title="@string/menuItemAutoUpdate"
         android:checkable="true"
-        android:visible="false" />
+        android:visible="false"
+        android:orderInCategory="6" />
     <item
         android:id="@+id/menuItemFilterResult"
         android:title="@string/menuItemFilterResult"
         android:checkable="true"
-        android:visible="false" />
+        android:visible="false"
+        android:orderInCategory="7" />
     <item
         android:id="@+id/menuItemAnnounceObjectAhead"
         android:title="@string/menuItemAnnounceObjectAhead"
         android:checkable="true"
-        android:visible="false" />
+        android:visible="false"
+        android:orderInCategory="8" />
     <item
         android:id="@+id/menuItemJumpToTop"
         android:title="@string/menuItemJumpToTop"
-        android:visible="false" />
+        android:visible="false"
+        android:orderInCategory="9" />
 </menu>

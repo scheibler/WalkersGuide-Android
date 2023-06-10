@@ -14,9 +14,6 @@ import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
 
 import org.walkersguide.android.R;
 
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import timber.log.Timber;
 import android.content.Context;
 
@@ -49,6 +46,8 @@ import android.os.Looper;
 import org.walkersguide.android.sensor.PositionManager;
 import android.text.TextUtils;
 import org.walkersguide.android.util.Helper;
+import android.view.Menu;
+import android.view.MenuItem;
 
 
 public class PoiListFromServerFragment extends ExtendedObjectListFragment
@@ -182,23 +181,18 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
      * menu
      */
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        super.onPrepareMenu(menu);
         // refresh
         MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
-        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-            menuItemRefresh.setTitle(
-                    getResources().getString(R.string.menuItemCancel));
-        } else {
-            menuItemRefresh.setTitle(
-                    getResources().getString(R.string.menuItemRefresh));
-        }
-        // show auto-update and direction filter
+        menuItemRefresh.setVisible(true);
+        // show auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
         menuItemAutoUpdate.setVisible(true);
+        // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setVisible(true);
-        // show announceObjectAhead
+        // show announce object ahead
         MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
         menuItemAnnounceObjectAhead.setVisible(true);
     }
@@ -237,6 +231,10 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         if (! getActivity().isChangingConfigurations()) {
             serverTaskExecutorInstance.cancelTask(taskId, true);
         }
+    }
+
+    @Override public boolean isUiUpdateRequestInProgress() {
+        return serverTaskExecutorInstance.taskInProgress(taskId);
     }
 
     @Override public void prepareRequest() {

@@ -101,17 +101,11 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
      * menu
      */
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        super.onPrepareMenu(menu);
         // refresh
         MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
-        if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-            menuItemRefresh.setTitle(
-                    getResources().getString(R.string.menuItemCancel));
-        } else {
-            menuItemRefresh.setTitle(
-                    getResources().getString(R.string.menuItemRefresh));
-        }
+        menuItemRefresh.setVisible(true);
     }
 
 
@@ -146,6 +140,10 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
         if (! getActivity().isChangingConfigurations()) {
             serverTaskExecutorInstance.cancelTask(taskId);
         }
+    }
+
+    @Override public boolean isUiUpdateRequestInProgress() {
+        return serverTaskExecutorInstance.taskInProgress(taskId);
     }
 
     @Override public void prepareRequest() {

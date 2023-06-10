@@ -60,7 +60,6 @@ public abstract class TabLayoutFragment extends Fragment {
         this.selectedTab = newTab;
     }
 
-
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 

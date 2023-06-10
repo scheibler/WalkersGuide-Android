@@ -18,6 +18,7 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.data.object_with_id.point.PedestrianCrossing;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Point;
+import androidx.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -56,12 +57,12 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
      * menu
      */
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        // show auto-update
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        super.onPrepareMenu(menu);
+        // show auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
         menuItemAutoUpdate.setVisible(true);
-        // show announceObjectAhead
+        // show announce object ahead
         MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
         menuItemAnnounceObjectAhead.setVisible(true);
     }
@@ -77,6 +78,10 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
 
     @Override public void onResume() {
         super.onResume();
+    }
+
+    @Override public boolean isUiUpdateRequestInProgress() {
+        return false;
     }
 
     @Override public void requestUiUpdate() {

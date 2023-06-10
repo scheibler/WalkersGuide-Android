@@ -36,9 +36,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import timber.log.Timber;
+import org.walkersguide.android.ui.UiHelper;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
+import androidx.annotation.NonNull;
 
 
-public class PointDetailsFragment extends Fragment {
+public class PointDetailsFragment extends Fragment implements MenuProvider {
     private static final String KEY_POINT = "point";
 
     private static final String OSM_NODE_URL = "https://www.openstreetmap.org/node/%1$d/";
@@ -64,13 +68,13 @@ public class PointDetailsFragment extends Fragment {
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
         point = (Point) getArguments().getSerializable(KEY_POINT);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // attributes layout
 		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
@@ -81,25 +85,20 @@ public class PointDetailsFragment extends Fragment {
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_point_and_segment_details_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_point_and_segment_details_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
         MenuItem menuItemOpenOsmWebsite = menu.findItem(R.id.menuItemOpenOsmWebsite);
-        Timber.d("id: %1$d", point.getOsmId());
-        if (point != null && point.getOsmId() != null) {
-            menuItemOpenOsmWebsite.setVisible(true);
-        } else {
-            menuItemOpenOsmWebsite.setVisible(false);
-        }
+        menuItemOpenOsmWebsite.setVisible(
+                point != null && point.getOsmId() != null);
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemOpenOsmWebsite) {
-            Intent openBrowserIntent = new Intent(Intent.ACTION_VIEW);
-            openBrowserIntent.setData(
+            Intent openBrowserIntent = new Intent(
+                    Intent.ACTION_VIEW,
                     Uri.parse(
                         String.format(Locale.ROOT, OSM_NODE_URL, point.getOsmId())));
             getActivity().startActivity(openBrowserIntent);
@@ -163,8 +162,9 @@ public class PointDetailsFragment extends Fragment {
                 if (point instanceof Station) {
                     Station station = (Station) point;
 
-                    // vehicle list
-                    if (! station.getVehicleList().isEmpty()) {
+                    if (       station.getNetwork() != null
+                            || station.getOperator() != null
+                            || ! station.getVehicleList().isEmpty()) {
                         layoutAttributes.addView(
                                 new TextViewBuilder(
                                         PointDetailsFragment.this.getContext(),
@@ -172,15 +172,40 @@ public class PointDetailsFragment extends Fragment {
                                     .isHeading()
                                     .create()
                                 );
-                        layoutAttributes.addView(
-                                new TextViewBuilder(
+
+                        if (station.getNetwork() != null) {
+                            layoutAttributes.addView(
+                                    new TextViewBuilder(
+                                        PointDetailsFragment.this.getContext(),
+                                        String.format(
+                                            "%1$s: %2$s",
+                                            getResources().getString(R.string.labelStationNetwork),
+                                            station.getNetwork()))
+                                    .create()
+                                    );
+                        }
+                        if (station.getOperator() != null) {
+                            layoutAttributes.addView(
+                                    new TextViewBuilder(
+                                        PointDetailsFragment.this.getContext(),
+                                        String.format(
+                                            "%1$s: %2$s",
+                                            getResources().getString(R.string.labelStationOperator),
+                                            station.getOperator()))
+                                    .create()
+                                    );
+                        }
+                        if (! station.getVehicleList().isEmpty()) {
+                            layoutAttributes.addView(
+                                    new TextViewBuilder(
                                         PointDetailsFragment.this.getContext(),
                                         String.format(
                                             "%1$s: %2$s",
                                             getResources().getString(R.string.labelPointStationVehicleTypes),
                                             TextUtils.join(", ", station.getVehicleList())))
                                     .create()
-                                );
+                                    );
+                        }
                     }
 
                     // lines
@@ -609,52 +634,86 @@ public class PointDetailsFragment extends Fragment {
             }
         }
 
-        // description
-        if (point.getDescription() != null) {
+        // notes
+        if (point.getDescription() != null
+                || point.getAltName() != null
+                || point.getOldName() != null
+                || point.getNote() != null
+                || point.getWikidataUrl() != null) {
             layoutAttributes.addView(
                     new TextViewBuilder(
                             PointDetailsFragment.this.getContext(),
-                            String.format(
-                                "%1$s: %2$s",
-                                getResources().getString(R.string.labelSegmentFootwayDescription),
-                                point.getDescription()))
+                            getResources().getString(R.string.labelPointNotesHeading))
+                        .isHeading()
+                        .addTopMargin()
                         .create()
                     );
-        }
 
-        // alt_name, old_name and note
-        if (point.getAltName() != null) {
-            layoutAttributes.addView(
-                    new TextViewBuilder(
-                            PointDetailsFragment.this.getContext(),
-                            String.format(
-                                "%1$s: %2$s",
-                                getResources().getString(R.string.labelPointAltName),
-                                point.getAltName()))
-                        .create()
-                    );
-        }
-        if (point.getOldName() != null) {
-            layoutAttributes.addView(
-                    new TextViewBuilder(
-                            PointDetailsFragment.this.getContext(),
-                            String.format(
-                                "%1$s: %2$s",
-                                getResources().getString(R.string.labelPointOldName),
-                                point.getOldName()))
-                        .create()
-                    );
-        }
-        if (point.getNote() != null) {
-            layoutAttributes.addView(
-                    new TextViewBuilder(
-                            PointDetailsFragment.this.getContext(),
-                            String.format(
-                                "%1$s: %2$s",
-                                getResources().getString(R.string.labelPointNote),
-                                point.getNote()))
-                        .create()
-                    );
+            if (point.getDescription() != null) {
+                layoutAttributes.addView(
+                        new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelSegmentFootwayDescription),
+                                    point.getDescription()))
+                            .create()
+                        );
+            }
+
+            if (point.getAltName() != null) {
+                layoutAttributes.addView(
+                        new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointAltName),
+                                    point.getAltName()))
+                            .create()
+                        );
+            }
+
+            if (point.getOldName() != null) {
+                layoutAttributes.addView(
+                        new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointOldName),
+                                    point.getOldName()))
+                            .create()
+                        );
+            }
+
+            if (point.getNote() != null) {
+                layoutAttributes.addView(
+                        new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointNote),
+                                    point.getNote()))
+                            .create()
+                        );
+            }
+
+            if (point.getWikidataUrl() != null) {
+                TextView labelWikidataUrl = new TextViewBuilder(
+                        PointDetailsFragment.this.getContext(),
+                        getResources().getString(R.string.labelPointWikidata))
+                    .create();
+                labelWikidataUrl.setTag(point.getWikidataUrl());
+                Timber.d("wikidata: %1$s", point.getWikidataUrl());
+                labelWikidataUrl.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        Intent intent = new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse((String) view.getTag()));
+                        getActivity().startActivity(intent);
+                    }
+                });
+                layoutAttributes.addView(labelWikidataUrl);
+            }
         }
 
         // accessibility attributes

@@ -48,9 +48,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import timber.log.Timber;
 import org.walkersguide.android.util.Helper;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
+import androidx.annotation.NonNull;
 
 
-public class TripDetailsFragment extends Fragment implements OnRefreshListener, Runnable {
+public class TripDetailsFragment extends Fragment 
+    implements OnRefreshListener, MenuProvider, Runnable {
 
 
     // instance constructors
@@ -96,13 +100,11 @@ public class TripDetailsFragment extends Fragment implements OnRefreshListener, 
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_trip_details_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_trip_details_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
         MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
         if (serverTaskExecutorInstance.taskInProgress(taskId)) {
             menuItemRefresh.setTitle(
@@ -113,7 +115,7 @@ public class TripDetailsFragment extends Fragment implements OnRefreshListener, 
         }
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemRefresh) {
             if (serverTaskExecutorInstance.taskInProgress(taskId)) {
                 serverTaskExecutorInstance.cancelTask(taskId);
@@ -124,7 +126,7 @@ public class TripDetailsFragment extends Fragment implements OnRefreshListener, 
             }
 
         } else {
-            return super.onOptionsItemSelected(item);
+            return false;
         }
         return true;
     }
@@ -135,12 +137,12 @@ public class TripDetailsFragment extends Fragment implements OnRefreshListener, 
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         station = (Location) getArguments().getSerializable(KEY_STATION);
         departure = (Departure) getArguments().getSerializable(KEY_DEPARTURE);
