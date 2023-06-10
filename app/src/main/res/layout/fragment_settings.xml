@@ -87,38 +87,55 @@
             android:layout_height="wrap_content"
             android:text="@string/switchAnnouncementsEnabled" />
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal" >
+            android:gravity="center_vertical" >
 
             <TextView
+                android:id="@+id/labelDistanceAnnouncementInterval"
                 android:labelFor="@+id/editDistanceAnnouncementInterval"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:text="@string/labelDistanceAnnouncementInterval" />
-
-            <EditText
-                android:id="@+id/editDistanceAnnouncementInterval"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:hint="@string/labelDistanceAnnouncementIntervalUnit"
-                android:inputType="numberDecimal"
-                android:digits="0123456789"
-                android:imeOptions="actionDone" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:focusable="true"
                 android:gravity="center_vertical"
-                android:importantForAccessibility="no"
-                android:text="@string/labelDistanceAnnouncementIntervalUnit" />
-        </LinearLayout>
+                android:text="@string/labelDistanceAnnouncementInterval"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/layoutDistanceAnnouncementInterval"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/layoutDistanceAnnouncementInterval"
+                android:layout_width="0dp"
+                app:layout_constraintWidth_percent="0.25"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/labelDistanceAnnouncementInterval"
+                app:layout_constraintTop_toTopOf="parent" >
+
+                <EditText
+                    android:id="@+id/editDistanceAnnouncementInterval"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/labelDistanceAnnouncementIntervalUnit"
+                    android:inputType="numberDecimal"
+                    android:digits="0123456789"
+                    android:imeOptions="actionDone" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:importantForAccessibility="no"
+                    android:text="@string/labelDistanceAnnouncementIntervalUnit" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchKeepBluetoothHeadsetConnectionAlive"

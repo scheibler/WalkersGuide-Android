@@ -64,6 +64,9 @@ public class HikingTrailListFromServerFragment extends ExtendedObjectListFragmen
         return null;
     }
 
+    @Override public void selectNewProfile(Profile newProfile) {
+    }
+
 
     /**
      * create view

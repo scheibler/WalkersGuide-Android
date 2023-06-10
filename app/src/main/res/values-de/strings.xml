@@ -213,6 +213,7 @@
     <!-- ExtendedObjectListFragment -->
     <string name="buttonSelectProfile">Profil: %1$s</string>
     <string name="buttonSelectProfileNone">Profil: Keins ausgewählt</string>
+    <string name="messageNewProfileSelected">%1$s ausgewählt</string>
     <string name="hintSearch">Suche</string>
     <string name="buttonClearSearch">Suche zurücksetzen</string>
 

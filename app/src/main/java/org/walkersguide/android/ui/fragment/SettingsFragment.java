@@ -148,6 +148,8 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
             settingsManagerInstance.setSelectedShakeIntensity(
                     (ShakeIntensity) bundle.getSerializable(SelectShakeIntensityDialog.EXTRA_SHAKE_INTENSITY));
             updateUI();
+        } else if (requestKey.equals(SimpleMessageDialog.REQUEST_DIALOG_CLOSED)) {
+            updateUI();
         }
     }
 

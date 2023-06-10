@@ -101,26 +101,14 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
+
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
-            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
-            if (selectedProfile == null) {
-                request.setProfile(null);
-            } else if (selectedProfile instanceof DatabaseProfile) {
-                request.setProfile((DatabaseProfile) selectedProfile);
-            }
-            resetListPosition();
-            requestUiUpdate();
-
-        } else if (requestKey.equals(SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD)) {
+        if (requestKey.equals(SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD)) {
             request.setSortMethod(
                     (SortMethod) bundle.getSerializable(SelectSortMethodDialog.EXTRA_SORT_METHOD));
             resetListPosition();
@@ -133,6 +121,16 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
     @Override public Profile getProfile() {
         return request.getProfile();
+    }
+
+    @Override public void selectNewProfile(Profile newProfile) {
+        if (newProfile == null) {
+            request.setProfile(null);
+        } else if (newProfile instanceof DatabaseProfile) {
+            request.setProfile((DatabaseProfile) newProfile);
+        }
+        resetListPosition();
+        requestUiUpdate();
     }
 
 
