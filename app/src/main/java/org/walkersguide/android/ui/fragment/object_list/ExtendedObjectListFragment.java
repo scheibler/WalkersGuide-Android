@@ -37,9 +37,10 @@ import org.walkersguide.android.util.SettingsManager;
 import android.widget.LinearLayout;
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
 import timber.log.Timber;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.WindowManager;
+import android.view.Menu;
+import androidx.annotation.NonNull;
+import android.view.MenuItem;
 
 
 public abstract class ExtendedObjectListFragment extends ObjectListFragment {
@@ -63,6 +64,18 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
 
     public ProfileGroup getProfileGroup() {
         return (ProfileGroup) getArguments().getSerializable(KEY_GROUP);
+    }
+
+
+    /**
+     * menu
+     */
+
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        super.onPrepareMenu(menu);
+        Timber.d("listPosition: %1$d", getListPosition());
+        MenuItem menuItemJumpToTop = menu.findItem(R.id.menuItemJumpToTop);
+        menuItemJumpToTop.setVisible(getListPosition() > 0);
     }
 
 
@@ -158,17 +171,6 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         } else if (TextUtils.isEmpty(editSearch.getText()) && buttonClearSearch.getVisibility() == View.VISIBLE) {
             buttonClearSearch.setVisibility(View.GONE);
         }
-    }
-
-
-    /**
-     * menu
-     */
-
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        MenuItem menuItemJumpToTop = menu.findItem(R.id.menuItemJumpToTop);
-        menuItemJumpToTop.setVisible(true);
     }
 
 

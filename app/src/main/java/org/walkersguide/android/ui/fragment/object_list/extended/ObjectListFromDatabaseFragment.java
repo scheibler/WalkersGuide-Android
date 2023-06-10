@@ -187,26 +187,28 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_object_list_from_database_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        super.onCreateMenu(menu, menuInflater);
+        menuInflater.inflate(R.menu.menu_toolbar_object_list_from_database_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        // enable the following menu items for a DatabaseProfile with points
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        super.onPrepareMenu(menu);
         boolean isPointDatabaseProfile = request != null
             && request.hasProfile()
             && request.getProfile().isForPoints();
+        // show auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
         menuItemAutoUpdate.setVisible(isPointDatabaseProfile);
+        // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setVisible(isPointDatabaseProfile);
+        // show announce object ahead
         MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
         menuItemAnnounceObjectAhead.setVisible(isPointDatabaseProfile);
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemSortMethod) {
             if (request == null || request.getProfile() == null) {
                 Toast.makeText(
@@ -257,7 +259,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
             clearProfileDialog.show();
 
         } else {
-            return super.onOptionsItemSelected(item);
+            return super.onMenuItemSelected(item);
         }
         return true;
     }
@@ -299,6 +301,10 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putSerializable(KEY_REQUEST, request);
+    }
+
+    @Override public boolean isUiUpdateRequestInProgress() {
+        return false;
     }
 
     @Override public void prepareRequest() {

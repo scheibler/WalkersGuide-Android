@@ -210,13 +210,14 @@ public class IntersectionScheme extends View {
     private class SelfVoicingTouchHelper extends ExploreByTouchHelper {
 
         private TTSWrapper ttsWrapperInstance;
-        private boolean atCenter;
+        private boolean atCenter, atSegment;
         private IntersectionSegment lastAnnouncedSegment;
 
         public SelfVoicingTouchHelper(View forView) {
             super(forView);
             this.ttsWrapperInstance = TTSWrapper.getInstance();
             this.atCenter = false;
+            this.atSegment = false;
             this.lastAnnouncedSegment = null;
         }
 
@@ -234,15 +235,16 @@ public class IntersectionScheme extends View {
                             );
                     Helper.vibrateOnce(100);
                     this.lastAnnouncedSegment = null;
+                    this.atCenter = true;
                 }
-                this.atCenter = true;
+                this.atSegment = false;
             } else {
                 Map.Entry<RelativeBearing,IntersectionSegment> relativeBearingAndIntersectionSegmentMapEntry =
                     getIntersectionSegmentUnder(x, y);
                 if (relativeBearingAndIntersectionSegmentMapEntry != null) {
                     IntersectionSegment segment = relativeBearingAndIntersectionSegmentMapEntry.getValue();
-                    if (this.lastAnnouncedSegment == null
-                            || ! this.lastAnnouncedSegment.equals(segment)) {
+                    if (       ! this.atSegment
+                            || ! segment.equals(this.lastAnnouncedSegment)) {
                         String announcement = String.format(
                                 "%1$s, %2$s",
                                 segment.formatNameAndSubType(),
@@ -255,11 +257,12 @@ public class IntersectionScheme extends View {
                                     ", %1$s", GlobalInstance.getStringResource(R.string.labelPartOfNextRouteSegment));
                         }
                         ttsWrapperInstance.announce(announcement);
+                        this.lastAnnouncedSegment = segment;
+                        this.atSegment = true;
                     }
                     Helper.vibrateOnce(50);
-                    this.lastAnnouncedSegment = segment;
                 } else {
-                    this.lastAnnouncedSegment = null;
+                    this.atSegment = false;
                 }
                 this.atCenter = false;
             }

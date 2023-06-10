@@ -83,10 +83,12 @@ import org.walkersguide.android.server.pt.StationDeparturesTask;
 import org.walkersguide.android.server.pt.PtException;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
 import org.walkersguide.android.util.Helper;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
 
 
 public class DeparturesFragment extends Fragment
-        implements FragmentResultListener, OnRefreshListener, Runnable {
+        implements FragmentResultListener, MenuProvider, OnRefreshListener, Runnable {
 
 
     // constructors
@@ -189,13 +191,11 @@ public class DeparturesFragment extends Fragment
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_departures_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_departures_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
         MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
         if (serverTaskExecutorInstance.taskInProgress(taskId)) {
             menuItemRefresh.setTitle(
@@ -206,7 +206,7 @@ public class DeparturesFragment extends Fragment
         }
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemRefresh) {
             if (serverTaskExecutorInstance.taskInProgress(taskId)) {
                 serverTaskExecutorInstance.cancelTask(taskId);
@@ -228,7 +228,7 @@ public class DeparturesFragment extends Fragment
                 .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
 
         } else {
-            return super.onOptionsItemSelected(item);
+            return false;
         }
         return true;
         }
@@ -239,12 +239,12 @@ public class DeparturesFragment extends Fragment
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.fragment_departures, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
         if (savedInstanceState != null) {

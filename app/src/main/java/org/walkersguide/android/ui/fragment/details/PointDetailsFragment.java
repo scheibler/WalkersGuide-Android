@@ -37,9 +37,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import timber.log.Timber;
 import org.walkersguide.android.ui.UiHelper;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
+import androidx.annotation.NonNull;
 
 
-public class PointDetailsFragment extends Fragment {
+public class PointDetailsFragment extends Fragment implements MenuProvider {
     private static final String KEY_POINT = "point";
 
     private static final String OSM_NODE_URL = "https://www.openstreetmap.org/node/%1$d/";
@@ -65,13 +68,13 @@ public class PointDetailsFragment extends Fragment {
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
         point = (Point) getArguments().getSerializable(KEY_POINT);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // attributes layout
 		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
@@ -82,22 +85,17 @@ public class PointDetailsFragment extends Fragment {
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_point_and_segment_details_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_point_and_segment_details_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
         MenuItem menuItemOpenOsmWebsite = menu.findItem(R.id.menuItemOpenOsmWebsite);
-        Timber.d("id: %1$d", point.getOsmId());
-        if (point != null && point.getOsmId() != null) {
-            menuItemOpenOsmWebsite.setVisible(true);
-        } else {
-            menuItemOpenOsmWebsite.setVisible(false);
-        }
+        menuItemOpenOsmWebsite.setVisible(
+                point != null && point.getOsmId() != null);
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemOpenOsmWebsite) {
             Intent openBrowserIntent = new Intent(
                     Intent.ACTION_VIEW,

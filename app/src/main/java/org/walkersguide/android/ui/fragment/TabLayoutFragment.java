@@ -84,7 +84,6 @@ public class TabLayoutFragment extends Fragment {
     }
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.layout_view_pager_and_tab_layout_above, container, false);
 	}
 

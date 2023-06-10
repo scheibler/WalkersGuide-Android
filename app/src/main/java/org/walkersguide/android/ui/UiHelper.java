@@ -41,9 +41,14 @@ public class UiHelper {
      */
 
     public static boolean isDoSomeThingEditorAction(int givenActionId, int wantedActionId, KeyEvent event) {
-        return givenActionId == wantedActionId
-            || (   givenActionId == EditorInfo.IME_ACTION_UNSPECIFIED
-                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER);
+        if (givenActionId == wantedActionId) {
+            return true;
+        } else if (givenActionId == EditorInfo.IME_ACTION_UNSPECIFIED) {
+            return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER
+                || event.getKeyCode() == KeyEvent.KEYCODE_ENTER;
+        } else {
+            return false;
+        }
     }
 
     public static void hideKeyboard(Activity activity) {

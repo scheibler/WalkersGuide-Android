@@ -88,9 +88,11 @@ import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 import org.walkersguide.android.ui.UiHelper;
 import android.text.SpannableString;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
 
 
-public class RouterFragment extends Fragment implements FragmentResultListener {
+public class RouterFragment extends Fragment implements FragmentResultListener, MenuProvider {
 
 
 	// instance constructor
@@ -146,13 +148,11 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_toolbar_router_fragment, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_router_fragment, menu);
     }
 
-    @Override public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
         // auto-skip
         MenuItem menuItemAutoSkipToNextRoutePoint = menu.findItem(R.id.menuItemAutoSkipToNextRoutePoint);
         if (menuItemAutoSkipToNextRoutePoint != null) {
@@ -177,7 +177,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
         }
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemRecalculateWithCurrentPosition
                 || item.getItemId() == R.id.menuItemRecalculateOriginalRoute
                 || item.getItemId() == R.id.menuItemRecalculateReturnRoute) {
@@ -242,7 +242,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
             }
 
         } else {
-            return super.onOptionsItemSelected(item);
+            return false;
         }
         return true;
     }
@@ -253,12 +253,12 @@ public class RouterFragment extends Fragment implements FragmentResultListener {
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.fragment_router, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // content layout
 

@@ -52,9 +52,12 @@ import timber.log.Timber;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import org.walkersguide.android.util.Helper;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
 
 
-public class RouteDetailsFragment extends Fragment implements FragmentResultListener, OnRefreshListener {
+public class RouteDetailsFragment extends Fragment
+        implements FragmentResultListener, MenuProvider, OnRefreshListener {
 
 
     // instance constructors
@@ -122,14 +125,13 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
      * menu
      */
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         if (modeStreetCourse()) {
-            inflater.inflate(R.menu.menu_toolbar_route_details_fragment_street_course, menu);
+            menuInflater.inflate(R.menu.menu_toolbar_route_details_fragment_street_course, menu);
         }
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemRefresh) {
             if (modeStreetCourse()) {
                 if (serverTaskExecutorInstance.taskInProgress(taskId)) {
@@ -144,7 +146,7 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
                         RouteDetailsFragment.this.getContext(), route);
             }
         } else {
-            return super.onOptionsItemSelected(item);
+            return false;
         }
         return true;
     }
@@ -155,7 +157,6 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.fragment_route_details, container, false);
 	}
 
@@ -171,6 +172,7 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
             route = (Route) getArguments().getSerializable(KEY_ROUTE);
             listPosition = route != null ? route.getCurrentPosition() : 0;
         }
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         labelDescription = (TextView) view.findViewById(R.id.labelDescription);
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
