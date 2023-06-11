@@ -1,6 +1,22 @@
 Change Log
 ==========
 
+
+
+v2.3.0: 2023-06-10
+------------------
+
+- New Talkback actions to switch between point profiles:
+  Focus the profiles button in the points tab and swipe left or right to switch between profiles more quickly.
+- New point details information:
+    - All points: Link to the corresponding wikidata website
+    - Stations: Show network and operator if available
+- Bug fixes:
+    - Check if location provider exists before requesting location updates
+    - fixed some problems in the points tab menu
+
+
+
 v2.2.0: 2023-05-18
 ------------------
 
