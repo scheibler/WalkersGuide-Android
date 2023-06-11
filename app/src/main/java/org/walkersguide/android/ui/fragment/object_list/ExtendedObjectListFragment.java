@@ -41,9 +41,11 @@ import android.view.WindowManager;
 import android.view.Menu;
 import androidx.annotation.NonNull;
 import android.view.MenuItem;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.tts.TTSWrapper;
 
 
-public abstract class ExtendedObjectListFragment extends ObjectListFragment {
+public abstract class ExtendedObjectListFragment extends ObjectListFragment implements FragmentResultListener {
 
     public static class BundleBuilder extends ObjectListFragment.BundleBuilder {
         public BundleBuilder() {
@@ -59,11 +61,32 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
 
     // dialog
     private static final String KEY_GROUP = "group";
+    private static final String KEY_ACCESSIBILITY_ACTION_ID_LIST_FOR_SELECT_PROFILE_BUTTON = "accessibilityActionIdListForSelectProfileButton";
 
     public abstract Profile  getProfile();
+    public abstract void selectNewProfile(Profile newProfile);
 
     public ProfileGroup getProfileGroup() {
         return (ProfileGroup) getArguments().getSerializable(KEY_GROUP);
+    }
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        Timber.d("onFragmentResult: %1$s", requestKey);
+        if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
+            selectNewProfile(
+                    (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE));
+
+        } else {
+            super.onFragmentResult(requestKey, bundle);
+        }
     }
 
 
@@ -82,6 +105,7 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
     /**
      * create view
      */
+    private ArrayList<Integer> accessibilityActionIdListForSelectProfileButton;
 
     private Button buttonSelectProfile;
     private AutoCompleteTextView editSearch;
@@ -89,6 +113,12 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
+        if (savedInstanceState != null) {
+            accessibilityActionIdListForSelectProfileButton = (ArrayList<Integer>)
+                savedInstanceState.getSerializable(KEY_ACCESSIBILITY_ACTION_ID_LIST_FOR_SELECT_PROFILE_BUTTON);
+        } else {
+            accessibilityActionIdListForSelectProfileButton = new ArrayList<Integer>();
+        }
 
         buttonSelectProfile = (Button) view.findViewById(R.id.buttonSelectProfile);
         buttonSelectProfile.setVisibility(
@@ -165,6 +195,11 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
         return view;
     }
 
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_ACCESSIBILITY_ACTION_ID_LIST_FOR_SELECT_PROFILE_BUTTON, accessibilityActionIdListForSelectProfileButton);
+    }
+
     private void showOrHideSearchFieldControls() {
         if (! TextUtils.isEmpty(editSearch.getText()) && buttonClearSearch.getVisibility() == View.GONE) {
             buttonClearSearch.setVisibility(View.VISIBLE);
@@ -208,6 +243,47 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment {
                             TextUtils.join(
                                 ", ", ((PoiProfile) getProfile()).getPoiCategoryList()))
                         );
+            }
+        }
+
+        // add talkback actions to select new profile from list
+        if (getProfileGroup() != null) {
+            // remove previously added
+            for (Integer actionId : accessibilityActionIdListForSelectProfileButton) {
+                ViewCompat.removeAccessibilityAction(buttonSelectProfile, actionId);
+            }
+            accessibilityActionIdListForSelectProfileButton.clear();
+
+            // create current action list, excluding the currently selected profile
+            ArrayList<? extends Profile> profileList = getProfileGroup().getProfiles();
+            int index = profileList.indexOf(getProfile());
+            if (index > -1) {
+                ArrayList<Profile> filteredProfileList = new ArrayList<Profile>();
+                filteredProfileList.addAll(
+                        profileList.subList(index+1, profileList.size()));
+                filteredProfileList.addAll(
+                        profileList.subList(0, index));
+                profileList = filteredProfileList;
+            }
+
+            // add accessibility actions
+            for (final Profile profile : profileList) {
+                int actionId = ViewCompat.addAccessibilityAction(
+                        buttonSelectProfile,
+                        profile.toString(),
+                        (actionView, arguments) -> {
+                            selectNewProfile(profile);
+                            TTSWrapper.getInstance().screenReader(
+                                    String.format(
+                                        getResources().getString(R.string.messageNewProfileSelected),
+                                        profile.toString())
+                                    );
+                            return true;
+                        }
+                        );
+                if (actionId != View.NO_ID) {
+                    accessibilityActionIdListForSelectProfileButton.add(actionId);
+                }
             }
         }
 

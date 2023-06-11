@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 public enum ProfileGroup {
 
-    LOAD_PREVIOUS_ROUTE(1, false),
     POINT_HISTORY(2, false),
     ROUTE_HISTORY(3, false),
     POI(4, true);
@@ -21,15 +20,7 @@ public enum ProfileGroup {
     }
 
     public ArrayList<? extends Profile> getProfiles() {
-        if (id == 1) {      // load previous route
-            ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
-            profileList.add(FavoritesProfile.favoriteRoutes());
-            profileList.add(DatabaseProfile.plannedRoutes());
-            profileList.add(DatabaseProfile.routesFromGpxFile());
-            profileList.add(DatabaseProfile.streetCourses());
-            return profileList;
-
-        } else if (this.id == 2) {      // point history
+        if (this.id == 2) {      // point history
             ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
             profileList.add(DatabaseProfile.allPoints());
             profileList.add(DatabaseProfile.addressPoints());

@@ -96,31 +96,13 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
-        // fragment result listener
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        Timber.d("onFragmentResult: %1$s", requestKey);
-        if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
-            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
-            if (selectedProfile == null) {
-                request.setProfile(null);
-                SettingsManager.getInstance().setSelectedPoiProfile(null);
-            } else if (selectedProfile instanceof PoiProfile) {
-                PoiProfile selectedPoiProfile = (PoiProfile) selectedProfile;
-                request.setProfile(selectedPoiProfile);
-                SettingsManager.getInstance().setSelectedPoiProfile(selectedPoiProfile);
-            }
-            resetListPosition();
-            requestUiUpdate();
-
-        } else if (requestKey.equals(SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES)) {
+        if (requestKey.equals(SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES)) {
             Timber.d("onFragmentResult: categories selected");
             ArrayList<PoiCategory> newPoiCategoryList = (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST);
             request.getProfile().setValues(
@@ -135,6 +117,19 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 
     @Override public Profile getProfile() {
         return request.getProfile();
+    }
+
+    @Override public void selectNewProfile(Profile newProfile) {
+        if (newProfile == null) {
+            request.setProfile(null);
+            SettingsManager.getInstance().setSelectedPoiProfile(null);
+        } else if (newProfile instanceof PoiProfile) {
+            PoiProfile newPoiProfile = (PoiProfile) newProfile;
+            request.setProfile(newPoiProfile);
+            SettingsManager.getInstance().setSelectedPoiProfile(newPoiProfile);
+        }
+        resetListPosition();
+        requestUiUpdate();
     }
 
 
