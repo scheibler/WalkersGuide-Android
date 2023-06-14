@@ -212,7 +212,6 @@ public abstract class ObjectListFragment extends DialogFragment
             announceObjectAhead = getArguments().getBoolean(KEY_ANNOUNCE_OBJECT_AHEAD);
             listPosition = 0;
         }
-        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
@@ -241,6 +240,11 @@ public abstract class ObjectListFragment extends DialogFragment
         });
 
         return view;
+    }
+
+	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
