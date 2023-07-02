@@ -16,6 +16,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.Product;
 import de.schildbach.pte.dto.Stop;
 import de.schildbach.pte.RtProvider;
+import de.schildbach.pte.VgnProvider;
 import de.schildbach.pte.VvoProvider;
 
 import java.lang.Math;
@@ -66,8 +67,7 @@ public class PtUtility {
         // europe
         ArrayList<AbstractNetworkProvider> europeProviderList = new ArrayList<AbstractNetworkProvider>();
         // railteam europe (rt)
-        europeProviderList.add(
-                new RtProvider());
+        europeProviderList.add(new RtProvider());
 
         // germany
         ArrayList<AbstractNetworkProvider> germanyProviderList = new ArrayList<AbstractNetworkProvider>();
@@ -79,9 +79,10 @@ public class PtUtility {
                         dbProviderCredentials.apiAuthorization,
                         dbProviderCredentials.salt.getBytes(Charsets.UTF_8)));
         }
-        // vvo
-        germanyProviderList.add(
-                new VvoProvider());
+        // vgn
+        germanyProviderList.add(new VgnProvider());
+    	// vvo
+	    germanyProviderList.add(new VvoProvider());
 
         // create country, provider_list map
         Map<Country,ArrayList<AbstractNetworkProvider>> staticMap = new LinkedHashMap<Country,ArrayList<AbstractNetworkProvider>>();
@@ -115,6 +116,8 @@ public class PtUtility {
                 // germany
                 case DB:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderDB);
+		case VGN:
+                    return GlobalInstance.getStringResource(R.string.publicTransportProviderVGN);
                 case VVO:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderVVO);
                 // default provider name

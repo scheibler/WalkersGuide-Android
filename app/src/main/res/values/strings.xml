@@ -668,7 +668,7 @@
     <string name="databaseProfileAllRoutes">All routes</string>
 
     <!-- FavoritesProfile -->
-    <string name="favoritesProfile">Favoriten</string>
+    <string name="favoritesProfile">Favorites</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Last visited, ascending</string>
@@ -771,6 +771,7 @@
     <string name="publicTransportProviderRT">Railteam (Europe)</string>
     <!-- germany -->
     <string name="publicTransportProviderDB">Deutsche Bahn</string>
+    <string name="publicTransportProviderVGN">Verkehrsverbund Großraum Nürnberg</string>
     <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
 
     <!-- Vehicle type names -->
