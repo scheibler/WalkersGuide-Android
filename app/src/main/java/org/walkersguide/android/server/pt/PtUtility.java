@@ -67,8 +67,7 @@ public class PtUtility {
         // europe
         ArrayList<AbstractNetworkProvider> europeProviderList = new ArrayList<AbstractNetworkProvider>();
         // railteam europe (rt)
-        europeProviderList.add(
-                new RtProvider());
+        europeProviderList.add(new RtProvider());
 
         // germany
         ArrayList<AbstractNetworkProvider> germanyProviderList = new ArrayList<AbstractNetworkProvider>();
@@ -81,12 +80,9 @@ public class PtUtility {
                         dbProviderCredentials.salt.getBytes(Charsets.UTF_8)));
         }
         // vgn
-        germanyProviderList.add(
-                new VgnProvider());
-
-	// vvo
-	germanyProviderList.add(
-		new VvoProvider());
+        germanyProviderList.add(new VgnProvider());
+    	// vvo
+	    germanyProviderList.add(new VvoProvider());
 
         // create country, provider_list map
         Map<Country,ArrayList<AbstractNetworkProvider>> staticMap = new LinkedHashMap<Country,ArrayList<AbstractNetworkProvider>>();
