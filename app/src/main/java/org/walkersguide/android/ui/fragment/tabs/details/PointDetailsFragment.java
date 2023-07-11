@@ -162,7 +162,8 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                 if (point instanceof Station) {
                     Station station = (Station) point;
 
-                    if (       station.getNetwork() != null
+                    if (       station.getLocalRef() != null
+                            || station.getNetwork() != null
                             || station.getOperator() != null
                             || ! station.getVehicleList().isEmpty()) {
                         layoutAttributes.addView(
@@ -173,6 +174,17 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                     .create()
                                 );
 
+                        if (station.getLocalRef() != null) {
+                            layoutAttributes.addView(
+                                    new TextViewBuilder(
+                                        PointDetailsFragment.this.getContext(),
+                                        String.format(
+                                            "%1$s: %2$s",
+                                            getResources().getString(R.string.stationPlatform),
+                                            station.getLocalRef()))
+                                    .create()
+                                    );
+                        }
                         if (station.getNetwork() != null) {
                             layoutAttributes.addView(
                                     new TextViewBuilder(

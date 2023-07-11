@@ -26,7 +26,7 @@ public class Station extends POI implements Serializable {
 
     private ArrayList<Line> lineList;
     private ArrayList<String> vehicleList;
-    private String network, operator;
+    private String localRef, network, operator;
 
     public Station(JSONObject inputData) throws JSONException {
         super(inputData);
@@ -56,6 +56,7 @@ public class Station extends POI implements Serializable {
         }
 
         // other optional attributes
+        this.localRef = Helper.getNullableStringFromJsonObject(inputData, KEY_LOCAL_REF);
         this.network = Helper.getNullableStringFromJsonObject(inputData, KEY_NETWORK);
         this.operator = Helper.getNullableStringFromJsonObject(inputData, KEY_OPERATOR);
     }
@@ -68,6 +69,10 @@ public class Station extends POI implements Serializable {
         return this.vehicleList;
     }
 
+    public String getLocalRef() {
+        return this.localRef;
+    }
+
     public String getNetwork() {
         return this.network;
     }
@@ -77,7 +82,27 @@ public class Station extends POI implements Serializable {
     }
 
     @Override public String toString() {
-        String description = super.toString();
+        String subTypeAndPlatformNumber = null;
+        String subType = getSubType();
+        String platform = this.localRef != null
+            ? String.format(
+                    "%1$s %2$s",
+                    GlobalInstance.getStringResource(R.string.stationPlatform),
+                    this.localRef)
+            : "";
+        if (       ! TextUtils.isEmpty(subType)
+                && ! TextUtils.isEmpty(platform)) {
+            subTypeAndPlatformNumber = String.format("%1$s, %2$s", subType, platform);
+        } else if (! TextUtils.isEmpty(subType)) {
+            subTypeAndPlatformNumber = subType;
+        } else if (! TextUtils.isEmpty(platform)) {
+            subTypeAndPlatformNumber = platform;
+        }
+
+        String description = subTypeAndPlatformNumber != null
+            ? String.format("%1$s (%2$s)", getName(), subTypeAndPlatformNumber)
+            : getName();
+
         if (! this.lineList.isEmpty()) {
             // unique line numbers
             Set<String> lineNrSet = new TreeSet<String>(new LineNrComparator());
@@ -88,6 +113,7 @@ public class Station extends POI implements Serializable {
                     GlobalInstance.getStringResource(R.string.stationLines),
                     TextUtils.join(", ", lineNrSet));
         }
+
         return description;
     }
 
@@ -127,6 +153,7 @@ public class Station extends POI implements Serializable {
 
     public static final String KEY_LINE_LIST = "lines";
     public static final String KEY_VEHICLE_LIST = "vehicles";
+    public static final String KEY_LOCAL_REF = "local_ref";
     public static final String KEY_NETWORK = "network";
     public static final String KEY_OPERATOR = "operator";
 
@@ -146,6 +173,9 @@ public class Station extends POI implements Serializable {
         }
         jsonObject.put(KEY_VEHICLE_LIST, jsonVehicleList);
 
+        if (this.localRef != null) {
+            jsonObject.put(KEY_LOCAL_REF, this.localRef);
+        }
         if (this.network != null) {
             jsonObject.put(KEY_NETWORK, this.network);
         }

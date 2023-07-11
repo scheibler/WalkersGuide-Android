@@ -593,6 +593,7 @@
     <string name="trafficSignalYes">Ja</string>
 
     <!-- StationPoint -->
+    <string name="stationPlatform">Gleis</string>
     <string name="stationLines">Linien: %1$s</string>
 
 
