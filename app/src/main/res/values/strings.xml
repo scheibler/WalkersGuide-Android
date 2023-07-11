@@ -587,6 +587,7 @@
     <string name="trafficSignalYes">Yes</string>
 
     <!-- StationPoint -->
+    <string name="stationPlatform">Platform</string>
     <string name="stationLines">Lines: %1$s</string>
 
 
