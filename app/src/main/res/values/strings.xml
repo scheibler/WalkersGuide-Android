@@ -16,14 +16,7 @@
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemWhereAmI">Where am I?</string>
     <string name="menuItemCreateFavoriteCurrentPosition">Save current location</string>
-    <string name="menuItemHistory">History</string>
-    <string name="menuItemImport">Import:</string>
-    <string name="menuItemImportPointFromPostAddress">Enter address</string>
-    <string name="menuItemImportPointFromCoordinates">Enter coordinates</string>
-    <string name="menuItemImportPointFromUrl">Extract point from link</string>
     <string name="menuItemRouteFromGpxFile">Import route from GPX file</string>
-    <string name="menuItemMisc">Miscellaneous:</string>
-    <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
 
@@ -70,10 +63,13 @@
     <string name="selectRouteOrSimulationPointDialogTitleRouteSecondViaPoint">Select second via point:</string>
     <string name="selectRouteOrSimulationPointDialogTitleRouteThirdViaPoint">Select third via point:</string>
     <string name="selectRouteOrSimulationPointDialogTitleRouteDestinationPoint">Select destination point:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleHomeAddress">Select home address:</string>
+    <string name="selectRouteOrSimulationPointDialogTitlePinnedPoint">Select pinned point:</string>
     <string name="selectRouteOrSimulationPointDialogTitleSimulationPoint">Select point to simulate:</string>
     <!-- list items -->
     <string name="pointSelectFromCurrentLocation">Current location</string>
     <string name="pointSelectFromClosestAddress">Closest address</string>
+    <string name="pointSelectFromHomeAddress">Home address</string>
     <string name="pointSelectFromEnterAddress">Enter address</string>
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromFavoritePoints">Favorites</string>
@@ -148,9 +144,19 @@
 
     <!-- main activity -->
     <string name="app_name">WalkersGuide</string>
-    <string name="openNavigationDrawer">Open menu</string>
-    <string name="closeNavigationDrawer">Close menu</string>
+    <string name="mainMenu">Main menu</string>
+    <string name="navigateUp">Navigate up</string>
     <string name="errorFavoriteCreationFailed">Couldn\'t create favorite.</string>
+    <!-- main tab names -->
+    <string name="mainTabNameOverview">Overview</string>
+    <string name="mainTabNameRoutes">Routes</string>
+    <string name="mainTabNamePoints">Points</string>
+
+    <!-- overview fragment -->
+    <string name="fragmentOverviewName">Overview</string>
+    <string name="menuItemClearPinnedPoints">Clear pinned points</string>
+    <string name="messageNoPinnedPoints">No points have been pinned yet.</string>
+    <string name="buttonHistory">History</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
@@ -174,14 +180,6 @@
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>
     <string name="buttonScrollToClosestPoint">Scroll to closest point</string>
-
-    <!-- TabLayoutFragment -->
-    <!-- favorites -->
-    <string name="fragmentPointFavoritesName">Points</string>
-    <string name="fragmentRouteFavoritesName">Routes</string>
-    <!-- object history -->
-    <string name="fragmentPointHistoryName">Last points</string>
-    <string name="fragmentRouteHistoryName">Last routes</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
@@ -215,6 +213,9 @@
     <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
+    <string name="fragmentFavoritesName">Favorites</string>
+    <string name="fragmentPointHistoryName">Last points</string>
+    <string name="fragmentRouteHistoryName">Last routes</string>
     <string name="labelHeadingSecondLineSortMethod">Sorted by %1$s</string>
     <string name="messageNoProfileSelected">No profile selected.</string>
     <!-- toolbar menu -->
@@ -224,7 +225,7 @@
     <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
 
     <!-- PoiListFromServerFragment -->
-    <string name="fragmentPOIName">Points</string>
+    <string name="fragmentPointsNearbyName">Nearby</string>
     <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
     <string name="labelMoreResults">Get more points</string>
@@ -404,6 +405,7 @@
 
     <!-- settings fragment -->
     <string name="fragmentSettingsName">Settings</string>
+    <string name="labelHomeAddress">Home address</string>
     <string name="labelServerSettingsHeader">WalkersGuide server:</string>
     <string name="buttonServerURL">URL: %1$s</string>
     <string name="buttonServerURLNoSelection">URL: None selected</string>
@@ -506,6 +508,9 @@
     <string name="objectMenuItemStartLocationSimulation">Simulate location</string>
     <string name="objectMenuItemStartBearingSimulation">Simulate bearing</string>
     <string name="objectMenuItemEndSimulation">End simulation</string>
+    <string name="objectMenuItemOverview">Overview</string>
+    <string name="objectMenuItemOverviewAddToPinnedPoints">Add to pinned points</string>
+    <string name="objectMenuItemOverviewRemoveFromPinnedPoints">Remove from pinned points</string>
     <string name="objectMenuItemRoutePlanner">Route planner</string>
     <string name="objectMenuItemShareCoordinates">Share</string>
     <!-- routeplanner context submenu -->
@@ -549,6 +554,7 @@
     <string name="dialogYes">Yes</string>
     <string name="dialogNo">No</string>
     <string name="dialogSelectAll">All</string>
+    <string name="dialogAdd">Add</string>
     <string name="dialogClear">Clear</string>
     <string name="dialogCalculate">Calculate</string>
     <string name="dialogDefault">Default</string>
@@ -658,6 +664,7 @@
     <string name="databaseProfileAddressPoints">Addresses</string>
     <string name="databaseProfileIntersectionPoints">Intersections</string>
     <string name="databaseProfileStationPoints">Stations</string>
+    <string name="databaseProfilePinnedPoints">Pinned points</string>
     <string name="databaseProfileSimulatedPoints">Simulated points</string>
     <string name="databaseProfileAllPoints">All points</string>
     <!-- segment -->
@@ -872,6 +879,7 @@
     <string name="errorAddrReqNoAddressForCoordinates">No address for this coordinates found.</string>
 
     <!-- other errors -->
+    <string name="errorNoHomeAddressSet">You didn\'t select your home address yet. You may do so in the app settings.</string>
     <string name="errorNoLocationFound">No location available.</string>
     <string name="errorNoBearingFound">No bearing available.</string>
 
@@ -974,6 +982,12 @@
         name="point">
         <item quantity="one">1 point</item>
         <item quantity="other">%d points</item>
+    </plurals>
+
+    <plurals
+        name="pinnedPoint">
+        <item quantity="one">1 pinned point</item>
+        <item quantity="other">%d pinned points</item>
     </plurals>
 
     <plurals

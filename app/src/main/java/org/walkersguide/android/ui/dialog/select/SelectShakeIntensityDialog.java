@@ -2,7 +2,7 @@ package org.walkersguide.android.ui.dialog.select;
 
 import org.walkersguide.android.sensor.shake.ShakeIntensity;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

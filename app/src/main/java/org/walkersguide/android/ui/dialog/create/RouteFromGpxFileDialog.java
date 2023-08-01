@@ -1,11 +1,11 @@
 package org.walkersguide.android.ui.dialog.create;
 
 import androidx.appcompat.widget.SwitchCompat;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

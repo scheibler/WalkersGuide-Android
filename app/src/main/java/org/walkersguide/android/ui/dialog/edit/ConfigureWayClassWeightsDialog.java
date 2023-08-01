@@ -4,7 +4,7 @@ import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassWeight;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

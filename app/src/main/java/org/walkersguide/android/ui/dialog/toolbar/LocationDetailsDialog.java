@@ -1,7 +1,7 @@
     package org.walkersguide.android.ui.dialog.toolbar;
 
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.BroadcastReceiver;

@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.tabs.overview;
 
 import timber.log.Timber;
 import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
@@ -7,7 +7,7 @@ import org.walkersguide.android.ui.dialog.select.SelectShakeIntensityDialog;
 import org.walkersguide.android.sensor.shake.ShakeIntensity;
 import org.walkersguide.android.util.FileUtility;
 import org.walkersguide.android.server.pt.PtUtility;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;
@@ -79,8 +79,13 @@ import android.widget.TextView;
 import android.view.KeyEvent;
 import org.walkersguide.android.ui.UiHelper;
 import android.view.inputmethod.EditorInfo;
-import org.walkersguide.android.ui.activity.ToolbarActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
 import android.app.Activity;
+import org.walkersguide.android.ui.activity.MainActivityController;
+import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
+import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
+import org.walkersguide.android.ui.view.TextViewAndActionButton;
+import org.walkersguide.android.data.object_with_id.Point;
 
 
 public class SettingsFragment extends Fragment implements FragmentResultListener {
@@ -92,10 +97,12 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
 	}
 
 
+    private MainActivityController mainActivityController;
     private SettingsManager settingsManagerInstance;
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
 
+    private TextViewAndActionButton layoutHomeAddress;
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
@@ -108,6 +115,9 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         settingsManagerInstance = SettingsManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED, this, this);
@@ -126,7 +136,15 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED)) {
+        if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
+            Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
+            WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
+            if (point != null
+                    && whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.HOME_ADDRESS) {
+                settingsManagerInstance.setHomeAddress(point);
+                updateUI();
+            }
+        } else if (requestKey.equals(ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED)) {
             // new server url is already updated in settings
             // see WgUtility#getServerInstance for details
             //
@@ -153,6 +171,16 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         }
     }
 
+    @Override public void onAttach(Context context){
+        super.onAttach(context);
+        if (context instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) context;
+            if (activity instanceof MainActivity) {
+                mainActivityController = (MainActivityController) ((MainActivity) activity);
+            }
+        }
+    }
+
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_settings, container, false);
 	}
@@ -164,6 +192,15 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
         }
+
+        layoutHomeAddress = (TextViewAndActionButton) view.findViewById(R.id.layoutHomeAddress);
+        layoutHomeAddress.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
+            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+                SelectRouteOrSimulationPointDialog.newInstance(
+                        SelectRouteOrSimulationPointDialog.WhereToPut.HOME_ADDRESS)
+                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+            }
+        });
 
         // server settings
 
@@ -208,11 +245,8 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         switchDisplayRemainsActive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 if (settingsManagerInstance.getDisplayRemainsActive() != isChecked) {
-                    Activity parentActivity = getActivity();
-                    if (parentActivity instanceof ToolbarActivity) {
-                        ((ToolbarActivity) parentActivity).displayRemainsActiveSettingChanged(isChecked);
-                    }
                     settingsManagerInstance.setDisplayRemainsActive(isChecked);
+                    mainActivityController.displayRemainsActiveSettingChanged(isChecked);
                 }
             }
         });
@@ -327,6 +361,17 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
     }
 
     private void updateUI() {
+        Point homeAddress = settingsManagerInstance.getHomeAddress();
+        layoutHomeAddress.configureAsSingleObject(
+                homeAddress,
+                homeAddress != null ? homeAddress.getName() : null,
+                new TextViewAndActionButton.OnLayoutResetListener() {
+                    @Override public void onLayoutReset(TextViewAndActionButton view) {
+                        settingsManagerInstance.setHomeAddress(null);
+                        updateUI();
+                    }
+                });
+
         // WalkersGuide server url
         buttonServerURL.setText(
                 String.format(

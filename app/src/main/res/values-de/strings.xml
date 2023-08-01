@@ -17,14 +17,7 @@
     <string name="menuItemPlanRoute">Route planen</string>
     <string name="menuItemWhereAmI">Wo bin ich?</string>
     <string name="menuItemCreateFavoriteCurrentPosition">Aktuelle Position sichern</string>
-    <string name="menuItemHistory">Verlauf</string>
-    <string name="menuItemImport">Importieren:</string>
-    <string name="menuItemImportPointFromPostAddress">Adresse eingeben</string>
-    <string name="menuItemImportPointFromCoordinates">Koordinaten eingeben</string>
-    <string name="menuItemImportPointFromUrl">Punkt aus Link extrahieren</string>
     <string name="menuItemRouteFromGpxFile">Route aus GPX Datei importieren</string>
-    <string name="menuItemMisc">Verschiedenes:</string>
-    <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Kontakt</string>
 
@@ -77,10 +70,13 @@
     <string name="selectRouteOrSimulationPointDialogTitleRouteSecondViaPoint">Via 2 auswählen:</string>
     <string name="selectRouteOrSimulationPointDialogTitleRouteThirdViaPoint">Via 3 auswählen:</string>
     <string name="selectRouteOrSimulationPointDialogTitleRouteDestinationPoint">Zielpunkt auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitleHomeAddress">Zuhause auswählen:</string>
+    <string name="selectRouteOrSimulationPointDialogTitlePinnedPoint">Punkt anheften:</string>
     <string name="selectRouteOrSimulationPointDialogTitleSimulationPoint">Punkt für Simulation auswählen:</string>
     <!-- list items -->
     <string name="pointSelectFromCurrentLocation">Aktuelle Position</string>
     <string name="pointSelectFromClosestAddress">Nächstgelegene Adresse</string>
+    <string name="pointSelectFromHomeAddress">Zuhause</string>
     <string name="pointSelectFromEnterAddress">Adresse eingeben</string>
     <string name="pointSelectFromEnterCoordinates">Koordinaten eingeben</string>
     <string name="pointSelectFromFavoritePoints">Favoriten</string>
@@ -155,9 +151,19 @@
 
     <!-- main activity -->
     <string name="app_name">WalkersGuide</string>
-    <string name="openNavigationDrawer">Menü öffnen</string>
-    <string name="closeNavigationDrawer">Menü schließen</string>
+    <string name="mainMenu">Hauptmenü</string>
+    <string name="navigateUp">Nach oben</string>
     <string name="errorFavoriteCreationFailed">Der Favorit konnte nicht angelegt werden.</string>
+    <!-- main tab names -->
+    <string name="mainTabNameOverview">Überblick</string>
+    <string name="mainTabNameRoutes">Routen</string>
+    <string name="mainTabNamePoints">Punkte</string>
+
+    <!-- overview fragment -->
+    <string name="fragmentOverviewName">Überblick</string>
+    <string name="menuItemClearPinnedPoints">Angeheftete Punkte leeren</string>
+    <string name="messageNoPinnedPoints">Es wurden noch keine Punkte angeheftet.</string>
+    <string name="buttonHistory">Verlauf</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
@@ -181,14 +187,6 @@
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Springe zu Routenpunkt:</string>
     <string name="buttonScrollToClosestPoint">Zum nächstliegenden Punkt scrollen</string>
-
-    <!-- TabLayoutFragment -->
-    <!-- favorites -->
-    <string name="fragmentPointFavoritesName">Punkte</string>
-    <string name="fragmentRouteFavoritesName">Routen</string>
-    <!-- object history -->
-    <string name="fragmentPointHistoryName">Letzte Punkte</string>
-    <string name="fragmentRouteHistoryName">Letzte Routen</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Blickrichtung</string>
@@ -222,6 +220,9 @@
     <string name="labelNoHikingTrailsNearby">Keine Wanderwege gefunden.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
+    <string name="fragmentFavoritesName">Favoriten</string>
+    <string name="fragmentPointHistoryName">Letzte Punkte</string>
+    <string name="fragmentRouteHistoryName">Letzte Routen</string>
     <string name="labelHeadingSecondLineSortMethod">Sortiert nach %1$s</string>
     <string name="messageNoProfileSelected">Kein Profil ausgewählt.</string>
     <!-- toolbar menu -->
@@ -231,7 +232,7 @@
     <string name="clearProfileDialogTitle">Möchtest du alle Einträge des Profils \"%1$s\" entfernen?</string>
 
     <!-- PoiListFromServerFragment -->
-    <string name="fragmentPOIName">Punkte</string>
+    <string name="fragmentPointsNearbyName">Umgebung</string>
     <string name="buttonSelectProfileWithPoiCategories">Profil: %1$s.\nAusgewählte Kategorien: %2$s</string>
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
     <string name="labelMoreResults">Weitere Punkte laden</string>
@@ -410,6 +411,7 @@
 
     <!-- settings fragment -->
     <string name="fragmentSettingsName">Einstellungen</string>
+    <string name="labelHomeAddress">Zuhause</string>
     <string name="labelServerSettingsHeader">WalkersGuide server:</string>
     <string name="buttonServerURL">URL: %1$s</string>
     <string name="buttonServerURLNoSelection">URL: Keine ausgewählt</string>
@@ -512,6 +514,9 @@
     <string name="objectMenuItemStartLocationSimulation">Position simulieren</string>
     <string name="objectMenuItemStartBearingSimulation">Richtung simulieren</string>
     <string name="objectMenuItemEndSimulation">Simulation beenden</string>
+    <string name="objectMenuItemOverview">Übersicht</string>
+    <string name="objectMenuItemOverviewAddToPinnedPoints">Zu angehefteten Punkten hinzufügen</string>
+    <string name="objectMenuItemOverviewRemoveFromPinnedPoints">Aus angehefteten Punkten entfernen</string>
     <string name="objectMenuItemRoutePlanner">Routenplaner</string>
     <string name="objectMenuItemShareCoordinates">Koordinaten teilen</string>
     <!-- routeplanner context submenu -->
@@ -555,6 +560,7 @@
     <string name="dialogYes">Ja</string>
     <string name="dialogNo">Nein</string>
     <string name="dialogSelectAll">Alles auswählen</string>
+    <string name="dialogAdd">Hinzufügen</string>
     <string name="dialogClear">Auswahl aufheben</string>
     <string name="dialogCalculate">Berechnen</string>
     <string name="dialogDefault">Standard</string>
@@ -664,6 +670,7 @@
     <string name="databaseProfileAddressPoints">Adressen</string>
     <string name="databaseProfileIntersectionPoints">Kreuzungen</string>
     <string name="databaseProfileStationPoints">Haltestellen</string>
+    <string name="databaseProfilePinnedPoints">Angeheftete Punkte</string>
     <string name="databaseProfileSimulatedPoints">Simulierte Punkte</string>
     <string name="databaseProfileAllPoints">Alle Punkte</string>
     <!-- segment -->
@@ -882,6 +889,7 @@
     <string name="errorAddrReqNoAddressForCoordinates">Keine Adresse für diese Koordinaten gefunden.</string>
 
     <!-- other errors -->
+    <string name="errorNoHomeAddressSet">Du hast dein Zuhause noch nicht festgelegt. Dies kannst du in den Einstellungen der App erledigen.</string>
     <string name="errorNoLocationFound">Keine position verfügbar</string>
     <string name="errorNoBearingFound">Keine Richtungsangabe verfügbar</string>
 
@@ -984,6 +992,12 @@
         name="point">
         <item quantity="one">1 Punkt</item>
         <item quantity="other">%d Punkte</item>
+    </plurals>
+
+    <plurals
+        name="pinnedPoint">
+        <item quantity="one">1 angehefteter Punkt</item>
+        <item quantity="other">%d angeheftete Punkte</item>
     </plurals>
 
     <plurals

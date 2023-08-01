@@ -27,7 +27,7 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
 
 import timber.log.Timber;
 import java.io.File;

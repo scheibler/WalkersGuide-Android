@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment.tabs.details;
+package org.walkersguide.android.ui.fragment.tabs.object_details;
 
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.RouteObjectView;
@@ -44,7 +44,7 @@ import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;

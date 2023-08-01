@@ -46,24 +46,28 @@ import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromD
 import org.walkersguide.android.database.profile.FavoritesProfile;
 import java.util.ArrayList;
 import java.util.Arrays;
+import androidx.appcompat.app.AppCompatActivity;
+import org.walkersguide.android.ui.fragment.RootFragment;
 
 
-public abstract class TabLayoutFragment extends Fragment {
+public abstract class TabLayoutFragment extends RootFragment {
     protected static String KEY_SELECTED_TAB = "selectedTab";
 
 	private ViewPager2 viewPager;
     private TabLayout tabLayout;
-
     private Enum<?> selectedTab;
 
-    public void tabSelected(Enum<?> newTab) {
-        this.selectedTab = newTab;
+    @Override public String getDialogTitle() {
+        return getNameForSelectedFragment();
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public int getLayoutResourceId() {
+        return R.layout.layout_view_pager_and_tab_layout_above;
+    }
 
+	@Override public View configureView(View view, Bundle savedInstanceState) {
 		viewPager = (ViewPager2) view.findViewById(R.id.pager);
+        viewPager.setUserInputEnabled(false);
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override public void onPageSelected(int position) {
                 Timber.d("onPageSelected: %1$d", position);
@@ -88,6 +92,8 @@ public abstract class TabLayoutFragment extends Fragment {
         } else if (getArguments() != null) {
             selectedTab = (Enum<?>) getArguments().getSerializable(KEY_SELECTED_TAB);
         }
+
+        return view;
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -122,6 +128,23 @@ public abstract class TabLayoutFragment extends Fragment {
             viewPager.setCurrentItem(tabAdapter.getTabIndex(selectedTab));
         }
     }
+
+    public void tabSelected(Enum<?> newTab) {
+        this.selectedTab = newTab;
+        if (getDialog() == null) {
+            mainActivityController.configureToolbarTitle(getNameForSelectedFragment());
+        }
+    }
+
+    private String getNameForSelectedFragment() {
+        AbstractTabAdapter adapter = (AbstractTabAdapter) viewPager.getAdapter();
+        if (adapter != null && this.selectedTab != null) {
+            return adapter.getFragmentName(
+                    adapter.getTabIndex(this.selectedTab));
+        }
+        return null;
+    }
+
 
     public abstract class AbstractTabAdapter extends FragmentStateAdapter {
         private ArrayList<? extends Enum> tabList;

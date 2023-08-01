@@ -1,10 +1,12 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.tabs.routes;
 
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Build;
 import android.annotation.SuppressLint;
 import org.walkersguide.android.ui.view.IntersectionScheme;
 import android.widget.ImageButton;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivityController;
 import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.data.profile.ProfileGroup;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
@@ -52,7 +54,6 @@ import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.object_with_id.Route;
-import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
@@ -69,7 +70,7 @@ import java.util.ArrayList;
 import androidx.fragment.app.DialogFragment;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.widget.ListView;
 import androidx.core.util.Pair;
 import android.widget.AdapterView;
@@ -219,8 +220,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
             p2pRouteRequest.setViaPoint2(route.getViaPoint2());
             p2pRouteRequest.setViaPoint3(route.getViaPoint3());
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-            PlanRouteDialog.newInstance()
-                .show(getActivity().getSupportFragmentManager(), "PlanRouteDialog");
+            mainActivityController.openPlanRouteDialog();
 
         } else if (item.getItemId() == R.id.menuItemAutoSkipToNextRoutePoint) {
             settingsManagerInstance.setAutoSkipToNextRoutePoint(
@@ -250,6 +250,18 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
     /**
      * create view
      */
+
+    private MainActivityController mainActivityController;
+
+    @Override public void onAttach(Context context){
+        super.onAttach(context);
+        if (context instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) context;
+            if (activity instanceof MainActivity) {
+                mainActivityController = (MainActivityController) ((MainActivity) activity);
+            }
+        }
+    }
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_router, container, false);

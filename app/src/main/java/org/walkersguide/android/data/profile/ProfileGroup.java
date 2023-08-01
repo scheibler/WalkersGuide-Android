@@ -26,6 +26,7 @@ public enum ProfileGroup {
             profileList.add(DatabaseProfile.addressPoints());
             profileList.add(DatabaseProfile.intersectionPoints());
             profileList.add(DatabaseProfile.stationPoints());
+            profileList.add(DatabaseProfile.pinnedPoints());
             profileList.add(DatabaseProfile.simulatedPoints());
             return profileList;
 

@@ -12,7 +12,7 @@ import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.ui.TextChangedListener;
 import org.walkersguide.android.ui.UiHelper;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.BroadcastReceiver;

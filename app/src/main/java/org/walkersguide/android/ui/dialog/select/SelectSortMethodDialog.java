@@ -3,7 +3,7 @@ package org.walkersguide.android.ui.dialog.select;
 import androidx.appcompat.app.AppCompatActivity;
 import org.walkersguide.android.R;
 import org.walkersguide.android.database.SortMethod;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.Context;

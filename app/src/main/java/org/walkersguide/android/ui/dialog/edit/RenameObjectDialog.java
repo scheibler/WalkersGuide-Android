@@ -1,7 +1,7 @@
 package org.walkersguide.android.ui.dialog.edit;
 
 import org.walkersguide.android.data.ObjectWithId;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;
@@ -25,7 +25,6 @@ import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
 import android.widget.Toast;
 import org.walkersguide.android.data.object_with_id.Route;
-import org.walkersguide.android.ui.activity.ToolbarActivity;
 
 
 public class RenameObjectDialog extends DialogFragment {

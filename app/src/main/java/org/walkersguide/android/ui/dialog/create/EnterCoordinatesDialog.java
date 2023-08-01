@@ -4,7 +4,7 @@ import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.UiHelper;
 
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

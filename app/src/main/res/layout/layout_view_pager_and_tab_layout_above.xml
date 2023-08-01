@@ -13,7 +13,8 @@
         android:layout_alignParentTop="true"
         app:tabTextAppearance="@style/SmallTabText"
         app:tabIndicatorColor="@color/heading"
-        app:tabMode="scrollable" />
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/pager"

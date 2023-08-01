@@ -5,48 +5,16 @@
         android:id="@+id/menuItemPlanRoute"
         android:title="@string/menuItemPlanRoute" />
     <item
-        android:id="@+id/menuItemWhereAmI"
-        android:title="@string/menuItemWhereAmI" />
-    <item
         android:id="@+id/menuItemCreateFavoriteCurrentPosition"
         android:title="@string/menuItemCreateFavoriteCurrentPosition" />
-    <item
-        android:id="@+id/menuItemHistory"
-        android:title="@string/menuItemHistory" />
-
-    <item
-        android:id="@+id/menuItemImport"
-        android:title="@string/menuItemImport" >
-        <menu>
-            <item
-                android:id="@+id/menuItemImportPointFromPostAddress"
-                android:title="@string/menuItemImportPointFromPostAddress" />
-            <item
-                android:id="@+id/menuItemImportPointFromCoordinates"
-                android:title="@string/menuItemImportPointFromCoordinates" />
-            <item
-                android:id="@+id/menuItemImportPointFromUrl"
-                android:title="@string/menuItemImportPointFromUrl" />
-            <item
-                android:id="@+id/menuItemRouteFromGpxFile"
-                android:title="@string/menuItemRouteFromGpxFile" />
-        </menu>
-    </item>
-
-    <item
-        android:id="@+id/menuItemMisc"
-        android:title="@string/menuItemMisc" >
-        <menu>
-            <item
-                android:id="@+id/menuItemSettings"
-                android:title="@string/menuItemSettings" />
-            <item
-                android:id="@+id/menuItemInfo"
-                android:title="@string/menuItemInfo" />
-            <item
-                android:id="@+id/menuItemContactMe"
-                android:title="@string/menuItemContactMe" />
-        </menu>
-    </item>
+        <item
+            android:id="@+id/menuItemRouteFromGpxFile"
+            android:title="@string/menuItemRouteFromGpxFile" />
+        <item
+            android:id="@+id/menuItemInfo"
+            android:title="@string/menuItemInfo" />
+        <item
+            android:id="@+id/menuItemContactMe"
+            android:title="@string/menuItemContactMe" />
 
 </menu>

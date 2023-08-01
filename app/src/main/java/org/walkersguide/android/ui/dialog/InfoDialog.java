@@ -1,5 +1,6 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.dialog;
 
+import androidx.fragment.app.DialogFragment;
 import android.text.format.DateFormat;
 import android.widget.TextView;
 import java.util.Date;
@@ -36,15 +37,20 @@ import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
+import androidx.appcompat.app.AlertDialog;
+import android.app.Dialog;
+import android.widget.Button;
+import android.content.DialogInterface;
 
 
-public class InfoFragment extends Fragment {
+public class InfoDialog extends DialogFragment {
     private static final String KEY_TASK_ID = "taskId";
 
-	public static InfoFragment newInstance() {
-		InfoFragment fragment = new InfoFragment();
-		return fragment;
+	public static InfoDialog newInstance() {
+		InfoDialog dialog = new InfoDialog();
+		return dialog;
 	}
+
 
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
@@ -56,17 +62,16 @@ public class InfoFragment extends Fragment {
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_info, container, false);
-	}
-
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
         }
+
+        final ViewGroup nullParent = null;
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_info, nullParent);
 
         TextView labelProgramVersion = (TextView) view.findViewById(R.id.labelProgramVersion);
         labelProgramVersion.setText(
@@ -96,10 +101,31 @@ public class InfoFragment extends Fragment {
         labelServerVersion = (TextView) view.findViewById(R.id.labelServerVersion);
         labelSelectedMapName = (TextView) view.findViewById(R.id.labelSelectedMapName);
         labelSelectedMapCreated= (TextView) view.findViewById(R.id.labelSelectedMapCreated);
+
+        return new AlertDialog.Builder(getActivity())
+            .setTitle(GlobalInstance.getStringResource(R.string.fragmentInfoName))
+            .setView(view)
+            .setPositiveButton(
+                    getResources().getString(R.string.dialogClose),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+            .create();
     }
 
-    @Override public void onResume() {
-        super.onResume();
+    @Override public void onStart() {
+        super.onStart();
+
+        final AlertDialog dialog = (AlertDialog)getDialog();
+        if (dialog != null) {
+            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            buttonPositive.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    dismiss();
+                }
+            });
+        }
 
         labelServerName.setText(
                 GlobalInstance.getStringResource(R.string.labelServerName));
@@ -121,8 +147,8 @@ public class InfoFragment extends Fragment {
         }
     }
 
-    @Override public void onPause() {
-        super.onPause();
+    @Override public void onStop() {
+        super.onStop();
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
     }
 

@@ -44,7 +44,7 @@ import android.text.TextUtils;
 import org.walkersguide.android.data.object_with_id.Route;
 import de.schildbach.pte.NetworkId;
 import com.google.gson.GsonBuilder;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 
 
@@ -53,7 +53,7 @@ public class SettingsManager {
     private static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
 	// defaults
-    public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.ROUTER;
+    public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.OVERVIEW;
     // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final boolean DEFAULT_DISPLAY_REMAINS_ACTIVE = false;
@@ -72,6 +72,7 @@ public class SettingsManager {
 
     // keys
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
+    private static final String KEY_HOME_ADDRESS_ID = "homeAddressId";
     // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
@@ -176,6 +177,22 @@ public class SettingsManager {
         Editor editor = settings.edit();
         editor.putString(
                 KEY_SELECTED_TAB_MAIN_ACTIVITY, gson.toJson(newTab));
+        editor.apply();
+    }
+
+    public Point getHomeAddress() {
+        return Point.load(
+                settings.getLong(KEY_HOME_ADDRESS_ID, -1));
+    }
+
+    public void setHomeAddress(Point newPoint) {
+        Editor editor = settings.edit();
+        if (newPoint != null
+                && DatabaseProfile.allPoints().add(newPoint)) {
+            editor.putLong(KEY_HOME_ADDRESS_ID, newPoint.getId());
+        } else if (settings.contains(KEY_HOME_ADDRESS_ID)) {
+            editor.remove(KEY_HOME_ADDRESS_ID);
+        }
         editor.apply();
     }
 

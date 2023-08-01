@@ -1,6 +1,10 @@
 ToDo list for WalkersGuide-ng
 =============================
 
+images:
+- pinned points: add icon
+- main menu and up icon
+
 - Headset control service
 - Show nearby hiking routes
 - Braille printer support

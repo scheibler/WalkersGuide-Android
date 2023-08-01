@@ -2,7 +2,7 @@ package org.walkersguide.android.ui.dialog.select;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.server.wg.poi.PoiCategory;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

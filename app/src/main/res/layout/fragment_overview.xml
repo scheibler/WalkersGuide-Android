@@ -6,13 +6,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <include
-        layout="@layout/layout_toolbar" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragmentContainerView"
+    <org.walkersguide.android.ui.view.ResolveCurrentAddressView
+        android:id="@+id/layoutClosestAddress"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-    </androidx.fragment.app.FragmentContainerView>
+        android:layout_height="wrap_content" />
+
+    <include
+        layout="@layout/layout_heading_with_button_and_list_view_without_swipe_to_refresh" />
 
 </LinearLayout>

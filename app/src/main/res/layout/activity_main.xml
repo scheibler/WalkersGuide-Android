@@ -7,38 +7,120 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true" >
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical" >
 
-        <include
-            layout="@layout/layout_toolbar" />
 
-        <RelativeLayout
+        <!-- top -->
+
+        <LinearLayout
+            android:id="@+id/layoutTop"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:orientation="vertical" >
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabLayout"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                app:tabTextAppearance="@style/SmallTabText"
-                app:tabIndicatorColor="@color/heading"
-                app:tabMode="fixed"
-                app:tabGravity="fill" />
+                android:elevation="6dp"
+                android:minHeight="?attr/actionBarSize"
+                android:fitsSystemWindows="true" >
 
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/pager"
+                <ImageButton
+                    android:id="@+id/buttonUpperLeftCorner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:minWidth="@dimen/minWidth"
+                    android:minHeight="@dimen/minHeight"
+                    android:background="@null"
+                    app:tint="@color/image"
+                    android:src="@drawable/main_menu"
+                    android:contentDescription="@string/mainMenu" />
+
+                <ImageButton
+                    android:id="@+id/buttonBearingDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:minWidth="@dimen/minWidth"
+                    android:minHeight="@dimen/minHeight"
+                    android:background="@null"
+                    app:tint="@color/image"
+                    android:src="@drawable/toolbar_direction"
+                    android:contentDescription="@string/bearingDetailsDialogTitle" />
+
+                <ImageButton
+                    android:id="@+id/buttonLocationDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:minWidth="@dimen/minWidth"
+                    android:minHeight="@dimen/minHeight"
+                    android:background="@null"
+                    app:tint="@color/image"
+                    android:src="@drawable/toolbar_location"
+                    android:contentDescription="@string/locationDetailsDialogTitle" />
+
+                <TextView
+                    android:id="@+id/labelToolbarTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/minWidth"
+                    android:minHeight="@dimen/minHeight"
+                    android:gravity="center_vertical"
+                    android:textSize="@dimen/bigTextSize" />
+            </androidx.appcompat.widget.Toolbar>
+
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="@dimen/activityMargin"
-                android:layout_marginRight="@dimen/activityMargin"
-                android:layout_above="@id/tabLayout" />
-        </RelativeLayout>
-    </LinearLayout>
+                android:layout_height="@dimen/toolbarDividerHeight"
+                android:background="@color/divider" />
+        </LinearLayout>
+
+
+        <!-- bottom -->
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            app:tabTextAppearance="@style/SmallTabText"
+            app:tabIndicatorColor="@color/heading"
+            app:tabMode="fixed"
+            app:tabGravity="fill" >
+
+            <com.google.android.material.tabs.TabItem
+                android:text="@string/mainTabNameOverview" />
+
+            <com.google.android.material.tabs.TabItem
+                android:text="@string/mainTabNameRoutes" />
+
+            <com.google.android.material.tabs.TabItem
+                android:text="@string/mainTabNamePoints" />
+        </com.google.android.material.tabs.TabLayout>
+
+
+        <!-- main -->
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragmentContainerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/activityMargin"
+            android:layout_marginRight="@dimen/activityMargin"
+            android:layout_above="@id/tabLayout"
+            android:layout_below="@id/layoutTop" >
+        </androidx.fragment.app.FragmentContainerView>
+    </RelativeLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"

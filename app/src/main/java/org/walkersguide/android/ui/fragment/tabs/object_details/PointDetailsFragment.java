@@ -1,6 +1,8 @@
-package org.walkersguide.android.ui.fragment.tabs.details;
+package org.walkersguide.android.ui.fragment.tabs.object_details;
 
-import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivityController;
+import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 
@@ -119,6 +121,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
 
     @Override public void onResume() {
         super.onResume();
+        Timber.d("onResume");
         layoutAttributes.removeAllViews();
         if (point == null) {
             return;
@@ -265,9 +268,11 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                         labelOuterBuilding.setTag(poi.getOuterBuilding());
                         labelOuterBuilding.setOnClickListener(new View.OnClickListener() {
                             @Override public void onClick(View view) {
-                                FragmentContainerActivity.showObjectDetails(
-                                        PointDetailsFragment.this.getContext(),
-                                        (POI) view.getTag());
+                                if (getActivity() instanceof MainActivity) {
+                                    ((MainActivityController) getActivity())
+                                        .addFragment(
+                                                ObjectDetailsTabLayoutFragment.details((POI) view.getTag()));
+                                }
                             }
                         });
                         layoutAttributes.addView(labelOuterBuilding);

@@ -11,7 +11,7 @@ import org.walkersguide.android.ui.dialog.create.ManagePoiProfileDialog;
 import org.walkersguide.android.ui.dialog.create.ManagePoiProfileDialog.Action;
 
 import org.walkersguide.android.R;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.Context;
@@ -47,7 +47,6 @@ import timber.log.Timber;
 import android.text.TextUtils;
 import android.content.pm.ShortcutManager;
 import android.content.pm.ShortcutInfo;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
 import android.content.Intent;
 import android.annotation.TargetApi;
 import android.os.Build;

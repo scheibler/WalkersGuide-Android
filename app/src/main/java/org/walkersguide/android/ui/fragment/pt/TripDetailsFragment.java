@@ -1,6 +1,5 @@
 package org.walkersguide.android.ui.fragment.pt;
 
-import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.Stop;
@@ -51,9 +50,10 @@ import org.walkersguide.android.util.Helper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import androidx.annotation.NonNull;
+import org.walkersguide.android.ui.fragment.RootFragment;
 
 
-public class TripDetailsFragment extends Fragment 
+public class TripDetailsFragment extends RootFragment
     implements OnRefreshListener, MenuProvider, Runnable {
 
 
@@ -136,14 +136,21 @@ public class TripDetailsFragment extends Fragment
      * create view
      */
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
-	}
+    @Override public String getDialogTitle() {
+        if (departure != null) {
+            return String.format(
+                    "%1$s, %2$s",
+                    PtUtility.getLineLabel(departure.line, false),
+                    PtUtility.getLocationName(departure.destination));
+        }
+        return null;
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
-        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    @Override public int getLayoutResourceId() {
+        return R.layout.layout_heading_and_list_view;
+    }
 
+	@Override public View configureView(View view, Bundle savedInstanceState) {
         station = (Location) getArguments().getSerializable(KEY_STATION);
         departure = (Departure) getArguments().getSerializable(KEY_DEPARTURE);
         if (savedInstanceState != null) {
@@ -154,6 +161,10 @@ public class TripDetailsFragment extends Fragment
             cachedStopList = null;
             taskId = ServerTaskExecutor.NO_TASK_ID;
             listPosition = 0;
+        }
+
+        if (getDialog() == null) {
+            mainActivityController.configureToolbarTitle(getDialogTitle());
         }
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
@@ -168,10 +179,10 @@ public class TripDetailsFragment extends Fragment
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 final Stop selectedStop = (Stop) parent.getItemAtPosition(position);
                 if (selectedStop != null) {
-                    FragmentContainerActivity.showDepartures(
-                            TripDetailsFragment.this.getContext(),
-                            selectedStop.location,
-                            PtUtility.getDepartureTime(selectedStop));
+                    mainActivityController.addFragment(
+                            DeparturesFragment.newInstance(
+                                selectedStop.location,
+                                PtUtility.getDepartureTime(selectedStop)));
                 }
             }
         });
@@ -187,6 +198,20 @@ public class TripDetailsFragment extends Fragment
             listViewTrip.setVisibility(View.VISIBLE);
             labelEmptyListView.setVisibility(View.VISIBLE);
         }
+
+        return view;
+    }
+
+	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_CACHED_STOP_LIST, cachedStopList);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
     }
 
     @Override public void onRefresh() {
@@ -222,13 +247,6 @@ public class TripDetailsFragment extends Fragment
             nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
         }
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putSerializable(KEY_CACHED_STOP_LIST, cachedStopList);
-        savedInstanceState.putLong(KEY_TASK_ID, taskId);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
     }
 
     @Override public void onDestroy() {

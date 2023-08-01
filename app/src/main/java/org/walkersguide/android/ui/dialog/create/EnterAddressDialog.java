@@ -3,7 +3,7 @@ package org.walkersguide.android.ui.dialog.create;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.Context;

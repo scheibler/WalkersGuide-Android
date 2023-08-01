@@ -159,9 +159,8 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
     @Override public String getDialogTitle() {
         if (request.hasProfile()) {
             return request.getProfile().getName();
-        } else {
-            return "";
         }
+        return null;
     }
 
     @Override public int getPluralResourceId() {

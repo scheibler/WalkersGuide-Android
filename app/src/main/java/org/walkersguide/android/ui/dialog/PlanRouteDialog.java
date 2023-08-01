@@ -10,7 +10,7 @@ import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromD
 import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
 import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
 import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.BroadcastReceiver;
@@ -36,7 +36,7 @@ import android.widget.LinearLayout;
 
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.GlobalInstance;
 import android.widget.CompoundButton;

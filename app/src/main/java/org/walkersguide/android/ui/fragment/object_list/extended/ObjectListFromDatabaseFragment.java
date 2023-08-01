@@ -39,7 +39,7 @@ import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
 import timber.log.Timber;
 import android.widget.Button;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 
@@ -158,9 +158,8 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
     @Override public String getDialogTitle() {
         if (request.hasProfile()) {
             return request.getProfile().getName();
-        } else {
-            return "";
         }
+        return null;
     }
 
     @Override public int getPluralResourceId() {

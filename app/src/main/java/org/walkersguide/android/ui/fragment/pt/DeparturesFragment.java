@@ -5,11 +5,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.os.Handler;
 import android.os.Looper;
 import timber.log.Timber;
-import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import org.walkersguide.android.data.object_with_id.point.GPS;
-import org.walkersguide.android.sensor.PositionManager;
-import android.widget.Switch;
-import android.widget.CompoundButton;
 import org.walkersguide.android.util.GlobalInstance;
 import android.text.format.DateFormat;
 import android.app.DatePickerDialog;
@@ -24,7 +20,7 @@ import de.schildbach.pte.dto.Departure;
 import java.util.ListIterator;
 import android.os.Handler;
 import android.os.Looper;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import androidx.fragment.app.DialogFragment;
@@ -48,7 +44,6 @@ import android.view.ViewGroup;
 
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -71,7 +66,6 @@ import android.text.TextUtils;
 import android.widget.HeaderViewListAdapter;
 import android.widget.TimePicker;
 import android.widget.LinearLayout;
-import androidx.fragment.app.Fragment;
 import de.schildbach.pte.NetworkId;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
@@ -85,15 +79,17 @@ import org.walkersguide.android.server.pt.PtException;
 import org.walkersguide.android.util.Helper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
+import org.walkersguide.android.ui.fragment.RootFragment;
 
 
-public class DeparturesFragment extends Fragment
+public class DeparturesFragment extends RootFragment
         implements FragmentResultListener, MenuProvider, OnRefreshListener, Runnable {
+    private static final String KEY_IS_DIALOG = "isDialog";
 
 
     // constructors
 
-    // used by PointDetailsActivity
+    // used by ObjectDetailsTabLayoutFragment
     private static final String KEY_COORDINATES_FOR_STATION_REQUEST = "coordinatesForStationRequest";
 
     private Point coordinatesForStationRequest;
@@ -102,6 +98,7 @@ public class DeparturesFragment extends Fragment
 		DeparturesFragment fragment = new DeparturesFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_COORDINATES_FOR_STATION_REQUEST, Point.fromDouble(latitude, longitude));
+        args.putBoolean(KEY_IS_DIALOG, false);
         fragment.setArguments(args);
 		return fragment;
 	}
@@ -118,6 +115,7 @@ public class DeparturesFragment extends Fragment
         Bundle args = new Bundle();
         args.putSerializable(KEY_STATION, station);
         args.putSerializable(KEY_DEPARTURE_TIME, departureTime);
+        args.putBoolean(KEY_IS_DIALOG, true);
         fragment.setArguments(args);
 		return fragment;
 	}
@@ -143,6 +141,11 @@ public class DeparturesFragment extends Fragment
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (! getArguments().getBoolean(KEY_IS_DIALOG)) {
+            // is required, when the fragment is attached via ViewPager
+            setShowsDialog(false);
+        }
+
         settingsManagerInstance = SettingsManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         nextDeparturesHandler= new Handler(Looper.getMainLooper());
@@ -238,14 +241,18 @@ public class DeparturesFragment extends Fragment
      * create view
      */
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_departures, container, false);
-	}
+    @Override public String getDialogTitle() {
+        if (station != null) {
+            return PtUtility.getLocationName(station);
+        }
+        return null;
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
-        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    @Override public int getLayoutResourceId() {
+        return R.layout.fragment_departures;
+    }
 
+	@Override public View configureView(View view, Bundle savedInstanceState) {
         coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
         if (savedInstanceState != null) {
             cachedDepartureList = (ArrayList<Departure>) savedInstanceState.getSerializable(KEY_CACHED_DEPARTURE_LIST);
@@ -259,6 +266,10 @@ public class DeparturesFragment extends Fragment
             departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
             taskId = ServerTaskExecutor.NO_TASK_ID;
             listPosition = 0;
+        }
+
+        if (getDialog() == null) {
+            mainActivityController.configureToolbarTitle(getDialogTitle());
         }
 
         LinearLayout layoutTop = (LinearLayout) view.findViewById(R.id.layoutTop);
@@ -276,8 +287,8 @@ public class DeparturesFragment extends Fragment
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 final Departure departure = (Departure) parent.getItemAtPosition(position);
                 if (station != null && departure != null) {
-                    FragmentContainerActivity.showTripDetails(
-                            DeparturesFragment.this.getContext(), station, departure);
+                    mainActivityController.addFragment(
+                            TripDetailsFragment.newInstance(station, departure));
                 }
             }
         });
@@ -315,6 +326,22 @@ public class DeparturesFragment extends Fragment
                 }
             }
         }
+
+        return view;
+    }
+
+	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_CACHED_DEPARTURE_LIST, cachedDepartureList);
+        savedInstanceState.putSerializable(KEY_STATION, station);
+        savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putSerializable(KEY_DEPARTURE_TIME, departureTime);
+        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
     }
 
     @Override public void onRefresh() {
@@ -353,15 +380,6 @@ public class DeparturesFragment extends Fragment
             nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
         }
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putSerializable(KEY_CACHED_DEPARTURE_LIST, cachedDepartureList);
-        savedInstanceState.putSerializable(KEY_STATION, station);
-        savedInstanceState.putLong(KEY_TASK_ID, taskId);
-        savedInstanceState.putSerializable(KEY_DEPARTURE_TIME, departureTime);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
     }
 
     @Override public void onDestroy() {

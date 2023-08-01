@@ -6,7 +6,7 @@ import org.walkersguide.android.server.wg.SendFeedbackTask;
 import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.server.wg.WgException;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

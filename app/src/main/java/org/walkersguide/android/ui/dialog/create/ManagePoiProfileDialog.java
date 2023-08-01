@@ -8,7 +8,7 @@ import org.walkersguide.android.server.wg.poi.PoiCategory;
 
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
 import org.walkersguide.android.R;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
 import android.content.DialogInterface;

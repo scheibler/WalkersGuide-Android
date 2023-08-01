@@ -26,7 +26,7 @@
         android:name=".util.GlobalInstance" >
 
         <activity
-            android:name=".ui.activity.toolbar.MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true" >
 
             <intent-filter>
@@ -42,10 +42,6 @@
         <activity
             android:name=".ui.activity.ShortcutActivity"
             android:taskAffinity="" />
-
-        <activity
-            android:name=".ui.activity.toolbar.FragmentContainerActivity"
-            android:parentActivityName=".ui.activity.toolbar.MainActivity" />
 
     </application>
 

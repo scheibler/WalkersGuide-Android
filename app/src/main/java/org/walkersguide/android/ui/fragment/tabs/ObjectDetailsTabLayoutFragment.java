@@ -31,7 +31,7 @@ import org.walkersguide.android.data.object_with_id.point.point_with_address_dat
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
-import org.walkersguide.android.ui.fragment.tabs.details.PointDetailsFragment;
+import org.walkersguide.android.ui.fragment.tabs.object_details.PointDetailsFragment;
 import org.walkersguide.android.ui.fragment.pt.DeparturesFragment;
 import org.walkersguide.android.ui.fragment.object_list.simple.EntranceListFragment;
 import org.walkersguide.android.ui.fragment.object_list.simple.IntersectionStructureFragment;
@@ -51,10 +51,10 @@ import android.view.ViewGroup;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.HikingTrail;
-import org.walkersguide.android.ui.fragment.tabs.details.HikingTrailDetailsFragment;
+import org.walkersguide.android.ui.fragment.tabs.object_details.HikingTrailDetailsFragment;
 import org.walkersguide.android.data.object_with_id.Route;
-import org.walkersguide.android.ui.fragment.tabs.details.RouteDetailsFragment;
-import org.walkersguide.android.ui.fragment.tabs.details.SegmentDetailsFragment;
+import org.walkersguide.android.ui.fragment.tabs.object_details.RouteDetailsFragment;
+import org.walkersguide.android.ui.fragment.tabs.object_details.SegmentDetailsFragment;
 import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
 
@@ -106,15 +106,16 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
     private TextView labelDetails;
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_object_details, container, false);
-	}
+    @Override public int getLayoutResourceId() {
+        return R.layout.fragment_object_details;
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+	@Override public View configureView(View view, Bundle savedInstanceState) {
+        view = super.configureView(view, savedInstanceState);
 
         // load object
         object = (ObjectWithId) getArguments().getSerializable(KEY_OBJECT);
+        Timber.d("configureView: object=%1$s", object);
         if (object != null) {
             TextViewAndActionButton layoutObject = (TextViewAndActionButton) view.findViewById(R.id.layoutObject);
             layoutObject.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
@@ -162,6 +163,8 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             initializeViewPagerAndTabLayout(
                     new TabAdapter(ObjectDetailsTabLayoutFragment.this, tabList));
         }
+
+        return view;
     }
 
 
@@ -181,6 +184,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
     @Override public void onResume() {
         super.onResume();
+        Timber.d("onResume: object=%1$s", object);
 
         if (object instanceof Point) {
             IntentFilter filter = new IntentFilter();
@@ -231,6 +235,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         private TTSWrapper ttsWrapperInstance = TTSWrapper.getInstance();
 
         @Override public void onReceive(Context context, Intent intent) {
+            /*
             if (! getActivity().hasWindowFocus()) {
                 if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
                         && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
@@ -238,7 +243,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                     updateDistanceAndBearingLabel();
                 }
                 return;
-            }
+            }*/
 
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);

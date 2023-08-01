@@ -11,11 +11,19 @@
         android:padding="@dimen/activityMargin"
         android:orientation="vertical">
 
+            <org.walkersguide.android.ui.view.TextViewAndActionButton
+                android:id="@+id/layoutHomeAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:prefix="@string/labelHomeAddress" />
+
+
         <!-- server settings -->
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:focusable="true"
             android:text="@string/labelServerSettingsHeader"
             android:theme="@style/HeadingTextView" />

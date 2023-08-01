@@ -28,7 +28,7 @@ import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.R;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import java.util.ArrayList;
 import android.content.BroadcastReceiver;
@@ -61,19 +61,18 @@ import android.widget.HeaderViewListAdapter;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
+import org.walkersguide.android.ui.fragment.RootFragment;
 import org.walkersguide.android.tts.TTSWrapper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 
 
-public abstract class ObjectListFragment extends DialogFragment
+public abstract class ObjectListFragment extends RootFragment
         implements FragmentResultListener, MenuProvider, OnRefreshListener {
     public static final String REQUEST_SELECT_OBJECT = "selectObject";
     public static final String EXTRA_OBJECT_WITH_ID = "objectWithId";
 
-    public abstract String getDialogTitle();
     public abstract int getPluralResourceId();
-
     public abstract boolean isUiUpdateRequestInProgress();
     public abstract void requestUiUpdate();
     public abstract void requestMoreResults();
@@ -159,48 +158,18 @@ public abstract class ObjectListFragment extends DialogFragment
     private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
 	private ListView listViewObject;
 
-    @Override public int getTheme() {
-        return R.style.FullScreenDialog;
+    @Override public String getDialogButtonText() {
+        return getResources().getString(
+                dialogMode == DialogMode.SELECT
+                ? R.string.dialogCancel
+                : R.string.dialogClose);
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (getDialog() != null) {
-            // fragment is a dialog
-            return super.onCreateView(inflater, container, savedInstanceState);
-        } else {
-            // fragment is embetted
-		    return configureView(
-                   inflater.inflate(R.layout.fragment_object_list, container, false),
-                   savedInstanceState);
-        }
-	}
-
-    @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // custom view
-        final ViewGroup nullParent = null;
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = configureView(
-                inflater.inflate(R.layout.fragment_object_list, nullParent),
-                savedInstanceState);
-
-        // create dialog
-        return new AlertDialog.Builder(getActivity())
-            .setTitle(getDialogTitle())
-            .setView(view)
-            .setNegativeButton(
-                    getResources().getString(
-                        dialogMode == DialogMode.SELECT
-                        ? R.string.dialogCancel
-                        : R.string.dialogClose),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                        }
-                    })
-            .create();
+    @Override public int getLayoutResourceId() {
+        return R.layout.fragment_object_list;
     }
 
-	public View configureView(View view, Bundle savedInstanceState) {
+	@Override public View configureView(View view, Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             autoUpdate = savedInstanceState.getBoolean(KEY_AUTO_UPDATE);
             viewingDirectionFilter = savedInstanceState.getBoolean(KEY_VIEWING_DIRECTION_FILTER);
@@ -662,10 +631,10 @@ public abstract class ObjectListFragment extends DialogFragment
             if (dialogMode == DialogMode.SELECT) {
                 layoutTextViewAndActionButton.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
                     @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+                        dismiss();
                         Bundle result = new Bundle();
                         result.putSerializable(EXTRA_OBJECT_WITH_ID, view.getObject());
                         getParentFragmentManager().setFragmentResult(REQUEST_SELECT_OBJECT, result);
-                        dismiss();
                     }
                 });
             }

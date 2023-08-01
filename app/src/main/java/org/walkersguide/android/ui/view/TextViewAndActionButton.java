@@ -1,11 +1,13 @@
         package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import org.walkersguide.android.ui.UiHelper;
 import androidx.core.view.ViewCompat;
 
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
-import org.walkersguide.android.ui.activity.toolbar.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import androidx.appcompat.app.AppCompatActivity;
 import org.walkersguide.android.ui.dialog.edit.RenameObjectDialog;
@@ -48,12 +50,12 @@ import org.walkersguide.android.data.object_with_id.Route;
 import android.widget.Toast;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
-import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
 import android.content.res.TypedArray;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
 import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.database.DatabaseProfile;
 
 
 public class TextViewAndActionButton extends LinearLayout {
@@ -390,14 +392,18 @@ public class TextViewAndActionButton extends LinearLayout {
     private static final int MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING = 17;
     private static final int MENU_ITEM_RENAME = 18;
     private static final int MENU_ITEM_RESET_LAYOUT = 19;
-    private static final int MENU_ITEM_ROUTE_PLANNER = 20;
-    private static final int MENU_ITEM_SHARE_COORDINATES = 21;
+    private static final int MENU_ITEM_OVERVIEW = 20;
+    private static final int MENU_ITEM_ROUTE_PLANNER = 21;
+    private static final int MENU_ITEM_SHARE_COORDINATES = 22;
 
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT = 100;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1 = 101;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2 = 102;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3 = 103;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT = 104;
+
+    private static final int MENU_ITEM_OVERVIEW_ADD_TO_PINNED_POINTS = 200;
+    private static final int MENU_ITEM_OVERVIEW_REMOVE_FROM_PINNED_POINTS = 201;
 
 
     public void showContextMenu(final View view, final ObjectWithId object) {
@@ -483,6 +489,21 @@ public class TextViewAndActionButton extends LinearLayout {
                     MENU_GROUP_2, MENU_ITEM_RESET_LAYOUT, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemResetLayout));
         }
 
+        // overview
+        if (object instanceof Point) {
+            SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
+                    MENU_GROUP_2, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemOverview));
+            if (DatabaseProfile.pinnedPoints().contains(object)) {
+                overviewSubMenu.add(
+                        Menu.NONE, MENU_ITEM_OVERVIEW_REMOVE_FROM_PINNED_POINTS, 0,
+                        GlobalInstance.getStringResource(R.string.objectMenuItemOverviewRemoveFromPinnedPoints));
+            } else {
+                overviewSubMenu.add(
+                        Menu.NONE, MENU_ITEM_OVERVIEW_ADD_TO_PINNED_POINTS, 0,
+                        GlobalInstance.getStringResource(R.string.objectMenuItemOverviewAddToPinnedPoints));
+            }
+        }
+
         // route planner
         if (object instanceof Point) {
             P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
@@ -551,7 +572,11 @@ public class TextViewAndActionButton extends LinearLayout {
 
     private boolean executeObjectMenuAction(Context context, ObjectWithId object, int menuItemId) {
         if (menuItemId == MENU_ITEM_DETAILS) {
-            FragmentContainerActivity.showObjectDetails(context, object);
+            if (context instanceof MainActivity) {
+                ((MainActivityController) context)
+                    .addFragment(
+                            ObjectDetailsTabLayoutFragment.details(object));
+            }
 
         } else if (menuItemId == MENU_ITEM_ADD_TO_FAVORITES
                 || menuItemId == MENU_ITEM_REMOVE_FROM_FAVORITES) {
@@ -584,13 +609,19 @@ public class TextViewAndActionButton extends LinearLayout {
 
     private boolean executePointMenuAction(Context context, Point point, int menuItemId) {
         if (menuItemId == MENU_ITEM_DEPARTURES) {
-            if (point instanceof Station) {
-                FragmentContainerActivity.showObjectDetailsTabDepartures(context, (Station) point);
+            if (point instanceof Station
+                    && context instanceof MainActivity) {
+                ((MainActivityController) context)
+                    .addFragment(
+                            ObjectDetailsTabLayoutFragment.departures((Station) point));
             }
 
         } else if (menuItemId == MENU_ITEM_ENTRANCES) {
-            if (point instanceof POI) {
-            FragmentContainerActivity.showObjectDetailsTabEntrances(context, (POI) point);
+            if (point instanceof POI
+                    && context instanceof MainActivity) {
+                ((MainActivityController) context)
+                    .addFragment(
+                            ObjectDetailsTabLayoutFragment.entrances((POI) point));
             }
 
         } else if (menuItemId == MENU_ITEM_START_LOCATION_SIMULATION) {
@@ -598,6 +629,11 @@ public class TextViewAndActionButton extends LinearLayout {
             positionManagerInstance.setSimulationEnabled(true);
         } else if (menuItemId == MENU_ITEM_END_LOCATION_SIMULATION) {
             positionManagerInstance.setSimulationEnabled(false);
+
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_PINNED_POINTS) {
+            DatabaseProfile.pinnedPoints().add(point);
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_PINNED_POINTS) {
+            DatabaseProfile.pinnedPoints().remove(point);
 
         } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1
@@ -619,10 +655,8 @@ public class TextViewAndActionButton extends LinearLayout {
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
 
             // show plan route dialog
-            PlanRouteDialog prDialog = PlanRouteDialog.newInstance();
-            if (context instanceof AppCompatActivity) {
-                prDialog.show(
-                        ((AppCompatActivity) context).getSupportFragmentManager(), "PlanRouteDialog");
+            if (context instanceof MainActivity) {
+                ((MainActivityController) context).openPlanRouteDialog();
             }
 
         } else if (menuItemId == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {
@@ -660,8 +694,11 @@ public class TextViewAndActionButton extends LinearLayout {
 
     private boolean executeSegmentMenuAction(Context context, Segment segment, int menuItemId) {
         if (menuItemId == MENU_ITEM_STREET_COURSE) {
-            if (segment instanceof IntersectionSegment) {
-                FragmentContainerActivity.showObjectDetailsTabStreetCourse(context, (IntersectionSegment) segment);
+            if (segment instanceof IntersectionSegment
+                    && context instanceof MainActivity) {
+                ((MainActivityController) context)
+                    .addFragment(
+                            ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) segment));
             }
 
         } else if (menuItemId == MENU_ITEM_START_BEARING_SIMULATION) {

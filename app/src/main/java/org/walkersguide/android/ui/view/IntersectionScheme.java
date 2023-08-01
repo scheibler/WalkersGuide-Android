@@ -1,6 +1,8 @@
 package org.walkersguide.android.ui.view;
 
-import org.walkersguide.android.ui.activity.toolbar.FragmentContainerActivity;
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivityController;
+import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.Helper;
 import android.widget.Toast;
@@ -181,7 +183,11 @@ public class IntersectionScheme extends View {
     }
 
     private void onIntersectionSegmentClicked(IntersectionSegment segment) {
-        FragmentContainerActivity.showObjectDetails(getContext(), segment);
+        if (getContext() instanceof MainActivity) {
+            ((MainActivityController) getContext())
+                .addFragment(
+                        ObjectDetailsTabLayoutFragment.details(segment));
+        }
     }
 
     // helpers

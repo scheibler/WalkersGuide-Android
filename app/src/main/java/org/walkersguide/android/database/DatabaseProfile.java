@@ -23,6 +23,8 @@ public class DatabaseProfile extends Profile implements Serializable {
             return intersectionPoints();
         } else if (id == ID_STATION_POINTS) {
             return stationPoints();
+        } else if (id == ID_PINNED_POINTS) {
+            return pinnedPoints();
         } else if (id == ID_SIMULATED_POINTS) {
             return simulatedPoints();
         } else if (id == ID_ALL_POINTS) {
@@ -50,6 +52,7 @@ public class DatabaseProfile extends Profile implements Serializable {
     private static final long ID_INTERSECTION_POINTS = 1502000;
     private static final long ID_STATION_POINTS = 1503000;
     private static final long ID_SIMULATED_POINTS = 1504000;
+    private static final long ID_PINNED_POINTS = 1505000;
     private static final long ID_ALL_POINTS = 1999999;
 
     public static DatabaseProfile addressPoints() {
@@ -77,6 +80,13 @@ public class DatabaseProfile extends Profile implements Serializable {
         return new DatabaseProfile(
                 ID_SIMULATED_POINTS,
                 GlobalInstance.getStringResource(R.string.databaseProfileSimulatedPoints),
+                ForObject.POINTS);
+    }
+
+    public static DatabaseProfile pinnedPoints() {
+        return new DatabaseProfile(
+                ID_PINNED_POINTS,
+                GlobalInstance.getStringResource(R.string.databaseProfilePinnedPoints),
                 ForObject.POINTS);
     }
 

@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment.tabs.details;
+package org.walkersguide.android.ui.fragment.tabs.object_details;
 
 import android.os.Bundle;
 
