@@ -149,7 +149,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
             .setTitle(getResources().getString(R.string.locationDetailsDialogTitle))
             .setView(view)
             .setNeutralButton(
-                    getResources().getString(R.string.menuItemWhereAmI),
+                    getResources().getString(R.string.whereAmIDialogTitle),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -230,20 +230,24 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
      * current location context menu
      */
     private static final int MENU_ITEM_DETAILS = 1;
-    private static final int MENU_ITEM_SAVE = 2;
-    private static final int MENU_ITEM_SHARE = 3;
+    private static final int MENU_ITEM_PIN = 2;
+    private static final int MENU_ITEM_FAVORITES = 3;
+    private static final int MENU_ITEM_SHARE = 4;
 
     private void showContextMenuForCurrentLocation(final View view, final Point currentLocation) {
         PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
         // details
         contextMenu.getMenu().add(
                 Menu.NONE, MENU_ITEM_DETAILS, 1, GlobalInstance.getStringResource(R.string.objectMenuItemDetails));
-        // save
+        // pin
         contextMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_SAVE, 2, GlobalInstance.getStringResource(R.string.objectMenuItemSave));
+                Menu.NONE, MENU_ITEM_PIN, 2, GlobalInstance.getStringResource(R.string.currentLocationMenuItemAddToPinnedPoints));
+        // favorites
+        contextMenu.getMenu().add(
+                Menu.NONE, MENU_ITEM_FAVORITES, 3, GlobalInstance.getStringResource(R.string.objectMenuItemAddToFavorites));
         // share
         SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
-                Menu.NONE, Menu.NONE, 3, GlobalInstance.getStringResource(R.string.objectMenuItemShareCoordinates));
+                Menu.NONE, Menu.NONE, 4, GlobalInstance.getStringResource(R.string.objectMenuItemShareCoordinates));
         Point.populateShareCoordinatesSubMenuEntries(shareCoordinatesSubMenu);
 
         contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
@@ -251,8 +255,11 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                 if (item.getItemId() == MENU_ITEM_DETAILS) {
                     LocationSensorDetailsDialog.newInstance()
                         .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
-                } else if (item.getItemId() == MENU_ITEM_SAVE) {
-                    SaveCurrentLocationDialog.newInstance()
+                } else if (item.getItemId() == MENU_ITEM_PIN) {
+                    SaveCurrentLocationDialog.addToPinnedPoints()
+                        .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                } else if (item.getItemId() == MENU_ITEM_FAVORITES) {
+                    SaveCurrentLocationDialog.addToFavorites()
                         .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                 } else if (item.getItemId() == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {
                     currentLocation.startShareCoordinatesChooserActivity(

@@ -57,6 +57,18 @@ public class PositionManager implements android.location.LocationListener {
     private DateFormat timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
     private DateFormat dateAndTimeFormatter = SimpleDateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
 
+    public interface LocationUpdate {
+        public void newLocation(Point point, boolean isImportant);
+        public void newGPSLocation(GPS gps);
+        public void newSimulatedLocation(Point point);
+    }
+
+    private LocationUpdate locationUpdateListener;
+
+    public void setLocationUpdateListener(LocationUpdate listener) {
+        this.locationUpdateListener = listener;
+    }
+
 
     /**
      * singleton
@@ -87,35 +99,6 @@ public class PositionManager implements android.location.LocationListener {
     /**
      * start and stop location updates
      */
-    public static final String ACTION_LOCATION_PROVIDER_DISABLED = "action.LocationProviderDisabled";
-    public static final String ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED = "action.foregroundLocationPermissionDenied";
-    public static final String ACTION_NO_LOCATION_PROVIDER_AVAILABLE = "action.NoLocationProviderAvailable";
-
-    public static boolean locationServiceEnabled() {
-        Context context = GlobalInstance.getContext();
-        if (! ((LocationManager) context.getSystemService(Context.LOCATION_SERVICE)).isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean foregroundLocationPermissionGranted() {
-        Context context = GlobalInstance.getContext();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean backgroundLocationPermissionGranted() {
-        Context context = GlobalInstance.getContext();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return false;
-        }
-        return true;
-    }
 
     private LocationManager locationManager = null;
     private boolean gpsFixFound = false;
@@ -124,61 +107,34 @@ public class PositionManager implements android.location.LocationListener {
     public void startGPS() {
         if (locationManager == null) {
             locationManager = (LocationManager) GlobalInstance.getContext().getSystemService(Context.LOCATION_SERVICE);
+            gpsFixFound = false;
 
-            if (! locationServiceEnabled()) {
-                locationManager = null;
-                Intent locationProviderDisabledIntent = new Intent(ACTION_LOCATION_PROVIDER_DISABLED);
-                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(locationProviderDisabledIntent);
-
-            } else if (! foregroundLocationPermissionGranted()) {
-                locationManager = null;
-                Intent locationPermissionDeniedIntent = new Intent(ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED);
-                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(locationPermissionDeniedIntent);
-
-            } else if (! locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)
-                    && ! locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)
-                    && ! locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
-                locationManager = null;
-                Intent noLocationProviderAvailableIntent = new Intent(ACTION_NO_LOCATION_PROVIDER_AVAILABLE);
-                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(noLocationProviderAvailableIntent);
-
-            } else {
-                gpsFixFound = false;
-
-                // listen for new locations
-                // first choice should be satellite
-                if (locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
-                    locationManager.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER, 0, 0, this);
-                }
-                // additionally use fused or network provider for better results (if available)
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-                        && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
-                    locationManager.requestLocationUpdates(
-                            LocationManager.FUSED_PROVIDER, 0, 0, this);
-                } else if (locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
-                    locationManager.requestLocationUpdates(
-                            LocationManager.NETWORK_PROVIDER, 10000, 0, this);
-                }
-
-                // get last known location after a short pause
-                (new Handler(Looper.getMainLooper())).postDelayed(
-                        new Runnable() {
-                            @Override public void run() {
-                                Location lastKnownLocationObject = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                                if (! gpsFixFound && lastKnownLocationObject != null) {
-                                    processNewLocationObject(lastKnownLocationObject, false);
-                                }
-                            }
-                        }, 1000l);
+            // listen for new locations
+            // first choice should be satellite
+            if (locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER, 0, 0, this);
+            }
+            // additionally use fused or network provider for better results (if available)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                    && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.FUSED_PROVIDER, 0, 0, this);
+            } else if (locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER, 10000, 0, this);
             }
 
-            /*
-            if (BuildConfig.DEBUG) {
-                appendToLog(
-                        "newLocationAttributes",
-                        dateAndTimeFormatter.format(new Date(System.currentTimeMillis())));
-            }*/
+            // get last known location after a short pause
+            (new Handler(Looper.getMainLooper())).postDelayed(
+                    new Runnable() {
+                        @Override public void run() {
+                            Location lastKnownLocationObject = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                            if (! gpsFixFound && lastKnownLocationObject != null) {
+                                processNewLocationObject(lastKnownLocationObject, false);
+                            }
+                        }
+                    }, 1000l);
         }
     }
 
@@ -214,6 +170,10 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastCurrentLocation(boolean isImportant) {
+        if (locationUpdateListener != null) {
+            locationUpdateListener.newLocation(getCurrentLocation(), isImportant);
+        }
+
         Intent intent = new Intent(ACTION_NEW_LOCATION);
         intent.putExtra(EXTRA_NEW_LOCATION, getCurrentLocation());
         intent.putExtra(EXTRA_IS_IMPORTANT, isImportant);
@@ -231,6 +191,10 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastGPSLocation() {
+        if (locationUpdateListener != null) {
+            locationUpdateListener.newGPSLocation(getGPSLocation());
+        }
+
         Intent intent = new Intent(ACTION_NEW_GPS_LOCATION);
         intent.putExtra(EXTRA_NEW_LOCATION, getGPSLocation());
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
@@ -417,6 +381,10 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastSimulatedLocation() {
+        if (locationUpdateListener != null) {
+            locationUpdateListener.newSimulatedLocation(getSimulatedLocation());
+        }
+
         Intent intent = new Intent(ACTION_NEW_SIMULATED_LOCATION);
         intent.putExtra(EXTRA_NEW_LOCATION, getSimulatedLocation());
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);

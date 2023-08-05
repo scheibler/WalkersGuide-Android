@@ -145,10 +145,10 @@ public class WhereAmIDialog extends DialogFragment implements OnCurrentAddressRe
 
     @Override public void onCurrentAddressResolved(StreetAddress addressPoint) {
         if (onlyResolveAddressAndCloseDialogImmediately) {
-            dismiss();
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_STREET_ADDRESS, addressPoint);
             getParentFragmentManager().setFragmentResult(REQUEST_RESOLVE_COORDINATES, result);
+            dismiss();
         } else {
             // announce
             TTSWrapper.getInstance().screenReader(addressPoint.toString());

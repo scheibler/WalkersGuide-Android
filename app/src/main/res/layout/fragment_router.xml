@@ -34,27 +34,29 @@
             android:gravity="center_vertical"
             android:orientation="horizontal" >
 
-            <Button
+            <ImageButton
                 android:id="@+id/buttonPreviousRouteObject"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                android:text="@string/buttonPreviousRouteObject"
-                android:textSize="@dimen/bigTextSize"
-                android:contentDescription="@string/buttonPreviousRouteObjectCD" />
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:background="@null"
+                app:tint="@color/image"
+                android:src="@drawable/image_arrow_back"
+                android:contentDescription="@string/buttonPreviousRouteObject" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/buttonNextRouteObject"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                android:text="@string/buttonNextRouteObject"
-                android:textSize="@dimen/bigTextSize"
-                android:contentDescription="@string/buttonNextRouteObjectCD" />
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:background="@null"
+                app:tint="@color/image"
+                android:src="@drawable/image_arrow_forward"
+                android:contentDescription="@string/buttonNextRouteObject" />
         </LinearLayout>
     </LinearLayout>
 
@@ -100,7 +102,7 @@
                     android:layout_height="match_parent"
                     android:background="@null"
                     app:tint="@color/image"
-                    android:src="@drawable/chevron_right"
+                    android:src="@drawable/image_chevron_right"
                     android:contentDescription="@string/buttonJumpToRoutePoint" />
             </LinearLayout>
 

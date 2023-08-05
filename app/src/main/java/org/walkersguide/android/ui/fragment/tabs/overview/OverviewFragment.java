@@ -45,6 +45,7 @@ import android.content.Context;
 import android.widget.Button;
 import androidx.lifecycle.Lifecycle;
 import timber.log.Timber;
+import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
 
 
 public class OverviewFragment extends Fragment implements FragmentResultListener, MenuProvider {
@@ -57,10 +58,11 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
 
 
     private MainActivityController mainActivityController;
+    private ResolveCurrentAddressView layoutClosestAddress;
 
     // pinned points
     private int listPosition;
-    private TextView labelHeading;
+    private TextView labelPinnedPointsHeading;
 	private ListView listViewPinnedPoints;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
@@ -68,16 +70,6 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
-    }
-
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (context instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) context;
-            if (activity instanceof MainActivity) {
-                mainActivityController = (MainActivityController) ((MainActivity) activity);
-            }
-        }
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -89,9 +81,16 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
                     && whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.PINNED_POINT) {
                 DatabaseProfile.pinnedPoints().add(point);
                 requestUiUpdate();
-                // show
-                mainActivityController.addFragment(
-                        ObjectDetailsTabLayoutFragment.details(point));
+            }
+        }
+    }
+
+    @Override public void onAttach(Context context){
+        super.onAttach(context);
+        if (context instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) context;
+            if (activity instanceof MainActivity) {
+                mainActivityController = (MainActivityController) ((MainActivity) activity);
             }
         }
     }
@@ -109,11 +108,13 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
             listPosition = 0;
         }
 
-        labelHeading = (TextView) view.findViewById(R.id.labelHeading);
-        ImageButton buttonAddPoint = (ImageButton) view.findViewById(R.id.buttonAction);
-        buttonAddPoint.setContentDescription(
-                getResources().getString(R.string.dialogAdd));
-        buttonAddPoint.setOnClickListener(new View.OnClickListener() {
+        layoutClosestAddress = (ResolveCurrentAddressView) view.findViewById(R.id.layoutClosestAddress);
+
+        // pinned points
+
+        labelPinnedPointsHeading = (TextView) view.findViewById(R.id.labelPinnedPointsHeading);
+        ImageButton buttonAddPinnedPoint = (ImageButton) view.findViewById(R.id.buttonAddPinnedPoint);
+        buttonAddPinnedPoint.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
                         SelectRouteOrSimulationPointDialog.WhereToPut.PINNED_POINT)
@@ -121,21 +122,11 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
             }
         });
 
-        listViewPinnedPoints = (ListView) view.findViewById(R.id.listView);
+        listViewPinnedPoints = (ListView) view.findViewById(R.id.listViewPinnedPoints);
         TextView labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
         labelEmptyListView.setText(
                 GlobalInstance.getStringResource(R.string.messageNoPinnedPoints));
         listViewPinnedPoints.setEmptyView(labelEmptyListView);
-
-        /*
-        Button buttonHistory = new Button(getActivity());
-        buttonHistory.setLayoutParams(
-                new LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        buttonHistory.setText(
-                getResources().getString(R.string.buttonHistory));
-        listViewPinnedPoints.addFooterView(buttonHistory, null, true);
-        */
 
         Button buttonHistory = (Button) view.findViewById(R.id.buttonHistory);
         buttonHistory.setOnClickListener(new View.OnClickListener() {
@@ -190,7 +181,9 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
     }
 
     private void requestUiUpdate() {
-        labelHeading.setText(
+        layoutClosestAddress.requestAddressForCurrentLocation();
+
+        labelPinnedPointsHeading.setText(
                 GlobalInstance.getPluralResource(R.plurals.pinnedPoint, 0));
         listViewPinnedPoints.setAdapter(null);
         listViewPinnedPoints.setOnScrollListener(null);
@@ -212,7 +205,7 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
     }
 
     private void loadPinnedPointsSuccessful(ArrayList<ObjectWithId> objectList) {
-        labelHeading.setText(
+        labelPinnedPointsHeading.setText(
                 GlobalInstance.getPluralResource(R.plurals.pinnedPoint, objectList.size()));
 
         listViewPinnedPoints.setAdapter(

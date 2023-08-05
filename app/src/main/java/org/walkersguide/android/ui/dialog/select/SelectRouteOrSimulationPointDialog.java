@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.select;
 
+import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
 import org.walkersguide.android.data.profile.Profile;
 import org.walkersguide.android.data.profile.ProfileGroup;
 import org.walkersguide.android.database.profile.FavoritesProfile;
@@ -99,7 +100,10 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: %1$s", requestKey);
-        if (requestKey.equals(WhereAmIDialog.REQUEST_RESOLVE_COORDINATES)) {
+        if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION)) {
+            pointSelected(
+                    (GPS) bundle.getSerializable(SaveCurrentLocationDialog.EXTRA_CURRENT_LOCATION));
+        } else if (requestKey.equals(WhereAmIDialog.REQUEST_RESOLVE_COORDINATES)) {
             pointSelected(
                     (StreetAddress) bundle.getSerializable(WhereAmIDialog.EXTRA_STREET_ADDRESS));
         } else if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
@@ -190,11 +194,33 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                             (SourceAction) parent.getItemAtPosition(position));
                 }
             });
+
+            // fill listview
+            ArrayList<SourceAction> sourceActionList = new ArrayList<SourceAction>(
+                    Arrays.asList(SourceAction.values()));
+
+            // remove actions "CURRENT_LOCATION" and "CLOSEST_ADDRESS"
+            switch (whereToPut) {
+                case ROUTE_VIA_POINT_1:
+                case ROUTE_VIA_POINT_2:
+                case ROUTE_VIA_POINT_3:
+                case ROUTE_DESTINATION_POINT:
+                case SIMULATION_POINT:
+                    sourceActionList.remove(SourceAction.CURRENT_LOCATION);
+                    sourceActionList.remove(SourceAction.CLOSEST_ADDRESS);
+                    break;
+            }
+
+            // remove action "HOME_ADDRESS"
+            switch (whereToPut) {
+                case HOME_ADDRESS:
+                    sourceActionList.remove(SourceAction.HOME_ADDRESS);
+                    break;
+            }
+
             listViewItems.setAdapter(
                     new ArrayAdapter<SourceAction>(
-                        getActivity(),
-                        android.R.layout.simple_list_item_1,
-                        new ArrayList<SourceAction>(Arrays.asList(SourceAction.values()))));
+                        getActivity(), android.R.layout.simple_list_item_1, sourceActionList));
 
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -244,7 +270,15 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                             getResources().getString(R.string.errorNoLocationFound))
                         .show(getChildFragmentManager(), "SimpleMessageDialog");
                 } else {
-                    pointSelected(currentLocation);
+                    switch (whereToPut) {
+                        case HOME_ADDRESS:
+                        case PINNED_POINT:
+                            SaveCurrentLocationDialog.newInstance()
+                                .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                            break;
+                        default:
+                            pointSelected(currentLocation);
+                    }
                 }
                 break;
 
@@ -275,7 +309,7 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                 break;
 
             case FAVORITES:
-                ObjectListFromDatabaseFragment.createDialog(FavoritesProfile.favoritePoints(), true)
+                ObjectListFromDatabaseFragment.createDialog(FavoritesProfile.favoritePoints(), SortMethod.DISTANCE_ASC, true)
                     .show(getChildFragmentManager(), "SelectFavoriteDialog");
                 break;
 

@@ -29,7 +29,7 @@
         android:minHeight="@dimen/minHeight"
         android:background="@null"
         app:tint="@color/image"
-        android:src="@drawable/chevron_right"
+        android:src="@drawable/image_chevron_right"
         android:contentDescription="@string/buttonActionFor" />
 
 </merge>

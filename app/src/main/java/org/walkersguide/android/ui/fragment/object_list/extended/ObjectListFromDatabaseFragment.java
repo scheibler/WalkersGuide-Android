@@ -64,6 +64,16 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 		return fragment;
     }
 
+	public static ObjectListFromDatabaseFragment createDialog(DatabaseProfile profile, SortMethod sortMethod, boolean enableSelection) {
+		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
+        fragment.setArguments(
+                new BundleBuilder(
+                    new DatabaseProfileRequest(profile, null, sortMethod))
+                .setIsDialog(enableSelection)
+                .build());
+		return fragment;
+    }
+
 	public static ObjectListFromDatabaseFragment createFragment(DatabaseProfile profile, SortMethod sortMethod) {
 		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
         fragment.setArguments(

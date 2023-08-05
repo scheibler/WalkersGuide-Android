@@ -7,14 +7,40 @@
     <item
         android:id="@+id/menuItemCreateFavoriteCurrentPosition"
         android:title="@string/menuItemCreateFavoriteCurrentPosition" />
-        <item
-            android:id="@+id/menuItemRouteFromGpxFile"
-            android:title="@string/menuItemRouteFromGpxFile" />
-        <item
-            android:id="@+id/menuItemInfo"
-            android:title="@string/menuItemInfo" />
-        <item
-            android:id="@+id/menuItemContactMe"
-            android:title="@string/menuItemContactMe" />
+    <item
+        android:id="@+id/menuItemRouteFromGpxFile"
+        android:title="@string/menuItemRouteFromGpxFile" />
+
+    <item
+        android:id="@+id/menuItemShowPoint"
+        android:title="@string/menuItemShowPoint" >
+        <menu>
+            <item
+                android:id="@+id/menuItemShowPointFromPostAddress"
+                android:title="@string/menuItemShowPointFromPostAddress" />
+            <item
+                android:id="@+id/menuItemShowPointFromCoordinates"
+                android:title="@string/menuItemShowPointFromCoordinates" />
+            <item
+                android:id="@+id/menuItemShowPointFromUrl"
+                android:title="@string/menuItemShowPointFromUrl" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/menuItemMisc"
+        android:title="@string/menuItemMisc" >
+        <menu>
+            <item
+                android:id="@+id/menuItemSettings"
+                android:title="@string/menuItemSettings" />
+            <item
+                android:id="@+id/menuItemInfo"
+                android:title="@string/menuItemInfo" />
+            <item
+                android:id="@+id/menuItemContactMe"
+                android:title="@string/menuItemContactMe" />
+        </menu>
+    </item>
 
 </menu>

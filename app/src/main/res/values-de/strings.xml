@@ -1,44 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+
     <!--
-         abstract activity and app wide menu
+         service and permissions
     -->
 
-    <!-- ToolbarActivity -->
+    <!-- notification channel -->
+    <string name="walkersGuideServiceNotificationChannelName">WalkersGuide Service</string>
+    <string name="walkersGuideServiceNotificationChannelDescription">Wird der Benachrichtigungsleiste und im Sperrbildschirm angezeigt, solange WalkersGuide aktiv ist.</string>
+
+    <!-- status message -->
+    <string name="walkersGuideServiceStateForeground">läuft</string>
+    <string name="walkersGuideServiceStatePaused">pausiert</string>
+    <string name="walkersGuideServiceStateOff">beendet</string>
+
+    <!-- missing location provider -->
+    <string name="messageNoLocationProviderAvailable">Die App erhält keine Positionsupdates, da
+        Ihrem Smartphone die Sensoren zur Positionsbestimmung fehlen.</string>
+    <string name="messageNoLocationProviderAvailableShort">Fehlende Standortprovider</string>
+
+    <!-- denied permissions -->
+    <string name="messageLocationPermissionDenied">Die App erhält keine Positionsupdates, da Sie ihr
+        nicht erlaubt haben, Ihren aktuellen Standort zu bestimmen.</string>
+    <string name="messageLocationPermissionDeniedShort">Standortfreigabe nicht erteilt</string>
+    <string name="messagePostNotificationsPermissionDenied">Die App erhält keine Positionsupdates, da Sie ihr
+        nicht erlaubt haben, Ihnen Benachrichtigungen zu schicken.</string>
+    <string name="messagePostNotificationsPermissionDeniedShort">Anzeigen von Benachrichtigungen verweigert</string>
+
+    <!-- location provider disabled -->
+    <string name="messageLocationProviderDisabled">Die App erhält keine Positionsupdates, da der
+        Standortdienst Ihres Smartphones abgeschaltet ist.</string>
+    <string name="messageLocationProviderDisabledShort">Standortdienst ausgeschaltet</string>
+
+
+    <!--
+        toolbar and main menu
+    -->
+
+    <!-- toolbar -->
     <string name="toolbarSensorPrefixPosition">Position</string>
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">veraltet</string>
     <string name="toolbarSensorCalibrationRequired">kalibrieren</string>
-    <string name="messageNoLocationProviderAvailable">Die App erhält keine Positionsupdates, da
-        Ihrem Smartphone die Sensoren zur Positionsbestimmung fehlen.</string>
-
-    <!-- main menu -->
-    <string name="menuItemPlanRoute">Route planen</string>
-    <string name="menuItemWhereAmI">Wo bin ich?</string>
-    <string name="menuItemCreateFavoriteCurrentPosition">Aktuelle Position sichern</string>
-    <string name="menuItemRouteFromGpxFile">Route aus GPX Datei importieren</string>
-    <string name="menuItemInfo">Info</string>
-    <string name="menuItemContactMe">Kontakt</string>
-
-    <!-- enable location dialog -->
-    <string name="enableLocationDialogTitle">Standortdienst einschalten?</string>
-    <string name="enableLocationDialogMessage">Um Positionsupdates erhalten zu können, muss der
-        Standortdienst eingeschaltet sein. Dazu werden Sie in die Einstellungen Ihres Smartphones
-        umgeleitet, wo sie die Option einschalten können. Anschließend gelangen Sie mit einem Klick
-        auf die Zurück-Taste Ihres Geräts in diese App zurück.  </string>
-    <string name="messageLocationProviderDisabled">Die App erhält keine Positionsupdates, da der
-        Standortdienst Ihres Smartphones abgeschaltet ist.</string>
-
-    <!-- app info dialog -->
-    <string name="appInfoDialogTitle">Standortfreigabe erteilen?</string>
-    <string name="appInfoDialogMessage">Die App benötigt den Zugriff auf Ihren Standort,
-        um Positionsupdates erhalten zu können.\n\nBitte klicken Sie auf OK, wählen in der folgenden Ansicht
-        den Punkt "Berechtigungen" und anschließend "Standort". Danach können Sie wählen, ob die App
-        immer oder nur im Vordergrund auf Ihren Standort zugreifen darf. Schließlich gelangen Sie mit
-        mehrfachem Klicken auf die Zurück-Taste Ihres Geräts zu dieser Ansicht zurück.</string>
-    <string name="messageLocationPermissionDenied">Die App erhält keine Positionsupdates, da Sie ihr
-        nicht erlaubt haben, Ihren aktuellen Standort zu bestimmen.</string>
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Richtungsdetails</string>
@@ -49,6 +53,7 @@
     <string name="locationDetailsDialogTitle">Standortdetails</string>
     <string name="labelCurrentLocationHeading">Aktuelle Position</string>
     <string name="buttonActionForCurrentLocation">Aktionen für die aktuelle Position</string>
+    <string name="currentLocationMenuItemAddToPinnedPoints">Anheften</string>
     <string name="buttonEnableLocationSimulation">Simulation aktivieren</string>
 
     <!-- LocationSensorDetailsDialog -->
@@ -62,6 +67,34 @@
     <string name="labelGPSBearing">Kurs</string>
     <string name="labelGPSSpeed">Geschwindigkeit</string>
     <string name="labelGPSTime">Letzte Position um</string>
+
+    <!-- WhereAmIDialog -->
+    <string name="whereAmIDialogTitle">Wo bin ich?</string>
+
+    <!-- main menu -->
+    <string name="menuItemPlanRoute">Route planen</string>
+    <string name="menuItemCreateFavoriteCurrentPosition">Aktuelle Position zu Favoriten hinzufügen</string>
+    <string name="menuItemRouteFromGpxFile">Route aus GPX Datei importieren</string>
+    <string name="menuItemShowPoint">Punkt anzeigen:</string>
+    <string name="menuItemShowPointFromPostAddress">Adresse eingeben</string>
+    <string name="menuItemShowPointFromCoordinates">Koordinaten eingeben</string>
+    <string name="menuItemShowPointFromUrl">Punkt aus Link extrahieren</string>
+    <string name="menuItemMisc">Verschiedenes:</string>
+    <string name="menuItemSettings">Einstellungen</string>
+    <string name="menuItemInfo">Info</string>
+    <string name="menuItemContactMe">Kontakt</string>
+
+    <!-- plan route dialog -->
+    <string name="planRouteDialogTitle">Route planen</string>
+    <string name="switchShowViaPointList">Zwischenziele anzeigen</string>
+    <!-- options menu -->
+    <string name="planRouteMenuItemSwap">Start und Ziel tauschen</string>
+    <string name="planRouteMenuItemExcludedWays">Ausgeschlossene Wege</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Wegeklassengewichtung</string>
+    <string name="planRouteMenuItemClear">Neue Route</string>
+
+    <!-- ConfigureWayClassWeightsDialog -->
+    <string name="configureWayClassWeightsDialogTitle">Wegeklassen gewichten:</string>
 
     <!-- SelectRouteOrSimulationPointDialog -->
     <!-- dialog titles -->
@@ -123,26 +156,13 @@
     <string name="messageGpxRoutePointParsingFailed">Einer oder mehrere Routenpunkte konnten nicht extrahiert werden.</string>
     <string name="messageGpxRouteParsingFailed">Die Route aus den extrahierten GPX Punkten konnte nicht erstellt werden.</string>
 
-    <!-- plan route dialog -->
-    <string name="planRouteDialogTitle">Route planen</string>
-    <string name="switchShowViaPointList">Zwischenziele anzeigen</string>
-    <!-- options menu -->
-    <string name="planRouteMenuItemSwap">Start und Ziel tauschen</string>
-    <string name="planRouteMenuItemExcludedWays">Ausgeschlossene Wege</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Wegeklassengewichtung</string>
-    <string name="planRouteMenuItemClear">Neue Route</string>
-
-    <!-- ConfigureWayClassWeightsDialog -->
-    <string name="configureWayClassWeightsDialogTitle">Wegeklassen gewichten:</string>
-
-    <!-- WhereAmIDialog -->
-    <string name="whereAmIDialogTitle">Wo bin ich?</string>
-
     <!-- SaveCurrentLocationDialog -->
-    <string name="saveCurrentLocationDialogTitle">Aktuelle Position sichern</string>
+    <string name="saveCurrentLocationDialogTitle">Aktuelle Position:</string>
     <string name="labelName">Name</string>
     <string name="buttonLocationSensorDetails">Standortsensordetails</string>
     <string name="messageNameMissing">Bitte gib einen Namen ein.</string>
+    <string name="messageCurrentLocationAddedToFavoritesSuccessful">Der Punkt wurde zu den Favoriten hinzugefügt.</string>
+    <string name="messageCurrentLocationAddedToPinnedPointsSuccessful">Der Punkt wurde erfolgreich angeheftet.</string>
 
 
     <!--
@@ -162,6 +182,7 @@
     <!-- overview fragment -->
     <string name="fragmentOverviewName">Überblick</string>
     <string name="menuItemClearPinnedPoints">Angeheftete Punkte leeren</string>
+    <string name="buttonAddPinnedPoint">Punkt anheften</string>
     <string name="messageNoPinnedPoints">Es wurden noch keine Punkte angeheftet.</string>
     <string name="buttonHistory">Verlauf</string>
 
@@ -171,10 +192,8 @@
     <string name="labelRoutePosition">Anweisung %1$d von %2$d</string>
     <string name="buttonJumpToRoutePoint">Zu Routenpunkt springen</string>
     <string name="labelIntersectionStructureHeading">Kreuzungsaufbau</string>
-    <string name="buttonPreviousRouteObject">Vorheriger</string>
-    <string name="buttonPreviousRouteObjectCD">Vorheriger Routenpunkt</string>
-    <string name="buttonNextRouteObject">Nächster</string>
-    <string name="buttonNextRouteObjectCD">Nächster Routenpunkt</string>
+    <string name="buttonPreviousRouteObject">Vorheriger Routenpunkt</string>
+    <string name="buttonNextRouteObject">Nächster Routenpunkt</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Neu berechnen</string>
     <string name="menuItemRecalculateWithCurrentPosition">Mit aktueller Position neu berechnen</string>
@@ -270,10 +289,10 @@
 
 
     <!--
-         details activities and fragments
+         details fragments
     -->
 
-    <!-- point details activity -->
+    <!-- object details tab layout fragment -->
     <string name="pointDetailsActivityTitle">Details</string>
     <string name="labelPointDistanceAndBearing">Entfernung: %1$s</string>
 
@@ -504,7 +523,6 @@
     <string name="objectMenuItemEntrances">Eingänge</string>
     <string name="objectMenuItemLoad">Laden</string>
     <string name="objectMenuItemStreetCourse">Wegverlauf</string>
-    <string name="objectMenuItemSave">Sichern</string>
     <string name="objectMenuItemRename">Umbenennen</string>
     <string name="objectMenuItemResetLayout">Entfernen</string>
     <string name="objectMenuItemAddToFavorites">Zu Favoriten hinzufügen</string>
@@ -561,6 +579,7 @@
     <string name="dialogNo">Nein</string>
     <string name="dialogSelectAll">Alles auswählen</string>
     <string name="dialogAdd">Hinzufügen</string>
+    <string name="dialogAppInfo">App Info öffnen</string>
     <string name="dialogClear">Auswahl aufheben</string>
     <string name="dialogCalculate">Berechnen</string>
     <string name="dialogDefault">Standard</string>
@@ -889,6 +908,7 @@
     <string name="errorAddrReqNoAddressForCoordinates">Keine Adresse für diese Koordinaten gefunden.</string>
 
     <!-- other errors -->
+    <string name="errorSavePointFailed">Fehler beim Anlegen des Punktes.</string>
     <string name="errorNoHomeAddressSet">Du hast dein Zuhause noch nicht festgelegt. Dies kannst du in den Einstellungen der App erledigen.</string>
     <string name="errorNoLocationFound">Keine position verfügbar</string>
     <string name="errorNoBearingFound">Keine Richtungsangabe verfügbar</string>

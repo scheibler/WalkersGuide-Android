@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment.tabs.overview;
+package org.walkersguide.android.ui.fragment;
 
 import timber.log.Timber;
 import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
@@ -86,9 +86,10 @@ import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDia
 import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
 import org.walkersguide.android.ui.view.TextViewAndActionButton;
 import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.ui.fragment.RootFragment;
 
 
-public class SettingsFragment extends Fragment implements FragmentResultListener {
+public class SettingsFragment extends RootFragment implements FragmentResultListener {
     private static final String KEY_TASK_ID = "taskId";
 
 	public static SettingsFragment newInstance() {
@@ -181,16 +182,28 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
         }
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_settings, container, false);
-	}
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    /**
+     * create view
+     */
+
+    @Override public String getDialogTitle() {
+        return getResources().getString(R.string.fragmentSettingsName);
+    }
+
+    @Override public int getLayoutResourceId() {
+        return R.layout.fragment_settings;
+    }
+
+	@Override public View configureView(View view, Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
+        }
+
+        if (getDialog() == null) {
+            mainActivityController.configureToolbarTitle(getDialogTitle());
         }
 
         layoutHomeAddress = (TextViewAndActionButton) view.findViewById(R.id.layoutHomeAddress);
@@ -329,6 +342,8 @@ public class SettingsFragment extends Fragment implements FragmentResultListener
                 }
             }
         });
+
+        return view;
     }
 
     @Override public void onResume() {

@@ -60,8 +60,6 @@ public class GlobalInstance extends Application {
         // session
         this.sessionId = UUID.randomUUID().toString();
         this.wasInBackground = true;
-        // notification channel (android 8)
-        createNotificationChannel();
     }
 
 
@@ -121,8 +119,7 @@ public class GlobalInstance extends Application {
                 // is run, when application was sent to background or the screen was turned off
                 ((GlobalInstance) getApplicationContext()).setApplicationInBackground(true);
                 // deactivate sensors
-                PositionManager.getInstance().stopGPS();
-                DeviceSensorManager.getInstance().stopSensors();
+                WalkersGuideService.stopScan();
                 // disable obsolete pinned shortcuts in background thread
                 Executors.newSingleThreadExecutor().execute(() -> {
                     PinnedShortcutUtility.disableObsoletePinnedShortcuts();
@@ -141,70 +138,6 @@ public class GlobalInstance extends Application {
         }
         if (this.mActivityTransitionTimer != null) {
             this.mActivityTransitionTimer.cancel();
-        }
-    }
-
-
-    /**
-     * notifications
-     */
-
-    public static final String WG_NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID;
-    public static final int WG_NOTIFICATION_ID = 20183;
-
-    @TargetApi(Build.VERSION_CODES.O)
-    private void createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            // high priority notification channel
-            NotificationChannel highPriorityNotificationChannel = new NotificationChannel(
-                    WG_NOTIFICATION_CHANNEL_ID,
-                    getResources().getString(R.string.app_name),
-                    NotificationManager.IMPORTANCE_HIGH);
-            highPriorityNotificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-            highPriorityNotificationChannel.setShowBadge(true);
-            notificationManager.createNotificationChannel(highPriorityNotificationChannel);
-        }
-    }
-
-    private void showTestNotification() {
-        PendingIntent pendingIntent = createPendingIntent(
-                new Intent(this, MainActivity.class));
-        // create notification
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setPriority(
-                    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O
-                    ? Notification.PRIORITY_LOW
-                    : Notification.PRIORITY_HIGH)
-            .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
-            .setShowWhen(true)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .setSmallIcon(
-                    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP
-                    ? R.drawable.ic_launcher_invers
-                    : R.drawable.ic_launcher)
-            .setContentText("Testnachricht")
-            .setTicker("Testnachricht");
-        // navigation channel
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            notificationBuilder.setChannelId(WG_NOTIFICATION_CHANNEL_ID);
-        }
-        // show
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(
-                WG_NOTIFICATION_ID, notificationBuilder.build());
-    }
-
-    @SuppressLint("Deprecation, UnspecifiedImmutableFlag")
-    private PendingIntent createPendingIntent(Intent intent) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            return PendingIntent.getActivity(
-                    this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        } else {
-            return PendingIntent.getActivity(
-                    this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
     }
 

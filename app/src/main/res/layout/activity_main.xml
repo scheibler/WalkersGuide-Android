@@ -40,7 +40,7 @@
                     android:minHeight="@dimen/minHeight"
                     android:background="@null"
                     app:tint="@color/image"
-                    android:src="@drawable/main_menu"
+                    android:src="@drawable/image_main_menu"
                     android:contentDescription="@string/mainMenu" />
 
                 <ImageButton

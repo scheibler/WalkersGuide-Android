@@ -264,6 +264,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                     "%1$s: %2$s",
                                     getResources().getString(R.string.labelPointPOIBuildingIsInside),
                                     poi.getOuterBuilding().toString()))
+                            .styleAsButton()
                             .create();
                         labelOuterBuilding.setTag(poi.getOuterBuilding());
                         labelOuterBuilding.setOnClickListener(new View.OnClickListener() {

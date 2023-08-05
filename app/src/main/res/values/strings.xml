@@ -1,37 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+
+
     <!--
-         abstract activity and app wide menu
+         service and permissions
     -->
 
-    <!-- ToolbarActivity -->
+    <!-- notification channel -->
+    <string name="walkersGuideServiceNotificationChannelName">WalkersGuide Service</string>
+    <string name="walkersGuideServiceNotificationChannelDescription">Is shown in the notification area and on the lock screen as long as WalkersGuide is running.</string>
+
+    <!-- status message -->
+    <string name="walkersGuideServiceStateForeground">Running</string>
+    <string name="walkersGuideServiceStatePaused">Paused</string>
+    <string name="walkersGuideServiceStateOff">Terminated</string>
+
+    <!-- missing location provider -->
+    <string name="messageNoLocationProviderAvailable">No location sensor hardware available.
+        The app won\'t receive any location updates</string>
+    <string name="messageNoLocationProviderAvailableShort">Location provider missing</string>
+
+    <!-- denied permissions -->
+    <string name="messageLocationPermissionDenied">Location permission denied.
+        The app won\'t receive any location updates</string>
+    <string name="messageLocationPermissionDeniedShort">Location permission denied</string>
+    <string name="messagePostNotificationsPermissionDenied">Send notifications permission denied.
+        The app won\'t receive any location updates</string>
+    <string name="messagePostNotificationsPermissionDeniedShort">Send notifications permission denied.</string>
+
+
+    <!-- location provider disabled -->
+    <string name="messageLocationProviderDisabled">Location service disabled. The app won\'t receive any location updates</string>
+    <string name="messageLocationProviderDisabledShort">Location service disabled</string>
+
+
+    <!--
+        toolbar and main menu
+    -->
+
+    <!-- toolbar -->
     <string name="toolbarSensorPrefixPosition">Position</string>
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">outdated</string>
     <string name="toolbarSensorCalibrationRequired">calibrate</string>
-    <string name="messageNoLocationProviderAvailable">No location sensor hardware available. The app won\'t receive any location updates</string>
-
-    <!-- main menu -->
-    <string name="menuItemPlanRoute">Plan route</string>
-    <string name="menuItemWhereAmI">Where am I?</string>
-    <string name="menuItemCreateFavoriteCurrentPosition">Save current location</string>
-    <string name="menuItemRouteFromGpxFile">Import route from GPX file</string>
-    <string name="menuItemInfo">Info</string>
-    <string name="menuItemContactMe">Contact</string>
-
-    <!-- enable location dialog -->
-    <string name="enableLocationDialogTitle">Enable location service?</string>
-    <string name="enableLocationDialogMessage">Please enable your smartphones location
-        service, to receive location updates.</string>
-    <string name="messageLocationProviderDisabled">Location service disabled. The app won\'t receive any location updates</string>
-
-    <!-- app info dialog -->
-    <string name="appInfoDialogTitle">Location permission</string>
-    <string name="appInfoDialogMessage">The app requires the location permission to
-        receive location updates. Please click \"OK\", then \"permissions\" and select
-        \"location\" from the permission list.</string>
-    <string name="messageLocationPermissionDenied">Location permission denied. The app won\'t receive any location updates</string>
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Bearing details</string>
@@ -42,6 +54,7 @@
     <string name="locationDetailsDialogTitle">Location details</string>
     <string name="labelCurrentLocationHeading">Current location</string>
     <string name="buttonActionForCurrentLocation">Actions for the current location</string>
+    <string name="currentLocationMenuItemAddToPinnedPoints">Pin</string>
     <string name="buttonEnableLocationSimulation">Enable simulation</string>
 
     <!-- LocationSensorDetailsDialog -->
@@ -55,6 +68,34 @@
     <string name="labelGPSBearing">Bearing</string>
     <string name="labelGPSSpeed">Speed</string>
     <string name="labelGPSTime">Last fix at</string>
+
+    <!-- WhereAmIDialog -->
+    <string name="whereAmIDialogTitle">Where am I?</string>
+
+    <!-- main menu -->
+    <string name="menuItemPlanRoute">Plan route</string>
+    <string name="menuItemCreateFavoriteCurrentPosition">Add current location to favorites</string>
+    <string name="menuItemRouteFromGpxFile">Import route from GPX file</string>
+    <string name="menuItemShowPoint">Show point:</string>
+    <string name="menuItemShowPointFromPostAddress">Enter address</string>
+    <string name="menuItemShowPointFromCoordinates">Enter coordinates</string>
+    <string name="menuItemShowPointFromUrl">Extract point from link</string>
+    <string name="menuItemMisc">Miscellaneous:</string>
+    <string name="menuItemSettings">Settings</string>
+    <string name="menuItemInfo">Info</string>
+    <string name="menuItemContactMe">Contact</string>
+
+    <!-- plan route dialog -->
+    <string name="planRouteDialogTitle">Plan route</string>
+    <string name="switchShowViaPointList">Show via points</string>
+    <!-- options menu -->
+    <string name="planRouteMenuItemSwap">Swap start and destination</string>
+    <string name="planRouteMenuItemExcludedWays">Excluded ways</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Way classes</string>
+    <string name="planRouteMenuItemClear">Clear points</string>
+
+    <!-- ConfigureWayClassWeightsDialog -->
+    <string name="configureWayClassWeightsDialogTitle">Prioritise way classes:</string>
 
     <!-- SelectRouteOrSimulationPointDialog -->
     <!-- dialog titles -->
@@ -116,26 +157,13 @@
     <string name="messageGpxRoutePointParsingFailed">Failed to parse at least one route point.</string>
     <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
 
-    <!-- plan route dialog -->
-    <string name="planRouteDialogTitle">Plan route</string>
-    <string name="switchShowViaPointList">Show via points</string>
-    <!-- options menu -->
-    <string name="planRouteMenuItemSwap">Swap start and destination</string>
-    <string name="planRouteMenuItemExcludedWays">Excluded ways</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Way classes</string>
-    <string name="planRouteMenuItemClear">Clear points</string>
-
-    <!-- ConfigureWayClassWeightsDialog -->
-    <string name="configureWayClassWeightsDialogTitle">Prioritise way classes:</string>
-
-    <!-- WhereAmIDialog -->
-    <string name="whereAmIDialogTitle">Where am I?</string>
-
     <!-- SaveCurrentLocationDialog -->
-    <string name="saveCurrentLocationDialogTitle">Save current location:</string>
+    <string name="saveCurrentLocationDialogTitle">Current location:</string>
     <string name="labelName">Name</string>
     <string name="buttonLocationSensorDetails">Show location sensor details</string>
     <string name="messageNameMissing">Please enter a name.</string>
+    <string name="messageCurrentLocationAddedToFavoritesSuccessful">The point has been added to favorites.</string>
+    <string name="messageCurrentLocationAddedToPinnedPointsSuccessful">The point was pinned successfully.</string>
 
 
     <!--
@@ -155,6 +183,7 @@
     <!-- overview fragment -->
     <string name="fragmentOverviewName">Overview</string>
     <string name="menuItemClearPinnedPoints">Clear pinned points</string>
+    <string name="buttonAddPinnedPoint">Pin point</string>
     <string name="messageNoPinnedPoints">No points have been pinned yet.</string>
     <string name="buttonHistory">History</string>
 
@@ -164,10 +193,8 @@
     <string name="labelRoutePosition">Instruction %1$d of %2$d</string>
     <string name="buttonJumpToRoutePoint">Jump to route point</string>
     <string name="labelIntersectionStructureHeading">Intersection structure</string>
-    <string name="buttonPreviousRouteObject">Previous</string>
-    <string name="buttonPreviousRouteObjectCD">Previous route point</string>
-    <string name="buttonNextRouteObject">Next</string>
-    <string name="buttonNextRouteObjectCD">Next route point</string>
+    <string name="buttonPreviousRouteObject">Previous route point</string>
+    <string name="buttonNextRouteObject">Next route point</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
@@ -263,10 +290,10 @@
 
 
     <!--
-         details activities and fragments
+         details fragments
     -->
 
-    <!-- point details activity -->
+    <!-- object details tab layout fragment -->
     <string name="pointDetailsActivityTitle">Details</string>
     <string name="labelPointDistanceAndBearing">Distance: %1$s</string>
 
@@ -555,6 +582,7 @@
     <string name="dialogNo">No</string>
     <string name="dialogSelectAll">All</string>
     <string name="dialogAdd">Add</string>
+    <string name="dialogAppInfo">Open app Info page</string>
     <string name="dialogClear">Clear</string>
     <string name="dialogCalculate">Calculate</string>
     <string name="dialogDefault">Default</string>
@@ -879,6 +907,7 @@
     <string name="errorAddrReqNoAddressForCoordinates">No address for this coordinates found.</string>
 
     <!-- other errors -->
+    <string name="errorSavePointFailed">Point creation failed.</string>
     <string name="errorNoHomeAddressSet">You didn\'t select your home address yet. You may do so in the app settings.</string>
     <string name="errorNoLocationFound">No location available.</string>
     <string name="errorNoBearingFound">No bearing available.</string>

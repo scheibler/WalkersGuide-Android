@@ -19,6 +19,7 @@ import android.view.Gravity;
 import android.text.method.LinkMovementMethod;
 import android.text.Spanned;
 import java.lang.CharSequence;
+import androidx.core.view.ViewCompat;
 
 
 public class TextViewBuilder {
@@ -106,6 +107,15 @@ public class TextViewBuilder {
         this.label.setLabelFor(id);
         return this;
     }
+
+        public TextViewBuilder styleAsButton() {
+            this.label.setText(
+                    UiHelper.bold(
+                        this.label.getText().toString()));
+            ViewCompat.setAccessibilityDelegate(
+                    this.label, UiHelper.getAccessibilityDelegateViewClassButton());
+            return this;
+        }
 
 
     // create TextView

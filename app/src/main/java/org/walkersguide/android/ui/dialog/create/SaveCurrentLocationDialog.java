@@ -5,7 +5,6 @@ import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.dialog.toolbar.LocationSensorDetailsDialog;
 import androidx.appcompat.app.AlertDialog;
-import android.app.Dialog;
 
 import android.content.DialogInterface;
 
@@ -30,19 +29,52 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import android.text.TextUtils;
 import org.json.JSONException;
+import org.walkersguide.android.database.DatabaseProfile;
+import android.app.Dialog;
 
 public class SaveCurrentLocationDialog extends DialogFragment {
+    public static final String REQUEST_SAVE_CURRENT_LOCATION = "saveCurrentLocation";
+    public static final String EXTRA_CURRENT_LOCATION = "currentLocation";
 
-
-    private EditTextAndClearInputButton layoutName;
 
     public static SaveCurrentLocationDialog newInstance() {
         SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_MODE, Mode.RETURN_POINT);
+        dialog.setArguments(args);
+        return dialog;
+    }
+
+    public static SaveCurrentLocationDialog addToFavorites() {
+        SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_MODE, Mode.ADD_TO_FAVORITES);
+        dialog.setArguments(args);
+        return dialog;
+    }
+
+    public static SaveCurrentLocationDialog addToPinnedPoints() {
+        SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_MODE, Mode.ADD_TO_PINNED_POINTS);
+        dialog.setArguments(args);
         return dialog;
     }
 
 
+    // dialog
+    private static final String KEY_MODE = "mode";
+
+    private enum Mode {
+        RETURN_POINT, ADD_TO_FAVORITES, ADD_TO_PINNED_POINTS
+    }
+    private Mode mode;
+
+    private EditTextAndClearInputButton layoutName;
+
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        mode = (Mode) getArguments().getSerializable(KEY_MODE);
+
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -116,6 +148,8 @@ public class SaveCurrentLocationDialog extends DialogFragment {
     }
 
     private void tryToSaveCurrentLocation() {
+        UiHelper.hideKeyboard(SaveCurrentLocationDialog.this);
+
         // name
         String name = layoutName.getInputText();
         if (TextUtils.isEmpty(name)) {
@@ -149,14 +183,52 @@ public class SaveCurrentLocationDialog extends DialogFragment {
             }
             newLocation = newLocationBuilder.build();
         } catch (JSONException e) {}
-        if (newLocation != null && newLocation.addToFavorites()) {
-            dismiss();
-
-        } else {
+        if (newLocation == null) {
             Toast.makeText(
                     getActivity(),
                     getResources().getString(R.string.errorNoLocationFound),
                     Toast.LENGTH_LONG).show();
+
+        } else {
+            switch (mode) {
+
+                case RETURN_POINT:
+                    Bundle result = new Bundle();
+                    result.putSerializable(EXTRA_CURRENT_LOCATION, newLocation);
+                    getParentFragmentManager().setFragmentResult(REQUEST_SAVE_CURRENT_LOCATION, result);
+                    dismiss();
+                    break;
+
+                case ADD_TO_FAVORITES:
+                    if (newLocation.addToFavorites()) {
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.messageCurrentLocationAddedToFavoritesSuccessful),
+                                Toast.LENGTH_LONG).show();
+                        dismiss();
+                    } else {
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.errorSavePointFailed),
+                                Toast.LENGTH_LONG).show();
+                    }
+                    break;
+
+                case ADD_TO_PINNED_POINTS:
+                    if (DatabaseProfile.pinnedPoints().add(newLocation)) {
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.messageCurrentLocationAddedToPinnedPointsSuccessful),
+                                Toast.LENGTH_LONG).show();
+                        dismiss();
+                    } else {
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.errorSavePointFailed),
+                                Toast.LENGTH_LONG).show();
+                    }
+                    break;
+            }
         }
     }
 

@@ -620,7 +620,7 @@ public abstract class ObjectListFragment extends RootFragment
         @Override public View getView(int position, View convertView, ViewGroup parent) {
             TextViewAndActionButton layoutTextViewAndActionButton = null;
             if (convertView == null) {
-                layoutTextViewAndActionButton = new TextViewAndActionButton(this.context, true);
+                layoutTextViewAndActionButton = new TextViewAndActionButton(this.context, null, true);
                 layoutTextViewAndActionButton.setLayoutParams(
                         new LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));

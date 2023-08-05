@@ -1,11 +1,14 @@
 package org.walkersguide.android.ui.activity;
 
+import android.widget.Toast;
+import org.walkersguide.android.util.WalkersGuideService;
+import org.walkersguide.android.util.WalkersGuideService.StartScanFailure;
+import org.walkersguide.android.ui.fragment.SettingsFragment;
 import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.ui.dialog.InfoDialog;
 import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.RoutesTabLayoutFragment;
-import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import org.walkersguide.android.shortcut.StaticShortcutAction;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import org.walkersguide.android.sensor.bearing.BearingSensor;
@@ -39,22 +42,16 @@ import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.widget.Toast;
 import android.view.WindowManager;
 
-import androidx.viewpager2.adapter.FragmentStateAdapter;
 import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
-import androidx.annotation.NonNull;
-import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 import android.os.Bundle;
 
 import com.google.android.material.navigation.NavigationView;
 import androidx.fragment.app.Fragment;
-import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 
 import android.view.MenuItem;
 
@@ -63,34 +60,37 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
-import org.walkersguide.android.ui.fragment.tabs.routes.RouterFragment;
-import androidx.fragment.app.FragmentActivity;
-import java.util.ArrayList;
 import org.walkersguide.android.util.SettingsManager;
 import android.content.Context;
 import android.content.Intent;
 import org.walkersguide.android.data.object_with_id.Route;
-import org.walkersguide.android.ui.fragment.object_list.extended.HikingTrailListFromServerFragment;
 import timber.log.Timber;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
-import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
-import org.walkersguide.android.ui.dialog.create.EnterCoordinatesDialog;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.object_with_id.point.GPS;
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 
-import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import org.walkersguide.android.data.angle.Bearing;
 import java.util.List;
+import android.annotation.SuppressLint;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.annotation.NonNull;
+import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
+import org.walkersguide.android.ui.dialog.create.EnterCoordinatesDialog;
+import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
+import android.content.ServiceConnection;
+import android.content.ComponentName;
+import android.os.IBinder;
 
 
-public class MainActivity extends AppCompatActivity implements MainActivityController, OnTabSelectedListener {
+public class MainActivity extends AppCompatActivity
+        implements FragmentResultListener, ServiceConnection, MainActivityController, OnTabSelectedListener {
     public static String EXTRA_NEW_TAB = "newTab";
     public static String EXTRA_CLEAR_BACK_STACK = "clearBackStack";
 
@@ -117,11 +117,14 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     }
 
 
+    // activity
+    private static String KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME = "skipPositionManagerInitialisationDuringOnResume";
+
     private GlobalInstance globalInstance;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
 	private SettingsManager settingsManagerInstance;
-    private boolean skipPositionManagerInitialisationDuringOnResume;
+    private boolean broadcastReceiverAlreadyRegistered, skipPositionManagerInitialisationDuringOnResume;
 
     private Toolbar toolbar;
     private TextView labelToolbarTitle;
@@ -140,7 +143,11 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
         positionManagerInstance = PositionManager.getInstance();
 		settingsManagerInstance = SettingsManager.getInstance();
-        skipPositionManagerInitialisationDuringOnResume = false;
+        broadcastReceiverAlreadyRegistered = false;
+        skipPositionManagerInitialisationDuringOnResume =
+            savedInstanceState != null
+            ? savedInstanceState.getBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME)
+            : false;
 
         // toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -190,11 +197,23 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
                 if (menuItem.getItemId() == R.id.menuItemPlanRoute) {
                     openPlanRouteDialog();
                 } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCurrentPosition) {
-                    SaveCurrentLocationDialog.newInstance()
+                    SaveCurrentLocationDialog.addToFavorites()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
                 } else if (menuItem.getItemId() == R.id.menuItemRouteFromGpxFile) {
                     RouteFromGpxFileDialog.newInstance()
                         .show(getSupportFragmentManager(), "RouteFromGpxFileDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemShowPointFromPostAddress) {
+                    EnterAddressDialog.newInstance()
+                        .show(getSupportFragmentManager(), "EnterAddressDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemShowPointFromCoordinates) {
+                    EnterCoordinatesDialog.newInstance()
+                        .show(getSupportFragmentManager(), "EnterCoordinatesDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemShowPointFromUrl) {
+                    PointFromCoordinatesLinkDialog.newInstance()
+                        .show(getSupportFragmentManager(), "PointFromCoordinatesLinkDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemSettings) {
+                    SettingsFragment.newInstance()
+                        .show(getSupportFragmentManager(), "SettingsFragment");
                 } else if (menuItem.getItemId() == R.id.menuItemInfo) {
                     InfoDialog.newInstance()
                         .show(getSupportFragmentManager(), "InfoDialog");
@@ -248,6 +267,34 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
         }
     }
 
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)
+                || requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)
+                || requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
+            Point newFavorite = null;
+            if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
+                newFavorite = (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
+            } else if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
+                newFavorite = (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS);
+            } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
+                newFavorite = (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES);
+            }
+            if (newFavorite != null) {
+                ObjectDetailsTabLayoutFragment.details(newFavorite)
+                    .show(getSupportFragmentManager(), "Details");
+            } else {
+                SimpleMessageDialog.newInstance(
+                        getResources().getString(R.string.errorFavoriteCreationFailed))
+                    .show(getSupportFragmentManager(), "SimpleMessageDialog");
+            }
+        }
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME, skipPositionManagerInitialisationDuringOnResume);
+    }
+
 
     /**
      * toolbar
@@ -261,8 +308,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
         getSupportFragmentManager().executePendingTransactions();
         buttonUpperLeftCorner.setImageResource(
                 getSupportFragmentManager().getBackStackEntryCount() > 1
-                ? R.drawable.back_to_top
-                : R.drawable.main_menu);
+                ? R.drawable.image_arrow_up
+                : R.drawable.image_main_menu);
         buttonUpperLeftCorner.setContentDescription(
                 getSupportFragmentManager().getBackStackEntryCount() > 1
                 ? getResources().getString(R.string.navigateUp)
@@ -270,6 +317,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     }
 
     private void updateBearingDetailsButton() {
+        if (walkersGuideServiceInstance != null
+                && ! walkersGuideServiceInstance.isRunning()) {
+            buttonBearingDetails.setContentDescription(
+                    walkersGuideServiceInstance.getStatusMessage());
+            return;
+        }
+
         Bearing currentBearing = deviceSensorManagerInstance.getCurrentBearing();
         StringBuilder bearingDescriptionBuilder = new StringBuilder();
 
@@ -305,6 +359,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     }
 
     private void updateLocationDetailsButton() {
+        if (walkersGuideServiceInstance != null
+                && ! walkersGuideServiceInstance.isRunning()) {
+            buttonLocationDetails.setContentDescription(
+                    walkersGuideServiceInstance.getStatusMessage());
+            return;
+        }
+
         Point currentLocation = positionManagerInstance.getCurrentLocation();
         StringBuilder locationDescriptionBuilder = new StringBuilder();
 
@@ -343,35 +404,45 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
 
     @Override public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        if (broadcastReceiverAlreadyRegistered) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+            broadcastReceiverAlreadyRegistered = false;
+        }
+
+        // unbind service
+        if (isBound) {
+            unbindService(this);
+            walkersGuideServiceInstance = null;
+            isBound = false;
+        }
+
         globalInstance.startActivityTransitionTimer();
     }
 
     @Override public void onResume() {
         super.onResume();
         globalInstance.stopActivityTransitionTimer();
+        registerBroadcastReceiver();
         displayRemainsActiveSettingChanged(
                 settingsManagerInstance.getDisplayRemainsActive());
-        updateBearingDetailsButton();
-        updateLocationDetailsButton();
 
-        // listen for some actions
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(PositionManager.ACTION_NO_LOCATION_PROVIDER_AVAILABLE);
-        filter.addAction(PositionManager.ACTION_LOCATION_PROVIDER_DISABLED);
-        filter.addAction(PositionManager.ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED);
-        filter.addAction(PositionManager.ACTION_NEW_LOCATION);
-        filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, filter);
+        // try to bind service
+        bindService(
+                new Intent(
+                    MainActivity.this, WalkersGuideService.class),
+                this,
+                Context.BIND_AUTO_CREATE);
 
         if (globalInstance.applicationWasInBackground()) {
             globalInstance.setApplicationInBackground(false);
 
             // activate sensors
-            if (! skipPositionManagerInitialisationDuringOnResume) {
-                positionManagerInstance.startGPS();
+            if (skipPositionManagerInitialisationDuringOnResume) {
+                // skip once
+                skipPositionManagerInitialisationDuringOnResume = false;
+            } else {
+                WalkersGuideService.startScan(true);
             }
-            deviceSensorManagerInstance.startSensors();
 
             // keep bt headset connection alive
             if (settingsManagerInstance.getKeepBluetoothHeadsetConnectionAlive()) {
@@ -383,7 +454,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
                 if (action == StaticShortcutAction.OPEN_PLAN_ROUTE_DIALOG) {
                     openPlanRouteDialog();
                 } else if (action == StaticShortcutAction.OPEN_SAVE_CURRENT_LOCATION_DIALOG) {
-                    SaveCurrentLocationDialog.newInstance()
+                    SaveCurrentLocationDialog.addToFavorites()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
                 } else if (action == StaticShortcutAction.OPEN_WHERE_AM_I_DIALOG) {
                     WhereAmIDialog.newInstance()
@@ -406,88 +477,102 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
         }
     }
 
+    private void registerBroadcastReceiver() {
+        if (! broadcastReceiverAlreadyRegistered) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(WalkersGuideService.ACTION_START_SCAN_RESPONSE);
+            filter.addAction(WalkersGuideService.ACTION_SERVICE_RUNNING_STATE_CHANGED);
+            filter.addAction(PositionManager.ACTION_NEW_LOCATION);
+            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
+            LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, filter);
+            broadcastReceiverAlreadyRegistered = true;
+        }
+    }
+
+
+    /**
+     * bind service
+     */
+    private WalkersGuideService walkersGuideServiceInstance = null;
+    private boolean isBound = false;
+
+    @Override public void onServiceConnected(ComponentName className, IBinder service) {
+        walkersGuideServiceInstance = ((WalkersGuideService.LocalBinder) service).getService();
+        isBound = true;
+        Timber.d("bound: isRunning=%1$s", walkersGuideServiceInstance.isRunning());
+        updateBearingDetailsButton();
+        updateLocationDetailsButton();
+    }
+
+    @Override public void onServiceDisconnected(ComponentName className) {
+        Timber.d("onServiceDisconnected");
+        walkersGuideServiceInstance = null;
+        isBound = false;
+    }
+
 
     /**
      * broadcast receiver
      */
+    private static final int PERMISSION_REQUEST_FOREGROUND_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_POST_NOTIFICATIONS = 2;
+    private static final int PERMISSION_REQUEST_ENABLE_GPS = 3;
 
+    @SuppressLint("InlinedApi, MissingPermission")
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
 
-            if (intent.getAction().equals(PositionManager.ACTION_NO_LOCATION_PROVIDER_AVAILABLE)) {
-                skipPositionManagerInitialisationDuringOnResume = true;
-                showMessage(
-                        context.getResources().getString(R.string.messageNoLocationProviderAvailable));
+            if (intent.getAction().equals(WalkersGuideService.ACTION_START_SCAN_RESPONSE)) {
+                StartScanFailure failure = (StartScanFailure) intent.getSerializableExtra(WalkersGuideService.EXTRA_START_SCAN_FAILURE);
+                if (failure == null) {
+                    return;
+                }
 
-            } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_PROVIDER_DISABLED)) {
-                Dialog enableLocationDialog = new AlertDialog.Builder(MainActivity.this)
-                    .setTitle(
-                            context.getResources().getString(R.string.enableLocationDialogTitle))
-                    .setMessage(
-                            context.getResources().getString(R.string.enableLocationDialogMessage))
-                    .setCancelable(false)
-                    .setPositiveButton(
-                            context.getResources().getString(R.string.dialogOK),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                    startActivityForResult(intent, PERMISSION_REQUEST_ENABLE_GPS);
-                                }
-                            })
-                    .setNegativeButton(
-                            context.getResources().getString(R.string.dialogCancel),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    showMessage(
-                                            context.getResources().getString(R.string.messageLocationProviderDisabled));
-                                }
-                            })
-                    .create();
-                enableLocationDialog.show();
+                switch (failure) {
 
-            } else if(intent.getAction().equals(PositionManager.ACTION_FOREGROUND_LOCATION_PERMISSION_DENIED)) {
-                if (! ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    // ask for location permission for the first time
-                    ActivityCompat.requestPermissions(
-                            MainActivity.this,
-                            new String[] {
-                                Manifest.permission.ACCESS_COARSE_LOCATION,
-                                Manifest.permission.ACCESS_FINE_LOCATION },
-                            PERMISSION_REQUEST_FOREGROUND_LOCATION);
-                } else {
-                    // open app info page on later permission requests
-                    Dialog appInfoDialog = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(
-                                context.getResources().getString(R.string.appInfoDialogTitle))
-                        .setMessage(
-                                context.getResources().getString(R.string.appInfoDialogMessage))
-                        .setCancelable(false)
-                        .setPositiveButton(
-                                context.getResources().getString(R.string.dialogOK),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        Intent appInfoIntent = new Intent(
-                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        appInfoIntent.setData(
-                                                Uri.fromParts("package", getPackageName(), null));
-                                        startActivityForResult(
-                                                appInfoIntent, PERMISSION_REQUEST_APP_SETTINGS);
-                                    }
-                                })
-                        .setNegativeButton(
-                                context.getResources().getString(R.string.dialogCancel),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        showMessage(
-                                                context.getResources().getString(R.string.messageLocationPermissionDenied));
-                                    }
-                                })
-                        .create();
-                    appInfoDialog.show();
+                    case NO_LOCATION_PROVIDER:
+                        Toast.makeText(
+                                context,
+                                context.getResources().getString(R.string.messageNoLocationProviderAvailable),
+                                Toast.LENGTH_LONG)
+                            .show();
+                        break;
+
+                    case FOREGROUND_LOCATION_PERMISSION_DENIED:
+                        ActivityCompat.requestPermissions(
+                                MainActivity.this,
+                                new String[] {
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION },
+                                PERMISSION_REQUEST_FOREGROUND_LOCATION);
+                        break;
+
+                    case POST_NOTIFICATIONS_PERMISSION_DENIED:
+                        ActivityCompat.requestPermissions(
+                                MainActivity.this,
+                                new String[] { Manifest.permission.POST_NOTIFICATIONS },
+                                PERMISSION_REQUEST_POST_NOTIFICATIONS);
+                        break;
+
+                    case LOCATION_MODULE_DISABLED:
+                        if (! WalkersGuideService.isForegroundLocationPermissionGranted()) {
+                            WalkersGuideService.sendStartScanResponseBroadcast(
+                                    StartScanFailure.FOREGROUND_LOCATION_PERMISSION_DENIED);
+                        } else {
+                            Toast.makeText(
+                                    context,
+                                    context.getResources().getString(R.string.messageLocationProviderDisabled),
+                                    Toast.LENGTH_LONG)
+                                .show();
+                        }
+                        break;
                 }
 
             } else if (drawerLayout != null && ! drawerLayout.isOpen()) {
-                if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
+                if (intent.getAction().equals(WalkersGuideService.ACTION_SERVICE_RUNNING_STATE_CHANGED)) {
+                    updateBearingDetailsButton();
+                    updateLocationDetailsButton();
+                } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                     updateBearingDetailsButton();
                 } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                     updateLocationDetailsButton();
@@ -497,67 +582,56 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     };
 
 
-    // acquire permission results
-    private static final int PERMISSION_REQUEST_ENABLE_GPS = 1;
-    private static final int PERMISSION_REQUEST_APP_SETTINGS = 2;
-    private static final int PERMISSION_REQUEST_FOREGROUND_LOCATION = 3;
-
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        registerBroadcastReceiver();
         Timber.d("onActivityResult: requestCode = %1$d", requestCode);
         switch (requestCode) {
 
-            case PERMISSION_REQUEST_ENABLE_GPS:
-                if (! PositionManager.locationServiceEnabled()) {
-                    skipPositionManagerInitialisationDuringOnResume = true;
-                    showMessage(
-                            getResources().getString(R.string.messageLocationProviderDisabled));
+            case SimpleMessageDialog.PERMISSION_REQUEST_APP_SETTINGS:
+                if (! WalkersGuideService.isForegroundLocationPermissionGranted()) {
+                    SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.messageLocationPermissionDenied))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                } else if (! WalkersGuideService.isPostNotificationsPermissionGranted()) {
+                    SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.messagePostNotificationsPermissionDenied))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
                 } else {
-                    positionManagerInstance.startGPS();
+                    skipPositionManagerInitialisationDuringOnResume = false;
+                    Timber.d("all right");
                 }
-                break;
-
-            case PERMISSION_REQUEST_APP_SETTINGS:
-                if (! PositionManager.foregroundLocationPermissionGranted()) {
-                    skipPositionManagerInitialisationDuringOnResume = true;
-                    showMessage(
-                            getResources().getString(R.string.messageLocationPermissionDenied));
-                } else {
-                    if (! PositionManager.backgroundLocationPermissionGranted()) {
-                        // warn the user about "only foreground location permission granted"
-                    }
-                    positionManagerInstance.startGPS();
-                }
-                break;
-
-            default:
                 break;
         }
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        for (int i=0; i<permissions.length; i++) {
-            if (permissions[i].equals(Manifest.permission.ACCESS_FINE_LOCATION)
-                    && requestCode == PERMISSION_REQUEST_FOREGROUND_LOCATION) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                    skipPositionManagerInitialisationDuringOnResume = true;
-                    showMessage(
-                            getResources().getString(R.string.messageLocationPermissionDenied));
-                } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        // request background location permission
-                    }
-                    positionManagerInstance.startGPS();
-                }
-                return;
-            }
-        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
+        registerBroadcastReceiver();
+        switch (requestCode) {
 
-    private void showMessage(String message) {
-        SimpleMessageDialog.newInstance(message)
-            .show(getSupportFragmentManager(), "SimpleMessageDialog");
+            case PERMISSION_REQUEST_FOREGROUND_LOCATION:
+                if (WalkersGuideService.isForegroundLocationPermissionGranted()) {
+                    WalkersGuideService.startScan(true);
+                } else {
+                    skipPositionManagerInitialisationDuringOnResume = true;
+                    SimpleMessageDialog.newInstanceWithAppInfoButton(
+                            getResources().getString(R.string.messageLocationPermissionDenied))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                }
+                break;
+
+            case PERMISSION_REQUEST_POST_NOTIFICATIONS:
+                if (WalkersGuideService.isPostNotificationsPermissionGranted()) {
+                    WalkersGuideService.startScan(true);
+                } else {
+                    skipPositionManagerInitialisationDuringOnResume = true;
+                    SimpleMessageDialog.newInstanceWithAppInfoButton(
+                            getResources().getString(R.string.messagePostNotificationsPermissionDenied))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                }
+                break;
+        }
     }
 
 
@@ -708,7 +782,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
 
 
     // GestureDetector.SimpleOnGestureListener
-    private static final long VELOCITY_THRESHOLD = 2000;
+    private static final long VELOCITY_THRESHOLD = 1500;
     private GestureDetector mDetector;
 
     private void registerFlingGestureDetector() {
@@ -730,14 +804,14 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
                             if (velocityX >= 0) {
                                 // if velocityX is positive, then it's towards right
                                 if (drawerLayout != null && drawerLayout.isOpen()) {
-                                    drawerLayout.closeDrawers();
+                                    // do nothing
                                 } else if (! hasOpenDialog()) {
                                     previousFragment();
                                 }
                             } else {
                                 // if velocityX is negative, then it's towards left
                                 if (drawerLayout != null && drawerLayout.isOpen()) {
-                                    // do nothing
+                                    drawerLayout.closeDrawers();
                                 } else if (! hasOpenDialog()) {
                                     nextFragment();
                                 }

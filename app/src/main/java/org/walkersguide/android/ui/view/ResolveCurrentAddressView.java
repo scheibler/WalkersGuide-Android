@@ -68,17 +68,9 @@ public class ResolveCurrentAddressView extends LinearLayout {
         // configure enclosing linear layout
         setOrientation(LinearLayout.VERTICAL);
 
-        // heading
-        addView(
-                new TextViewBuilder(
-                        context,
-                        getResources().getString(R.string.pointSelectFromClosestAddress))
-                    .isHeading()
-                    .create()
-                );
-
         // current address
-        layoutCurrentAddress = new TextViewAndActionButton(context, true);
+        layoutCurrentAddress = new TextViewAndActionButton(
+                context, getResources().getString(R.string.pointSelectFromClosestAddress), true);
         layoutCurrentAddress.setLayoutParams(
                 new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -97,6 +89,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        localIntentFilter.addAction(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(localIntentReceiver, localIntentFilter);
 
         // request address
@@ -153,6 +146,9 @@ public class ResolveCurrentAddressView extends LinearLayout {
                         layoutCurrentAddress.configureAsSingleObject(
                                 null, addressException.getMessage());
                     }
+
+                } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED)) {
+                    requestAddressForCurrentLocation();
                 }
             }
         }

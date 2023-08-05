@@ -1,6 +1,5 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
-import org.walkersguide.android.ui.fragment.tabs.overview.SettingsFragment;
 import org.walkersguide.android.ui.fragment.tabs.overview.OverviewFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
@@ -72,7 +71,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
      */
 
     private enum Tab {
-        OVERVIEW, SETTINGS
+        OVERVIEW
     }
 
 
@@ -88,8 +87,6 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case OVERVIEW:
                         return OverviewFragment.newInstance();
-                    case SETTINGS:
-                        return SettingsFragment.newInstance();
                 }
             }
             return null;
@@ -101,8 +98,6 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case OVERVIEW:
                         return getResources().getString(R.string.fragmentOverviewName);
-                    case SETTINGS:
-                        return getResources().getString(R.string.fragmentSettingsName);
                 }
             }
             return null;

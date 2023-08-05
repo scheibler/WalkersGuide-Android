@@ -29,7 +29,7 @@
     <shortcut
         android:shortcutId="shortcutWhereAmI"
         android:icon="@drawable/ic_launcher"
-        android:shortcutShortLabel="@string/menuItemWhereAmI"
+        android:shortcutShortLabel="@string/whereAmIDialogTitle"
         tools:ignore="UnusedAttribute" >
 
         <intent

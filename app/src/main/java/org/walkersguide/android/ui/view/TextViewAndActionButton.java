@@ -118,8 +118,9 @@ public class TextViewAndActionButton extends LinearLayout {
         this.initUi(context);
     }
 
-    public TextViewAndActionButton(Context context, boolean includeDistanceOrBearingInformation) {
+    public TextViewAndActionButton(Context context, String prefix, boolean includeDistanceOrBearingInformation) {
         super(context);
+        this.prefix = prefix;
         this.includeDistanceOrBearingInformation = includeDistanceOrBearingInformation;
         this.initUi(context);
     }
@@ -390,9 +391,9 @@ public class TextViewAndActionButton extends LinearLayout {
     private static final int MENU_ITEM_END_BEARING_SIMULATION = 15;
     private static final int MENU_ITEM_ADD_TO_EXCLUDED_FROM_ROUTING = 16;
     private static final int MENU_ITEM_REMOVE_EXCLUDE_FROM_ROUTING = 17;
-    private static final int MENU_ITEM_RENAME = 18;
-    private static final int MENU_ITEM_RESET_LAYOUT = 19;
-    private static final int MENU_ITEM_OVERVIEW = 20;
+    private static final int MENU_ITEM_OVERVIEW = 18;
+    private static final int MENU_ITEM_RENAME = 19;
+    private static final int MENU_ITEM_RESET_LAYOUT = 20;
     private static final int MENU_ITEM_ROUTE_PLANNER = 21;
     private static final int MENU_ITEM_SHARE_COORDINATES = 22;
 
@@ -477,18 +478,6 @@ public class TextViewAndActionButton extends LinearLayout {
             }
         }
 
-        // rename and reset
-        if (object instanceof Point
-                || object instanceof Route
-                || object instanceof Segment) {
-            contextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRename));
-        }
-        if (onLayoutResetListener != null) {
-            contextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_RESET_LAYOUT, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemResetLayout));
-        }
-
         // overview
         if (object instanceof Point) {
             SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
@@ -502,6 +491,18 @@ public class TextViewAndActionButton extends LinearLayout {
                         Menu.NONE, MENU_ITEM_OVERVIEW_ADD_TO_PINNED_POINTS, 0,
                         GlobalInstance.getStringResource(R.string.objectMenuItemOverviewAddToPinnedPoints));
             }
+        }
+
+        // rename and reset
+        if (object instanceof Point
+                || object instanceof Route
+                || object instanceof Segment) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_2, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRename));
+        }
+        if (onLayoutResetListener != null) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_2, MENU_ITEM_RESET_LAYOUT, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemResetLayout));
         }
 
         // route planner

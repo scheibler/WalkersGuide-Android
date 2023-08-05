@@ -120,7 +120,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
     private IntersectionScheme intersectionScheme;
     // bottom
     private TextView labelDistanceAndBearing;
-    private Button buttonPreviousRouteObject, buttonNextRouteObject;
+    private ImageButton buttonPreviousRouteObject, buttonNextRouteObject;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -296,7 +296,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
         // bottom layout
         labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
 
-        buttonPreviousRouteObject = (Button) view.findViewById(R.id.buttonPreviousRouteObject);
+        buttonPreviousRouteObject = (ImageButton) view.findViewById(R.id.buttonPreviousRouteObject);
         buttonPreviousRouteObject.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (route.hasPreviousRouteObject()) {
@@ -306,7 +306,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
             }
         });
 
-        buttonNextRouteObject = (Button) view.findViewById(R.id.buttonNextRouteObject);
+        buttonNextRouteObject = (ImageButton) view.findViewById(R.id.buttonNextRouteObject);
         buttonNextRouteObject.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 if (route.hasNextRouteObject()) {
