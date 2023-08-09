@@ -119,7 +119,7 @@ public class GlobalInstance extends Application {
                 // is run, when application was sent to background or the screen was turned off
                 ((GlobalInstance) getApplicationContext()).setApplicationInBackground(true);
                 // deactivate sensors
-                WalkersGuideService.stopScan();
+                WalkersGuideService.stopService();
                 // disable obsolete pinned shortcuts in background thread
                 Executors.newSingleThreadExecutor().execute(() -> {
                     PinnedShortcutUtility.disableObsoletePinnedShortcuts();

@@ -94,6 +94,10 @@ public abstract class ObjectWithId implements Serializable {
         return success;
     }
 
+    public boolean wasRenamed() {
+        return ! TextUtils.isEmpty(getCustomName());
+    }
+
     // favorite
     public static final String ACTION_FAVORITE_STATUS_CHANGED = "favoriteStatusChanged";
 

@@ -80,6 +80,9 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
         super.onCreate(savedInstanceState);
         getChildFragmentManager()
             .setFragmentResultListener(
+                    SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
                     WhereAmIDialog.REQUEST_RESOLVE_COORDINATES, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -272,8 +275,13 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                 } else {
                     switch (whereToPut) {
                         case HOME_ADDRESS:
+                            SaveCurrentLocationDialog.newInstance(
+                                    getResources().getString(R.string.saveCurrentLocationDialogTitleHome))
+                                .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                            break;
                         case PINNED_POINT:
-                            SaveCurrentLocationDialog.newInstance()
+                            SaveCurrentLocationDialog.newInstance(
+                                    getResources().getString(R.string.saveCurrentLocationDialogTitlePin))
                                 .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                             break;
                         default:

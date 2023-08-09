@@ -38,52 +38,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <LinearLayout
+        <include
+            layout="@layout/layout_heading_and_list_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal" >
-
-            <TextView
-                android:id="@+id/labelPinnedPointsHeading"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:focusable="true"
-                android:theme="@style/HeadingTextView" />
-
-            <ImageButton
-                android:id="@+id/buttonAddPinnedPoint"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:minWidth="@dimen/minWidth"
-                android:minHeight="@dimen/minHeight"
-                android:background="@null"
-                app:tint="@color/image"
-                android:src="@drawable/image_add"
-                android:contentDescription="@string/buttonAddPinnedPoint" />
-        </LinearLayout>
-
-        <ListView
-            android:id="@+id/listViewPinnedPoints"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="@color/divider"
-            android:dividerHeight="@dimen/listDividerHeight" />
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fillViewport="true" >
-
-            <TextView
-                android:id="@+id/labelEmptyListView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="@dimen/minHeight"
-                android:focusable="true" />
-        </ScrollView>
+            android:layout_marginTop="10dp" />
     </LinearLayout>
 
 </RelativeLayout>

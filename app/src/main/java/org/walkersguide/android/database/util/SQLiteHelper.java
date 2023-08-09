@@ -160,11 +160,17 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         if (oldVersion < 10) {
             configureDbVersion10(database);
         }
+
+        if (oldVersion < 11) {
+            // remove street courses (id 5502000) from mapping table
+            database.execSQL(
+                    "DELETE FROM mapping WHERE profile_id = 5502000;");
+        }
     }
 
 
     /*
-     * db version 10
+     * db version >= 10
      */
 
     // objects table

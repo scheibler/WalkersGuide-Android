@@ -4,6 +4,9 @@
     <!-- text: white -->
     <color name="text">#ffffff</color>
 
+    <!-- background: dark gray -->
+    <color name="background">#444444</color>
+
     <!-- divider: white -->
     <color name="divider">#ffffff</color>
 

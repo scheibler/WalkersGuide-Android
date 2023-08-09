@@ -35,7 +35,7 @@ public enum ProfileGroup {
             profileList.add(DatabaseProfile.allRoutes());
             profileList.add(DatabaseProfile.plannedRoutes());
             profileList.add(DatabaseProfile.routesFromGpxFile());
-            profileList.add(DatabaseProfile.streetCourses());
+            profileList.add(DatabaseProfile.recordedRoutes());
             return profileList;
 
         } else if (this.id == 4) {      // poi

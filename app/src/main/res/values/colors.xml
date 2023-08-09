@@ -4,6 +4,9 @@
     <!-- default: black-->
     <color name="text">#000000</color>
 
+    <!-- background: light gray -->
+    <color name="background">#eeeeee</color>
+
     <!-- divider: black-->
     <color name="divider">#000000</color>
 

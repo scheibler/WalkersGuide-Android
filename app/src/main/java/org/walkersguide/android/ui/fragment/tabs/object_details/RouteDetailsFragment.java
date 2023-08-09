@@ -283,7 +283,6 @@ public class RouteDetailsFragment extends Fragment
                     ViewCompat.setAccessibilityLiveRegion(
                             labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                     listPosition = 0;
-                    DatabaseProfile.streetCourses().add(route);
                     showRoute();
 
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {

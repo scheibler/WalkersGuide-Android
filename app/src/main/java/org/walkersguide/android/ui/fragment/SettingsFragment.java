@@ -87,6 +87,7 @@ import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDia
 import org.walkersguide.android.ui.view.TextViewAndActionButton;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.ui.fragment.RootFragment;
+import android.widget.Toast;
 
 
 public class SettingsFragment extends RootFragment implements FragmentResultListener {
@@ -463,8 +464,11 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
                     WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
                     if (wgException != null) {
-                        SimpleMessageDialog.newInstance(wgException.getMessage())
-                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                        Toast.makeText(
+                                context,
+                                wgException.getMessage(),
+                                Toast.LENGTH_LONG)
+                            .show();
                     }
                 }
             }

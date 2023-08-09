@@ -12,9 +12,8 @@
     <string name="walkersGuideServiceNotificationChannelDescription">Is shown in the notification area and on the lock screen as long as WalkersGuide is running.</string>
 
     <!-- status message -->
-    <string name="walkersGuideServiceStateForeground">Running</string>
-    <string name="walkersGuideServiceStatePaused">Paused</string>
-    <string name="walkersGuideServiceStateOff">Terminated</string>
+    <string name="walkersGuideServiceStateForeground">WalkersGuide service is running</string>
+    <string name="walkersGuideServiceStateStopped">WalkersGuide service was stopped</string>
 
     <!-- missing location provider -->
     <string name="messageNoLocationProviderAvailable">No location sensor hardware available.
@@ -44,6 +43,7 @@
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">outdated</string>
     <string name="toolbarSensorCalibrationRequired">calibrate</string>
+    <string name="labelWalkersGuideServiceNotRunningWarning">Beware</string>
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Bearing details</string>
@@ -158,7 +158,9 @@
     <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
 
     <!-- SaveCurrentLocationDialog -->
-    <string name="saveCurrentLocationDialogTitle">Current location:</string>
+    <string name="saveCurrentLocationDialogTitleFavorite">Add the current location to favorites:</string>
+    <string name="saveCurrentLocationDialogTitleHome">Use the current location as home address:</string>
+    <string name="saveCurrentLocationDialogTitlePin">Pin the current location:</string>
     <string name="labelName">Name</string>
     <string name="buttonLocationSensorDetails">Show location sensor details</string>
     <string name="messageNameMissing">Please enter a name.</string>
@@ -207,6 +209,27 @@
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>
     <string name="buttonScrollToClosestPoint">Scroll to closest point</string>
+
+    <!-- record route fragment -->
+    <string name="fragmentRecordRouteName">Record</string>
+    <string name="menuItemCancelRouteRecording">Cancel recording</string>
+    <string name="labelRecordedRouteStatus">Recorded</string>
+    <string name="buttonStartRouteRecording">Start route recording</string>
+    <string name="buttonStartRouteRecordingCD">Start automatic route recording</string>
+    <string name="buttonPauseRecording">Pause</string>
+    <string name="buttonPauseRecordingCD">Pause automatic route recording</string>
+    <string name="buttonResumeRecording">Resume</string>
+    <string name="buttonResumeRecordingCD">Resume automatic route recording</string>
+    <string name="buttonAddPointManually">Add point</string>
+    <string name="buttonAddPointManuallyCD">Add current location manually</string>
+    <string name="buttonFinishRecording">Finish</string>
+    <string name="buttonFinishRecordingCD">Finish recording and save route</string>
+    <string name="labelRecordedPointName">Point %1$d</string>
+    <string name="labelNoRecordedRoutes">No routes have been recorded yet.</string>
+    <string name="messageRouteRecordingPaused">Route recording paused</string>
+    <string name="messageRecordedRouteTooFewPoints">Can\'t save the recorded route. It still contains too few points.</string>
+    <string name="messageRecordedRouteNameIsMissing">Please enter a name for the recorded route.</string>
+    <string name="messageSaveRecordedRouteNameFailed">Error: Can\'t save the recorded route.</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
@@ -525,7 +548,6 @@
     <string name="objectMenuItemEntrances">Entrances</string>
     <string name="objectMenuItemLoad">Load</string>
     <string name="objectMenuItemStreetCourse">Street course</string>
-    <string name="objectMenuItemSave">Save</string>
     <string name="objectMenuItemRename">Rename</string>
     <string name="objectMenuItemResetLayout">Remove</string>
     <string name="objectMenuItemAddToFavorites">Add to favorites</string>
@@ -570,7 +592,7 @@
     <string name="labelSelectedRouteObject">Next way segment:</string>
 
     <!-- IntersectionScheme -->
-    <string name="labelIntersectionScheme">Map</string>
+    <string name="labelIntersectionScheme">Schematic diagram of the intersection</string>
     <string name="labelIntersectionCenter">Intersection center</string>
 
     <!-- dialog button labels -->
@@ -700,7 +722,7 @@
     <!-- route -->
     <string name="databaseProfilePlannedRoutes">Planned routes</string>
     <string name="databaseProfileRoutesFromGpxFile">GPX file imports</string>
-    <string name="databaseProfileStreetCourses">Street courses</string>
+    <string name="databaseProfileRecordedRoutes">Recorded routes</string>
     <string name="databaseProfileAllRoutes">All routes</string>
 
     <!-- FavoritesProfile -->
@@ -1014,6 +1036,12 @@
     </plurals>
 
     <plurals
+        name="manuallyAddedPoint">
+        <item quantity="one">1 manually added point</item>
+        <item quantity="other">%d manually added points</item>
+    </plurals>
+
+    <plurals
         name="pinnedPoint">
         <item quantity="one">1 pinned point</item>
         <item quantity="other">%d pinned points</item>
@@ -1047,6 +1075,12 @@
         name="route">
         <item quantity="one">1 route</item>
         <item quantity="other">%d routes</item>
+    </plurals>
+
+    <plurals
+        name="recordedRoute">
+        <item quantity="one">1 recorded route</item>
+        <item quantity="other">%d recorded Routes</item>
     </plurals>
 
     <plurals

@@ -11,9 +11,8 @@
     <string name="walkersGuideServiceNotificationChannelDescription">Wird der Benachrichtigungsleiste und im Sperrbildschirm angezeigt, solange WalkersGuide aktiv ist.</string>
 
     <!-- status message -->
-    <string name="walkersGuideServiceStateForeground">läuft</string>
-    <string name="walkersGuideServiceStatePaused">pausiert</string>
-    <string name="walkersGuideServiceStateOff">beendet</string>
+    <string name="walkersGuideServiceStateForeground">WalkersGuide Service läuft</string>
+    <string name="walkersGuideServiceStateStopped">WalkersGuide Service angehalten</string>
 
     <!-- missing location provider -->
     <string name="messageNoLocationProviderAvailable">Die App erhält keine Positionsupdates, da
@@ -43,6 +42,7 @@
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">veraltet</string>
     <string name="toolbarSensorCalibrationRequired">kalibrieren</string>
+    <string name="labelWalkersGuideServiceNotRunningWarning">Achtung</string>
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Richtungsdetails</string>
@@ -157,7 +157,9 @@
     <string name="messageGpxRouteParsingFailed">Die Route aus den extrahierten GPX Punkten konnte nicht erstellt werden.</string>
 
     <!-- SaveCurrentLocationDialog -->
-    <string name="saveCurrentLocationDialogTitle">Aktuelle Position:</string>
+    <string name="saveCurrentLocationDialogTitleFavorite">Aktuelle Position zu Favoriten hinzufügen:</string>
+    <string name="saveCurrentLocationDialogTitleHome">Aktuelle Position als Zuhause verwenden:</string>
+    <string name="saveCurrentLocationDialogTitlePin">Aktuelle Position anheften:</string>
     <string name="labelName">Name</string>
     <string name="buttonLocationSensorDetails">Standortsensordetails</string>
     <string name="messageNameMissing">Bitte gib einen Namen ein.</string>
@@ -206,6 +208,27 @@
     <!-- JumpToRoutePointDialog -->
     <string name="jumpToRoutePointDialogTitle">Springe zu Routenpunkt:</string>
     <string name="buttonScrollToClosestPoint">Zum nächstliegenden Punkt scrollen</string>
+
+    <!-- record route fragment -->
+    <string name="fragmentRecordRouteName">Aufzeichnen</string>
+    <string name="menuItemCancelRouteRecording">Aufzeichnung abbrechen</string>
+    <string name="labelRecordedRouteStatus">Aufgezeichnet</string>
+    <string name="buttonStartRouteRecording">Routenaufzeichnung starten</string>
+    <string name="buttonStartRouteRecordingCD">Automatische Routenaufzeichnung starten</string>
+    <string name="buttonPauseRecording">Pausieren</string>
+    <string name="buttonPauseRecordingCD">Automatische Routenaufzeichnung pausieren</string>
+    <string name="buttonResumeRecording">Fortsetzen</string>
+    <string name="buttonResumeRecordingCD">Automatische Routenaufzeichnung fortsetzen</string>
+    <string name="buttonAddPointManually">Manuell</string>
+    <string name="buttonAddPointManuallyCD">Aktuelle Position manuell hinzufügen</string>
+    <string name="buttonFinishRecording">Fertig</string>
+    <string name="buttonFinishRecordingCD">Aufzeichnung beenden und Route abspeichern</string>
+    <string name="labelRecordedPointName">Punkt %1$d</string>
+    <string name="labelNoRecordedRoutes">Es wurden noch keine Routen aufgezeichnet.</string>
+    <string name="messageRouteRecordingPaused">Routenaufzeichnung angehalten.</string>
+    <string name="messageRecordedRouteTooFewPoints">Die aufgezeichnete Route enthält noch zu wenige Punkte, um abgespeichert zu werden.</string>
+    <string name="messageRecordedRouteNameIsMissing">Bitte geben Sie einen Namen für die aufgezeichnete Route ein.</string>
+    <string name="messageSaveRecordedRouteNameFailed">Beim Abspeichern der aufgezeichneten Route ist ein Fehler aufgetreten.</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Blickrichtung</string>
@@ -567,7 +590,7 @@
     <string name="labelSelectedRouteObject">Nächstes Wegstück:</string>
 
     <!-- IntersectionScheme -->
-    <string name="labelIntersectionScheme">Karte</string>
+    <string name="labelIntersectionScheme">Schematische Darstellung der Kreuzung</string>
     <string name="labelIntersectionCenter">Kreuzungsmitte</string>
 
     <!-- dialog button labels -->
@@ -634,7 +657,7 @@
     <string name="sidewalkBoth">Beidseitig</string>
 
     <!-- route segment -->
-    <string name="routeSegmentNameUnknown">Unbekanntes Wegstück</string>
+    <string name="routeSegmentNameUnknown">Wegstück</string>
     <string name="routeSegmentToString">%1$s auf %2$s</string>
 
 
@@ -697,7 +720,7 @@
     <!-- route -->
     <string name="databaseProfilePlannedRoutes">Geplante Routen</string>
     <string name="databaseProfileRoutesFromGpxFile">GPX Dateiimporte</string>
-    <string name="databaseProfileStreetCourses">Wegverläufe</string>
+    <string name="databaseProfileRecordedRoutes">Aufgezeichnete Routen</string>
     <string name="databaseProfileAllRoutes">Alle Routen</string>
 
     <!-- FavoritesProfile -->
@@ -1015,6 +1038,12 @@
     </plurals>
 
     <plurals
+        name="manuallyAddedPoint">
+        <item quantity="one">1 selbst hinzugefügter Punkt</item>
+        <item quantity="other">%d selbst hinzugefügte Punkte</item>
+    </plurals>
+
+    <plurals
         name="pinnedPoint">
         <item quantity="one">1 angehefteter Punkt</item>
         <item quantity="other">%d angeheftete Punkte</item>
@@ -1048,6 +1077,12 @@
         name="route">
         <item quantity="one">1 Route</item>
         <item quantity="other">%d Routen</item>
+    </plurals>
+
+    <plurals
+        name="recordedRoute">
+        <item quantity="one">1 aufgezeichnete Route</item>
+        <item quantity="other">%d aufgezeichnete Routen</item>
     </plurals>
 
     <plurals

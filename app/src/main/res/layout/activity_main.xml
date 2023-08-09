@@ -79,6 +79,14 @@
                     android:textSize="@dimen/bigTextSize" />
             </androidx.appcompat.widget.Toolbar>
 
+            <TextView
+                android:id="@+id/labelWalkersGuideServiceNotRunningWarning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:accessibilityLiveRegion="polite"
+                android:visibility="gone" />
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/toolbarDividerHeight"
@@ -93,6 +101,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
+            android:background="@drawable/background_tab_layout"
             app:tabTextAppearance="@style/SmallTabText"
             app:tabIndicatorColor="@color/heading"
             app:tabMode="fixed"

@@ -2,7 +2,8 @@ package org.walkersguide.android.ui.activity;
 
 import android.widget.Toast;
 import org.walkersguide.android.util.WalkersGuideService;
-import org.walkersguide.android.util.WalkersGuideService.StartScanFailure;
+import org.walkersguide.android.util.WalkersGuideService.ServiceState;
+import org.walkersguide.android.util.WalkersGuideService.StartServiceFailure;
 import org.walkersguide.android.ui.fragment.SettingsFragment;
 import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.ui.dialog.InfoDialog;
@@ -90,7 +91,7 @@ import android.os.IBinder;
 
 
 public class MainActivity extends AppCompatActivity
-        implements FragmentResultListener, ServiceConnection, MainActivityController, OnTabSelectedListener {
+        implements FragmentResultListener, MainActivityController, OnTabSelectedListener {
     public static String EXTRA_NEW_TAB = "newTab";
     public static String EXTRA_CLEAR_BACK_STACK = "clearBackStack";
 
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity
     private boolean broadcastReceiverAlreadyRegistered, skipPositionManagerInitialisationDuringOnResume;
 
     private Toolbar toolbar;
-    private TextView labelToolbarTitle;
+    private TextView labelToolbarTitle, labelWalkersGuideServiceNotRunningWarning;
     private ImageButton buttonUpperLeftCorner, buttonBearingDetails, buttonLocationDetails;
 
 	private DrawerLayout drawerLayout;
@@ -155,6 +156,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         labelToolbarTitle = (TextView) findViewById(R.id.labelToolbarTitle);
+        labelWalkersGuideServiceNotRunningWarning = (TextView) findViewById(R.id.labelWalkersGuideServiceNotRunningWarning);
 
         buttonUpperLeftCorner = (ImageButton) findViewById(R.id.buttonUpperLeftCorner);
         buttonUpperLeftCorner.setOnClickListener(new View.OnClickListener() {
@@ -317,13 +319,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateBearingDetailsButton() {
-        if (walkersGuideServiceInstance != null
-                && ! walkersGuideServiceInstance.isRunning()) {
-            buttonBearingDetails.setContentDescription(
-                    walkersGuideServiceInstance.getStatusMessage());
-            return;
-        }
-
         Bearing currentBearing = deviceSensorManagerInstance.getCurrentBearing();
         StringBuilder bearingDescriptionBuilder = new StringBuilder();
 
@@ -359,13 +354,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateLocationDetailsButton() {
-        if (walkersGuideServiceInstance != null
-                && ! walkersGuideServiceInstance.isRunning()) {
-            buttonLocationDetails.setContentDescription(
-                    walkersGuideServiceInstance.getStatusMessage());
-            return;
-        }
-
         Point currentLocation = positionManagerInstance.getCurrentLocation();
         StringBuilder locationDescriptionBuilder = new StringBuilder();
 
@@ -408,14 +396,6 @@ public class MainActivity extends AppCompatActivity
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
             broadcastReceiverAlreadyRegistered = false;
         }
-
-        // unbind service
-        if (isBound) {
-            unbindService(this);
-            walkersGuideServiceInstance = null;
-            isBound = false;
-        }
-
         globalInstance.startActivityTransitionTimer();
     }
 
@@ -425,13 +405,9 @@ public class MainActivity extends AppCompatActivity
         registerBroadcastReceiver();
         displayRemainsActiveSettingChanged(
                 settingsManagerInstance.getDisplayRemainsActive());
-
-        // try to bind service
-        bindService(
-                new Intent(
-                    MainActivity.this, WalkersGuideService.class),
-                this,
-                Context.BIND_AUTO_CREATE);
+        updateBearingDetailsButton();
+        updateLocationDetailsButton();
+        WalkersGuideService.requestServiceState();
 
         if (globalInstance.applicationWasInBackground()) {
             globalInstance.setApplicationInBackground(false);
@@ -441,7 +417,7 @@ public class MainActivity extends AppCompatActivity
                 // skip once
                 skipPositionManagerInitialisationDuringOnResume = false;
             } else {
-                WalkersGuideService.startScan(true);
+                WalkersGuideService.startService();
             }
 
             // keep bt headset connection alive
@@ -480,8 +456,8 @@ public class MainActivity extends AppCompatActivity
     private void registerBroadcastReceiver() {
         if (! broadcastReceiverAlreadyRegistered) {
             IntentFilter filter = new IntentFilter();
-            filter.addAction(WalkersGuideService.ACTION_START_SCAN_RESPONSE);
-            filter.addAction(WalkersGuideService.ACTION_SERVICE_RUNNING_STATE_CHANGED);
+            filter.addAction(WalkersGuideService.ACTION_START_SERVICE_FAILED);
+            filter.addAction(WalkersGuideService.ACTION_SERVICE_STATE_CHANGED);
             filter.addAction(PositionManager.ACTION_NEW_LOCATION);
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, filter);
@@ -491,53 +467,22 @@ public class MainActivity extends AppCompatActivity
 
 
     /**
-     * bind service
-     */
-    private WalkersGuideService walkersGuideServiceInstance = null;
-    private boolean isBound = false;
-
-    @Override public void onServiceConnected(ComponentName className, IBinder service) {
-        walkersGuideServiceInstance = ((WalkersGuideService.LocalBinder) service).getService();
-        isBound = true;
-        Timber.d("bound: isRunning=%1$s", walkersGuideServiceInstance.isRunning());
-        updateBearingDetailsButton();
-        updateLocationDetailsButton();
-    }
-
-    @Override public void onServiceDisconnected(ComponentName className) {
-        Timber.d("onServiceDisconnected");
-        walkersGuideServiceInstance = null;
-        isBound = false;
-    }
-
-
-    /**
      * broadcast receiver
      */
     private static final int PERMISSION_REQUEST_FOREGROUND_LOCATION = 1;
     private static final int PERMISSION_REQUEST_POST_NOTIFICATIONS = 2;
-    private static final int PERMISSION_REQUEST_ENABLE_GPS = 3;
 
     @SuppressLint("InlinedApi, MissingPermission")
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
 
-            if (intent.getAction().equals(WalkersGuideService.ACTION_START_SCAN_RESPONSE)) {
-                StartScanFailure failure = (StartScanFailure) intent.getSerializableExtra(WalkersGuideService.EXTRA_START_SCAN_FAILURE);
+            if (intent.getAction().equals(WalkersGuideService.ACTION_START_SERVICE_FAILED)) {
+                StartServiceFailure failure = (StartServiceFailure) intent.getSerializableExtra(WalkersGuideService.EXTRA_START_SERVICE_FAILURE);
                 if (failure == null) {
                     return;
                 }
 
                 switch (failure) {
-
-                    case NO_LOCATION_PROVIDER:
-                        Toast.makeText(
-                                context,
-                                context.getResources().getString(R.string.messageNoLocationProviderAvailable),
-                                Toast.LENGTH_LONG)
-                            .show();
-                        break;
-
                     case FOREGROUND_LOCATION_PERMISSION_DENIED:
                         ActivityCompat.requestPermissions(
                                 MainActivity.this,
@@ -546,33 +491,39 @@ public class MainActivity extends AppCompatActivity
                                     Manifest.permission.ACCESS_FINE_LOCATION },
                                 PERMISSION_REQUEST_FOREGROUND_LOCATION);
                         break;
-
                     case POST_NOTIFICATIONS_PERMISSION_DENIED:
                         ActivityCompat.requestPermissions(
                                 MainActivity.this,
                                 new String[] { Manifest.permission.POST_NOTIFICATIONS },
                                 PERMISSION_REQUEST_POST_NOTIFICATIONS);
                         break;
+                }
 
-                    case LOCATION_MODULE_DISABLED:
-                        if (! WalkersGuideService.isForegroundLocationPermissionGranted()) {
-                            WalkersGuideService.sendStartScanResponseBroadcast(
-                                    StartScanFailure.FOREGROUND_LOCATION_PERMISSION_DENIED);
-                        } else {
-                            Toast.makeText(
-                                    context,
-                                    context.getResources().getString(R.string.messageLocationProviderDisabled),
-                                    Toast.LENGTH_LONG)
-                                .show();
-                        }
+            } else if (intent.getAction().equals(WalkersGuideService.ACTION_SERVICE_STATE_CHANGED)) {
+                ServiceState serviceState = (ServiceState) intent.getSerializableExtra(WalkersGuideService.EXTRA_SERVICE_STATE);
+                if (serviceState == null) {
+                    return;
+                }
+
+                switch (serviceState) {
+                    case OFF:
+                    case STOPPED:
+                        labelWalkersGuideServiceNotRunningWarning.setText(
+                                String.format(
+                                    "%1$s: %2$s",
+                                    context.getResources().getString(R.string.labelWalkersGuideServiceNotRunningWarning),
+                                    intent.getStringExtra(WalkersGuideService.EXTRA_SERVICE_MESSAGE))
+                                );
+                        labelWalkersGuideServiceNotRunningWarning.setVisibility(View.VISIBLE);
+                        break;
+                    default:
+                        labelWalkersGuideServiceNotRunningWarning.setText("");
+                        labelWalkersGuideServiceNotRunningWarning.setVisibility(View.GONE);
                         break;
                 }
 
             } else if (drawerLayout != null && ! drawerLayout.isOpen()) {
-                if (intent.getAction().equals(WalkersGuideService.ACTION_SERVICE_RUNNING_STATE_CHANGED)) {
-                    updateBearingDetailsButton();
-                    updateLocationDetailsButton();
-                } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
+                if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                     updateBearingDetailsButton();
                 } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                     updateLocationDetailsButton();
@@ -599,7 +550,6 @@ public class MainActivity extends AppCompatActivity
                         .show(getSupportFragmentManager(), "SimpleMessageDialog");
                 } else {
                     skipPositionManagerInitialisationDuringOnResume = false;
-                    Timber.d("all right");
                 }
                 break;
         }
@@ -612,7 +562,7 @@ public class MainActivity extends AppCompatActivity
 
             case PERMISSION_REQUEST_FOREGROUND_LOCATION:
                 if (WalkersGuideService.isForegroundLocationPermissionGranted()) {
-                    WalkersGuideService.startScan(true);
+                    WalkersGuideService.startService();
                 } else {
                     skipPositionManagerInitialisationDuringOnResume = true;
                     SimpleMessageDialog.newInstanceWithAppInfoButton(
@@ -623,7 +573,7 @@ public class MainActivity extends AppCompatActivity
 
             case PERMISSION_REQUEST_POST_NOTIFICATIONS:
                 if (WalkersGuideService.isPostNotificationsPermissionGranted()) {
-                    WalkersGuideService.startScan(true);
+                    WalkersGuideService.startService();
                 } else {
                     skipPositionManagerInitialisationDuringOnResume = true;
                     SimpleMessageDialog.newInstanceWithAppInfoButton(

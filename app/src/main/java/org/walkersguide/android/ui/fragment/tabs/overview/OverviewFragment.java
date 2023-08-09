@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
+import org.walkersguide.android.ui.OnUpdateUiListener;
 import androidx.core.view.MenuProvider;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import android.widget.LinearLayout.LayoutParams;
@@ -48,7 +49,8 @@ import timber.log.Timber;
 import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
 
 
-public class OverviewFragment extends Fragment implements FragmentResultListener, MenuProvider {
+public class OverviewFragment extends Fragment
+        implements FragmentResultListener, MenuProvider, OnUpdateUiListener {
     private final static String KEY_LIST_POSITION = "listPosition";
 
 	public static OverviewFragment newInstance() {
@@ -112,8 +114,11 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
 
         // pinned points
 
-        labelPinnedPointsHeading = (TextView) view.findViewById(R.id.labelPinnedPointsHeading);
-        ImageButton buttonAddPinnedPoint = (ImageButton) view.findViewById(R.id.buttonAddPinnedPoint);
+        labelPinnedPointsHeading = (TextView) view.findViewById(R.id.labelHeading);
+        ImageButton buttonAddPinnedPoint = (ImageButton) view.findViewById(R.id.buttonAdd);
+        buttonAddPinnedPoint.setContentDescription(
+                getResources().getString(R.string.buttonAddPinnedPoint));
+        buttonAddPinnedPoint.setVisibility(View.VISIBLE);
         buttonAddPinnedPoint.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 SelectRouteOrSimulationPointDialog.newInstance(
@@ -122,7 +127,7 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
             }
         });
 
-        listViewPinnedPoints = (ListView) view.findViewById(R.id.listViewPinnedPoints);
+        listViewPinnedPoints = (ListView) view.findViewById(R.id.listView);
         TextView labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
         labelEmptyListView.setText(
                 GlobalInstance.getStringResource(R.string.messageNoPinnedPoints));
@@ -180,6 +185,10 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
         requestUiUpdate();
     }
 
+    @Override public void onUpdateUi() {
+        requestUiUpdate();
+    }
+
     private void requestUiUpdate() {
         layoutClosestAddress.requestAddressForCurrentLocation();
 
@@ -210,7 +219,7 @@ public class OverviewFragment extends Fragment implements FragmentResultListener
 
         listViewPinnedPoints.setAdapter(
                 new SimpleObjectWithIdAdapter(
-                    OverviewFragment.this.getContext(), objectList));
+                    OverviewFragment.this.getContext(), objectList, this));
 
         // list position
         listViewPinnedPoints.setSelection(listPosition);

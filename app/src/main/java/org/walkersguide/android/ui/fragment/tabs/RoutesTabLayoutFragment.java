@@ -1,6 +1,7 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
 import org.walkersguide.android.ui.fragment.tabs.routes.RouterFragment;
+import org.walkersguide.android.ui.fragment.tabs.routes.RecordRouteFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
 import android.text.format.DateFormat;
@@ -71,7 +72,7 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
      */
 
     private enum Tab {
-        ROUTER, FAVORITES
+        ROUTER, FAVORITES, RECORD
     }
 
 
@@ -90,6 +91,8 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
                     case FAVORITES:
                         return ObjectListFromDatabaseFragment.createFragment(
                                 FavoritesProfile.favoriteRoutes(), SortMethod.ACCESSED_DESC);
+                    case RECORD:
+                        return RecordRouteFragment.newInstance();
                 }
             }
             return null;
@@ -103,6 +106,8 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
                         return getResources().getString(R.string.fragmentRouterName);
                     case FAVORITES:
                         return getResources().getString(R.string.fragmentFavoritesName);
+                    case RECORD:
+                        return getResources().getString(R.string.fragmentRecordRouteName);
                 }
             }
             return null;
