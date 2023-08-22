@@ -53,7 +53,7 @@
     </LinearLayout>
 
     <include
-        layout="@layout/layout_heading_and_list_view"
+        layout="@layout/layout_heading_and_list_view_without_add_button"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/layoutTop" />

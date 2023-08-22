@@ -147,7 +147,7 @@ public class TripDetailsFragment extends RootFragment
     }
 
     @Override public int getLayoutResourceId() {
-        return R.layout.layout_heading_and_list_view;
+        return R.layout.layout_heading_and_list_view_without_add_button;
     }
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {

@@ -164,6 +164,8 @@ public class SaveCurrentLocationDialog extends DialogFragment {
         IntentFilter filter = new IntentFilter();
         filter.addAction(PositionManager.ACTION_NEW_GPS_LOCATION);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
+
+        layoutName.showKeyboard();
     }
 
     @Override public void onStop() {
@@ -192,8 +194,6 @@ public class SaveCurrentLocationDialog extends DialogFragment {
     };
 
     private void tryToSaveCurrentLocation() {
-        UiHelper.hideKeyboard(SaveCurrentLocationDialog.this);
-
         // name
         String name = layoutName.getInputText();
         if (TextUtils.isEmpty(name)) {
@@ -203,6 +203,7 @@ public class SaveCurrentLocationDialog extends DialogFragment {
                     Toast.LENGTH_LONG).show();
             return;
         }
+        UiHelper.hideKeyboard(SaveCurrentLocationDialog.this);
 
         // check if current location is available
         if (currentLocation == null) {

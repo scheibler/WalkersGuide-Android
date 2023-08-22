@@ -331,19 +331,13 @@ public class WalkersGuideService extends Service implements LocationUpdate {
 
                     String routeName = intent.getStringExtra(EXTRA_ROUTE_NAME);
                     if (TextUtils.isEmpty(routeName)) {
-                        Toast.makeText(
-                                WalkersGuideService.this,
-                                getResources().getString(R.string.messageRecordedRouteNameIsMissing),
-                                Toast.LENGTH_LONG)
-                            .show();
+                        sendRouteRecordingFailedBroadcast(
+                                getResources().getString(R.string.messageRecordedRouteNameIsMissing));
                         break;
                     }
                     if (recordedPointList.size() < 2) {
-                        Toast.makeText(
-                                WalkersGuideService.this,
-                                getResources().getString(R.string.messageRecordedRouteTooFewPoints),
-                                Toast.LENGTH_LONG)
-                            .show();
+                        sendRouteRecordingFailedBroadcast(
+                                getResources().getString(R.string.messageRecordedRouteTooFewPoints));
                         break;
                     }
 
@@ -353,12 +347,14 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                         routeRecordingState = RouteRecordingState.OFF;
                         recordedPointList.clear();
                         sendRouteRecordingChangedBroadcast();
-                    } else {
                         Toast.makeText(
                                 WalkersGuideService.this,
-                                getResources().getString(R.string.messageSaveRecordedRouteNameFailed),
+                                getResources().getString(R.string.messageSaveRecordedRouteSuccessful),
                                 Toast.LENGTH_LONG)
                             .show();
+                    } else {
+                        sendRouteRecordingFailedBroadcast(
+                                getResources().getString(R.string.messageSaveRecordedRouteFailed));
                     }
                     break;
             }
@@ -726,6 +722,18 @@ public class WalkersGuideService extends Service implements LocationUpdate {
         intent.putExtra(EXTRA_DISTANCE, getDistanceBetweenRecordedPoints());
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
+
+    // route recording failed broadcast
+    public static final String ACTION_ROUTE_RECORDING_FAILED = String.format(
+            "%1$s.action.routeRecordingFailed", BuildConfig.APPLICATION_ID);
+    public static final String EXTRA_ROUTE_RECORDING_FAILED_MESSAGE = "routeRecordingFailedMessage";
+
+    private void sendRouteRecordingFailedBroadcast(String message) {
+        Intent intent = new Intent(ACTION_ROUTE_RECORDING_FAILED);
+        intent.putExtra(EXTRA_ROUTE_RECORDING_FAILED_MESSAGE, message);
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
+    }
+
 
     public ArrayList<GPS> getRecordedPointList() {
         return this.recordedPointList;

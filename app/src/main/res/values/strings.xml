@@ -213,15 +213,15 @@
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Record</string>
     <string name="menuItemCancelRouteRecording">Cancel recording</string>
+    <string name="cancelRouteRecordingDialogTitle">Do you really want to cancel the route recording?</string>
     <string name="labelRecordedRouteStatus">Recorded</string>
     <string name="buttonStartRouteRecording">Start route recording</string>
-    <string name="buttonStartRouteRecordingCD">Start automatic route recording</string>
     <string name="buttonPauseRecording">Pause</string>
-    <string name="buttonPauseRecordingCD">Pause automatic route recording</string>
+    <string name="buttonPauseRecordingCD">Pause route recording</string>
     <string name="buttonResumeRecording">Resume</string>
-    <string name="buttonResumeRecordingCD">Resume automatic route recording</string>
+    <string name="buttonResumeRecordingCD">Resume route recording</string>
     <string name="buttonAddPointManually">Add point</string>
-    <string name="buttonAddPointManuallyCD">Add current location manually</string>
+    <string name="buttonAddPointManuallyCD">Add current location</string>
     <string name="buttonFinishRecording">Finish</string>
     <string name="buttonFinishRecordingCD">Finish recording and save route</string>
     <string name="labelRecordedPointName">Point %1$d</string>
@@ -229,7 +229,8 @@
     <string name="messageRouteRecordingPaused">Route recording paused</string>
     <string name="messageRecordedRouteTooFewPoints">Can\'t save the recorded route. It still contains too few points.</string>
     <string name="messageRecordedRouteNameIsMissing">Please enter a name for the recorded route.</string>
-    <string name="messageSaveRecordedRouteNameFailed">Error: Can\'t save the recorded route.</string>
+    <string name="messageSaveRecordedRouteFailed">Error: Can\'t save the recorded route.</string>
+    <string name="messageSaveRecordedRouteSuccessful">Route was saved successfully.</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
@@ -583,6 +584,9 @@
     <string name="renameRouteDialogTitle">Rename route</string>
     <string name="renameSegmentDialogTitle">Rename segment</string>
     <string name="messageRenameObjectFailed">Rename object failed.</string>
+
+    <!-- EnterRouteNameDialog -->
+    <string name="enterRouteNameDialogTitle">Route name:</string>
 
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Clear</string>

@@ -26,12 +26,14 @@ public class SimpleObjectWithIdAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<? extends ObjectWithId> objectList;
     private OnUpdateUiListener onUpdateUiListener;
+    private boolean autoUpdate;
 
     public SimpleObjectWithIdAdapter(Context context, ArrayList<? extends ObjectWithId> objectList,
-            OnUpdateUiListener onUpdateUiListener) {
+            OnUpdateUiListener onUpdateUiListener, boolean autoUpdate) {
         this.context = context;
         this.objectList = objectList;
         this.onUpdateUiListener = onUpdateUiListener;
+        this.autoUpdate = autoUpdate;
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -64,6 +66,7 @@ public class SimpleObjectWithIdAdapter extends BaseAdapter {
 
         layoutTextViewAndActionButton.configureAsListItem(
                 object, true, listenerRemoveObject);
+        layoutTextViewAndActionButton.setAutoUpdate(autoUpdate);
         return layoutTextViewAndActionButton;
     }
 

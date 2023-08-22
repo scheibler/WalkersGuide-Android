@@ -156,7 +156,7 @@ public class RouteDetailsFragment extends Fragment
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
+		return inflater.inflate(R.layout.layout_heading_and_list_view_without_add_button, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {

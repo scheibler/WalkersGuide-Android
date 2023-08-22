@@ -2,6 +2,7 @@ package org.walkersguide.android.server.pt;
 
 import java.util.EnumSet;
 import de.schildbach.pte.NetworkProvider.Optimize;
+import de.schildbach.pte.NetworkProvider.WalkSpeed;
 import de.schildbach.pte.dto.Stop;
 import de.schildbach.pte.dto.Trip;
 import de.schildbach.pte.dto.QueryTripsResult;
@@ -52,11 +53,11 @@ public class TripDetailsTask extends ServerTask {
 
         Timber.d("Request: from %1$s to %2$s at %3$s", this.station.toString(), this.departure.toString(), departure.plannedTime.toString());
         Date departureTime = PtUtility.getDepartureTime(this.departure);
-        TripOptions options = new TripOptions(null, Optimize.LEAST_CHANGES, null, null, null);
-        if (this.departure.line != null && this.departure.line.product != null) {
-            options = new TripOptions(
-                    EnumSet.of(this.departure.line.product), Optimize.LEAST_CHANGES, null, null, null);
-        }
+        TripOptions options = new TripOptions(
+                this.departure.line != null && this.departure.line.product != null
+                ? EnumSet.of(this.departure.line.product)
+                : null,
+                Optimize.LEAST_CHANGES, WalkSpeed.SLOW, null, null);
 
         QueryTripsResult tripsResult = null;
         try {

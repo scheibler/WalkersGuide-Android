@@ -33,6 +33,7 @@ import android.os.Handler;
 import android.os.Looper;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
+import org.walkersguide.android.ui.dialog.select.EnterRouteNameDialog;
 import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
 import org.walkersguide.android.data.object_with_id.Point;
 import androidx.annotation.NonNull;
@@ -58,6 +59,16 @@ import java.util.Locale;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.fragment.app.DialogFragment;
+import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
+import android.app.Dialog;
+import android.view.inputmethod.EditorInfo;
+import android.content.DialogInterface;
+import androidx.appcompat.app.AlertDialog;
+import org.walkersguide.android.ui.UiHelper;
+import android.text.TextUtils;
+import android.widget.Toast;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 
 
 public class RecordRouteFragment extends Fragment
@@ -70,7 +81,7 @@ public class RecordRouteFragment extends Fragment
 	}
 
     private TextView labelRecordedRouteStatus;
-    private Button buttonStartRouteRecording, buttonPauseOrResumeRecording;
+    private Button buttonStartRouteRecording, buttonPauseOrResumeRecording, buttonFinishRecording;
     private LinearLayout layoutRouteRecordingInProgress;
 
     // recorded routes
@@ -83,12 +94,18 @@ public class RecordRouteFragment extends Fragment
         getChildFragmentManager()
             .setFragmentResultListener(
                     SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    EnterRouteNameDialog.REQUEST_ENTER_ROUTE_NAME, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION)) {
             WalkersGuideService.addPointToRecordedRoute(
                     (GPS) bundle.getSerializable(SaveCurrentLocationDialog.EXTRA_CURRENT_LOCATION));
+        } else if (requestKey.equals(EnterRouteNameDialog.REQUEST_ENTER_ROUTE_NAME)) {
+            WalkersGuideService.finishRouteRecording(
+                    bundle.getString(EnterRouteNameDialog.EXTRA_ROUTE_NAME));
         }
     }
 
@@ -134,15 +151,11 @@ public class RecordRouteFragment extends Fragment
             }
         });
 
-        Button buttonFinishRecording = (Button) view.findViewById(R.id.buttonFinishRecording);
+        buttonFinishRecording = (Button) view.findViewById(R.id.buttonFinishRecording);
         buttonFinishRecording.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.ROOT);
-                WalkersGuideService.finishRouteRecording(
-                        String.format(
-                            "testroute vom %1$s",
-                            sdf.format(new Date(System.currentTimeMillis())))
-                        );
+                EnterRouteNameDialog.newInstance()
+                    .show(getChildFragmentManager(), "EnterRouteNameDialog");
             }
         });
 
@@ -172,7 +185,26 @@ public class RecordRouteFragment extends Fragment
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menuItemCancelRouteRecording) {
-            WalkersGuideService.cancelRouteRecording();
+            Dialog cancelRouteRecordingDialog = new AlertDialog.Builder(getActivity())
+                .setMessage(getResources().getString(R.string.cancelRouteRecordingDialogTitle))
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogYes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                WalkersGuideService.cancelRouteRecording();
+                                dialog.dismiss();
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogNo),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                .create();
+            cancelRouteRecordingDialog.show();
+
         } else {
             return false;
         }
@@ -194,6 +226,7 @@ public class RecordRouteFragment extends Fragment
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(WalkersGuideService.ACTION_ROUTE_RECORDING_CHANGED);
+        filter.addAction(WalkersGuideService.ACTION_ROUTE_RECORDING_FAILED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
 
         requestUiUpdate();
@@ -241,7 +274,7 @@ public class RecordRouteFragment extends Fragment
 
         listViewRecordedRoutes.setAdapter(
                 new SimpleObjectWithIdAdapter(
-                    RecordRouteFragment.this.getContext(), objectList, this));
+                    RecordRouteFragment.this.getContext(), objectList, this, false));
 
         // list position
         listViewRecordedRoutes.setSelection(listPosition);
@@ -262,10 +295,12 @@ public class RecordRouteFragment extends Fragment
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
+
             if (intent.getAction().equals(WalkersGuideService.ACTION_ROUTE_RECORDING_CHANGED)) {
                 RouteRecordingState recordingState = (RouteRecordingState) intent.getSerializableExtra(WalkersGuideService.EXTRA_RECORDING_STATE);
                 if (recordingState != null) {
                     switch (recordingState) {
+
                         case RUNNING:
                         case PAUSED:
                             String message = GlobalInstance.getPluralResource(
@@ -285,6 +320,7 @@ public class RecordRouteFragment extends Fragment
                                         context.getResources().getString(R.string.labelRecordedRouteStatus),
                                         message)
                                     );
+
                             buttonStartRouteRecording.setVisibility(View.GONE);
                             layoutRouteRecordingInProgress.setVisibility(View.VISIBLE);
                             buttonPauseOrResumeRecording.setText(
@@ -295,11 +331,20 @@ public class RecordRouteFragment extends Fragment
                                     recordingState == RouteRecordingState.RUNNING
                                     ? context.getResources().getString(R.string.buttonPauseRecordingCD)
                                     : context.getResources().getString(R.string.buttonResumeRecordingCD));
+                            buttonFinishRecording.setVisibility(
+                                    intent.getIntExtra(WalkersGuideService.EXTRA_NUMBER_OF_POINTS, 0) >= 2
+                                    ? View.VISIBLE : View.GONE);
                             break;
+
                         default:
                             requestUiUpdate();
                     }
                 }
+
+            } else if (intent.getAction().equals(WalkersGuideService.ACTION_ROUTE_RECORDING_FAILED)) {
+                SimpleMessageDialog.newInstance(
+                        intent.getStringExtra(WalkersGuideService.EXTRA_ROUTE_RECORDING_FAILED_MESSAGE))
+                    .show(getChildFragmentManager(), "SimpleMessageDialog");
             }
         }
     };

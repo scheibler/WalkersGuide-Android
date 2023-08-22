@@ -32,6 +32,7 @@ import java.lang.ClassLoader;
 import androidx.annotation.RequiresApi;
 import android.content.res.TypedArray;
 import android.annotation.TargetApi;
+import android.view.inputmethod.InputMethodManager;
 
 
 public class EditTextAndClearInputButton extends LinearLayout {
@@ -143,6 +144,16 @@ public class EditTextAndClearInputButton extends LinearLayout {
                 return false;
             }
         });
+    }
+
+    public void showKeyboard() {
+        editInput.requestFocus();
+        editInput.postDelayed(new Runnable() {
+            @Override public void run() {
+                InputMethodManager imm = (InputMethodManager) GlobalInstance.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(editInput, InputMethodManager.SHOW_IMPLICIT);
+            }
+        }, 500);
     }
 
 

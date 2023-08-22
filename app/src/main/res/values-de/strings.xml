@@ -212,15 +212,15 @@
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Aufzeichnen</string>
     <string name="menuItemCancelRouteRecording">Aufzeichnung abbrechen</string>
+    <string name="cancelRouteRecordingDialogTitle">Soll die Routenaufzeichnung wirklich abgebrochen werden?</string>
     <string name="labelRecordedRouteStatus">Aufgezeichnet</string>
     <string name="buttonStartRouteRecording">Routenaufzeichnung starten</string>
-    <string name="buttonStartRouteRecordingCD">Automatische Routenaufzeichnung starten</string>
     <string name="buttonPauseRecording">Pausieren</string>
-    <string name="buttonPauseRecordingCD">Automatische Routenaufzeichnung pausieren</string>
+    <string name="buttonPauseRecordingCD">Routenaufzeichnung pausieren</string>
     <string name="buttonResumeRecording">Fortsetzen</string>
-    <string name="buttonResumeRecordingCD">Automatische Routenaufzeichnung fortsetzen</string>
-    <string name="buttonAddPointManually">Manuell</string>
-    <string name="buttonAddPointManuallyCD">Aktuelle Position manuell hinzufügen</string>
+    <string name="buttonResumeRecordingCD">Routenaufzeichnung fortsetzen</string>
+    <string name="buttonAddPointManually">Hinzufügen</string>
+    <string name="buttonAddPointManuallyCD">Aktuelle Position hinzufügen</string>
     <string name="buttonFinishRecording">Fertig</string>
     <string name="buttonFinishRecordingCD">Aufzeichnung beenden und Route abspeichern</string>
     <string name="labelRecordedPointName">Punkt %1$d</string>
@@ -228,7 +228,8 @@
     <string name="messageRouteRecordingPaused">Routenaufzeichnung angehalten.</string>
     <string name="messageRecordedRouteTooFewPoints">Die aufgezeichnete Route enthält noch zu wenige Punkte, um abgespeichert zu werden.</string>
     <string name="messageRecordedRouteNameIsMissing">Bitte geben Sie einen Namen für die aufgezeichnete Route ein.</string>
-    <string name="messageSaveRecordedRouteNameFailed">Beim Abspeichern der aufgezeichneten Route ist ein Fehler aufgetreten.</string>
+    <string name="messageSaveRecordedRouteFailed">Beim Abspeichern der aufgezeichneten Route ist ein Fehler aufgetreten.</string>
+    <string name="messageSaveRecordedRouteSuccessful">Route erfolgreich gespeichert.</string>
 
     <!-- ObjectListFragment -->
     <string name="labelHeadingSecondLineViewingDirection">Blickrichtung</string>
@@ -581,6 +582,9 @@
     <string name="renameRouteDialogTitle">Route umbenennen:</string>
     <string name="renameSegmentDialogTitle">Wegstück umbenennen:</string>
     <string name="messageRenameObjectFailed">Umbenennen ist fehlgeschlagen.</string>
+
+    <!-- EnterRouteNameDialog -->
+    <string name="enterRouteNameDialogTitle">Name der Route:</string>
 
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Löschen</string>

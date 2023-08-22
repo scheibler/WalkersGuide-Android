@@ -21,7 +21,8 @@
             android:id="@+id/buttonHistory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/buttonHistory" />
+            android:text="@string/buttonHistory"
+            android:textSize="@dimen/bigTextSize" />
     </LinearLayout>
 
 
@@ -39,7 +40,7 @@
             android:layout_height="wrap_content" />
 
         <include
-            layout="@layout/layout_heading_and_list_view"
+            layout="@layout/layout_heading_and_list_view_without_swipe_to_refresh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp" />

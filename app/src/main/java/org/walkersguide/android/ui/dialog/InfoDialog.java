@@ -41,6 +41,7 @@ import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 import android.widget.Button;
 import android.content.DialogInterface;
+import android.widget.Toast;
 
 
 public class InfoDialog extends DialogFragment {
@@ -220,8 +221,11 @@ public class InfoDialog extends DialogFragment {
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
                     WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
                     if (wgException != null) {
-                        SimpleMessageDialog.newInstance(wgException.getMessage())
-                            .show(getChildFragmentManager(), "SimpleMessageDialog");
+                        Toast.makeText(
+                                context,
+                                wgException.getMessage(),
+                                Toast.LENGTH_LONG)
+                            .show();
                     }
                 }
             }

@@ -47,6 +47,9 @@ import android.widget.Button;
 import androidx.lifecycle.Lifecycle;
 import timber.log.Timber;
 import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import androidx.appcompat.app.AlertDialog;
 
 
 public class OverviewFragment extends Fragment
@@ -162,8 +165,31 @@ public class OverviewFragment extends Fragment
             requestUiUpdate();
 
         } else if (item.getItemId() == R.id.menuItemClearPinnedPoints) {
-            AccessDatabase.getInstance().clearDatabaseProfile(DatabaseProfile.pinnedPoints());
-            requestUiUpdate();
+            final DatabaseProfile pinnedPointsProfile = DatabaseProfile.pinnedPoints();
+            Dialog clearPinnedPointsProfileDialog = new AlertDialog.Builder(getActivity())
+                .setMessage(
+                        String.format(
+                            getResources().getString(R.string.clearProfileDialogTitle),
+                            pinnedPointsProfile.getName())
+                        )
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogYes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                AccessDatabase.getInstance().clearDatabaseProfile(pinnedPointsProfile);
+                                requestUiUpdate();
+                                dialog.dismiss();
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogNo),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                .create();
+            clearPinnedPointsProfileDialog.show();
 
         } else {
             return false;
@@ -219,7 +245,7 @@ public class OverviewFragment extends Fragment
 
         listViewPinnedPoints.setAdapter(
                 new SimpleObjectWithIdAdapter(
-                    OverviewFragment.this.getContext(), objectList, this));
+                    OverviewFragment.this.getContext(), objectList, this, true));
 
         // list position
         listViewPinnedPoints.setSelection(listPosition);
