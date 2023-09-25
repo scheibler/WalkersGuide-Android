@@ -83,7 +83,7 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import android.widget.Toast;
 import org.walkersguide.android.data.object_with_id.Route;
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.object_with_id.route.RouteObject;
 import org.walkersguide.android.data.angle.Turn;
@@ -343,7 +343,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
 
                     Route route = createRouteFromRecordedPointList(routeName);
                     if (route != null
-                            && DatabaseProfile.recordedRoutes().add(route)) {
+                            && StaticProfile.recordedRoutes().add(route)) {
                         routeRecordingState = RouteRecordingState.OFF;
                         recordedPointList.clear();
                         sendRouteRecordingChangedBroadcast();

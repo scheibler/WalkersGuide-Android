@@ -36,7 +36,7 @@ public class PoiCategory implements Serializable {
     public static final String PEDESTRIAN_CROSSINGS = "pedestrian_crossings";
 
 
-    // json
+    // json helper functions
 
     public static ArrayList<PoiCategory> listFromJson(JSONArray jsonPoiCategoryIdList) {
         ArrayList<PoiCategory> poiCategoryList = new ArrayList<PoiCategory>();

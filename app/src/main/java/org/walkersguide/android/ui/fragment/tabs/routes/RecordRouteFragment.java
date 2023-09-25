@@ -1,14 +1,13 @@
 package org.walkersguide.android.ui.fragment.tabs.routes;
 
-import org.walkersguide.android.ui.OnUpdateUiListener;
+import org.walkersguide.android.ui.interfaces.ViewChangedListener;
+import org.walkersguide.android.ui.dialog.template.EnterStringDialog;
 import android.content.IntentFilter;
 import androidx.core.view.MenuProvider;
 import org.walkersguide.android.util.WalkersGuideService;
 import org.walkersguide.android.util.WalkersGuideService.RouteRecordingState;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import android.widget.LinearLayout.LayoutParams;
-import org.walkersguide.android.ui.fragment.tabs.HistoryTabLayoutFragment;
-import org.walkersguide.android.ui.adapter.SimpleObjectWithIdAdapter;
 import org.walkersguide.android.R;
 
 import android.os.Bundle;
@@ -27,14 +26,11 @@ import org.walkersguide.android.data.ObjectWithId;
 import java.util.ArrayList;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.database.DatabaseProfileRequest;
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.database.SortMethod;
 import android.os.Handler;
 import android.os.Looper;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.select.EnterRouteNameDialog;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
 import org.walkersguide.android.data.object_with_id.Point;
 import androidx.annotation.NonNull;
 import android.view.Menu;
@@ -69,10 +65,11 @@ import org.walkersguide.android.ui.UiHelper;
 import android.text.TextUtils;
 import android.widget.Toast;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
 
 
-public class RecordRouteFragment extends Fragment
-        implements FragmentResultListener, MenuProvider, OnUpdateUiListener {
+public class RecordRouteFragment extends Fragment implements FragmentResultListener, MenuProvider {
     private final static String KEY_LIST_POSITION = "listPosition";
 
 	public static RecordRouteFragment newInstance() {
@@ -86,8 +83,8 @@ public class RecordRouteFragment extends Fragment
 
     // recorded routes
     private int listPosition;
-    private TextView labelRecordedRoutesHeading;
-	private ListView listViewRecordedRoutes;
+    //private TextView labelRecordedRoutesHeading;
+	//private ListView listViewRecordedRoutes;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -145,7 +142,7 @@ public class RecordRouteFragment extends Fragment
         Button buttonAddPointManually = (Button) view.findViewById(R.id.buttonAddPointManually);
         buttonAddPointManually.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                SaveCurrentLocationDialog.newInstance(
+                SaveCurrentLocationDialog.sendResultBundle(
                         getResources().getString(R.string.buttonAddPointManuallyCD))
                     .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
             }
@@ -161,12 +158,26 @@ public class RecordRouteFragment extends Fragment
 
         // recorded routes
 
+        /*
         labelRecordedRoutesHeading = (TextView) view.findViewById(R.id.labelHeading);
         listViewRecordedRoutes = (ListView) view.findViewById(R.id.listView);
         TextView labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
         labelEmptyListView.setText(
                 GlobalInstance.getStringResource(R.string.labelNoRecordedRoutes));
         listViewRecordedRoutes.setEmptyView(labelEmptyListView);
+        */
+
+        String tag = "recordedRoutes";
+        // only replace, if the fragment is not already attached
+        if (getChildFragmentManager().findFragmentByTag(tag) == null) {
+            getChildFragmentManager()
+                .beginTransaction()
+                .replace(
+                        R.id.fragmentContainerRecordedRouteList,
+                        ObjectListFromDatabaseFragment.createFragment(StaticProfile.recordedRoutes()),
+                        tag)
+                .commit();
+        }
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -229,16 +240,11 @@ public class RecordRouteFragment extends Fragment
         filter.addAction(WalkersGuideService.ACTION_ROUTE_RECORDING_FAILED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
 
-        requestUiUpdate();
+        setRecordRouteUiToDefaults();
         WalkersGuideService.requestRouteRecordingState();
     }
 
-    @Override public void onUpdateUi() {
-        requestUiUpdate();
-    }
-
-    private void requestUiUpdate() {
-        // set route recording ui to defaults
+    private void setRecordRouteUiToDefaults() {
         labelRecordedRouteStatus.setText(
                 String.format(
                     "%1$s: %2$s",
@@ -247,6 +253,10 @@ public class RecordRouteFragment extends Fragment
                 );
         buttonStartRouteRecording.setVisibility(View.VISIBLE);
         layoutRouteRecordingInProgress.setVisibility(View.GONE);
+    }
+
+    /*
+//import org.walkersguide.android.ui.adapter.SimpleObjectWithIdAdapter;
 
         labelRecordedRoutesHeading.setText(
                 GlobalInstance.getPluralResource(R.plurals.recordedRoute, 0));
@@ -257,7 +267,7 @@ public class RecordRouteFragment extends Fragment
             final ArrayList<ObjectWithId> objectList = AccessDatabase
                 .getInstance()
                 .getObjectListFor(
-                        new DatabaseProfileRequest(DatabaseProfile.recordedRoutes()));
+                        new DatabaseProfileRequest(StaticProfile.recordedRoutes()));
             (new Handler(Looper.getMainLooper())).post(() -> {
                 if (isAdded()) {
                     if (! objectList.isEmpty()) {
@@ -266,7 +276,6 @@ public class RecordRouteFragment extends Fragment
                 }
             });
         });
-    }
 
     private void loadRecordedRoutesSuccessful(ArrayList<ObjectWithId> objectList) {
         labelRecordedRoutesHeading.setText(
@@ -286,7 +295,7 @@ public class RecordRouteFragment extends Fragment
                 }
             }
         });
-    }
+    }*/
 
 
     /**
@@ -337,7 +346,8 @@ public class RecordRouteFragment extends Fragment
                             break;
 
                         default:
-                            requestUiUpdate();
+                            setRecordRouteUiToDefaults();
+                            ViewChangedListener.sendObjectWithIdListChangedBroadcast();
                     }
                 }
 
@@ -348,5 +358,32 @@ public class RecordRouteFragment extends Fragment
             }
         }
     };
+
+    public static class EnterRouteNameDialog extends EnterStringDialog {
+        public static final String REQUEST_ENTER_ROUTE_NAME = "requestEnterRouteName";
+        public static final String EXTRA_ROUTE_NAME = "extraRouteName";
+
+
+        public static EnterRouteNameDialog newInstance() {
+            EnterRouteNameDialog dialog = new EnterRouteNameDialog();
+            return dialog;
+        }
+
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setDialogTitle(
+                    getResources().getString(R.string.enterRouteNameDialogTitle));
+            setMissingInputMessage(
+                    getResources().getString(R.string.messageRecordedRouteNameIsMissing));
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        @Override public void execute(String input) {
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_ROUTE_NAME, input);
+            getParentFragmentManager().setFragmentResult(REQUEST_ENTER_ROUTE_NAME, result);
+            dismiss();
+        }
+    }
 
 }

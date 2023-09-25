@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
@@ -262,7 +263,7 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
     };
 
     private void addressSelected(StreetAddress address) {
-        DatabaseProfile.addressPoints().add(address);
+        HistoryProfile.addressPoints().add(address);
         // return
         Bundle result = new Bundle();
         result.putSerializable(EXTRA_STREET_ADDRESS, address);

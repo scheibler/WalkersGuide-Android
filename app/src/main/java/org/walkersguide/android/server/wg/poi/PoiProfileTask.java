@@ -1,6 +1,6 @@
 package org.walkersguide.android.server.wg.poi;
 
-import org.walkersguide.android.database.profile.FavoritesProfile;
+import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.server.wg.WgException;
@@ -66,7 +66,7 @@ public class PoiProfileTask extends ServerTask {
             || cachedResult.getCenter().distanceTo(newLocation) > (cachedResult.getLookupRadius() * 0.33);
         int initialRadius;
         if (this.request.getProfile().getPoiCategoryList().isEmpty()) {
-            initialRadius = PoiProfileResult.INITIAL_LOCAL_FAVORITES_RADIUS;
+            initialRadius = PoiProfileResult.INITIAL_LOCAL_COLLECTION_RADIUS;
         } else if (this.request.hasSearchTerm()) {
             initialRadius = PoiProfileResult.INITIAL_SEARCH_RADIUS;
         } else {
@@ -159,23 +159,23 @@ public class PoiProfileTask extends ServerTask {
             }
         }
 
-        // include points from favorite ids
+        // include points from collections
         ArrayList<Point> newAllPointList = new ArrayList<Point>(newOnlyPoiList);
-        if (this.request.getProfile().getIncludeFavorites()) {
-            int newAllPointListLookupRadius = PoiProfileResult.calculateLookupRadius(
-                    newAllPointList, newCenter, newRadius, newNumberOfResults);
+        int newAllPointListLookupRadius = PoiProfileResult.calculateLookupRadius(
+                newAllPointList, newCenter, newRadius, newNumberOfResults);
+        for (Collection collection : request.getProfile().getCollectionList()) {
             DatabaseProfileRequest databaseProfileRequest = new DatabaseProfileRequest(
-                    FavoritesProfile.favoritePoints(), request.getSearchTerm(), SortMethod.DISTANCE_ASC);
+                    collection, request.getSearchTerm(), SortMethod.DISTANCE_ASC);
             for (ObjectWithId objectWithId : accessDatabaseInstance.getObjectListFor(databaseProfileRequest)) {
                 if (objectWithId instanceof Point) {
-                    Point favorite = (Point) objectWithId;
-                    if (newCenter.distanceTo(favorite) > newAllPointListLookupRadius) {
-                        // favorites sorted by distance (ascending), therefore "break" instead of "continue"
+                    Point collectionPoint = (Point) objectWithId;
+                    if (newCenter.distanceTo(collectionPoint) > newAllPointListLookupRadius) {
+                        // collections sorted by distance (ascending), therefore "break" instead of "continue"
                         break;
                     }
                     // add if not already present
-                    if (! newAllPointList.contains(favorite)) {
-                        newAllPointList.add(favorite);
+                    if (! newAllPointList.contains(collectionPoint)) {
+                        newAllPointList.add(collectionPoint);
                     }
                 }
             }

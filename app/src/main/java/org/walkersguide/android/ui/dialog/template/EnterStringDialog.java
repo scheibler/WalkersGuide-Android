@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.dialog.select;
+package org.walkersguide.android.ui.dialog.template;
 
 import android.app.Dialog;
 
@@ -23,41 +23,53 @@ import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 
 
-public class EnterRouteNameDialog extends DialogFragment {
-    public static final String REQUEST_ENTER_ROUTE_NAME = "requestEnterRouteName";
-    public static final String EXTRA_ROUTE_NAME = "extraRouteName";
+public abstract class EnterStringDialog extends DialogFragment {
 
+    private String initialInput = "";
+    public void setInitialInput(String initialInput) {
+        this.initialInput = initialInput;
+    }
 
-    public static EnterRouteNameDialog newInstance() {
-        EnterRouteNameDialog dialog = new EnterRouteNameDialog();
-        return dialog;
+    private String dialogTitle = "";
+    public void setDialogTitle(String dialogTitle) {
+        this.dialogTitle = dialogTitle;
+    }
+
+    private String positiveButtonText = getResources().getString(R.string.dialogOK);
+    public void setPositiveButtonText(String positiveButtonText) {
+        this.positiveButtonText = positiveButtonText;
+    }
+
+    private String missingInputMessage = "";
+    public void setMissingInputMessage(String missingInputMessage) {
+        this.missingInputMessage = missingInputMessage;
     }
 
 
     // dialog
-    private static final String KEY_ROUTE_NAME = "routeName";
+    private static final String KEY_INPUT = "input";
 
-    private EditTextAndClearInputButton layoutRouteName;
+    private EditTextAndClearInputButton layoutInput;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        layoutRouteName = new EditTextAndClearInputButton(getActivity());
-        layoutRouteName.setInputText(
+        layoutInput = new EditTextAndClearInputButton(getActivity());
+        layoutInput.setInputText(
                 savedInstanceState != null
-                ? savedInstanceState.getString(KEY_ROUTE_NAME)
-                : "");
-        layoutRouteName.setEditorAction(
+                ? savedInstanceState.getString(KEY_INPUT)
+                : initialInput);
+        layoutInput.setEditorAction(
                 EditorInfo.IME_ACTION_DONE,
                 new EditTextAndClearInputButton.OnSelectedActionClickListener() {
                     @Override public void onSelectedActionClicked() {
-                        tryToCloseDialog();
+                        checkInput();
                     }
                 });
 
         return new AlertDialog.Builder(getActivity())
-            .setTitle(getResources().getString(R.string.enterRouteNameDialogTitle))
-            .setView(layoutRouteName)
+            .setTitle(dialogTitle)
+            .setView(layoutInput)
             .setPositiveButton(
-                    getResources().getString(R.string.dialogOK),
+                    positiveButtonText,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -80,7 +92,7 @@ public class EnterRouteNameDialog extends DialogFragment {
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    tryToCloseDialog();
+                    checkInput();
                 }
             });
 
@@ -93,12 +105,12 @@ public class EnterRouteNameDialog extends DialogFragment {
             });
         }
 
-        layoutRouteName.showKeyboard();
+        layoutInput.showKeyboard();
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putString(KEY_ROUTE_NAME, layoutRouteName.getInputText());
+        savedInstanceState.putString(KEY_INPUT, layoutInput.getInputText());
     }
 
     @Override public void onDestroy() {
@@ -108,20 +120,18 @@ public class EnterRouteNameDialog extends DialogFragment {
         }
     }
 
-    private void tryToCloseDialog() {
-        String routeName = layoutRouteName.getInputText();
-        if (TextUtils.isEmpty(routeName)) {
+    private void checkInput() {
+        String input = layoutInput.getInputText();
+        if (TextUtils.isEmpty(input)) {
             Toast.makeText(
                     getActivity(),
-                    getResources().getString(R.string.messageRecordedRouteNameIsMissing),
+                    missingInputMessage,
                     Toast.LENGTH_LONG).show();
-            return;
+        } else {
+            execute(input);
         }
-
-        Bundle result = new Bundle();
-        result.putSerializable(EXTRA_ROUTE_NAME, routeName);
-        getParentFragmentManager().setFragmentResult(REQUEST_ENTER_ROUTE_NAME, result);
-        dismiss();
     }
+
+    public abstract void execute(String input);
 
 }

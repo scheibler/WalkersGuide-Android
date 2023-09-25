@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import java.util.concurrent.Executors;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
@@ -309,7 +310,7 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
             extractedCoordinates = new GPS.Builder(latitude, longitude).build();
         } catch (JSONException e) {}
         if (extractedCoordinates != null
-                && DatabaseProfile.allPoints().add(extractedCoordinates)) {
+                && HistoryProfile.allPoints().add(extractedCoordinates)) {
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, extractedCoordinates);
             getParentFragmentManager().setFragmentResult(REQUEST_FROM_COORDINATES_LINK, result);

@@ -129,7 +129,7 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2023-05-18@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2023-09-14@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'org.slf4j:slf4j-api:2.0.7'

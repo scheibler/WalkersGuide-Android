@@ -37,13 +37,8 @@ public class PoiProfileResult implements Serializable{
     // initial values
     public static final int INITIAL_RADIUS = 1000;
     public static final int INITIAL_SEARCH_RADIUS = 5000;
-    public static final int INITIAL_LOCAL_FAVORITES_RADIUS = 10000;
+    public static final int INITIAL_LOCAL_COLLECTION_RADIUS = 20000;
     public static final int INITIAL_NUMBER_OF_RESULTS = 100;
-    // max values
-    public static final int MAXIMAL_RADIUS = 20000;
-    public static final int MAXIMAL_SEARCH_RADIUS = 100000;
-    public static final int MAXIMAL_LOCAL_FAVORITES_RADIUS = 1000000;
-    public static final int MAXIMAL_NUMBER_OF_RESULTS = 1000;
 
 
     private int radius, numberOfResults;

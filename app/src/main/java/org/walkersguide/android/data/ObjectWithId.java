@@ -1,6 +1,7 @@
 package org.walkersguide.android.data;
 
-import org.walkersguide.android.database.profile.FavoritesProfile;
+import org.walkersguide.android.R;
+import org.walkersguide.android.data.object_with_id.common.ObjectClass;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import java.util.Comparator;
 import org.walkersguide.android.data.object_with_id.Point;
@@ -20,10 +21,26 @@ import org.walkersguide.android.sensor.DeviceSensorManager;
 import android.content.Intent;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.data.object_with_id.Route;
+import java.util.ArrayList;
 
 
 public abstract class ObjectWithId implements Serializable {
     private static final long serialVersionUID = 1l;
+
+    public static ObjectWithId create(ObjectClass objectClass, JSONObject jsonObject) throws JSONException {
+        if (objectClass != null) {
+            switch (objectClass) {
+                case POINT:
+                    return Point.create(jsonObject);
+                case ROUTE:
+                    return Route.create(jsonObject);
+                case SEGMENT:
+                    return Segment.create(jsonObject);
+            }
+        }
+        throw new JSONException("Invalid object class");
+    }
 
 
     /**
@@ -34,6 +51,45 @@ public abstract class ObjectWithId implements Serializable {
 
     public static long generateId() {
         return FIRST_LOCAL_ID + (new Random()).nextInt(NUMBER_OF_LOCAL_IDS);
+    }
+
+    public static String summarizeObjectListContents(ArrayList<ObjectWithId> objectList) {
+        // count
+        int points = 0, segments = 0, routes = 0;
+        for (ObjectWithId object : objectList) {
+            if (object instanceof Point) {
+                points++;
+            } else if (object instanceof Segment) {
+                segments++;
+            } else if (object instanceof Route) {
+                routes++;
+            }
+        }
+        // format strings
+        ArrayList<String> stringList = new ArrayList<String>();
+        if (segments > 0) {
+            stringList.add(
+                    GlobalInstance.getPluralResource(R.plurals.way, segments));
+        }
+        if (routes > 0) {
+            stringList.add(
+                    GlobalInstance.getPluralResource(R.plurals.route, routes));
+        }
+        if (points > 0                      // must come last
+                || stringList.isEmpty()) {  // special case for the empty list: return string "0 points"
+            stringList.add(
+                    0,      // put on top of the stringList
+                    GlobalInstance.getPluralResource(R.plurals.point, points));
+        }
+        // concatenate and return
+        String result = stringList.get(0);
+        for (int i=1; i<stringList.size(); i++) {
+            result += i+1 == stringList.size()      // check if last list item
+                ? String.format(" %1$s ", GlobalInstance.getStringResource(R.string.fillingWordAnd))
+                : ", ";
+            result += stringList.get(i);
+        }
+        return result;
     }
 
 
@@ -98,53 +154,19 @@ public abstract class ObjectWithId implements Serializable {
         return ! TextUtils.isEmpty(getCustomName());
     }
 
-    // favorite
-    public static final String ACTION_FAVORITE_STATUS_CHANGED = "favoriteStatusChanged";
+    public abstract ObjectClass getObjectClass();
 
-    public abstract FavoritesProfile getDefaultFavoritesProfile();
 
-    public boolean hasDefaultFavoritesProfile() {
-        return getDefaultFavoritesProfile() != null;
+    // database
+
+    public boolean addToDatabase() {
+        return AccessDatabase.getInstance().addObjectWithId(this);
     }
-
-    public boolean isFavorite() {
-        if (hasDefaultFavoritesProfile()) {
-            return getDefaultFavoritesProfile().contains(this);
-        }
-        return false;
-    }
-
-    public boolean addToFavorites() {
-        if (hasDefaultFavoritesProfile()) {
-            boolean success = getDefaultFavoritesProfile().add(this);
-            if (success) {
-                Intent favoriteStatusChangedIntent = new Intent(ACTION_FAVORITE_STATUS_CHANGED);
-                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(favoriteStatusChangedIntent);
-            }
-            return success;
-        }
-        return false;
-    }
-
-    public boolean removeFromFavorites() {
-        if (hasDefaultFavoritesProfile()) {
-            boolean success = getDefaultFavoritesProfile().remove(this);
-            if (success) {
-                Intent favoriteStatusChangedIntent = new Intent(ACTION_FAVORITE_STATUS_CHANGED);
-                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(favoriteStatusChangedIntent);
-            }
-            return success;
-        }
-        return false;
-    }
-
-    // remove from database
 
     public boolean removeFromDatabase() {
-        return AccessDatabase
-            .getInstance()
-            .removeObject(this);
+        return AccessDatabase.getInstance().removeObjectWithId(this);
     }
+
 
     // super class methods
 
@@ -165,10 +187,6 @@ public abstract class ObjectWithId implements Serializable {
     }
 
     public abstract JSONObject toJson() throws JSONException;
-
-    public boolean save() {
-        return AccessDatabase.getInstance().addObjectWithId(this);
-    }
 
 
     /**

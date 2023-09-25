@@ -16,7 +16,7 @@ public class PedestrianCrossingListFragment extends SimpleObjectListFragment {
 	}
 
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
     	return getResources().getString(R.string.fragmentPedestrianCrossingsName);
     }
 

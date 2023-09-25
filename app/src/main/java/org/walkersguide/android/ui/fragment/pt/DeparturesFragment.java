@@ -1,7 +1,5 @@
 package org.walkersguide.android.ui.fragment.pt;
 
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.os.Handler;
 import android.os.Looper;
 import timber.log.Timber;
@@ -82,8 +80,7 @@ import androidx.lifecycle.Lifecycle;
 import org.walkersguide.android.ui.fragment.RootFragment;
 
 
-public class DeparturesFragment extends RootFragment
-        implements FragmentResultListener, MenuProvider, OnRefreshListener, Runnable {
+public class DeparturesFragment extends RootFragment implements FragmentResultListener, MenuProvider, Runnable {
     private static final String KEY_IS_DIALOG = "isDialog";
 
 
@@ -135,7 +132,6 @@ public class DeparturesFragment extends RootFragment
 	private Handler nextDeparturesHandler;
 
 	// ui components
-    private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewDepartures;
     private TextView labelHeading, labelEmptyListView;
 
@@ -241,7 +237,7 @@ public class DeparturesFragment extends RootFragment
      * create view
      */
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
         if (station != null) {
             return PtUtility.getLocationName(station);
         }
@@ -268,18 +264,11 @@ public class DeparturesFragment extends RootFragment
             listPosition = 0;
         }
 
-        if (getDialog() == null) {
-            mainActivityController.configureToolbarTitle(getDialogTitle());
-        }
-
         LinearLayout layoutTop = (LinearLayout) view.findViewById(R.id.layoutTop);
         layoutTop.setVisibility(View.GONE);
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
-
-        swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
-        swipeRefreshListView.setOnRefreshListener(this);
 
         listViewDepartures = (ListView) view.findViewById(R.id.listView);
         listViewDepartures.setVisibility(View.GONE);
@@ -293,10 +282,8 @@ public class DeparturesFragment extends RootFragment
             }
         });
 
-        swipeRefreshEmptyTextView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshEmptyTextView);
-        swipeRefreshEmptyTextView.setOnRefreshListener(this);
-        listViewDepartures.setEmptyView(swipeRefreshEmptyTextView);
         labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
+        listViewDepartures.setEmptyView(labelEmptyListView);
         labelEmptyListView.setVisibility(View.GONE);
 
         if (coordinatesForStationRequest != null || station != null) {
@@ -342,19 +329,6 @@ public class DeparturesFragment extends RootFragment
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putSerializable(KEY_DEPARTURE_TIME, departureTime);
         savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
-    }
-
-    @Override public void onRefresh() {
-        if (! serverTaskExecutorInstance.taskInProgress(taskId)
-                && (coordinatesForStationRequest != null || station != null)) {
-            Helper.vibrateOnce(
-                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
-            cachedDepartureList = null;
-            station = null;
-            departureTime = null;
-            listPosition = 0;
-            prepareRequest();
-        }
     }
 
     @Override public void onResume() {
@@ -408,8 +382,6 @@ public class DeparturesFragment extends RootFragment
         nextDeparturesHandler.removeCallbacks(DeparturesFragment.this);
 
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            swipeRefreshListView.setRefreshing(true);
-            swipeRefreshEmptyTextView.setRefreshing(true);
 
             if (station != null) {
                 taskId = serverTaskExecutorInstance.executeTask(
@@ -463,9 +435,6 @@ public class DeparturesFragment extends RootFragment
                         labelEmptyListView.setText(ptException.getMessage());
                     }
                 }
-
-                swipeRefreshListView.setRefreshing(false);
-                swipeRefreshEmptyTextView.setRefreshing(false);
             }
         }
     };

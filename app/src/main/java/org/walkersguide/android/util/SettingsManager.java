@@ -1,5 +1,7 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.data.profile.MutableProfile;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.tts.TtsSettings;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
@@ -96,6 +98,7 @@ public class SettingsManager {
     private static final String KEY_SIMULATED_POINT_ID = "simulatedPointId";
     // poi settings
     private static final String KEY_SELECTED_POI_PROFILE_ID = "selectedPoiProfileId";
+    private static final String KEY_TRACKED_MUTABLE_PROFILE_ID = "trackedMutableProfileId";
     // p2p route settings
     private static final String KEY_P2P_ROUTE_REQUEST = "p2pRouteRequest";
     private static final String KEY_WAY_CLASS_SETTINGS = "wayClassWeightSettings";
@@ -188,7 +191,7 @@ public class SettingsManager {
     public void setHomeAddress(Point newPoint) {
         Editor editor = settings.edit();
         if (newPoint != null
-                && DatabaseProfile.allPoints().add(newPoint)) {
+                && HistoryProfile.allPoints().add(newPoint)) {
             editor.putLong(KEY_HOME_ADDRESS_ID, newPoint.getId());
         } else if (settings.contains(KEY_HOME_ADDRESS_ID)) {
             editor.remove(KEY_HOME_ADDRESS_ID);
@@ -469,7 +472,7 @@ public class SettingsManager {
     public void setSimulatedPoint(Point newPoint) {
         Editor editor = settings.edit();
         if (newPoint != null
-                && DatabaseProfile.allPoints().add(newPoint)) {
+                && HistoryProfile.allPoints().add(newPoint)) {
             editor.putLong(KEY_SIMULATED_POINT_ID, newPoint.getId());
         } else if (settings.contains(KEY_SIMULATED_POINT_ID)) {
             editor.remove(KEY_SIMULATED_POINT_ID);
@@ -493,6 +496,21 @@ public class SettingsManager {
             editor.putLong(KEY_SELECTED_POI_PROFILE_ID, newProfile.getId());
         } else {
             editor.putLong(KEY_SELECTED_POI_PROFILE_ID, DEFAULT_SELECTED_POI_PROFILE_ID);
+        }
+        editor.apply();
+    }
+
+    public MutableProfile getTrackedMutableProfile() {
+        return MutableProfile.load(
+                settings.getLong(KEY_TRACKED_MUTABLE_PROFILE_ID, 0l));
+    }
+
+    public void setTrackedMutableProfile(MutableProfile newProfile) {
+        Editor editor = settings.edit();
+        if (newProfile != null) {
+            editor.putLong(KEY_TRACKED_MUTABLE_PROFILE_ID, newProfile.getId());
+        } else if (settings.contains(KEY_TRACKED_MUTABLE_PROFILE_ID)) {
+            editor.remove(KEY_TRACKED_MUTABLE_PROFILE_ID);
         }
         editor.apply();
     }
@@ -565,7 +583,7 @@ public class SettingsManager {
     public void setSelectedRoute(Route newRoute) {
         Editor editor = settings.edit();
         if (newRoute != null
-                && DatabaseProfile.allRoutes().add(newRoute)) {
+                && HistoryProfile.allRoutes().add(newRoute)) {
             editor.putLong(KEY_SELECTED_ROUTE_ID, newRoute.getId());
         } else {
             editor.putLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID);

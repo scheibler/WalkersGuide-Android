@@ -1,16 +1,18 @@
 package org.walkersguide.android.database.util;
 
+import org.walkersguide.android.data.object_with_id.common.ObjectClass;
 import org.walkersguide.android.server.wg.poi.PoiCategory;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
+import org.walkersguide.android.server.wg.poi.PoiProfile.PoiProfileParams;
 
 import org.walkersguide.android.data.ObjectWithId;
-import org.walkersguide.android.BuildConfig;
+import org.walkersguide.android.database.profile.Collection;
+import org.walkersguide.android.database.profile.Collection.CollectionParams;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.util.GlobalInstance;
 import android.content.ContentValues;
-import android.content.Context;
 
 import android.database.Cursor;
 import android.database.SQLException;
@@ -24,17 +26,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.walkersguide.android.data.object_with_id.Route;
-import org.walkersguide.android.data.object_with_id.route.RouteObject;
-import org.walkersguide.android.data.object_with_id.Point;
 import java.util.ListIterator;
 import java.util.Collections;
 import timber.log.Timber;
-import android.content.Intent;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import org.walkersguide.android.data.object_with_id.Segment;
 import java.util.Locale;
-import org.walkersguide.android.data.object_with_id.HikingTrail;
+import org.walkersguide.android.data.Profile;
 
 
 public class AccessDatabase {
@@ -74,10 +70,6 @@ public class AccessDatabase {
     /**
      * objects
      */
-    private static final int TYPE_POINT = 1;
-    private static final int TYPE_SEGMENT = 2;
-    private static final int TYPE_ROUTE = 3;
-    private static final int TYPE_HIKING_TRAIL = 4;
 
     public ObjectWithId getObjectWithId(long id) {
         Cursor cursor = database.query(
@@ -91,7 +83,7 @@ public class AccessDatabase {
             try {
                 objectWithId = createObject(
                         cursor.getInt(
-                            cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_TYPE)),
+                            cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_CLASS)),
                         cursor.getString(
                             cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_DATA)));
             } catch (IllegalArgumentException | JSONException e) {}
@@ -127,19 +119,6 @@ public class AccessDatabase {
     }
 
     public boolean addObjectWithId(ObjectWithId objectWithId, String customName) {
-        // prepare
-        int type;
-        if (objectWithId instanceof Point) {
-            type = TYPE_POINT;
-        } else if (objectWithId instanceof Route) {
-            type = TYPE_ROUTE;
-        } else if (objectWithId instanceof Segment) {
-            type = TYPE_SEGMENT;
-        } else if (objectWithId instanceof HikingTrail) {
-            type = TYPE_HIKING_TRAIL;
-        } else {
-            return false;
-        }
         String objectWithIdSerialized = null;
         try {
             objectWithIdSerialized = objectWithId.toJson().toString();
@@ -151,7 +130,7 @@ public class AccessDatabase {
         // add to or replace in objectWithIds table
         ContentValues values = new ContentValues();
         values.put(SQLiteHelper.OBJECTS_ID, objectWithId.getId());
-        values.put(SQLiteHelper.OBJECTS_TYPE, type);
+        values.put(SQLiteHelper.OBJECTS_CLASS, objectWithId.getObjectClass().id);
         values.put(SQLiteHelper.OBJECTS_DATA, objectWithIdSerialized);
         values.put(SQLiteHelper.OBJECTS_CUSTOM_NAME, TextUtils.isEmpty(customName) ? "" : customName);
         long rowIdTableObjectWithIds = database.insertWithOnConflict(
@@ -163,23 +142,13 @@ public class AccessDatabase {
         return rowIdTableObjectWithIds == -1 ? false : true;
     }
 
-    private ObjectWithId createObject(int type, String stringJsonObjectWithId)
-            throws IllegalArgumentException, JSONException {
-        JSONObject jsonObjectWithId = new JSONObject(stringJsonObjectWithId);
-        if (type == TYPE_POINT) {
-            return Point.create(jsonObjectWithId);
-        } else if (type == TYPE_ROUTE) {
-            return Route.create(jsonObjectWithId);
-        } else if (type == TYPE_SEGMENT) {
-            return Segment.create(jsonObjectWithId);
-        } else if (type == TYPE_HIKING_TRAIL) {
-            return HikingTrail.create(jsonObjectWithId);
-        } else {
-            throw new IllegalArgumentException();
-        }
+    private ObjectWithId createObject(int classId, String stringJsonObjectWithId) throws JSONException {
+        return ObjectWithId.create(
+                ObjectClass.lookUpById(classId),
+                new JSONObject(stringJsonObjectWithId));
     }
 
-    public boolean removeObject(ObjectWithId object) {
+    public boolean removeObjectWithId(ObjectWithId object) {
         int numberOfRemovedRows = 0;
         if (object != null) {
             // remove from all database profiles
@@ -208,7 +177,7 @@ public class AccessDatabase {
         // build sql query
         String objectTableName = SQLiteHelper.TABLE_OBJECTS;
         String objectTableColumnId = SQLiteHelper.OBJECTS_ID;
-        String objectTableColumnType = SQLiteHelper.OBJECTS_TYPE;
+        String objectTableColumnClass = SQLiteHelper.OBJECTS_CLASS;
         String objectTableColumnData = SQLiteHelper.OBJECTS_DATA;
         ArrayList<String> queryList = new ArrayList<String>();
 
@@ -220,7 +189,7 @@ public class AccessDatabase {
         queryList.add(", ");
         queryList.add(
                 String.format(
-                    Locale.ROOT, "%1$s.%2$s AS %2$s", objectTableName, objectTableColumnType));
+                    Locale.ROOT, "%1$s.%2$s AS %2$s", objectTableName, objectTableColumnClass));
 
         // from
         queryList.add("FROM");
@@ -272,7 +241,7 @@ public class AccessDatabase {
                 objectList.add(
                         createObject(
                             cursor.getInt(
-                                    cursor.getColumnIndexOrThrow(objectTableColumnType)),
+                                    cursor.getColumnIndexOrThrow(objectTableColumnClass)),
                             cursor.getString(
                                     cursor.getColumnIndexOrThrow(objectTableColumnData)))
                         );
@@ -335,7 +304,7 @@ public class AccessDatabase {
             // create profile
             DatabaseProfile  profile = null;
             try {
-                profile = DatabaseProfile.create(
+                profile = DatabaseProfile.load(
                         cursor.getLong(
                             cursor.getColumnIndexOrThrow(SQLiteHelper.MAPPING_PROFILE_ID)));
             } catch (IllegalArgumentException e) {}
@@ -349,23 +318,9 @@ public class AccessDatabase {
     }
 
     public boolean addObjectToDatabaseProfile(ObjectWithId object, DatabaseProfile profile) {
-        // add object first
-        DatabaseProfile allObjectsProfile = null;
-        if (profile.isForPoints()
-               && ! profile.equals(DatabaseProfile.allPoints())) {
-            allObjectsProfile = DatabaseProfile.allPoints();
-        } else if (profile.isForRoutes()
-               && ! profile.equals(DatabaseProfile.allRoutes())) {
-            allObjectsProfile = DatabaseProfile.allRoutes();
-        }
-        if (allObjectsProfile != null) {
-            if (! this.addObjectToDatabaseProfile(object, allObjectsProfile)) {
-                return false;
-            }
-        } else {
-            if (! addObjectWithId(object)) {
-                return false;
-            }
+        // add to objects table first
+        if (! addObjectWithId(object)) {
+            return false;
         }
 
         // try to get access value of possibly existing mapping table row
@@ -433,88 +388,248 @@ public class AccessDatabase {
 
 
     /**
+     * Collection
+     */
+
+    public ArrayList<Collection> getCollectionList() {
+        ArrayList<Collection> profileList = new ArrayList<Collection>();
+        for (Long profileId : getIdList(
+                    SQLiteHelper.TABLE_COLLECTION,
+                    SQLiteHelper.COLLECTION_ID,
+                    String.format(
+                        Locale.ROOT,
+                        "%1$s >= %2$d AND %1$s <= %3$d",
+                        SQLiteHelper.COLLECTION_ID,
+                        SQLiteHelper.TABLE_COLLECTION_FIRST_ID,
+                        SQLiteHelper.TABLE_COLLECTION_LAST_ID),
+                    SQLiteHelper.COLLECTION_NAME + " ASC")) {
+            Collection profile = Collection.load(profileId);
+            if (profile != null) {
+                profileList.add(profile);
+            }
+        }
+        return profileList;
+    }
+
+    public CollectionParams getCollectionParams(long id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_COLLECTION, SQLiteHelper.TABLE_COLLECTION_ALL_COLUMNS,
+                String.format(
+                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.COLLECTION_ID, id),
+                null, null, null, null);
+        CollectionParams params = new CollectionParams();
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            try {
+                params.name = cursor.getString(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.COLLECTION_NAME));
+                params.isPinned =
+                    cursor.getInt(
+                            cursor.getColumnIndexOrThrow(SQLiteHelper.COLLECTION_IS_PINNED)) == 1
+                    ? true : false;
+            } catch (IllegalArgumentException e) {
+                params = null;
+            }
+        }
+        cursor.close();
+        return params;
+    }
+
+    public Collection addCollection(CollectionParams params) {
+        long newCollectionId = database.insertWithOnConflict(
+                SQLiteHelper.TABLE_COLLECTION,
+                null,
+                createContentValuesForCollectionTable(params),
+                SQLiteDatabase.CONFLICT_REPLACE);
+        return Collection.load(newCollectionId);
+    }
+
+    public boolean updateCollection(long id, CollectionParams params) {
+        int numberOfRowsAffected = database.updateWithOnConflict(
+                SQLiteHelper.TABLE_COLLECTION,
+                createContentValuesForCollectionTable(params),
+                SQLiteHelper.COLLECTION_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                SQLiteDatabase.CONFLICT_REPLACE);
+        return numberOfRowsAffected == 1 ? true : false;
+    }
+
+    public boolean removeCollection(long id) {
+        int numberOfRowsAffected = database.delete(
+                SQLiteHelper.TABLE_COLLECTION,
+                SQLiteHelper.COLLECTION_ID + " = ?",
+                new String[]{String.valueOf(id)});
+        return numberOfRowsAffected == 1 ? true : false;
+    }
+
+    private ContentValues createContentValuesForCollectionTable(CollectionParams params) {
+        ContentValues values = new ContentValues();
+        values.put(
+                SQLiteHelper.COLLECTION_NAME,
+                params.name);
+        values.put(
+                SQLiteHelper.COLLECTION_IS_PINNED,
+                params.isPinned ? 1 : 0);
+        return values;
+    }
+
+
+    /**
      * POIProfile
      */
 
     public ArrayList<PoiProfile> getPoiProfileList() {
+        ArrayList<PoiProfile> profileList = new ArrayList<PoiProfile>();
+        for (Long profileId : getIdList(
+                    SQLiteHelper.TABLE_POI_PROFILE,
+                    SQLiteHelper.POI_PROFILE_ID,
+                    String.format(
+                        Locale.ROOT,
+                        "%1$s >= %2$d AND %1$s <= %3$d",
+                        SQLiteHelper.POI_PROFILE_ID,
+                        SQLiteHelper.TABLE_POI_PROFILE_FIRST_ID,
+                        SQLiteHelper.TABLE_POI_PROFILE_LAST_ID),
+                    SQLiteHelper.POI_PROFILE_NAME + " ASC")) {
+            PoiProfile profile = PoiProfile.load(profileId);
+            if (profile != null) {
+                profileList.add(profile);
+            }
+        }
+        return profileList;
+    }
+
+    public PoiProfileParams getPoiProfileParams(long id) {
         Cursor cursor = database.query(
                 SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
-                null, null, null, null, SQLiteHelper.POI_PROFILE_ID + " ASC");
-
-        ArrayList<PoiProfile> profileList = new ArrayList<PoiProfile>();
-        while (cursor.moveToNext()) {
-            PoiProfile profile = null;
+                String.format(
+                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.POI_PROFILE_ID, id),
+                null, null, null, null);
+        PoiProfileParams poiProfileParams = new PoiProfileParams();
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
             try {
-                JSONArray jsonPOICategoryIdList = new JSONArray(
-                        cursor.getString(
-                            cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST)));
-                boolean includeFavorites = cursor.getInt(
-                        cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_INCLUDE_FAVORITES)) == 1 ? true : false;
-                profile = new PoiProfile(
+                poiProfileParams.name = cursor.getString(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_NAME));
+                poiProfileParams.isPinned =
+                    cursor.getInt(
+                            cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_IS_PINNED)) == 1
+                    ? true : false;
+                poiProfileParams.poiCategoryList = PoiCategory.listFromJson(
+                        new JSONArray(
+                            cursor.getString(
+                                cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_POI_CATEGORY_ID_LIST))));
+                poiProfileParams.collectionList = Collection.listFromJson(
+                        new JSONArray(
+                            cursor.getString(
+                                cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_COLLECTION_ID_LIST))));
+            } catch (IllegalArgumentException | JSONException e) {
+                poiProfileParams = null;
+            }
+        }
+        cursor.close();
+        return poiProfileParams;
+    }
+
+    public PoiProfile addPoiProfile(PoiProfileParams params) {
+        long newPoiProfileId = database.insertWithOnConflict(
+                SQLiteHelper.TABLE_POI_PROFILE,
+                null,
+                createContentValuesForPoiProfileTable(params),
+                SQLiteDatabase.CONFLICT_REPLACE);
+        return PoiProfile.load(newPoiProfileId);
+    }
+
+    public boolean updatePoiProfile(long id, PoiProfileParams params) {
+        int numberOfRowsAffected = database.updateWithOnConflict(
+                SQLiteHelper.TABLE_POI_PROFILE,
+                createContentValuesForPoiProfileTable(params),
+                SQLiteHelper.POI_PROFILE_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                SQLiteDatabase.CONFLICT_REPLACE);
+        return numberOfRowsAffected == 1 ? true : false;
+    }
+
+    public boolean removePoiProfile(long id) {
+        int numberOfRowsAffected = database.delete(
+                SQLiteHelper.TABLE_POI_PROFILE,
+                SQLiteHelper.POI_PROFILE_ID + " = ?",
+                new String[]{String.valueOf(id)});
+        return numberOfRowsAffected == 1 ? true : false;
+    }
+
+    private ContentValues createContentValuesForPoiProfileTable(PoiProfileParams params) {
+        ContentValues values = new ContentValues();
+        values.put(
+                SQLiteHelper.POI_PROFILE_NAME,
+                params.name);
+        values.put(
+                SQLiteHelper.POI_PROFILE_IS_PINNED,
+                params.isPinned ? 1 : 0);
+        values.put(
+                SQLiteHelper.POI_PROFILE_POI_CATEGORY_ID_LIST,
+                PoiCategory.listToJson(params.poiCategoryList).toString());
+        values.put(
+                SQLiteHelper.POI_PROFILE_COLLECTION_ID_LIST,
+                Collection.listToJson(params.collectionList).toString());
+        return values;
+    }
+
+
+    /**
+     * MutableProfile
+     */
+
+    public ArrayList<Profile> getPinnedProfileList() {
+        ArrayList<Profile> profileList = new ArrayList<Profile>();
+        for (Collection collection : getCollectionList()) {
+            if (collection.isPinned()) {
+                profileList.add(collection);
+            }
+        }
+        for (PoiProfile poiProfile : getPoiProfileList()) {
+            if (poiProfile.isPinned()) {
+                profileList.add(poiProfile);
+            }
+        }
+        Collections.sort(profileList);
+        return profileList;
+    }
+
+    public void clearPinnedProfileList() {
+        for (Collection collection : getCollectionList()) {
+            collection.setPinned(false);
+        }
+        for (PoiProfile poiProfile : getPoiProfileList()) {
+            poiProfile.setPinned(false);
+        }
+    }
+
+
+    /**
+     * helper
+     */
+
+    public ArrayList<Long> getIdList(String tableName, String tableColumnId, String whereClause, String orderBy) {
+        Cursor cursor = database.query(
+                tableName, new String[]{tableColumnId}, whereClause, null, null, null, orderBy);
+
+        ArrayList<Long> idList = new ArrayList<Long>();
+        while (cursor.moveToNext()) {
+            Long id = null;
+            try {
+                id = Long.valueOf(
                         cursor.getLong(
-                            cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_ID)),
-                        cursor.getString(
-                            cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_NAME)),
-                        PoiCategory.listFromJson(jsonPOICategoryIdList),
-                        includeFavorites);
-            } catch (IllegalArgumentException | JSONException     e) {
+                            cursor.getColumnIndexOrThrow(tableColumnId)));
+            } catch (IllegalArgumentException e) {
             } finally {
-                if (profile != null && ! profileList.contains(profile)) {
-                    profileList.add(profile);
+                if (id != null) {
+                    idList.add(id);
                 }
             }
         }
         cursor.close();
 
-        return profileList;
-    }
-
-    public PoiProfile getPoiProfile(long id) {
-        for (PoiProfile profile : getPoiProfileList()) {
-            if (profile.getId() == id) {
-                return profile;
-            }
-        }
-        return null;
-    }
-
-    public PoiProfile addPoiProfile(String name, ArrayList<PoiCategory> poiCategoryList, boolean includeFavorites) {
-        // prepare
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.POI_PROFILE_NAME, name);
-        values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, PoiCategory.listToJson(poiCategoryList).toString());
-        values.put(SQLiteHelper.POI_PROFILE_INCLUDE_FAVORITES, includeFavorites ? 1 : 0);
-        // create
-        long newPoiProfileId = database.insertWithOnConflict(
-                SQLiteHelper.TABLE_POI_PROFILE,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_REPLACE);
-        return getPoiProfile(newPoiProfileId);
-    }
-
-    public boolean updatePoiProfile(PoiProfile profile) {
-        // prepare
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.POI_PROFILE_NAME, profile.getName());
-        values.put(SQLiteHelper.POI_PROFILE_CATEGORY_ID_LIST, PoiCategory.listToJson(profile.getPoiCategoryList()).toString());
-        values.put(SQLiteHelper.POI_PROFILE_INCLUDE_FAVORITES, profile.getIncludeFavorites() ? 1 : 0);
-        // update
-        int numberOfRowsAffected = database.updateWithOnConflict(
-                SQLiteHelper.TABLE_POI_PROFILE,
-                values,
-                SQLiteHelper.POI_PROFILE_ID + " = ?",
-                new String[]{String.valueOf(profile.getId())},
-                SQLiteDatabase.CONFLICT_REPLACE);
-        return numberOfRowsAffected == 1 ? true : false;
-    }
-
-    public boolean removePoiProfile(PoiProfile profile) {
-        int numberOfRowsAffected = database.delete(
-                SQLiteHelper.TABLE_POI_PROFILE,
-                SQLiteHelper.POI_PROFILE_ID + " = ?",
-                new String[]{String.valueOf(profile.getId())});
-        return numberOfRowsAffected == 1 ? true : false;
+        return idList;
     }
 
 }

@@ -1,6 +1,6 @@
 package org.walkersguide.android.data.object_with_id;
 
-import org.walkersguide.android.database.profile.FavoritesProfile;
+import org.walkersguide.android.data.object_with_id.common.ObjectClass;
 import org.walkersguide.android.database.DatabaseProfile;
 
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.Entrance;
@@ -154,6 +154,10 @@ public class Point extends ObjectWithId implements Serializable {
 
     public String getOriginalName() {
         return this.name;
+    }
+
+    public ObjectClass getObjectClass() {
+        return ObjectClass.POINT;
     }
 
     public String getSubType() {
@@ -373,10 +377,6 @@ public class Point extends ObjectWithId implements Serializable {
     /**
      * super class methods
      */
-
-    public FavoritesProfile getDefaultFavoritesProfile() {
-        return FavoritesProfile.favoritePoints();
-    }
 
     @Override public String toString() {
         return formatNameAndSubType();

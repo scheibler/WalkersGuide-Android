@@ -72,7 +72,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_select_network_provider, nullParent);
+        View view = inflater.inflate(R.layout.layout_single_expandable_list_view, nullParent);
 
         listViewNetworkProvider = (ExpandableListView) view.findViewById(R.id.expandableListView);
         listViewNetworkProvider.setOnChildClickListener(new OnChildClickListener() {

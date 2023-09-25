@@ -1,9 +1,9 @@
 package org.walkersguide.android.ui.dialog.select;
 
+import org.walkersguide.android.ui.fragment.ProfileListFragment;
+import org.walkersguide.android.ui.fragment.profile_list.PoiProfileListFragment;
 import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
-import org.walkersguide.android.data.profile.Profile;
-import org.walkersguide.android.data.profile.ProfileGroup;
-import org.walkersguide.android.database.profile.FavoritesProfile;
+import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.data.ObjectWithId;
@@ -47,34 +47,36 @@ import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import timber.log.Timber;
 import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
+import android.widget.Toast;
 
 
 
-public class SelectRouteOrSimulationPointDialog extends DialogFragment implements FragmentResultListener {
-    public static final String REQUEST_SELECT_POINT = "selectPoint";
-    public static final String EXTRA_WHERE_TO_PUT = "whereToPut";
-    public static final String EXTRA_POINT = "point";
+public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment implements FragmentResultListener {
+    public static final String REQUEST_SELECT_OBJECT_WITH_ID = "selectObjectWithIdFromMultipleSources";
+    public static final String EXTRA_OBJECT_WITH_ID = "objectWithIdFromMultipleSources";
+    public static final String EXTRA_TARGET = "targetForObjectWithIdFromMultipleSources";
 
 
     // instance constructors
 
-    public static SelectRouteOrSimulationPointDialog newInstance(WhereToPut whereToPut) {
-        SelectRouteOrSimulationPointDialog dialog = new SelectRouteOrSimulationPointDialog();
+    public static SelectObjectWithIdFromMultipleSourcesDialog newInstance(Target target) {
+        SelectObjectWithIdFromMultipleSourcesDialog dialog = new SelectObjectWithIdFromMultipleSourcesDialog();
         Bundle args = new Bundle();
-        args.putSerializable(KEY_WHERE_TO_PUT, whereToPut);
+        args.putSerializable(KEY_TARGET, target);
         dialog.setArguments(args);
         return dialog;
     }
 
     // dialog
-    private static final String KEY_WHERE_TO_PUT = "whereToPut";
+    private static final String KEY_TARGET = "target";
 
-    public enum WhereToPut {
+    public enum Target {
         ROUTE_START_POINT, ROUTE_VIA_POINT_1, ROUTE_VIA_POINT_2, ROUTE_VIA_POINT_3, ROUTE_DESTINATION_POINT,
-        HOME_ADDRESS, PINNED_POINT, SIMULATION_POINT
+        ADD_TO_PINNED_POINTS_AND_ROUTES, SIMULATE_LOCATION, USE_AS_HOME_ADDRESS
     }
 
-    private WhereToPut whereToPut;
+    private Target target;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,7 +94,7 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                     EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectProfileDialog.REQUEST_SELECT_PROFILE, this, this);
+                    ProfileListFragment.REQUEST_SELECT_PROFILE, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK, this, this);
@@ -104,19 +106,23 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: %1$s", requestKey);
         if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION)) {
-            pointSelected(
+            objectWithIdSelected(
                     (GPS) bundle.getSerializable(SaveCurrentLocationDialog.EXTRA_CURRENT_LOCATION));
+
         } else if (requestKey.equals(WhereAmIDialog.REQUEST_RESOLVE_COORDINATES)) {
-            pointSelected(
+            objectWithIdSelected(
                     (StreetAddress) bundle.getSerializable(WhereAmIDialog.EXTRA_STREET_ADDRESS));
+
         } else if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
-            pointSelected(
+            objectWithIdSelected(
                     (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS));
+
         } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
-            pointSelected(
+            objectWithIdSelected(
                     (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES));
-        } else if (requestKey.equals(SelectProfileDialog.REQUEST_SELECT_PROFILE)) {
-            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileDialog.EXTRA_PROFILE);
+
+        } else if (requestKey.equals(ProfileListFragment.REQUEST_SELECT_PROFILE)) {
+            Profile selectedProfile = (Profile) bundle.getSerializable(ProfileListFragment.EXTRA_PROFILE);
             Timber.d("onFragmentResult: profile selected");
             if (selectedProfile instanceof DatabaseProfile) {
                 ObjectListFromDatabaseFragment.createDialog((DatabaseProfile) selectedProfile, true)
@@ -126,45 +132,45 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                 PoiListFromServerFragment.createDialog((PoiProfile) selectedProfile, true)
                     .show(getChildFragmentManager(), "SelectPointDialog");
             }
+
         } else if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
-            pointSelected(
+            objectWithIdSelected(
                     (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES));
+
         } else if (requestKey.equals(ObjectListFragment.REQUEST_SELECT_OBJECT)) {
-            ObjectWithId newObject = (ObjectWithId) bundle.getSerializable(ObjectListFragment.EXTRA_OBJECT_WITH_ID);
-            if (newObject instanceof Point) {
-                pointSelected((Point) newObject);
-            }
+            objectWithIdSelected(
+                    (ObjectWithId) bundle.getSerializable(ObjectListFragment.EXTRA_OBJECT_WITH_ID));
         }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        whereToPut = (WhereToPut) getArguments().getSerializable(KEY_WHERE_TO_PUT);
+        target = (Target) getArguments().getSerializable(KEY_TARGET);
 
         String dialogTitle = "";
-        switch (whereToPut) {
+        switch (target) {
             case ROUTE_START_POINT:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleRouteStartPoint);
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleRouteStartPoint);
                 break;
             case ROUTE_VIA_POINT_1:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleRouteFirstViaPoint);
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleRouteFirstViaPoint);
                 break;
             case ROUTE_VIA_POINT_2:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleRouteSecondViaPoint);
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleRouteSecondViaPoint);
                 break;
             case ROUTE_VIA_POINT_3:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleRouteThirdViaPoint);
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleRouteThirdViaPoint);
                 break;
             case ROUTE_DESTINATION_POINT:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleRouteDestinationPoint);
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleRouteDestinationPoint);
                 break;
-            case HOME_ADDRESS:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleHomeAddress);
+            case ADD_TO_PINNED_POINTS_AND_ROUTES:
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes);
                 break;
-            case PINNED_POINT:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitlePinnedPoint);
+            case SIMULATE_LOCATION:
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleSimulationPoint);
                 break;
-            case SIMULATION_POINT:
-                dialogTitle = getResources().getString(R.string.selectRouteOrSimulationPointDialogTitleSimulationPoint);
+            case USE_AS_HOME_ADDRESS:
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleHomeAddress);
                 break;
         }
 
@@ -203,20 +209,20 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                     Arrays.asList(SourceAction.values()));
 
             // remove actions "CURRENT_LOCATION" and "CLOSEST_ADDRESS"
-            switch (whereToPut) {
+            switch (target) {
                 case ROUTE_VIA_POINT_1:
                 case ROUTE_VIA_POINT_2:
                 case ROUTE_VIA_POINT_3:
                 case ROUTE_DESTINATION_POINT:
-                case SIMULATION_POINT:
+                case SIMULATE_LOCATION:
                     sourceActionList.remove(SourceAction.CURRENT_LOCATION);
                     sourceActionList.remove(SourceAction.CLOSEST_ADDRESS);
                     break;
             }
 
             // remove action "HOME_ADDRESS"
-            switch (whereToPut) {
-                case HOME_ADDRESS:
+            switch (target) {
+                case USE_AS_HOME_ADDRESS:
                     sourceActionList.remove(SourceAction.HOME_ADDRESS);
                     break;
             }
@@ -246,9 +252,8 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
         HOME_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromHomeAddress)),
         ENTER_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromEnterAddress)),
         ENTER_COORDINATES(GlobalInstance.getStringResource(R.string.pointSelectFromEnterCoordinates)),
-        FAVORITES(GlobalInstance.getStringResource(R.string.pointSelectFromFavoritePoints)),
+        COLLECTIONS(GlobalInstance.getStringResource(R.string.pointSelectFromCollections)),
         POI(GlobalInstance.getStringResource(R.string.pointSelectFromPOI)),
-        HISTORY(GlobalInstance.getStringResource(R.string.pointSelectFromHistoryPoints)),
         FROM_COORDINATES_LINK(GlobalInstance.getStringResource(R.string.pointSelectFromCoordinatesLink));
 
         private String name;
@@ -269,24 +274,27 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
             case CURRENT_LOCATION:
                 Point currentLocation = PositionManager.getInstance().getCurrentLocation();
                 if (currentLocation == null) {
-                    SimpleMessageDialog.newInstance(
-                            getResources().getString(R.string.errorNoLocationFound))
-                        .show(getChildFragmentManager(), "SimpleMessageDialog");
-                } else {
-                    switch (whereToPut) {
-                        case HOME_ADDRESS:
-                            SaveCurrentLocationDialog.newInstance(
-                                    getResources().getString(R.string.saveCurrentLocationDialogTitleHome))
-                                .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
-                            break;
-                        case PINNED_POINT:
-                            SaveCurrentLocationDialog.newInstance(
-                                    getResources().getString(R.string.saveCurrentLocationDialogTitlePin))
-                                .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
-                            break;
-                        default:
-                            pointSelected(currentLocation);
-                    }
+                    Toast.makeText(
+                            getActivity(),
+                            GlobalInstance.getStringResource(R.string.errorNoLocationFound),
+                            Toast.LENGTH_LONG)
+                        .show();
+                    return;
+                }
+
+                switch (target) {
+                    case ADD_TO_PINNED_POINTS_AND_ROUTES:
+                        SaveCurrentLocationDialog.sendResultBundle(
+                                getResources().getString(R.string.saveCurrentLocationDialogTitlePin))
+                            .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                        break;
+                    case USE_AS_HOME_ADDRESS:
+                        SaveCurrentLocationDialog.sendResultBundle(
+                                getResources().getString(R.string.saveCurrentLocationDialogTitleHome))
+                            .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                        break;
+                    default:
+                        objectWithIdSelected(currentLocation);
                 }
                 break;
 
@@ -298,12 +306,14 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
             case HOME_ADDRESS:
                 Point homeAddress = SettingsManager.getInstance().getHomeAddress();
                 if (homeAddress == null) {
-                    SimpleMessageDialog.newInstance(
-                            getResources().getString(R.string.errorNoHomeAddressSet))
-                        .show(getChildFragmentManager(), "SimpleMessageDialog");
-                } else {
-                    pointSelected(homeAddress);
+                    Toast.makeText(
+                            getActivity(),
+                            GlobalInstance.getStringResource(R.string.errorNoHomeAddressSet),
+                            Toast.LENGTH_LONG)
+                        .show();
+                    return;
                 }
+                objectWithIdSelected(homeAddress);
                 break;
 
             case ENTER_ADDRESS:
@@ -316,19 +326,14 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
                     .show(getChildFragmentManager(), "EnterCoordinatesDialog");
                 break;
 
-            case FAVORITES:
-                ObjectListFromDatabaseFragment.createDialog(FavoritesProfile.favoritePoints(), SortMethod.DISTANCE_ASC, true)
-                    .show(getChildFragmentManager(), "SelectFavoriteDialog");
-                break;
-
-            case HISTORY:
-                SelectProfileDialog.newInstance(ProfileGroup.POINT_HISTORY)
-                    .show(getChildFragmentManager(), "SelectProfileDialog");
+            case COLLECTIONS:
+                CollectionListFragment.createDialog(true)
+                    .show(getChildFragmentManager(), "CollectionListFragment");
                 break;
 
             case POI:
-                SelectProfileDialog.newInstance(ProfileGroup.POI)
-                    .show(getChildFragmentManager(), "SelectProfileDialog");
+                PoiProfileListFragment.createDialog(true)
+                    .show(getChildFragmentManager(), "PoiProfileListFragment");
                 break;
 
             case FROM_COORDINATES_LINK:
@@ -338,12 +343,40 @@ public class SelectRouteOrSimulationPointDialog extends DialogFragment implement
         }
     }
 
-    private void pointSelected(Point point) {
-        dismiss();
+    private void objectWithIdSelected(ObjectWithId objectWithId) {
+        if (objectWithId == null) {
+            Toast.makeText(
+                    getActivity(),
+                    GlobalInstance.getStringResource(R.string.labelNothingSelected),
+                    Toast.LENGTH_LONG)
+                .show();
+            return;
+        }
+
+        switch (target) {
+            case ROUTE_START_POINT:
+            case ROUTE_VIA_POINT_1:
+            case ROUTE_VIA_POINT_2:
+            case ROUTE_VIA_POINT_3:
+            case ROUTE_DESTINATION_POINT:
+            case SIMULATE_LOCATION:
+            case USE_AS_HOME_ADDRESS:
+                if (! (objectWithId instanceof Point)) {
+                    Toast.makeText(
+                            getActivity(),
+                            GlobalInstance.getStringResource(R.string.messageObjectWithIdIncompatibleTargetPointRequired),
+                            Toast.LENGTH_LONG)
+                        .show();
+                    return;
+                }
+                break;
+        }
+
         Bundle result = new Bundle();
-        result.putSerializable(EXTRA_WHERE_TO_PUT, whereToPut);
-        result.putSerializable(EXTRA_POINT, point);
-        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_POINT, result);
+        result.putSerializable(EXTRA_OBJECT_WITH_ID, objectWithId);
+        result.putSerializable(EXTRA_TARGET, target);
+        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_OBJECT_WITH_ID, result);
+        dismiss();
     }
 
 }

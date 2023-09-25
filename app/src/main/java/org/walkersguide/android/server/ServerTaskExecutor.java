@@ -1,6 +1,5 @@
 package org.walkersguide.android.server;
 
-import org.walkersguide.android.data.object_with_id.HikingTrail;
 import org.walkersguide.android.server.wg.poi.PoiProfileResult;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.Departure;
@@ -125,16 +124,6 @@ public class ServerTaskExecutor {
     }
 
     // wg server
-
-    // hiking trails
-    public static final String ACTION_HIKING_TRAILS_TASK_SUCCESSFUL = "action.hikingTrailsTaskSuccessful";
-    public static final String EXTRA_HIKING_TRAIL_LIST  = "hikingTrailList";
-
-    public static void sendHikingTrailsTaskSuccessfulBroadcast(long taskId, ArrayList<HikingTrail> hikingTrailList) {
-        Intent intent = createActionIntentWithTaskId(ACTION_HIKING_TRAILS_TASK_SUCCESSFUL, taskId);
-        intent.putExtra(EXTRA_HIKING_TRAIL_LIST, hikingTrailList);
-        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
-    }
 
     // poi
     public static final String ACTION_POI_PROFILE_TASK_SUCCESSFUL = "action.poiProfileTaskSuccessful";

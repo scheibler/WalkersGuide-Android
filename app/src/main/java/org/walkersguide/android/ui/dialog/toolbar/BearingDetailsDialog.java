@@ -9,7 +9,7 @@ import android.text.InputFilter;
 import android.text.Spanned;
 import java.lang.NumberFormatException;
 import org.walkersguide.android.tts.TTSWrapper;
-import org.walkersguide.android.ui.TextChangedListener;
+import org.walkersguide.android.ui.interfaces.TextChangedListener;
 import org.walkersguide.android.ui.UiHelper;
 
 import androidx.appcompat.app.AlertDialog;

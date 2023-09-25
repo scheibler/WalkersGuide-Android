@@ -46,7 +46,6 @@ import androidx.fragment.app.FragmentActivity;
 import timber.log.Timber;
 import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
-import org.walkersguide.android.database.profile.FavoritesProfile;
 import java.util.ArrayList;
 import java.util.Arrays;
 

@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
+import org.walkersguide.android.ui.fragment.profile_list.PoiProfileListFragment;
 import android.widget.Toast;
 import org.walkersguide.android.util.WalkersGuideService;
 import org.walkersguide.android.util.WalkersGuideService.ServiceState;
@@ -8,7 +10,6 @@ import org.walkersguide.android.ui.fragment.SettingsFragment;
 import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.ui.dialog.InfoDialog;
 import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
-import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.RoutesTabLayoutFragment;
 import org.walkersguide.android.shortcut.StaticShortcutAction;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
@@ -45,7 +46,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.view.WindowManager;
 
-import org.walkersguide.android.ui.dialog.create.RouteFromGpxFileDialog;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 import android.os.Bundle;
@@ -80,14 +80,13 @@ import java.util.List;
 import android.annotation.SuppressLint;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
-import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
-import org.walkersguide.android.ui.dialog.create.EnterCoordinatesDialog;
 import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.os.IBinder;
+import androidx.fragment.app.FragmentManager;
 
 
 public class MainActivity extends AppCompatActivity
@@ -150,6 +149,10 @@ public class MainActivity extends AppCompatActivity
             ? savedInstanceState.getBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME)
             : false;
 
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK, this, this);
+
         // toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
@@ -198,21 +201,15 @@ public class MainActivity extends AppCompatActivity
                 drawerLayout.closeDrawers();
                 if (menuItem.getItemId() == R.id.menuItemPlanRoute) {
                     openPlanRouteDialog();
-                } else if (menuItem.getItemId() == R.id.menuItemCreateFavoriteCurrentPosition) {
-                    SaveCurrentLocationDialog.addToFavorites()
+                } else if (menuItem.getItemId() == R.id.menuItemSaveCurrentLocation) {
+                    SaveCurrentLocationDialog.addToDatabaseProfile()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemRouteFromGpxFile) {
-                    RouteFromGpxFileDialog.newInstance()
-                        .show(getSupportFragmentManager(), "RouteFromGpxFileDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemShowPointFromPostAddress) {
-                    EnterAddressDialog.newInstance()
-                        .show(getSupportFragmentManager(), "EnterAddressDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemShowPointFromCoordinates) {
-                    EnterCoordinatesDialog.newInstance()
-                        .show(getSupportFragmentManager(), "EnterCoordinatesDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemShowPointFromUrl) {
+                } else if (menuItem.getItemId() == R.id.menuItemOpenPointShareLink) {
                     PointFromCoordinatesLinkDialog.newInstance()
                         .show(getSupportFragmentManager(), "PointFromCoordinatesLinkDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemCollections) {
+                    CollectionListFragment.createDialog(false)
+                        .show(getSupportFragmentManager(), "CollectionListFragment");
                 } else if (menuItem.getItemId() == R.id.menuItemSettings) {
                     SettingsFragment.newInstance()
                         .show(getSupportFragmentManager(), "SettingsFragment");
@@ -270,24 +267,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)
-                || requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)
-                || requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
-            Point newFavorite = null;
-            if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
-                newFavorite = (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
-            } else if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
-                newFavorite = (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS);
-            } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
-                newFavorite = (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES);
-            }
-            if (newFavorite != null) {
-                ObjectDetailsTabLayoutFragment.details(newFavorite)
+        Timber.d("onFragmentResult: requestKey=%1$s", requestKey);
+        if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
+            GPS sharedLocation = (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
+            if (sharedLocation != null) {
+                ObjectDetailsTabLayoutFragment.details(sharedLocation)
                     .show(getSupportFragmentManager(), "Details");
-            } else {
-                SimpleMessageDialog.newInstance(
-                        getResources().getString(R.string.errorFavoriteCreationFailed))
-                    .show(getSupportFragmentManager(), "SimpleMessageDialog");
             }
         }
     }
@@ -430,7 +415,7 @@ public class MainActivity extends AppCompatActivity
                 if (action == StaticShortcutAction.OPEN_PLAN_ROUTE_DIALOG) {
                     openPlanRouteDialog();
                 } else if (action == StaticShortcutAction.OPEN_SAVE_CURRENT_LOCATION_DIALOG) {
-                    SaveCurrentLocationDialog.addToFavorites()
+                    SaveCurrentLocationDialog.addToDatabaseProfile()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
                 } else if (action == StaticShortcutAction.OPEN_WHERE_AM_I_DIALOG) {
                     WhereAmIDialog.newInstance()
@@ -656,7 +641,7 @@ public class MainActivity extends AppCompatActivity
                     fragment = RoutesTabLayoutFragment.newInstance();
                     break;
                 case POINTS:
-                    fragment = PointsTabLayoutFragment.newInstance();
+                    fragment = PoiProfileListFragment.createFragment();
                     break;
                 default:
                     return;
@@ -698,6 +683,10 @@ public class MainActivity extends AppCompatActivity
         // open on top
         PlanRouteDialog.newInstance()
             .show(getSupportFragmentManager(), "PlanRouteDialog");
+    }
+
+    @Override public FragmentManager getFragmentManagerInstance() {
+        return getSupportFragmentManager();
     }
 
     @Override public void addFragment(DialogFragment fragment) {
@@ -782,16 +771,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void previousFragment() {
+        int newIndex = getCurrentTab().position - 1;
         Tab previousTab = Tab.getTabAtPosition(
-                getCurrentTab().position - 1);
+                newIndex == -1 ? Tab.values().length - 1 : newIndex);
         if (previousTab != null) {
             loadFragment(previousTab);
         }
     }
 
     private void nextFragment() {
+        int newIndex = getCurrentTab().position + 1;
         Tab nextTab = Tab.getTabAtPosition(
-                getCurrentTab().position + 1);
+                newIndex == Tab.values().length ? 0 : newIndex);
         if (nextTab != null) {
             loadFragment(nextTab);
         }

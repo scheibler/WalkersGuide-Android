@@ -1,6 +1,6 @@
 package org.walkersguide.android.server.wg.p2p;
 
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.server.wg.status.ServerInstance;
@@ -57,7 +57,7 @@ public class P2pRouteTask extends ServerTask {
             // excluded ways
             JSONArray jsonExcludedWays = new JSONArray();
             DatabaseProfileRequest databaseProfileRequest = new DatabaseProfileRequest(
-                    DatabaseProfile.excludedRoutingSegments(), null, SortMethod.ACCESSED_DESC);
+                    StaticProfile.excludedRoutingSegments(), null, SortMethod.ACCESSED_DESC);
             for (ObjectWithId objectWithId : AccessDatabase.getInstance().getObjectListFor(databaseProfileRequest)) {
                 if (objectWithId instanceof Segment) {
                     Segment segmentToExclude = (Segment) objectWithId;

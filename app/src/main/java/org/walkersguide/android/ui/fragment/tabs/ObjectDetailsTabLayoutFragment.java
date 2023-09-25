@@ -1,7 +1,7 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
 import org.walkersguide.android.tts.TTSWrapper;
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
@@ -50,13 +50,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.Segment;
-import org.walkersguide.android.data.object_with_id.HikingTrail;
-import org.walkersguide.android.ui.fragment.tabs.object_details.HikingTrailDetailsFragment;
 import org.walkersguide.android.data.object_with_id.Route;
 import org.walkersguide.android.ui.fragment.tabs.object_details.RouteDetailsFragment;
 import org.walkersguide.android.ui.fragment.tabs.object_details.SegmentDetailsFragment;
 import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 
 
 public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
@@ -79,13 +78,17 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 	}
 
 	private static ObjectDetailsTabLayoutFragment newInstance(ObjectWithId object, Tab selectedTab) {
-        // add object to database
+        // add object to history
         if (object instanceof Intersection) {
-            DatabaseProfile.intersectionPoints().add((Intersection) object);
+            HistoryProfile.intersectionPoints().add((Intersection) object);
         } else if (object instanceof Station) {
-            DatabaseProfile.stationPoints().add((Station) object);
+            HistoryProfile.stationPoints().add((Station) object);
+        } else if (object instanceof StreetAddress) {
+            HistoryProfile.addressPoints().add((StreetAddress) object);
         } else if (object instanceof Point) {
-            DatabaseProfile.allPoints().add((Point) object);
+            HistoryProfile.allPoints().add((Point) object);
+        } else if (object instanceof Route) {
+            HistoryProfile.allRoutes().add((Route) object);
         }
 
         // create fragment
@@ -323,8 +326,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                     case DETAILS:
                         if (object instanceof Point) {
                             return PointDetailsFragment.newInstance((Point) object);
-                        } else if (object instanceof HikingTrail) {
-                            return HikingTrailDetailsFragment.newInstance((HikingTrail) object);
                         } else if (object instanceof Route) {
                             return RouteDetailsFragment.newInstance((Route) object);
                         } else if (object instanceof Segment) {
@@ -381,8 +382,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                     case DETAILS:
                         if (object instanceof Point) {
                             return getResources().getString(R.string.fragmentPointDetailsName);
-                        } else if (object instanceof HikingTrail) {
-                            return getResources().getString(R.string.fragmentHikingTrailDetailsName);
                         } else if (object instanceof Route) {
                             return getResources().getString(R.string.fragmentRouteDetailsName);
                         } else if (object instanceof Segment) {

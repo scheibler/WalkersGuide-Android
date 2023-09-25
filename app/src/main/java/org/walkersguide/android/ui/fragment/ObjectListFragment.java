@@ -337,7 +337,6 @@ public abstract class ObjectListFragment extends RootFragment
         filter.addAction(PositionManager.ACTION_NEW_LOCATION);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
         filter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
-        filter.addAction(ObjectWithId.ACTION_FAVORITE_STATUS_CHANGED);
         filter.addAction(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
         filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
         LocalBroadcastManager
@@ -353,9 +352,7 @@ public abstract class ObjectListFragment extends RootFragment
         private ObjectWithId lastClosestObject = null;
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ObjectWithId.ACTION_FAVORITE_STATUS_CHANGED)
-                    || intent.getAction().equals(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED)) {
-                Timber.d("ACTION_FAVORITE_STATUS_CHANGED: request update");
+            if (intent.getAction().equals(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED)) {
                 requestUiUpdate();
 
             } else if (! getActivity().hasWindowFocus()) {

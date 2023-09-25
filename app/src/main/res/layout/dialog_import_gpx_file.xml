@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/labelImportResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true" />
+
+
+        <!-- new collection -->
+
+        <RadioButton
+            android:id="@+id/radioButtonNewCollection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/radioButtonNewCollection" />
+
+        <org.walkersguide.android.ui.view.EditTextAndClearInputButton
+            android:id="@+id/layoutNewCollectionName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchPinNewCollection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/switchPinNewCollection" />
+
+
+        <!-- existing collection -->
+
+        <RadioButton
+            android:id="@+id/radioButtonExistingDatabaseProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/radioButtonExistingDatabaseProfile" />
+
+        <org.walkersguide.android.ui.view.ProfileView
+            android:id="@+id/layoutExistingDatabaseProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:prefix="@string/labelPrefixAddTo" />
+
+    </LinearLayout>
+</ScrollView>

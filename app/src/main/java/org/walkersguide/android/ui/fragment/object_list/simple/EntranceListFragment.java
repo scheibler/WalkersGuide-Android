@@ -17,7 +17,7 @@ public class EntranceListFragment extends SimpleObjectListFragment {
 	}
 
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
     	return getResources().getString(R.string.fragmentEntrancesName);
     }
 

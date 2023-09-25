@@ -49,15 +49,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import timber.log.Timber;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import org.walkersguide.android.util.Helper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 
 
-public class RouteDetailsFragment extends Fragment
-        implements FragmentResultListener, MenuProvider, OnRefreshListener {
+public class RouteDetailsFragment extends Fragment implements FragmentResultListener, MenuProvider {
 
 
     // instance constructors
@@ -65,7 +62,6 @@ public class RouteDetailsFragment extends Fragment
     private static final String KEY_STREET_COURSE_REQUEST = "streetCourseRequest";
 
 	public static RouteDetailsFragment newInstance(Route route) {
-        DatabaseProfile.allRoutes().add(route);
 		RouteDetailsFragment fragment = new RouteDetailsFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ROUTE, route);
@@ -95,7 +91,6 @@ public class RouteDetailsFragment extends Fragment
     private Route route;
     private int listPosition;
 
-    private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewRoute;
     private TextView labelHeading, labelEmptyListView;
 
@@ -156,7 +151,7 @@ public class RouteDetailsFragment extends Fragment
      */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_heading_and_list_view_without_add_button, container, false);
+		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -174,30 +169,15 @@ public class RouteDetailsFragment extends Fragment
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
-
-        swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
-        swipeRefreshListView.setOnRefreshListener(this);
         listViewRoute = (ListView) view.findViewById(R.id.listView);
-
-        swipeRefreshEmptyTextView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshEmptyTextView);
-        swipeRefreshEmptyTextView.setOnRefreshListener(this);
-        listViewRoute.setEmptyView(swipeRefreshEmptyTextView);
         labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
+        listViewRoute.setEmptyView(labelEmptyListView);
     }
 
     /**
      * pause and resume
      */
 
-
-    @Override public void onRefresh() {
-        if (modeStreetCourse()
-                && ! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            Helper.vibrateOnce(
-                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
-            requestStreetCourse();
-        }
-    }
 
     @Override public void onResume() {
         super.onResume();
@@ -260,8 +240,6 @@ public class RouteDetailsFragment extends Fragment
 
         // start request
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            swipeRefreshListView.setRefreshing(true);
-            swipeRefreshEmptyTextView.setRefreshing(true);
             taskId = serverTaskExecutorInstance.executeTask(new StreetCourseTask(request));
         }
     }
@@ -304,9 +282,6 @@ public class RouteDetailsFragment extends Fragment
                         labelEmptyListView.setText(wgException.getMessage());
                     }
                 }
-
-                swipeRefreshListView.setRefreshing(false);
-                swipeRefreshEmptyTextView.setRefreshing(false);
             }
         }
     };

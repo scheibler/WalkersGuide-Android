@@ -47,7 +47,6 @@ import androidx.fragment.app.FragmentActivity;
 import timber.log.Timber;
 import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
-import org.walkersguide.android.database.profile.FavoritesProfile;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -72,7 +71,7 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
      */
 
     private enum Tab {
-        ROUTER, FAVORITES, RECORD
+        ROUTER, RECORD
     }
 
 
@@ -88,9 +87,6 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case ROUTER:
                         return RouterFragment.newInstance();
-                    case FAVORITES:
-                        return ObjectListFromDatabaseFragment.createFragment(
-                                FavoritesProfile.favoriteRoutes(), SortMethod.ACCESSED_DESC);
                     case RECORD:
                         return RecordRouteFragment.newInstance();
                 }
@@ -104,8 +100,6 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case ROUTER:
                         return getResources().getString(R.string.fragmentRouterName);
-                    case FAVORITES:
-                        return getResources().getString(R.string.fragmentFavoritesName);
                     case RECORD:
                         return getResources().getString(R.string.fragmentRecordRouteName);
                 }

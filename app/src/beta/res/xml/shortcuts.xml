@@ -17,7 +17,7 @@
     <shortcut
         android:shortcutId="shortcutSaveCurrentLocation"
         android:icon="@drawable/ic_launcher"
-        android:shortcutShortLabel="@string/menuItemCreateFavoriteCurrentPosition"
+        android:shortcutShortLabel="@string/menuItemSaveCurrentLocation"
         tools:ignore="UnusedAttribute" >
 
         <intent

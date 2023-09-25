@@ -1,14 +1,11 @@
 package org.walkersguide.android.ui.fragment.object_list.extended;
 
 import android.widget.Toast;
-import org.walkersguide.android.data.profile.ProfileGroup;
-import org.walkersguide.android.database.profile.FavoritesProfile;
 import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.database.SortMethod;
 
 import org.walkersguide.android.data.ObjectWithId;
 
-import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
 import org.walkersguide.android.ui.dialog.select.SelectSortMethodDialog;
 import org.walkersguide.android.R;
 
@@ -35,8 +32,9 @@ import android.os.Handler;
 import android.os.Looper;
 import java.util.concurrent.Executors;
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.profile.Profile;
+import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 import timber.log.Timber;
 import android.widget.Button;
 import androidx.appcompat.app.AlertDialog;
@@ -64,12 +62,11 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 		return fragment;
     }
 
-	public static ObjectListFromDatabaseFragment createDialog(DatabaseProfile profile, SortMethod sortMethod, boolean enableSelection) {
+	public static ObjectListFromDatabaseFragment createFragment(DatabaseProfile profile) {
 		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
         fragment.setArguments(
                 new BundleBuilder(
-                    new DatabaseProfileRequest(profile, null, sortMethod))
-                .setIsDialog(enableSelection)
+                    new DatabaseProfileRequest(profile))
                 .build());
 		return fragment;
     }
@@ -79,26 +76,6 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         fragment.setArguments(
                 new BundleBuilder(
                     new DatabaseProfileRequest(profile, null, sortMethod))
-                .build());
-		return fragment;
-    }
-
-	public static ObjectListFromDatabaseFragment createPointHistoryFragment() {
-		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
-        fragment.setArguments(
-                new BundleBuilder(
-                    new DatabaseProfileRequest(DatabaseProfile.allPoints()))
-                .setProfileGroup(ProfileGroup.POINT_HISTORY)
-                .build());
-		return fragment;
-    }
-
-	public static ObjectListFromDatabaseFragment createRouteHistoryFragment() {
-		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
-        fragment.setArguments(
-                new BundleBuilder(
-                    new DatabaseProfileRequest(DatabaseProfile.allRoutes()))
-                .setProfileGroup(ProfileGroup.ROUTE_HISTORY)
                 .build());
 		return fragment;
     }
@@ -123,24 +100,9 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                     (SortMethod) bundle.getSerializable(SelectSortMethodDialog.EXTRA_SORT_METHOD));
             resetListPosition();
             requestUiUpdate();
-
         } else {
             super.onFragmentResult(requestKey, bundle);
         }
-    }
-
-    @Override public Profile getProfile() {
-        return request.getProfile();
-    }
-
-    @Override public void selectNewProfile(Profile newProfile) {
-        if (newProfile == null) {
-            request.setProfile(null);
-        } else if (newProfile instanceof DatabaseProfile) {
-            request.setProfile((DatabaseProfile) newProfile);
-        }
-        resetListPosition();
-        requestUiUpdate();
     }
 
 
@@ -165,7 +127,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         request.setSearchTerm(newSearchTerm);
     }
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
         if (request.hasProfile()) {
             return request.getProfile().getName();
         }
@@ -176,15 +138,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         if (request.hasSearchTerm()) {
             return R.plurals.result;
         } else if (request.hasProfile()) {
-            if (request.getProfile() instanceof FavoritesProfile) {
-                return R.plurals.favorite;
-            } else if (request.getProfile().isForPoints()) {
-                return R.plurals.point;
-            } else if (request.getProfile().isForRoutes()) {
-                return R.plurals.route;
-            } else if (request.getProfile().isForSegments()) {
-                return R.plurals.way;
-            }
+            return request.getProfile().getPluralResId();
         }
         return R.plurals.object;
     }
@@ -213,6 +167,9 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         // show announce object ahead
         MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
         menuItemAnnounceObjectAhead.setVisible(isPointDatabaseProfile);
+        // clear profile
+        MenuItem menuItemClearProfile = menu.findItem(R.id.menuItemClearProfile);
+        menuItemClearProfile.setVisible(request.getProfile() instanceof StaticProfile);
     }
 
     @Override public boolean onMenuItemSelected(MenuItem item) {
@@ -226,7 +183,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                 return true;
             }
             SelectSortMethodDialog.newInstance(
-                    request.getProfile().getSupportedSortMethodList(),
+                    request.getProfile().getSortMethodList(),
                     request.getSortMethod())
                 .show(getChildFragmentManager(), "SelectSortMethodDialog");
 
@@ -288,7 +245,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     SelectSortMethodDialog.newInstance(
-                            request.getProfile().getSupportedSortMethodList(),
+                            request.getProfile().getSortMethodList(),
                             request.getSortMethod())
                         .show(getChildFragmentManager(), "SelectSortMethodDialog");
                 }
@@ -331,10 +288,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                             String.format(
                                 GlobalInstance.getStringResource(R.string.labelHeadingSecondLineSortMethod),
                                 request.getSortMethod().toString()),
-                            objectList,
-                            ! (request.getProfile() instanceof FavoritesProfile),
-                               getProfileGroup() == ProfileGroup.POINT_HISTORY
-                            || getProfileGroup() == ProfileGroup.ROUTE_HISTORY);
+                            objectList, false, false);
                 }
             });
         });

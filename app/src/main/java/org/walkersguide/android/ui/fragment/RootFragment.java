@@ -18,9 +18,13 @@ import timber.log.Timber;
 
 public abstract class RootFragment extends DialogFragment {
 
-    public abstract String getDialogTitle();
+    public abstract String getTitle();
     public abstract int getLayoutResourceId();
 	public abstract View configureView(View view, Bundle savedInstanceState);
+
+    public String getDialogTitle() {
+        return getTitle();
+    }
 
     public String getDialogButtonText() {
         return getResources().getString(R.string.dialogClose);
@@ -78,6 +82,20 @@ public abstract class RootFragment extends DialogFragment {
             if (activity instanceof MainActivity) {
                 mainActivityController = (MainActivityController) ((MainActivity) activity);
             }
+        }
+    }
+
+	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+        if (getDialog() == null) {
+            updateToolbarTitle();
+        }
+    }
+
+    public void updateToolbarTitle() {
+        String toolbarTitle = getTitle();
+        if (toolbarTitle != null) {
+            mainActivityController.configureToolbarTitle(toolbarTitle);
         }
     }
 

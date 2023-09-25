@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.ui.UiHelper;
 
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
@@ -181,7 +181,7 @@ public class EnterCoordinatesDialog extends DialogFragment {
             newLocation = new GPS.Builder(latitude, longitude).build();
         } catch (JSONException e) {}
         if (newLocation != null
-                && DatabaseProfile.allPoints().add(newLocation)) {
+                && HistoryProfile.allPoints().add(newLocation)) {
 
             // rename if a name was given
             String newName = layoutOptionalName.getInputText();

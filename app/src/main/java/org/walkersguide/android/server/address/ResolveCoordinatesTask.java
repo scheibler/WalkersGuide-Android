@@ -1,6 +1,6 @@
 package org.walkersguide.android.server.address;
 
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.server.ServerUtility;
 import org.walkersguide.android.server.ServerTask;
 import org.walkersguide.android.server.ServerTaskExecutor;
@@ -26,10 +26,12 @@ public class ResolveCoordinatesTask extends ServerTask {
     }
 
     @Override public void execute() throws AddressException {
+        final HistoryProfile addressPointProfile = HistoryProfile.addressPoints();
+
         // first look into local database
         StreetAddress addressFromDatabase = null;
         DatabaseProfileRequest databaseProfileRequest = new DatabaseProfileRequest(
-                DatabaseProfile.addressPoints(), null, SortMethod.DISTANCE_ASC);
+                addressPointProfile, null, SortMethod.DISTANCE_ASC);
         for (ObjectWithId objectWithId : AccessDatabase.getInstance().getObjectListFor(databaseProfileRequest)) {
             if (objectWithId instanceof StreetAddress) {
                 StreetAddress address = (StreetAddress) objectWithId;
@@ -82,7 +84,7 @@ public class ResolveCoordinatesTask extends ServerTask {
                         AddressException.RC_NO_ADDRESS_FOR_COORDINATES);
             }
 
-            DatabaseProfile.addressPoints().add(newAddress);
+            addressPointProfile.add(newAddress);
             ServerTaskExecutor.sendResolveCoordinatesTaskSuccessfulBroadcast(getId(), newAddress);
         }
     }

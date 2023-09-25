@@ -1,5 +1,6 @@
 package org.walkersguide.android.data.profile;
 
+import org.walkersguide.android.data.Profile;
 import java.io.Serializable;
 import org.walkersguide.android.util.Helper;
 import android.text.TextUtils;

@@ -1,10 +1,10 @@
 package org.walkersguide.android.data.object_with_id;
 
+import org.walkersguide.android.data.object_with_id.common.ObjectClass;
 import android.content.Intent;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.database.profile.FavoritesProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.segment.RouteSegment;
@@ -141,6 +141,10 @@ public abstract class Segment extends ObjectWithId implements Serializable {
         return this.name;
     }
 
+    public ObjectClass getObjectClass() {
+        return ObjectClass.SEGMENT;
+    }
+
     public Bearing getBearing() {
         return this.bearing;
     }
@@ -255,11 +259,11 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     public static final String ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED = "excludedFromRoutingStatusChanged";
 
     public boolean isExcludedFromRouting() {
-        return DatabaseProfile.excludedRoutingSegments().contains(this);
+        return StaticProfile.excludedRoutingSegments().contains(this);
     }
 
     public boolean excludeFromRouting() {
-        boolean success = DatabaseProfile.excludedRoutingSegments().add(this);
+        boolean success = StaticProfile.excludedRoutingSegments().add(this);
         if (success) {
             Intent excludedFromRoutingStatusChangedIntent = new Intent(ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(excludedFromRoutingStatusChangedIntent);
@@ -268,7 +272,7 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     }
 
     public boolean includeIntoRouting() {
-        boolean success = DatabaseProfile.excludedRoutingSegments().remove(this);
+        boolean success = StaticProfile.excludedRoutingSegments().remove(this);
         if (success) {
             Intent excludedFromRoutingStatusChangedIntent = new Intent(ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(excludedFromRoutingStatusChangedIntent);
@@ -280,10 +284,6 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     /**
      * super class methods
      */
-
-    @Override public FavoritesProfile getDefaultFavoritesProfile() {
-        return null;
-    }
 
     @Override public String toString() {
         return formatNameAndSubType();

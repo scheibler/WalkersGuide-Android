@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.server.wg.p2p.P2pRouteTask;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
@@ -8,8 +9,8 @@ import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
     import org.walkersguide.android.ui.view.TextViewAndActionButton;
 import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
+import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
+import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog.Target;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
@@ -55,8 +56,9 @@ import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.util.Helper;
+import org.walkersguide.android.data.ObjectWithId;
 
 
 public class PlanRouteDialog extends DialogFragment implements FragmentResultListener {
@@ -99,7 +101,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                     SelectMapDialog.REQUEST_SELECT_MAP, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
+                    SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -107,33 +109,39 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         if (requestKey.equals(ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED)) {
             settingsManagerInstance.setWayClassWeightSettings(
                     (WayClassWeightSettings) bundle.getSerializable(ConfigureWayClassWeightsDialog.EXTRA_WAY_CLASS_SETTINGS));
+
         } else if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
             settingsManagerInstance.setSelectedMap(
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
             startRouteCalculation();
-        } else if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
-            P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
-            WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
-            Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
-            switch (whereToPut) {
-                case ROUTE_START_POINT:
-                    p2pRouteRequest.setStartPoint(point);
-                    break;
-                case ROUTE_DESTINATION_POINT:
-                    p2pRouteRequest.setDestinationPoint(point);
-                    break;
-                case ROUTE_VIA_POINT_1:
-                    p2pRouteRequest.setViaPoint1(point);
-                    break;
-                case ROUTE_VIA_POINT_2:
-                    p2pRouteRequest.setViaPoint2(point);
-                    break;
-                case ROUTE_VIA_POINT_3:
-                    p2pRouteRequest.setViaPoint3(point);
-                    break;
+
+        } else if (requestKey.equals(SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID)) {
+            SelectObjectWithIdFromMultipleSourcesDialog.Target objectWithIdTarget = (SelectObjectWithIdFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
+            ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
+            if (selectedObjectWithId instanceof Point) {
+                P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                Point point = (Point) selectedObjectWithId;
+                switch (objectWithIdTarget) {
+                    case ROUTE_START_POINT:
+                        p2pRouteRequest.setStartPoint(point);
+                        break;
+                    case ROUTE_DESTINATION_POINT:
+                        p2pRouteRequest.setDestinationPoint(point);
+                        break;
+                    case ROUTE_VIA_POINT_1:
+                        p2pRouteRequest.setViaPoint1(point);
+                        break;
+                    case ROUTE_VIA_POINT_2:
+                        p2pRouteRequest.setViaPoint2(point);
+                        break;
+                    case ROUTE_VIA_POINT_3:
+                        p2pRouteRequest.setViaPoint3(point);
+                        break;
+                }
+                settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                updateUI();
             }
-            settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-            updateUI();
         }
     }
 
@@ -153,9 +161,9 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         layoutStartPoint.setAutoUpdate(true);
         layoutStartPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_START_POINT)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_START_POINT)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
@@ -163,9 +171,9 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         layoutDestinationPoint.setAutoUpdate(true);
         layoutDestinationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_DESTINATION_POINT)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_DESTINATION_POINT)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
@@ -183,27 +191,27 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         layoutViaPoint1 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint1);
         layoutViaPoint1.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_1)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_1)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
         layoutViaPoint2 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint2);
         layoutViaPoint2.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_2)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_2)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
         layoutViaPoint3 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint3);
         layoutViaPoint3.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.ROUTE_VIA_POINT_3)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_3)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
@@ -385,7 +393,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
                 if (intent.getAction().equals(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL)) {
                     Route newRoute = (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE);
-                    DatabaseProfile.plannedRoutes().add(newRoute);
+                    HistoryProfile.plannedRoutes().add(newRoute);
                     Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                     MainActivity.loadRoute(
                             PlanRouteDialog.this.getContext(), newRoute);
@@ -452,7 +460,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                     updateUI();
 
                 } else if (item.getItemId() == MENU_ITEM_EXCLUDED_WAYS) {
-                    ObjectListFromDatabaseFragment.createDialog(DatabaseProfile.excludedRoutingSegments(), false)
+                    ObjectListFromDatabaseFragment.createDialog(StaticProfile.excludedRoutingSegments(), false)
                         .show(getChildFragmentManager(), "ExcludedWaysDialog");
 
                 } else if (item.getItemId() == MENU_ITEM_ROUTING_WAY_CLASSES) {

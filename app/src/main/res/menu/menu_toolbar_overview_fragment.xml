@@ -6,6 +6,18 @@
         android:id="@+id/menuItemRefresh"
         android:title="@string/menuItemRefresh" />
     <item
-        android:id="@+id/menuItemClearPinnedPoints"
-        android:title="@string/menuItemClearPinnedPoints" />
+        android:id="@+id/menuItemClearPinnedObjects"
+        android:title="@string/menuItemClearPinnedObjects" >
+        <menu>
+            <item
+                android:id="@+id/menuItemClearPinnedObjectsOnlyProfiles"
+                android:title="@string/menuItemClearPinnedObjectsOnlyProfiles" />
+            <item
+                android:id="@+id/menuItemClearPinnedObjectsOnlyPointsAndRoutes"
+                android:title="@string/menuItemClearPinnedObjectsOnlyPointsAndRoutes" />
+            <item
+                android:id="@+id/menuItemClearPinnedObjectsBoth"
+                android:title="@string/menuItemClearPinnedObjectsBoth" />
+        </menu>
+    </item>
 </menu>

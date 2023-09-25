@@ -1,16 +1,14 @@
 package org.walkersguide.android.ui.fragment.object_list.extended;
 
-import org.walkersguide.android.data.profile.Profile;
+import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.data.Angle;
 import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
 import org.walkersguide.android.server.wg.poi.PoiCategory;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
-import org.walkersguide.android.data.profile.ProfileGroup;
 import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
 import org.walkersguide.android.server.wg.poi.PoiProfileResult;
 
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
-import org.walkersguide.android.ui.dialog.select.SelectProfileDialog;
 
 import org.walkersguide.android.R;
 
@@ -48,6 +46,8 @@ import android.text.TextUtils;
 import org.walkersguide.android.util.Helper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 
 public class PoiListFromServerFragment extends ExtendedObjectListFragment
@@ -71,12 +71,11 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 		return fragment;
     }
 
-	public static PoiListFromServerFragment createPoiFragment() {
+	public static PoiListFromServerFragment createFragment(PoiProfile profile) {
 		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
         fragment.setArguments(
                 new BundleBuilder(
-                    new PoiProfileRequest(SettingsManager.getInstance().getSelectedPoiProfile()))
-                .setProfileGroup(ProfileGroup.POI)
+                    new PoiProfileRequest(profile))
                 .build());
 		return fragment;
     }
@@ -104,9 +103,8 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         if (requestKey.equals(SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES)) {
             Timber.d("onFragmentResult: categories selected");
-            ArrayList<PoiCategory> newPoiCategoryList = (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST);
-            request.getProfile().setValues(
-                    request.getProfile().getName(), newPoiCategoryList, request.getProfile().getIncludeFavorites());
+            request.getProfile().setPoiCategoryList(
+                    (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST));
             resetListPosition();
             requestUiUpdate();
 
@@ -115,27 +113,11 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         }
     }
 
-    @Override public Profile getProfile() {
-        return request.getProfile();
-    }
-
-    @Override public void selectNewProfile(Profile newProfile) {
-        if (newProfile == null) {
-            request.setProfile(null);
-            SettingsManager.getInstance().setSelectedPoiProfile(null);
-        } else if (newProfile instanceof PoiProfile) {
-            PoiProfile newPoiProfile = (PoiProfile) newProfile;
-            request.setProfile(newPoiProfile);
-            SettingsManager.getInstance().setSelectedPoiProfile(newPoiProfile);
-        }
-        resetListPosition();
-        requestUiUpdate();
-    }
-
 
     /**
      * create view
      */
+    private Button buttonSelectPoiCategories, buttonSelectCollections;
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
@@ -149,6 +131,28 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         }
 
         super.updateSearchTerm(request.getSearchTerm());
+
+        // show buttons
+        ((LinearLayout) view.findViewById(R.id.layoutPoiListFromServerFragment))
+            .setVisibility(View.VISIBLE);
+
+        buttonSelectPoiCategories = (Button) view.findViewById(R.id.buttonSelectPoiCategories);
+        buttonSelectPoiCategories.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                if (request.hasProfile()) {
+                    SelectPoiCategoriesDialog.newInstance(
+                            request.getProfile().getPoiCategoryList())
+                        .show(getChildFragmentManager(), "SelectPoiCategoriesDialog");
+                }
+            }
+        });
+
+        buttonSelectCollections = (Button) view.findViewById(R.id.buttonSelectCollections);
+        buttonSelectCollections.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+            }
+        });
+
         return view;
     }
 
@@ -156,7 +160,7 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         request.setSearchTerm(newSearchTerm);
     }
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
         if (request.hasProfile()) {
             return request.getProfile().getName();
         }
@@ -233,6 +237,30 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 
     @Override public void prepareRequest() {
         super.prepareRequest();
+
+        int numberOfSelectedPoiCategories = request.hasProfile()
+            ? request.getProfile().getPoiCategoryList().size() : 0;
+        buttonSelectPoiCategories.setText(
+                GlobalInstance.getPluralResource(
+                    R.plurals.category, numberOfSelectedPoiCategories));
+        buttonSelectPoiCategories.setContentDescription(
+                String.format(
+                    "%1$s: %2$s",
+                    GlobalInstance.getPluralResource(
+                        R.plurals.poiCategorySelected, numberOfSelectedPoiCategories),
+                    request.hasProfile()
+                    ? TextUtils.join(", ", request.getProfile().getPoiCategoryList())
+                    : "")
+                );
+
+        int numberOfSelectedCollections = request.hasProfile()
+            ? request.getProfile().getCollectionList().size() : 0;
+        buttonSelectCollections.setText(
+                GlobalInstance.getPluralResource(
+                    R.plurals.collection, numberOfSelectedCollections));
+        buttonSelectPoiCategories.setContentDescription(
+                GlobalInstance.getPluralResource(
+                    R.plurals.collectionSelected, numberOfSelectedCollections));
     }
 
     @Override public void swipeToRefreshDetected() {

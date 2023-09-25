@@ -74,12 +74,9 @@
 
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
-    <string name="menuItemCreateFavoriteCurrentPosition">Add current location to favorites</string>
-    <string name="menuItemRouteFromGpxFile">Import route from GPX file</string>
-    <string name="menuItemShowPoint">Show point:</string>
-    <string name="menuItemShowPointFromPostAddress">Enter address</string>
-    <string name="menuItemShowPointFromCoordinates">Enter coordinates</string>
-    <string name="menuItemShowPointFromUrl">Extract point from link</string>
+    <string name="menuItemSaveCurrentLocation">Save current location</string>
+    <string name="menuItemOpenPointShareLink">Open shared location link</string>
+    <string name="menuItemCollections">Collections</string>
     <string name="menuItemMisc">Miscellaneous:</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
@@ -97,26 +94,26 @@
     <!-- ConfigureWayClassWeightsDialog -->
     <string name="configureWayClassWeightsDialogTitle">Prioritise way classes:</string>
 
-    <!-- SelectRouteOrSimulationPointDialog -->
+    <!-- SelectObjectWithIdFromMultipleSourcesDialog -->
     <!-- dialog titles -->
-    <string name="selectRouteOrSimulationPointDialogTitleRouteStartPoint">Select start point:</string>
-    <string name="selectRouteOrSimulationPointDialogTitleRouteFirstViaPoint">Select first via point:</string>
-    <string name="selectRouteOrSimulationPointDialogTitleRouteSecondViaPoint">Select second via point:</string>
-    <string name="selectRouteOrSimulationPointDialogTitleRouteThirdViaPoint">Select third via point:</string>
-    <string name="selectRouteOrSimulationPointDialogTitleRouteDestinationPoint">Select destination point:</string>
-    <string name="selectRouteOrSimulationPointDialogTitleHomeAddress">Select home address:</string>
-    <string name="selectRouteOrSimulationPointDialogTitlePinnedPoint">Select pinned point:</string>
-    <string name="selectRouteOrSimulationPointDialogTitleSimulationPoint">Select point to simulate:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteStartPoint">Select start point:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteFirstViaPoint">Select first via point:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteSecondViaPoint">Select second via point:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteThirdViaPoint">Select third via point:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteDestinationPoint">Select destination point:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleHomeAddress">Select home address:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes">Select point or route to be pinned:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleSimulationPoint">Select point to simulate:</string>
+    <string name="messageObjectWithIdIncompatibleTargetPointRequired">Please select a point.</string>
     <!-- list items -->
     <string name="pointSelectFromCurrentLocation">Current location</string>
     <string name="pointSelectFromClosestAddress">Closest address</string>
     <string name="pointSelectFromHomeAddress">Home address</string>
     <string name="pointSelectFromEnterAddress">Enter address</string>
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
-    <string name="pointSelectFromFavoritePoints">Favorites</string>
-    <string name="pointSelectFromHistoryPoints">history</string>
+    <string name="pointSelectFromCollections">Collections</string>
     <string name="pointSelectFromPOI">Select from nearby points</string>
-    <string name="pointSelectFromCoordinatesLink">Import from url</string>
+    <string name="pointSelectFromCoordinatesLink">Import from shared url</string>
 
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Enter Address:</string>
@@ -144,28 +141,15 @@
     <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">Could not obtain the coordinates for the entered node id.</string>
     <string name="messageLinkUrlFormatUnknown">Coordinates url format is unknown. Please enter either an OpenStreetMap, a Google maps or an Apple maps coordinates url.</string>
 
-    <!-- route from gpx file dialog -->
-    <string name="routeFromGpxFileDialogTitle">Select GPX file</string>
-    <string name="layoutRouteName">Route name</string>
-    <string name="switchReverseRoute">Import route in reverse order</string>
-    <string name="messageGpxRouteNameMissing">Please enter a name for the route.</string>
-    <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
-    <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
-    <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
-    <string name="messageNoGpxTracksFound">The selected GPX file contains no route points.</string>
-    <string name="messageMultipleGpxTracksFound">The selected GPX file contains multiple routes. That\'s not supported at the moment.</string>
-    <string name="messageGpxRoutePointParsingFailed">Failed to parse at least one route point.</string>
-    <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
-
     <!-- SaveCurrentLocationDialog -->
-    <string name="saveCurrentLocationDialogTitleFavorite">Add the current location to favorites:</string>
+    <string name="saveCurrentLocationDialogTitle">Save current location:</string>
     <string name="saveCurrentLocationDialogTitleHome">Use the current location as home address:</string>
     <string name="saveCurrentLocationDialogTitlePin">Pin the current location:</string>
     <string name="labelName">Name</string>
-    <string name="buttonLocationSensorDetails">Show location sensor details</string>
     <string name="messageNameMissing">Please enter a name.</string>
-    <string name="messageCurrentLocationAddedToFavoritesSuccessful">The point has been added to favorites.</string>
-    <string name="messageCurrentLocationAddedToPinnedPointsSuccessful">The point was pinned successfully.</string>
+    <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$d meters, %2$s</string>
+    <string name="messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful">The current location was pinned successfully.</string>
+    <string name="messageCurrentLocationAddedToCollectionSuccessful">The current location was added to the collection %1$s.</string>
 
 
     <!--
@@ -176,7 +160,6 @@
     <string name="app_name">WalkersGuide</string>
     <string name="mainMenu">Main menu</string>
     <string name="navigateUp">Navigate up</string>
-    <string name="errorFavoriteCreationFailed">Couldn\'t create favorite.</string>
     <!-- main tab names -->
     <string name="mainTabNameOverview">Overview</string>
     <string name="mainTabNameRoutes">Routes</string>
@@ -184,9 +167,19 @@
 
     <!-- overview fragment -->
     <string name="fragmentOverviewName">Overview</string>
-    <string name="menuItemClearPinnedPoints">Clear pinned points</string>
-    <string name="buttonAddPinnedPoint">Pin point</string>
-    <string name="messageNoPinnedPoints">No points have been pinned yet.</string>
+    <!-- pinned object list -->
+    <string name="menuItemClearPinnedObjects">Clear lists</string>
+    <string name="menuItemClearPinnedObjectsOnlyProfiles">Only remove profiles</string>
+    <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only remove points and routes</string>
+    <string name="menuItemClearPinnedObjectsBoth">Clear both lists</string>
+    <string name="labelSomethingPinned">%1$s pinned</string>
+    <string name="buttonAddPinnedProfile">Pin profile</string>
+    <string name="buttonAddPinnedPointOrRoute">Pin point or route</string>
+    <string name="contextMenuItemPinnedObjectListAddCollection">Collection</string>
+    <string name="contextMenuItemPinnedObjectListAddPoiProfile">Point profile</string>
+    <string name="labelNoPinnedObjectsHint">Here you can add point profiles and collections as well as points and routes.</string>
+    <!-- bottom layout -->
+    <string name="buttonCollections">Collections</string>
     <string name="buttonHistory">History</string>
 
     <!-- router fragment -->
@@ -232,7 +225,74 @@
     <string name="messageSaveRecordedRouteFailed">Error: Can\'t save the recorded route.</string>
     <string name="messageSaveRecordedRouteSuccessful">Route was saved successfully.</string>
 
-    <!-- ObjectListFragment -->
+
+    <!--
+        ProfileListFragment
+    -->
+
+    <!-- SelectProfileFromMultipleSourcesDialog -->
+    <string name="selectProfileFromMultipleSourcesDialogTitle">Select profile:</string>
+    <string name="profileSelectFromCollections">Collections</string>
+    <string name="profileSelectFromPoiProfiles">Point profiles</string>
+    <string name="messageNoProfileSelected">No profile selected.</string>
+    <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Only collections and point profiles are pinnable.</string>
+    <string name="messageProfileIncompatibleTargetSaveCurrentLocation">The current location may only be pinned or added to a collection.</string>
+    <string name="messageProfileIncompatibleTargetGpxFileImport">The imported objects may only be pinned or added to a collection.</string>
+
+    <!-- CollectionListFragment -->
+    <string name="fragmentCollectionListName">Collections</string>
+    <string name="buttonAddCollection">Add collection</string>
+    <string name="contextMenuItemCollectionListEmptyCollection">Empty collection</string>
+    <string name="contextMenuItemCollectionListFromGpxFile">From GPX file</string>
+    <string name="labelEmptyCollectionList">Add collections to assist in managing your collected points and routes.</string>
+
+    <!-- create collections -->
+    <string name="layoutCollectionName">Collection name:</string>
+    <string name="messageCollectionNameMissing">Please enter a name for the collection.</string>
+    <string name="messageCouldNotCreateCollection">The collection could not be created.</string>
+
+    <!-- ImportGpxFileDialog -->
+    <string name="importGpxFileDialogTitle">Select GPX file</string>
+    <string name="labelSelectGpxFile">Select GPX file</string>
+    <string name="labelImportResult">%1$s:\n%2$s found.</string>
+    <string name="radioButtonNewCollection">Create new collection</string>
+    <string name="switchPinNewCollection">Pin collection in overview tab</string>
+    <string name="radioButtonExistingDatabaseProfile">Add to existing collection</string>
+    <!-- gpx import messages -->
+    <string name="messageGpxRouteNameMissing">Please enter a name for the route.</string>
+    <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
+    <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
+    <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
+    <string name="messageNoGpxTracksFound">The selected GPX file contains no route points.</string>
+    <string name="messageMultipleGpxTracksFound">The selected GPX file contains multiple routes. That\'s not supported at the moment.</string>
+    <string name="messageGpxRoutePointParsingFailed">Failed to parse at least one route point.</string>
+    <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
+    <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s was added to %2$s.</string>
+
+    <!-- PoiProfileListFragment -->
+    <string name="fragmentPoiProfileListName">Nearby</string>
+    <string name="buttonAddPoiProfile">Add point profile</string>
+    <string name="labelEmptyPoiProfileList">Please create at least one point profile to search for nearby points of interest.</string>
+
+    <!-- CreatePoiProfileDialog  -->
+    <string name="createPoiProfileDialogTitle">Create profile</string>
+    <string name="labelProfileName">Name:</string>
+    <string name="messagePoiProfileNameMissing">Please enter a name for the point profile.</string>
+    <string name="messageCouldNotCreatePoiProfile">The point profile could not be created.</string>
+
+    <!-- SelectCollectionsDialog -->
+    <string name="selectCollectionsDialogTitle">Select collections:</string>
+
+    <!-- SelectPoiCategoriesDialog -->
+    <string name="selectPoiCategoriesDialogTitle">Select point categories:</string>
+
+    <!-- history fragment -->
+    <string name="fragmentHistoryName">History</string>
+
+
+    <!--
+        ObjectListFragment
+    -->
     <string name="labelHeadingSecondLineViewingDirection">Viewing direction</string>
     <string name="labelHeadingSecondLineAutoUpdate">Auto update</string>
     <!-- toolbar menu -->
@@ -253,9 +313,6 @@
     <string name="labelPartOfNextRouteSegment">Next route segment</string>
 
     <!-- ExtendedObjectListFragment -->
-    <string name="buttonSelectProfile">Profile: %1$s</string>
-    <string name="buttonSelectProfileNone">Profile: None selected</string>
-    <string name="messageNewProfileSelected">%1$s selected</string>
     <string name="hintSearch">Search</string>
     <string name="buttonClearSearch">Clear search</string>
 
@@ -264,11 +321,7 @@
     <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
-    <string name="fragmentFavoritesName">Favorites</string>
-    <string name="fragmentPointHistoryName">Last points</string>
-    <string name="fragmentRouteHistoryName">Last routes</string>
     <string name="labelHeadingSecondLineSortMethod">Sorted by %1$s</string>
-    <string name="messageNoProfileSelected">No profile selected.</string>
     <!-- toolbar menu -->
     <string name="menuItemSortMethod">Sort method</string>
     <string name="menuItemClearProfile">Clear profile</string>
@@ -276,41 +329,11 @@
     <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
 
     <!-- PoiListFromServerFragment -->
-    <string name="fragmentPointsNearbyName">Nearby</string>
-    <string name="buttonSelectProfileWithPoiCategories">Profile: %1$s.\nSelected Categories: %2$s</string>
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
     <string name="labelMoreResults">Get more points</string>
 
-    <!-- SelectDatabaseProfileDialog / SelectPoiProfileDialog -->
-    <string name="selectProfileDialogTitle">Select profile:</string>
-    <!-- poi profile menu -->
-    <string name="poiProfileMenuItemEdit">Edit</string>
-    <string name="poiProfileMenuItemPinShortcut">Add to launcher</string>
-    <string name="poiProfileMenuItemRemove">Remove</string>
-
-    <!-- SelectPoiCategoriesDialog -->
-    <string name="selectPoiCategoriesDialogTitle">Select point categories:</string>
-
-    <!-- ManagePoiProfileDialog -->
-    <string name="newProfileDialogTitle">Create profile</string>
-    <string name="modifyProfileDialogTitle">Edit profile</string>
-    <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
-    <string name="labelProfileName">Name:</string>
-    <string name="switchIncludeFavorites">Include favorites</string>
-    <string name="buttonSelectPoiCategories">Point categories: %1$d selected</string>
-    <string name="messageProfileNameMissing">Please enter a profile name.</string>
-    <string name="messageProfileExists">The profile with the name %1$s already exists.</string>
-    <string name="messageCouldNotCreateProfile">The profile could not be created.</string>
-    <string name="messageCouldNotModifyProfile">The profile could not be modified.</string>
-    <string name="messageCouldNotRemoveProfile">The profile could not be removed.</string>
-
     <!-- SelectSortMethodDialog -->
     <string name="selectSortMethodDialogTitle">Select sort method:</string>
-
-    <!-- EnterLauncherShortcutNameDialog / SelectPoiProfileDialog -->
-    <string name="enterLauncherShortcutNameDialogTitle">Enter shortcut name:</string>
-    <string name="messageShortcutNameMissing">Please enter a shortcut name.</string>
-    <string name="messageCorrespondingPoiProfileNotFound">The poi profile for this shortcut could not be found. Maybe it was removed.</string>
 
 
     <!--
@@ -527,13 +550,15 @@
 
 
     <!--
-         TextViewAndActionButton
+         main views
     -->
-
-    <!-- layout -->
-    <string name="labelIsFavorite">Favorite</string>
     <string name="buttonActionFor">Actions for</string>
     <string name="labelNothingSelected">Nothing selected</string>
+
+    <!--
+         ObjectWithIdView
+    -->
+    <string name="labelIsFavorite">Favorite</string>
 
     <!-- label prefix -->
     <string name="labelPrefixStart">Start</string>
@@ -551,8 +576,6 @@
     <string name="objectMenuItemStreetCourse">Street course</string>
     <string name="objectMenuItemRename">Rename</string>
     <string name="objectMenuItemResetLayout">Remove</string>
-    <string name="objectMenuItemAddToFavorites">Add to favorites</string>
-    <string name="objectMenuItemRemoveFromFavorites">Remove from favorites</string>
     <string name="objectMenuItemAddToExcludeFromRouting">Exclude from routing</string>
     <string name="objectMenuItemRemoveExcludeFromRouting">Include into routing again</string>
     <string name="objectMenuItemStartLocationSimulation">Simulate location</string>
@@ -573,6 +596,33 @@
     <string name="objectMenuItemShareOsmOrgLink">OpenStreetMap</string>
     <string name="objectMenuItemShareGoogleMapsLink">Google maps</string>
     <string name="objectMenuItemShareAppleMapsLink">Apple maps</string>
+
+    <!--
+         ProfileView
+    -->
+    <string name="labelPrefixAddTo">Add to:</string>
+    <string name="messageUpdateCollectionsFailed">Can\'t save the selected collections.</string>
+    <string name="messageUpdatePoiCategoriesFailed">Can\'t save the selected point categories.</string>
+    <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
+
+    <!-- profile context menu -->
+    <string name="contextMenuItemProfilePoiCategories">Point categories</string>
+    <string name="contextMenuItemProfileCollections">Collections</string>
+    <string name="contextMenuItemProfilePinShortcut">Add to launcher</string>
+    <!-- overview sub menu -->
+    <string name="contextMenuItemProfileOverviewPin">Pinned</string>
+    <string name="contextMenuItemProfileOverviewTrack">Tracked</string>
+    <string name="contextMenuItemProfileOverviewAddToBoth">Pin and track profile</string>
+    <string name="contextMenuItemProfileOverviewRemoveFromBoth">Remove from both</string>
+
+    <!-- RenameProfileDialog -->
+    <string name="renameProfileDialogTitle">Rename profile:</string>
+    <string name="messageProfileNameIsMissing">Please enter a profile name.</string>
+
+    <!-- AddPoiProfileToHomeScreenDialog -->
+    <string name="addPoiProfileToHomeScreenDialogTitle">Enter shortcut name:</string>
+    <string name="messageShortcutNameMissing">Please enter a shortcut name.</string>
+    <string name="messageCorrespondingPoiProfileNotFound">The poi profile for this shortcut could not be found. Maybe it was removed.</string>
 
 
     <!--
@@ -599,6 +649,12 @@
     <string name="labelIntersectionScheme">Schematic diagram of the intersection</string>
     <string name="labelIntersectionCenter">Intersection center</string>
 
+    <!-- common context menu entries -->
+    <string name="contextMenuItemDetails">Details</string>
+    <string name="contextMenuItemOverview">Overview</string>
+    <string name="contextMenuItemRename">Rename</string>
+    <string name="contextMenuItemRemove">Remove</string>
+
     <!-- dialog button labels -->
     <string name="dialogOK">OK</string>
     <string name="dialogCancel">Cancel</string>
@@ -619,12 +675,18 @@
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogSend">Send</string>
     <string name="dialogSomethingMissing">Something missing?</string>
+    <string name="fillingWordAnd">and</string>
     <string name="messagePleaseWait">Please wait…</string>
 
 
     <!--
-         points
+         points, segments and routes
     -->
+
+    <!-- ObjectType -->
+    <string name="objectTypePoint">Point</string>
+    <string name="objectTypeRoute">Route</string>
+    <string name="objectTypeSegment">Way</string>
 
     <!-- Point -->
     <string name="preciseBearingValues">at %1$d°</string>
@@ -710,27 +772,42 @@
 
 
     <!--
-         database
+         profile
     -->
 
-    <!-- DatabaseProfile -->
-    <!-- point -->
-    <string name="databaseProfileAddressPoints">Addresses</string>
-    <string name="databaseProfileIntersectionPoints">Intersections</string>
-    <string name="databaseProfileStationPoints">Stations</string>
-    <string name="databaseProfilePinnedPoints">Pinned points</string>
-    <string name="databaseProfileSimulatedPoints">Simulated points</string>
-    <string name="databaseProfileAllPoints">All points</string>
-    <!-- segment -->
-    <string name="databaseProfileExcludedFromRouting">Excluded ways from routing</string>
-    <!-- route -->
-    <string name="databaseProfilePlannedRoutes">Planned routes</string>
-    <string name="databaseProfileRoutesFromGpxFile">GPX file imports</string>
-    <string name="databaseProfileRecordedRoutes">Recorded routes</string>
-    <string name="databaseProfileAllRoutes">All routes</string>
+    <!-- profile type -->
+    <string name="profileIconDatabase">Profile</string>
+    <string name="profileIconCollection">Collection</string>
+    <string name="profileIconHistory">History</string>
+    <string name="profileIconPoiProfile">Point profile</string>
 
-    <!-- FavoritesProfile -->
-    <string name="favoritesProfile">Favorites</string>
+    <!-- DatabaseProfile -->
+    <string name="databaseProfileExcludedFromRouting">Excluded ways from routing</string>
+    <string name="databaseProfilePinnedPointsAndRoutes">Pinned points and routes</string>
+    <string name="databaseProfileRecordedRoutes">Recorded routes</string>
+    <string name="databaseProfileTrackedPoints">Tracked points</string>
+    <!-- for -->
+    <string name="databaseProfileForPoints">Points</string>
+    <string name="databaseProfileForRoutes">Routes</string>
+    <string name="databaseProfileForPointsAndRoutes">Points and routes</string>
+    <string name="databaseProfileForSegments">Way segments</string>
+    <!-- point history -->
+    <string name="historyDatabaseProfileAddressPoints">Addresses</string>
+    <string name="historyDatabaseProfileIntersectionPoints">Intersections</string>
+    <string name="historyDatabaseProfileStationPoints">Stations</string>
+    <string name="historyDatabaseProfileSimulatedPoints">Simulated points</string>
+    <string name="historyDatabaseProfilePinnedPoints">Pinned points</string>
+    <string name="historyDatabaseProfileTrackedPoints">Tracked points</string>
+    <string name="historyDatabaseProfileAllPoints">All points</string>
+    <!-- route history -->
+    <string name="historyDatabaseProfilePlannedRoutes">Planned routes</string>
+    <string name="historyDatabaseProfilePinnedRoutes">Pinned routes</string>
+    <string name="historyDatabaseProfileRoutesFromGpxFile">GPX file imports</string>
+    <string name="historyDatabaseProfileRecordedRoutes">Recorded routes</string>
+    <string name="historyDatabaseProfileAllRoutes">All routes</string>
+
+    <!-- Collection -->
+    <string name="collectionNameFavorites">Favorites</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Last visited, ascending</string>
@@ -744,13 +821,8 @@
     <string name="sortCreatedAsc">Added, ascending</string>
     <string name="sortCreatedDesc">Added, descending</string>
 
-
-    <!--
-         poi management
-    -->
-
     <!-- POICategory -->
-    <string name="poiCategoryBusTram">Bus and tram stations</string>
+    <string name="poiCategoryBusTram">Bus and tramstations</string>
     <string name="poiCategoryTrain">Train, suburban train and subway stations</string>
     <string name="poiCategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
     <string name="poiCategoryTaxi">Taxi</string>
@@ -1022,12 +1094,6 @@
     </plurals>
 
     <plurals
-        name="favorite">
-        <item quantity="one">1 favorite</item>
-        <item quantity="other">%d favorites</item>
-    </plurals>
-
-    <plurals
         name="hikingTrail">
         <item quantity="one">1 hiking trail</item>
         <item quantity="other">%d hiking trails</item>
@@ -1046,9 +1112,27 @@
     </plurals>
 
     <plurals
-        name="pinnedPoint">
-        <item quantity="one">1 pinned point</item>
-        <item quantity="other">%d pinned points</item>
+        name="route">
+        <item quantity="one">1 route</item>
+        <item quantity="other">%d routes</item>
+    </plurals>
+
+    <plurals
+        name="pointAndRoute">
+        <item quantity="one">1 point or route</item>
+        <item quantity="other">%d points and routes</item>
+    </plurals>
+
+    <plurals
+        name="recordedRoute">
+        <item quantity="one">1 recorded route</item>
+        <item quantity="other">%d recorded Routes</item>
+    </plurals>
+
+    <plurals
+        name="way">
+        <item quantity="one">1 way</item>
+        <item quantity="other">%d ways</item>
     </plurals>
 
     <plurals
@@ -1076,18 +1160,6 @@
     </plurals>
 
     <plurals
-        name="route">
-        <item quantity="one">1 route</item>
-        <item quantity="other">%d routes</item>
-    </plurals>
-
-    <plurals
-        name="recordedRoute">
-        <item quantity="one">1 recorded route</item>
-        <item quantity="other">%d recorded Routes</item>
-    </plurals>
-
-    <plurals
         name="station">
         <item quantity="one">1 station</item>
         <item quantity="other">%d stations</item>
@@ -1106,9 +1178,45 @@
     </plurals>
 
     <plurals
-        name="way">
-        <item quantity="one">1 way</item>
-        <item quantity="other">%d ways</item>
+        name="profile">
+        <item quantity="one">1 profile</item>
+        <item quantity="other">%d profiles</item>
+    </plurals>
+
+    <plurals
+        name="collection">
+        <item quantity="one">1 Collection</item>
+        <item quantity="other">%d Collections</item>
+    </plurals>
+
+    <plurals
+        name="collectionSelected">
+        <item quantity="one">1 collection selected</item>
+        <item quantity="other">%d collections selected</item>
+    </plurals>
+
+    <plurals
+        name="pointProfile">
+        <item quantity="one">1 point profile</item>
+        <item quantity="other">%d point profiles</item>
+    </plurals>
+
+    <plurals
+        name="category">
+        <item quantity="one">1 category</item>
+        <item quantity="other">%d categories</item>
+    </plurals>
+
+    <plurals
+        name="poiCategory">
+        <item quantity="one">1 point category</item>
+        <item quantity="other">%d point categories</item>
+    </plurals>
+
+    <plurals
+        name="poiCategorySelected">
+        <item quantity="one">1 point category selected</item>
+        <item quantity="other">%d point categories selected</item>
     </plurals>
 
 </resources>

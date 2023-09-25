@@ -1,6 +1,6 @@
 package org.walkersguide.android.database;
 
-import org.walkersguide.android.data.profile.Profile;
+import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.database.DatabaseProfile;
 
 import org.walkersguide.android.data.profile.ProfileRequest;
@@ -19,7 +19,7 @@ public class DatabaseProfileRequest extends ProfileRequest implements Serializab
     public DatabaseProfileRequest(DatabaseProfile profile) {
         super(null);
         this.profile = profile;
-        this.sortMethod = SortMethod.ACCESSED_DESC;
+        this.sortMethod = profile.getDefaultSortMethod();
     }
 
     public DatabaseProfileRequest(DatabaseProfile profile, String searchTerm, SortMethod sortMethod) {
@@ -41,7 +41,7 @@ public class DatabaseProfileRequest extends ProfileRequest implements Serializab
     }
 
     public boolean hasDefaultSortMethod() {
-        return this.sortMethod == SortMethod.ACCESSED_DESC;
+        return this.sortMethod == this.profile.getDefaultSortMethod();
     }
 
     public void setSortMethod(SortMethod newSortMethod) {

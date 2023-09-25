@@ -20,7 +20,7 @@ import android.widget.LinearLayout;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.EditText;
-import org.walkersguide.android.ui.TextChangedListener;
+import org.walkersguide.android.ui.interfaces.TextChangedListener;
 import android.text.Editable;
 import android.view.KeyEvent;
 import android.os.Parcelable;

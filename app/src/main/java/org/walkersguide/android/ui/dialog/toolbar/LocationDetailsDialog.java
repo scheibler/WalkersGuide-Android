@@ -34,8 +34,7 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
+import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
 import org.walkersguide.android.data.object_with_id.Point;
@@ -50,6 +49,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import timber.log.Timber;
+import org.walkersguide.android.data.ObjectWithId;
 
 
 public class LocationDetailsDialog extends DialogFragment implements FragmentResultListener {
@@ -70,15 +70,17 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         positionManagerInstance = PositionManager.getInstance();
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
+                    SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
-            WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
-            Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
-            if (whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT) {
-                positionManagerInstance.setSimulatedLocation(point);
+        if (requestKey.equals(SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID)) {
+            SelectObjectWithIdFromMultipleSourcesDialog.Target objectWithIdTarget = (SelectObjectWithIdFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
+            ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
+            if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.SIMULATE_LOCATION
+                    && selectedObjectWithId instanceof Point) {
+                positionManagerInstance.setSimulatedLocation((Point) selectedObjectWithId);
                 buttonEnableSimulation.setChecked(true);
                 updateSimulationPoint();
             }
@@ -138,9 +140,9 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         layoutSimulationPoint.setAutoUpdate(true);
         layoutSimulationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.SIMULATION_POINT)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.SIMULATE_LOCATION)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
@@ -231,8 +233,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
      */
     private static final int MENU_ITEM_DETAILS = 1;
     private static final int MENU_ITEM_PIN = 2;
-    private static final int MENU_ITEM_FAVORITES = 3;
-    private static final int MENU_ITEM_SHARE = 4;
+    private static final int MENU_ITEM_SHARE = 3;
 
     private void showContextMenuForCurrentLocation(final View view, final Point currentLocation) {
         PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
@@ -242,9 +243,6 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         // pin
         contextMenu.getMenu().add(
                 Menu.NONE, MENU_ITEM_PIN, 2, GlobalInstance.getStringResource(R.string.currentLocationMenuItemAddToPinnedPoints));
-        // favorites
-        contextMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_FAVORITES, 3, GlobalInstance.getStringResource(R.string.objectMenuItemAddToFavorites));
         // share
         SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
                 Menu.NONE, Menu.NONE, 4, GlobalInstance.getStringResource(R.string.objectMenuItemShareCoordinates));
@@ -256,10 +254,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                     LocationSensorDetailsDialog.newInstance()
                         .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
                 } else if (item.getItemId() == MENU_ITEM_PIN) {
-                    SaveCurrentLocationDialog.addToPinnedPoints()
-                        .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (item.getItemId() == MENU_ITEM_FAVORITES) {
-                    SaveCurrentLocationDialog.addToFavorites()
+                    SaveCurrentLocationDialog.addToDatabaseProfile()
                         .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                 } else if (item.getItemId() == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {
                     currentLocation.startShareCoordinatesChooserActivity(

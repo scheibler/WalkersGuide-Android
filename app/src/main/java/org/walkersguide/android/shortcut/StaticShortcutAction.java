@@ -2,7 +2,6 @@ package org.walkersguide.android.shortcut;
 
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.database.profile.FavoritesProfile;
 import java.util.ArrayList;
 
 public enum StaticShortcutAction {

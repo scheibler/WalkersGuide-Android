@@ -47,12 +47,23 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     // objects table
     public static final String TABLE_OBJECTS = SQLiteHelper.V10_TABLE_OBJECTS;
     public static final String OBJECTS_ID = SQLiteHelper.V10_OBJECTS_ID;
-    public static final String OBJECTS_TYPE = SQLiteHelper.V10_OBJECTS_TYPE;
+    public static final String OBJECTS_CLASS = SQLiteHelper.V10_OBJECTS_TYPE;
     public static final String OBJECTS_DATA = SQLiteHelper.V10_OBJECTS_DATA;
     public static final String OBJECTS_CUSTOM_NAME = SQLiteHelper.V10_OBJECTS_CUSTOM_NAME;
     public static final String[] TABLE_OBJECTS_ALL_COLUMNS = {
-        OBJECTS_ID, OBJECTS_TYPE, OBJECTS_DATA, OBJECTS_CUSTOM_NAME
+        OBJECTS_ID, OBJECTS_CLASS, OBJECTS_DATA, OBJECTS_CUSTOM_NAME
     };
+
+    // collection table
+    public static final String TABLE_COLLECTION = SQLiteHelper.V12_TABLE_COLLECTION;
+    public static final String COLLECTION_ID = SQLiteHelper.V12_COLLECTION_ID;
+    public static final String COLLECTION_NAME = SQLiteHelper.V12_COLLECTION_NAME;
+    public static final String COLLECTION_IS_PINNED = SQLiteHelper.V12_COLLECTION_IS_PINNED;
+    public static final String[] TABLE_COLLECTION_ALL_COLUMNS = {
+        COLLECTION_ID, COLLECTION_NAME, COLLECTION_IS_PINNED
+    };
+    public static final int TABLE_COLLECTION_FIRST_ID = SQLiteHelper.V12_TABLE_COLLECTION_FIRST_ID;
+    public static final int TABLE_COLLECTION_LAST_ID = SQLiteHelper.V12_TABLE_COLLECTION_LAST_ID;
 
     // object -> profile mapping table
     public static final String TABLE_MAPPING = SQLiteHelper.V10_TABLE_MAPPING;
@@ -65,14 +76,18 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     };
 
     // poi profile table
-    public static final String TABLE_POI_PROFILE = SQLiteHelper.V10_TABLE_POI_PROFILE;
-    public static final String POI_PROFILE_ID = SQLiteHelper.V10_POI_PROFILE_ID;
-    public static final String POI_PROFILE_NAME = SQLiteHelper.V10_POI_PROFILE_NAME;
-    public static final String POI_PROFILE_CATEGORY_ID_LIST = SQLiteHelper.V10_POI_PROFILE_CATEGORY_ID_LIST;
-    public static final String POI_PROFILE_INCLUDE_FAVORITES = SQLiteHelper.V10_POI_PROFILE_INCLUDE_FAVORITES;
+    public static final String TABLE_POI_PROFILE = SQLiteHelper.V12_TABLE_POI_PROFILE;
+    public static final String POI_PROFILE_ID = SQLiteHelper.V12_POI_PROFILE_ID;
+    public static final String POI_PROFILE_NAME = SQLiteHelper.V12_POI_PROFILE_NAME;
+    public static final String POI_PROFILE_IS_PINNED = SQLiteHelper.V12_POI_PROFILE_IS_PINNED;
+    public static final String POI_PROFILE_POI_CATEGORY_ID_LIST = SQLiteHelper.V12_POI_PROFILE_POI_CATEGORY_ID_LIST;
+    public static final String POI_PROFILE_COLLECTION_ID_LIST = SQLiteHelper.V12_POI_PROFILE_COLLECTION_ID_LIST;
     public static final String[] TABLE_POI_PROFILE_ALL_COLUMNS = {
-        POI_PROFILE_ID, POI_PROFILE_NAME, POI_PROFILE_CATEGORY_ID_LIST, POI_PROFILE_INCLUDE_FAVORITES
+        POI_PROFILE_ID, POI_PROFILE_NAME, POI_PROFILE_IS_PINNED,
+        POI_PROFILE_POI_CATEGORY_ID_LIST, POI_PROFILE_COLLECTION_ID_LIST
     };
+    public static final int TABLE_POI_PROFILE_FIRST_ID = SQLiteHelper.V12_TABLE_POI_PROFILE_FIRST_ID;
+    public static final int TABLE_POI_PROFILE_LAST_ID = SQLiteHelper.V12_TABLE_POI_PROFILE_LAST_ID;
 
 
     public SQLiteHelper(Context context) {
@@ -82,7 +97,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     @Override public void onCreate(SQLiteDatabase database) {
         database.execSQL(V10_CREATE_TABLE_OBJECTS);
         database.execSQL(V10_CREATE_TABLE_MAPPING);
-        database.execSQL(V10_CREATE_TABLE_POI_PROFILE);
+        createV12CollectionsTable(database);
+        createV12PoiProfileTable(database);
     }
 
     @Override public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
@@ -165,6 +181,10 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             // remove street courses (id 5502000) from mapping table
             database.execSQL(
                     "DELETE FROM mapping WHERE profile_id = 5502000;");
+        }
+
+        if (oldVersion < 12) {
+            configureDbVersion12(database);
         }
     }
 
@@ -424,6 +444,167 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         database.execSQL(buildDropTableQuery("excluded_ways"));
         database.execSQL(buildDropTableQuery("route"));
         database.execSQL(buildDropTableQuery("poi_profile"));
+    }
+
+
+    /*
+     * db version >= 12
+     */
+
+    // collections table
+    private static final String V12_TABLE_COLLECTION = "collection";
+    private static final String V12_COLLECTION_ID = "_id";
+    private static final String V12_COLLECTION_NAME = "name";
+    private static final String V12_COLLECTION_IS_PINNED = "is_pinned";
+    private static final String V12_CREATE_TABLE_COLLECTION = 
+        "CREATE TABLE IF NOT EXISTS " + V12_TABLE_COLLECTION + "("
+        + V12_COLLECTION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + V12_COLLECTION_NAME + " TEXT NOT NULL, "
+        + V12_COLLECTION_IS_PINNED + " INTEGER DEFAULT 0);";
+    private static final int V12_TABLE_COLLECTION_FIRST_ID = 1000000;
+    private static final int V12_TABLE_COLLECTION_LAST_ID  = 9999999;
+
+    // poi profile table
+    private static final String V12_TABLE_POI_PROFILE = "poi_profile";
+    private static final String V12_POI_PROFILE_ID = "_id";
+    private static final String V12_POI_PROFILE_NAME = "name";
+    private static final String V12_POI_PROFILE_IS_PINNED = "is_pinned";
+    private static final String V12_POI_PROFILE_POI_CATEGORY_ID_LIST = "poi_category_id_list";
+    private static final String V12_POI_PROFILE_COLLECTION_ID_LIST = "collection_id_list";
+    private static final String V12_CREATE_TABLE_POI_PROFILE = 
+        "CREATE TABLE IF NOT EXISTS " + V12_TABLE_POI_PROFILE + "("
+        + V12_POI_PROFILE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + V12_POI_PROFILE_NAME + " TEXT NOT NULL, "
+        + V12_POI_PROFILE_IS_PINNED + " INTEGER DEFAULT 0, "
+        + V12_POI_PROFILE_POI_CATEGORY_ID_LIST + " TEXT DEFAULT '[]', "
+        + V12_POI_PROFILE_COLLECTION_ID_LIST + " TEXT DEFAULT '[]');";
+    private static final int V12_TABLE_POI_PROFILE_FIRST_ID = 100;
+    private static final int V12_TABLE_POI_PROFILE_LAST_ID  = 999999;
+
+    private void configureDbVersion12(SQLiteDatabase database) {
+        // delete already previously deleted database tables again, just to be on the save side
+        database.execSQL(buildDropTableQuery("point"));
+        database.execSQL(buildDropTableQuery("poi_profile"));
+
+        // change ids of static database profiles in the mapping table
+
+        // update id of excluded_ways database profile from  3501000 to 10
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 10 WHERE profile_id = 3501000;");
+
+        // history profiles
+        //
+        // update id of HISTORY_ALL_POINTS database profile from  1999999 to 52
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 52 WHERE profile_id = 1999999;");
+        // update id of HISTORY_ALL_ROUTE database profile from  5999999 to 57
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 57 WHERE profile_id = 5999999;");
+
+        // point history
+        //
+        // update id of profile HISTORY_ADDRESS_POINTS from  1501000 to 60
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 60 WHERE profile_id = 1501000;");
+        // update id of HISTORY_INTERSECTION_POINTS database profile from  1502000 to 63
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 63 WHERE profile_id = 1502000;");
+        // update id of HISTORY_STATION_POINTS database profile from  1503000 to 66
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 66 WHERE profile_id = 1503000;");
+        // update id of HISTORY_SIMULATED_POINTS database profile from  1504000 to 69
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 69 WHERE profile_id = 1504000;");
+        // update id of HISTORY_PINNED_POINTS database profile from  1505000 to 72
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 72 WHERE profile_id = 1505000;");
+        // update id of HISTORY_TRACKED_POINTS database profile from  1506000 to 75
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 75 WHERE profile_id = 1506000;");
+
+        // route history
+        //
+        // update id of HISTORY_PLANNED_ROUTES database profile from  5501000 to 80
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 80 WHERE profile_id = 5501000;");
+        // update id of HISTORY_PINNED_ROUTES database profile from  5501750 to 83
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 83 WHERE profile_id = 5501750;");
+        // update id of HISTORY_ROUTES_FROM_GPX_FILE database profile from  5501500 to 86
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 86 WHERE profile_id = 5501500;");
+        // update id of HISTORY_RECORDED_ROUTES database profile from  5502500 to 89
+        database.execSQL(
+                "UPDATE mapping SET profile_id = 89 WHERE profile_id = 5502500;");
+
+        // create collections table
+        createV12CollectionsTable(database);
+
+        // create favorites collection
+        ContentValues favoritesCollectionValues = new ContentValues();
+        favoritesCollectionValues.put(
+                V12_COLLECTION_NAME, GlobalInstance.getStringResource(R.string.collectionNameFavorites));
+        favoritesCollectionValues.put(V12_COLLECTION_IS_PINNED, 1);
+        long favoritesCollectionId = database.insertWithOnConflict(
+                V12_TABLE_COLLECTION, null, favoritesCollectionValues, SQLiteDatabase.CONFLICT_REPLACE);
+        Timber.d("favoritesCollectionId: %1$d", favoritesCollectionId);
+        if (favoritesCollectionId > -1) {
+            // favorite points
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = " + favoritesCollectionId + " WHERE profile_id = 1000000;");
+            // favorite routes
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = " + favoritesCollectionId + " WHERE profile_id = 5000000;");
+        }
+
+        // create new poi profile table
+        createV12PoiProfileTable(database);
+
+        // restore poi profiles
+        Cursor cursor = database.query(
+                "poi_profiles", new String[]{"name", "category_id_list"}, null, null, null, null, "_id ASC");
+        while (cursor.moveToNext()) {
+            try {
+                ContentValues poiProfileValues = new ContentValues();
+                poiProfileValues.put(
+                        V12_POI_PROFILE_NAME,
+                        cursor.getString(cursor.getColumnIndexOrThrow("name")));
+                poiProfileValues.put(
+                        V12_POI_PROFILE_POI_CATEGORY_ID_LIST,
+                        cursor.getString(cursor.getColumnIndexOrThrow("category_id_list")));
+                database.insertWithOnConflict(
+                        V12_TABLE_POI_PROFILE, null, poiProfileValues, SQLiteDatabase.CONFLICT_REPLACE);
+            } catch (IllegalArgumentException e) {
+                Timber.e("Error during poi profile transfer: %1$s", e.getMessage());
+            }
+        }
+        cursor.close();
+
+        // delete old poi profile table
+        database.execSQL(buildDropTableQuery("poi_profiles"));
+    }
+
+    private void createV12CollectionsTable(SQLiteDatabase database) {
+        database.execSQL(V12_CREATE_TABLE_COLLECTION);
+        // insert and delete a dummy row to push the start of the auto incremented id to V12_TABLE_COLLECTION_FIRST_ID
+        database.execSQL(
+                  "INSERT INTO " + V12_TABLE_COLLECTION + " "
+                + "VALUES(" + V12_TABLE_COLLECTION_FIRST_ID + ", 'dummy', 0);");
+        database.execSQL(
+                    "DELETE FROM " + V12_TABLE_COLLECTION + " "
+                  + "WHERE " + V12_COLLECTION_ID + " = " + V12_TABLE_COLLECTION_FIRST_ID + ";");
+    }
+
+    private void createV12PoiProfileTable(SQLiteDatabase database) {
+        database.execSQL(V12_CREATE_TABLE_POI_PROFILE);
+        // insert and delete a dummy row to push the start of the auto incremented id to V12_TABLE_POI_PROFILE_FIRST_ID
+        // to make room for static poi profiles in the lower id range, which may be required later
+        database.execSQL(
+                  "INSERT INTO " + V12_TABLE_POI_PROFILE + " "
+                + "VALUES(" + V12_TABLE_POI_PROFILE_FIRST_ID + ", 'dummy', 0, '[]', '[]');");
+        database.execSQL(
+                    "DELETE FROM " + V12_TABLE_POI_PROFILE + " "
+                  + "WHERE " + V12_POI_PROFILE_ID + " = " + V12_TABLE_POI_PROFILE_FIRST_ID + ";");
     }
 
 }

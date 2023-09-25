@@ -45,7 +45,6 @@ import androidx.core.view.MenuCompat;
 import android.content.BroadcastReceiver;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
-import org.walkersguide.android.data.object_with_id.HikingTrail;
 import org.walkersguide.android.data.object_with_id.Route;
 import android.widget.Toast;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
@@ -55,7 +54,7 @@ import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
 import org.walkersguide.android.data.angle.Bearing;
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public class TextViewAndActionButton extends LinearLayout {
@@ -302,7 +301,7 @@ public class TextViewAndActionButton extends LinearLayout {
 
     private void updateFavoriteIndicator() {
         int favoriteIndicatorVisibilityMode = isFavoriteModeHide;
-        if (this.objectWithId != null && this.objectWithId.isFavorite()) {
+        if (this.objectWithId != null && this.objectWithId.wasRenamed()) {
             favoriteIndicatorVisibilityMode = isFavoriteModeVisible;
         }
         this.imageViewIsFavorite.setVisibility(favoriteIndicatorVisibilityMode);
@@ -383,8 +382,6 @@ public class TextViewAndActionButton extends LinearLayout {
     private static final int MENU_ITEM_ENTRANCES = 3;
     private static final int MENU_ITEM_LOAD = 4;
     private static final int MENU_ITEM_STREET_COURSE = 5;
-    private static final int MENU_ITEM_ADD_TO_FAVORITES = 10;
-    private static final int MENU_ITEM_REMOVE_FROM_FAVORITES = 11;
     private static final int MENU_ITEM_START_LOCATION_SIMULATION = 12;
     private static final int MENU_ITEM_END_LOCATION_SIMULATION = 13;
     private static final int MENU_ITEM_START_BEARING_SIMULATION = 14;
@@ -435,17 +432,6 @@ public class TextViewAndActionButton extends LinearLayout {
                     MENU_GROUP_1, MENU_ITEM_STREET_COURSE, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemStreetCourse));
         }
 
-        // favorite
-        if (object.hasDefaultFavoritesProfile()) {
-            if (object.isFavorite()) {
-                contextMenu.getMenu().add(
-                        MENU_GROUP_2, MENU_ITEM_REMOVE_FROM_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemRemoveFromFavorites));
-            } else {
-                contextMenu.getMenu().add(
-                        MENU_GROUP_2, MENU_ITEM_ADD_TO_FAVORITES, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemAddToFavorites));
-            }
-        }
-
         // simulation
         if (object instanceof Point) {
             if (positionManagerInstance.getSimulationEnabled()
@@ -482,7 +468,7 @@ public class TextViewAndActionButton extends LinearLayout {
         if (object instanceof Point) {
             SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
                     MENU_GROUP_2, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.objectMenuItemOverview));
-            if (DatabaseProfile.pinnedPoints().contains(object)) {
+            if (StaticProfile.pinnedPointsAndRoutes().contains(object)) {
                 overviewSubMenu.add(
                         Menu.NONE, MENU_ITEM_OVERVIEW_REMOVE_FROM_PINNED_POINTS, 0,
                         GlobalInstance.getStringResource(R.string.objectMenuItemOverviewRemoveFromPinnedPoints));
@@ -552,9 +538,6 @@ public class TextViewAndActionButton extends LinearLayout {
                 } else if (object instanceof Point) {
                     return executePointMenuAction(
                             view.getContext(), (Point) object, item.getItemId());
-                } else if (object instanceof HikingTrail) {
-                    return executeHikingTrailMenuAction(
-                            view.getContext(), (HikingTrail) object, item.getItemId());
                 } else if (object instanceof Route) {
                     return executeRouteMenuAction(
                             view.getContext(), (Route) object, item.getItemId());
@@ -578,15 +561,6 @@ public class TextViewAndActionButton extends LinearLayout {
                     .addFragment(
                             ObjectDetailsTabLayoutFragment.details(object));
             }
-
-        } else if (menuItemId == MENU_ITEM_ADD_TO_FAVORITES
-                || menuItemId == MENU_ITEM_REMOVE_FROM_FAVORITES) {
-            if (menuItemId == MENU_ITEM_ADD_TO_FAVORITES) {
-                object.addToFavorites();
-            } else {
-                object.removeFromFavorites();
-            }
-            updateFavoriteIndicator();
 
         } else if (menuItemId == MENU_ITEM_RENAME) {
             RenameObjectDialog roDialog = RenameObjectDialog.newInstance(object);
@@ -632,9 +606,9 @@ public class TextViewAndActionButton extends LinearLayout {
             positionManagerInstance.setSimulationEnabled(false);
 
         } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_PINNED_POINTS) {
-            DatabaseProfile.pinnedPoints().add(point);
+            StaticProfile.pinnedPointsAndRoutes().add(point);
         } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_PINNED_POINTS) {
-            DatabaseProfile.pinnedPoints().remove(point);
+            StaticProfile.pinnedPointsAndRoutes().remove(point);
 
         } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1
@@ -674,11 +648,6 @@ public class TextViewAndActionButton extends LinearLayout {
             return false;
         }
         return true;
-    }
-
-
-    private boolean executeHikingTrailMenuAction(Context context, HikingTrail hikingTrail, int menuItemId) {
-        return false;
     }
 
 

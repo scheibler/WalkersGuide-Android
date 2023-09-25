@@ -1,6 +1,6 @@
 package org.walkersguide.android.data.object_with_id;
 
-import org.walkersguide.android.database.profile.FavoritesProfile;
+import org.walkersguide.android.data.object_with_id.common.ObjectClass;
 
 import org.walkersguide.android.data.angle.Turn;
 import android.content.Context;
@@ -203,6 +203,10 @@ public class Route extends ObjectWithId implements Serializable {
                 this.destinationPoint.getName());
     }
 
+    public ObjectClass getObjectClass() {
+        return ObjectClass.ROUTE;
+    }
+
     public String getDescription() {
         return this.description;
     }
@@ -295,10 +299,6 @@ public class Route extends ObjectWithId implements Serializable {
     /**
      * super class methods
      */
-
-    @Override public FavoritesProfile getDefaultFavoritesProfile() {
-        return FavoritesProfile.favoriteRoutes();
-    }
 
     @Override public String toString() {
         return getName();

@@ -2,30 +2,27 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutHeadingAndAddButton"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="@dimen/minHeight"
-    android:descendantFocusability="blocksDescendants"
     android:gravity="center_vertical"
     android:orientation="horizontal" >
 
-    <CheckedTextView
-        android:id="@+id/labelProfile"
+    <include
+        layout="@layout/layout_single_text_view_heading"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1.0"
-        android:checkMark="@android:drawable/btn_radio"
-        android:focusable="true" />
+        android:layout_weight="1.0" />
 
     <ImageButton
-        android:id="@+id/buttonActionFor"
+        android:id="@+id/buttonAdd"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:minWidth="@dimen/minWidth"
         android:minHeight="@dimen/minHeight"
         android:background="@null"
         app:tint="@color/image"
-        android:src="@drawable/image_chevron_right"
-        android:contentDescription="@string/buttonActionFor" />
+        android:src="@drawable/image_add"
+        android:visibility="gone" />
 
 </LinearLayout>

@@ -13,6 +13,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.content.Context;
+import java.util.ArrayList;
 
 
 public class Helper {
@@ -96,6 +97,23 @@ public class Helper {
             return object2 == null;
         }
         return object1.equals(object2);
+    }
+
+    public static boolean compareArrayLists(ArrayList<? extends Object> list1, ArrayList<? extends Object> list2) {
+        if (list1.size() != list2.size()) {
+            return false;
+        }
+        for (Object object : list1) {
+            if (! list2.contains(object)) {
+                return false;
+            }
+        }
+        for (Object object : list2) {
+            if (! list1.contains(object)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 

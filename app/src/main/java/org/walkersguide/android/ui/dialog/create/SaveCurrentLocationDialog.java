@@ -1,7 +1,9 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import org.walkersguide.android.ui.interfaces.ViewChangedListener;
+import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
+import org.walkersguide.android.ui.view.ProfileView;
 import androidx.core.view.ViewCompat;
-import org.walkersguide.android.database.profile.FavoritesProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.dialog.toolbar.LocationSensorDetailsDialog;
@@ -30,7 +32,7 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
 import android.text.TextUtils;
 import org.json.JSONException;
-import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 import android.app.Dialog;
 import org.walkersguide.android.util.GlobalInstance;
 import android.content.BroadcastReceiver;
@@ -39,35 +41,31 @@ import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.widget.TextView;
 import android.content.Context;
+import org.walkersguide.android.database.DatabaseProfile;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentResultListener;
+import org.walkersguide.android.data.Profile;
 
-public class SaveCurrentLocationDialog extends DialogFragment {
+
+public class SaveCurrentLocationDialog extends DialogFragment implements FragmentResultListener {
     public static final String REQUEST_SAVE_CURRENT_LOCATION = "saveCurrentLocation";
     public static final String EXTRA_CURRENT_LOCATION = "currentLocation";
 
 
-    public static SaveCurrentLocationDialog newInstance(String dialogTitle) {
+    public static SaveCurrentLocationDialog addToDatabaseProfile() {
+        SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_DIALOG_TITLE, GlobalInstance.getStringResource(R.string.saveCurrentLocationDialogTitle));
+        args.putSerializable(KEY_SEND_RESULT_BUNDLE, false);
+        dialog.setArguments(args);
+        return dialog;
+    }
+
+    public static SaveCurrentLocationDialog sendResultBundle(String dialogTitle) {
         SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
         Bundle args = new Bundle();
         args.putSerializable(KEY_DIALOG_TITLE, dialogTitle);
-        args.putSerializable(KEY_MODE, Mode.RETURN_POINT);
-        dialog.setArguments(args);
-        return dialog;
-    }
-
-    public static SaveCurrentLocationDialog addToFavorites() {
-        SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
-        Bundle args = new Bundle();
-        args.putSerializable(KEY_DIALOG_TITLE, GlobalInstance.getStringResource(R.string.saveCurrentLocationDialogTitleFavorite));
-        args.putSerializable(KEY_MODE, Mode.ADD_TO_FAVORITES);
-        dialog.setArguments(args);
-        return dialog;
-    }
-
-    public static SaveCurrentLocationDialog addToPinnedPoints() {
-        SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
-        Bundle args = new Bundle();
-        args.putSerializable(KEY_DIALOG_TITLE, GlobalInstance.getStringResource(R.string.saveCurrentLocationDialogTitlePin));
-        args.putSerializable(KEY_MODE, Mode.ADD_TO_PINNED_POINTS);
+        args.putSerializable(KEY_SEND_RESULT_BUNDLE, true);
         dialog.setArguments(args);
         return dialog;
     }
@@ -75,21 +73,37 @@ public class SaveCurrentLocationDialog extends DialogFragment {
 
     // dialog
     private static final String KEY_DIALOG_TITLE = "dialogTitle";
-    private static final String KEY_MODE = "mode";
+    private static final String KEY_SEND_RESULT_BUNDLE = "sendResultBundle";
+    private static final String KEY_TARGET_DATABASE_PROFILE = "targetDatabaseProfile";
 
-    private enum Mode {
-        RETURN_POINT, ADD_TO_FAVORITES, ADD_TO_PINNED_POINTS
-    }
-
-    private Mode mode;
-    private GPS currentLocation;
+    private boolean sendResultBundle;
 
     private EditTextAndClearInputButton layoutName;
-    private TextView labelGPSAccuracy;
+    private TextView labelGPSSignal;
+    private ProfileView layoutTargetDatabaseProfile;
+
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE, this, this);
+    }
+
+    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
+        if (requestKey.equals(SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE)) {
+            SelectProfileFromMultipleSourcesDialog.Target profileTarget = (SelectProfileFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_TARGET);
+            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_PROFILE);
+            if (profileTarget == SelectProfileFromMultipleSourcesDialog.Target.SAVE_CURRENT_LOCATION
+                    && selectedProfile instanceof DatabaseProfile) {
+                setTargetDatabaseProfile((DatabaseProfile) selectedProfile);
+            }
+        }
+    }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        mode = (Mode) getArguments().getSerializable(KEY_MODE);
-        currentLocation = null;
+        sendResultBundle = getArguments().getBoolean(KEY_SEND_RESULT_BUNDLE);
 
         // custom view
         final ViewGroup nullParent = null;
@@ -106,19 +120,25 @@ public class SaveCurrentLocationDialog extends DialogFragment {
                     }
                 });
 
-        labelGPSAccuracy = (TextView) view.findViewById(R.id.labelGPSAccuracy);
-        labelGPSAccuracy.setText(
+        labelGPSSignal = (TextView) view.findViewById(R.id.labelGPSSignal);
+        labelGPSSignal.setTag(null);
+        labelGPSSignal.setText(
                 getResources().getString(R.string.messagePleaseWait));
         ViewCompat.setAccessibilityLiveRegion(
-                labelGPSAccuracy, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
+                labelGPSSignal, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
 
-        Button buttonLocationSensorDetails = (Button) view.findViewById(R.id.buttonLocationSensorDetails);
-        buttonLocationSensorDetails.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                LocationSensorDetailsDialog.newInstance()
-                    .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
+        layoutTargetDatabaseProfile = (ProfileView) view.findViewById(R.id.layoutTargetDatabaseProfile);
+        layoutTargetDatabaseProfile.setOnProfileDefaultActionListener(new ProfileView.OnProfileDefaultActionListener() {
+            @Override public void onProfileDefaultActionClicked(Profile profile) {
+                SelectProfileFromMultipleSourcesDialog.newInstance(
+                        SelectProfileFromMultipleSourcesDialog.Target.SAVE_CURRENT_LOCATION)
+                    .show(getChildFragmentManager(), "SelectProfileFromMultipleSourcesDialog");
             }
         });
+        setTargetDatabaseProfile(
+                savedInstanceState != null
+                ? (DatabaseProfile) savedInstanceState.getSerializable(KEY_TARGET_DATABASE_PROFILE)
+                : StaticProfile.pinnedPointsAndRoutes());
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -180,14 +200,28 @@ public class SaveCurrentLocationDialog extends DialogFragment {
         }
     }
 
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_TARGET_DATABASE_PROFILE, layoutTargetDatabaseProfile.getProfile());
+    }
+
+    private void setTargetDatabaseProfile(DatabaseProfile profile) {
+        layoutTargetDatabaseProfile.configure(profile, false, false);
+    }
+
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PositionManager.ACTION_NEW_GPS_LOCATION)) {
                 GPS gpsLocation = (GPS) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (gpsLocation != null) {
-                    currentLocation = gpsLocation;
-                    labelGPSAccuracy.setText(gpsLocation.formatAccuracyInMeters());
+                if (gpsLocation != null && gpsLocation.getAccuracy() != null) {
+                    labelGPSSignal.setTag(gpsLocation);
+                    labelGPSSignal.setText(
+                            String.format(
+                                context.getResources().getString(R.string.labelGPSSignal),
+                                Math.round(gpsLocation.getAccuracy()),
+                                gpsLocation.formatTimestamp())
+                            );
                 }
             }
         }
@@ -206,6 +240,7 @@ public class SaveCurrentLocationDialog extends DialogFragment {
         UiHelper.hideKeyboard(SaveCurrentLocationDialog.this);
 
         // check if current location is available
+        GPS currentLocation = (GPS) labelGPSSignal.getTag();
         if (currentLocation == null) {
             Toast.makeText(
                     getActivity(),
@@ -215,44 +250,32 @@ public class SaveCurrentLocationDialog extends DialogFragment {
         }
         currentLocation.rename(name);
 
-        switch (mode) {
+        if (sendResultBundle) {
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_CURRENT_LOCATION, currentLocation);
+            getParentFragmentManager().setFragmentResult(REQUEST_SAVE_CURRENT_LOCATION, result);
+            dismiss();
 
-            case RETURN_POINT:
-                Bundle result = new Bundle();
-                result.putSerializable(EXTRA_CURRENT_LOCATION, currentLocation);
-                getParentFragmentManager().setFragmentResult(REQUEST_SAVE_CURRENT_LOCATION, result);
+        } else {
+            Profile selectedProfile = layoutTargetDatabaseProfile.getProfile();
+            if (selectedProfile instanceof DatabaseProfile
+                    && ((DatabaseProfile) selectedProfile).add(currentLocation)) {
+                Toast.makeText(
+                        getActivity(),
+                        selectedProfile.equals(StaticProfile.pinnedPointsAndRoutes())
+                        ? getResources().getString(R.string.messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful)
+                        : String.format(
+                            getResources().getString(R.string.messageCurrentLocationAddedToCollectionSuccessful),
+                            selectedProfile.getName()),
+                        Toast.LENGTH_LONG).show();
+                ViewChangedListener.sendObjectWithIdListChangedBroadcast();
                 dismiss();
-                break;
-
-            case ADD_TO_FAVORITES:
-                if (currentLocation.addToFavorites()) {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageCurrentLocationAddedToFavoritesSuccessful),
-                            Toast.LENGTH_LONG).show();
-                    dismiss();
-                } else {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.errorSavePointFailed),
-                            Toast.LENGTH_LONG).show();
-                }
-                break;
-
-            case ADD_TO_PINNED_POINTS:
-                if (DatabaseProfile.pinnedPoints().add(currentLocation)) {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.messageCurrentLocationAddedToPinnedPointsSuccessful),
-                            Toast.LENGTH_LONG).show();
-                    dismiss();
-                } else {
-                    Toast.makeText(
-                            getActivity(),
-                            getResources().getString(R.string.errorSavePointFailed),
-                            Toast.LENGTH_LONG).show();
-                }
-                break;
+            } else {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getString(R.string.errorSavePointFailed),
+                        Toast.LENGTH_LONG).show();
+            }
         }
     }
 

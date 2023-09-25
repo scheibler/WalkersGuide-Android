@@ -1,5 +1,6 @@
 package org.walkersguide.android.sensor;
 
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import android.os.Handler;
 import android.os.Looper;
 import java.lang.Runnable;
@@ -398,7 +399,7 @@ public class PositionManager implements android.location.LocationListener {
         if (newPoint != null) {
             settingsManagerInstance.setSimulatedPoint(newPoint);
             // add to history
-            DatabaseProfile.simulatedPoints().add(newPoint);
+            HistoryProfile.simulatedPoints().add(newPoint);
             // broadcast new simulated location action
             broadcastSimulatedLocation();
             // broadcast new location action

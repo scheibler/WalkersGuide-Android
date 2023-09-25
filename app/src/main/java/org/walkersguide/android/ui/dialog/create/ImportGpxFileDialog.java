@@ -1,7 +1,10 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
+import org.walkersguide.android.database.profile.Collection;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import org.walkersguide.android.ui.view.ProfileView;
 import androidx.appcompat.widget.SwitchCompat;
-import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
@@ -55,78 +58,150 @@ import org.walkersguide.android.data.object_with_id.Route;
 
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
-import java.util.Collections;
-import org.walkersguide.android.data.object_with_id.Point;
-import org.walkersguide.android.data.object_with_id.route.RouteObject;
+import org.walkersguide.android.data.ObjectWithId;
+import android.widget.RadioButton;
+import org.walkersguide.android.data.Profile;
+import android.widget.CompoundButton;
 
 
-public class RouteFromGpxFileDialog extends DialogFragment implements FragmentResultListener {
+public class ImportGpxFileDialog extends DialogFragment implements FragmentResultListener {
+    public static final String REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL = "requestImportOfGpxFileWasSuccessful";
 
 
     // instance constructors
 
-    public static RouteFromGpxFileDialog newInstance() {
-        RouteFromGpxFileDialog dialog = new RouteFromGpxFileDialog();
+    public static ImportGpxFileDialog newInstance() {
+        ImportGpxFileDialog dialog = new ImportGpxFileDialog();
         return dialog;
     }
 
     // dialog
     private static final String KEY_GPX_FILE_NAME = "gpxFileName";
-    private static final String KEY_ROUTE = "route";
+    private static final String KEY_OBJECT_LIST = "objectList";
+    private static final String KEY_RADIO_BUTTON_NEW_COLLECTION_IS_CHECKED = "radioButtonNewCollectionIsChecked";
+    private static final String KEY_SELECTED_EXISTING_DATABASE_PROFILE = "selectedExistingDatabaseProfile";
 
     private String gpxFileName;
-    private Route route;
+    private ArrayList<ObjectWithId> objectList;
+    private boolean radioButtonNewCollectionIsChecked;
 
-    private EditTextAndClearInputButton layoutRouteName;
-    private TextView labelRouteDescription;
-    private SwitchCompat switchReverseRoute;
+    private TextView labelImportResult;
+    // new collection
+    private RadioButton radioButtonNewCollection;
+    private EditTextAndClearInputButton layoutNewCollectionName;
+    private SwitchCompat switchPinNewCollection;
+    // add to existing DatabaseProfile
+    private RadioButton radioButtonExistingDatabaseProfile;
+    private ProfileView layoutExistingDatabaseProfile;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     SimpleMessageDialog.REQUEST_DIALOG_CLOSED, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SimpleMessageDialog.REQUEST_DIALOG_CLOSED)) {
+        if (requestKey.equals(SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE)) {
+            SelectProfileFromMultipleSourcesDialog.Target profileTarget = (SelectProfileFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_TARGET);
+            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_PROFILE);
+            if (profileTarget == SelectProfileFromMultipleSourcesDialog.Target.GPX_FILE_IMPORT
+                    && selectedProfile instanceof DatabaseProfile) {
+                setSelectedExistingDatabaseProfile((DatabaseProfile) selectedProfile);
+                updateUI();
+            }
+        } else if (requestKey.equals(SimpleMessageDialog.REQUEST_DIALOG_CLOSED)) {
             dismiss();
         }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+
         if (savedInstanceState != null) {
             gpxFileName = savedInstanceState.getString(KEY_GPX_FILE_NAME);
-            route = (Route) savedInstanceState.getSerializable(KEY_ROUTE);
+            objectList = (ArrayList<ObjectWithId>) savedInstanceState.getSerializable(KEY_OBJECT_LIST);
+            radioButtonNewCollectionIsChecked = savedInstanceState.getBoolean(KEY_RADIO_BUTTON_NEW_COLLECTION_IS_CHECKED);
         } else {
             gpxFileName = null;
-            route = null;
+            objectList = null;
+            radioButtonNewCollectionIsChecked = true;
         }
 
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_route_from_gpx_file, nullParent);
+        View view = inflater.inflate(R.layout.dialog_import_gpx_file, nullParent);
 
-        layoutRouteName = (EditTextAndClearInputButton) view.findViewById(R.id.layoutRouteName);
-        layoutRouteName.setLabelText(getResources().getString(R.string.layoutRouteName));
-        layoutRouteName.setEditorAction(
+        labelImportResult = (TextView) view.findViewById(R.id.labelImportResult);
+
+        // new collection
+        radioButtonNewCollection = (RadioButton) view.findViewById(R.id.radioButtonNewCollection);
+        radioButtonNewCollection.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    layoutNewCollectionName.setVisibility(View.VISIBLE);
+                    switchPinNewCollection.setVisibility(View.VISIBLE);
+                    // uncheck existing profile radio button
+                    radioButtonExistingDatabaseProfile.setChecked(false);
+                } else {
+                    layoutNewCollectionName.setVisibility(View.GONE);
+                    switchPinNewCollection.setVisibility(View.GONE);
+                }
+                radioButtonNewCollectionIsChecked = isChecked;
+            }
+        });
+
+        layoutNewCollectionName = (EditTextAndClearInputButton) view.findViewById(R.id.layoutNewCollectionName);
+        layoutNewCollectionName.setLabelText(
+                getResources().getString(R.string.layoutCollectionName));
+        layoutNewCollectionName.setEditorAction(
                 EditorInfo.IME_ACTION_DONE,
                 new EditTextAndClearInputButton.OnSelectedActionClickListener() {
                     @Override public void onSelectedActionClicked() {
-                        tryToImportRoute();
+                        execute();
                     }
                 });
 
-        labelRouteDescription = (TextView) view.findViewById(R.id.labelRouteDescription);
-        switchReverseRoute = (SwitchCompat) view.findViewById(R.id.switchReverseRoute);
+        switchPinNewCollection = (SwitchCompat) view.findViewById(R.id.switchPinNewCollection);
+
+        // existing database profile
+        radioButtonExistingDatabaseProfile = (RadioButton) view.findViewById(R.id.radioButtonExistingDatabaseProfile);
+        radioButtonExistingDatabaseProfile.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    layoutExistingDatabaseProfile.setVisibility(View.VISIBLE);
+                    // uncheck new collection radio button
+                    radioButtonNewCollection.setChecked(false);
+                } else {
+                    layoutExistingDatabaseProfile.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        layoutExistingDatabaseProfile = (ProfileView) view.findViewById(R.id.layoutExistingDatabaseProfile);
+        layoutExistingDatabaseProfile.setOnProfileDefaultActionListener(new ProfileView.OnProfileDefaultActionListener() {
+            @Override public void onProfileDefaultActionClicked(Profile profile) {
+                SelectProfileFromMultipleSourcesDialog.newInstance(
+                        SelectProfileFromMultipleSourcesDialog.Target.GPX_FILE_IMPORT)
+                    .show(getChildFragmentManager(), "SelectProfileFromMultipleSourcesDialog");
+            }
+        });
+        setSelectedExistingDatabaseProfile(
+                savedInstanceState != null
+                ? (DatabaseProfile) savedInstanceState.getSerializable(KEY_SELECTED_EXISTING_DATABASE_PROFILE)
+                : null);
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
-            .setTitle(getResources().getString(R.string.routeFromGpxFileDialogTitle))
+            .setTitle(getResources().getString(R.string.importGpxFileDialogTitle))
             .setView(view)
             .setPositiveButton(
-                    getResources().getString(R.string.dialogImport),
+                    getResources().getString(R.string.dialogOK),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -149,7 +224,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    tryToImportRoute();
+                    execute();
                 }
             });
 
@@ -162,10 +237,14 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             });
 
             if (gpxFileName == null) {
+                labelImportResult.setText(
+                        getResources().getString(R.string.labelSelectGpxFile));
+                radioButtonNewCollection.setVisibility(View.GONE);
+                layoutNewCollectionName.setVisibility(View.GONE);
+                switchPinNewCollection.setVisibility(View.GONE);
+                radioButtonExistingDatabaseProfile.setVisibility(View.GONE);
+                layoutExistingDatabaseProfile.setVisibility(View.GONE);
                 buttonPositive.setVisibility(View.GONE);
-                layoutRouteName.setVisibility(View.GONE);
-                labelRouteDescription.setVisibility(View.GONE);
-                switchReverseRoute.setVisibility(View.GONE);
 
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -183,9 +262,11 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
         if (this.gpxFileName != null) {
             savedInstanceState.putString(KEY_GPX_FILE_NAME, this.gpxFileName);
         }
-        if (this.route != null) {
-            savedInstanceState.putSerializable(KEY_ROUTE, this.route);
+        if (this.objectList != null) {
+            savedInstanceState.putSerializable(KEY_OBJECT_LIST, this.objectList);
         }
+        savedInstanceState.putBoolean(KEY_RADIO_BUTTON_NEW_COLLECTION_IS_CHECKED, this.radioButtonNewCollectionIsChecked);
+        savedInstanceState.putSerializable(KEY_SELECTED_EXISTING_DATABASE_PROFILE, layoutExistingDatabaseProfile.getProfile());
     }
 
     @Override public void onDestroy() {
@@ -196,55 +277,92 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
     }
 
     private void updateUI() {
-        labelRouteDescription.setText(route.getDescription());
+        labelImportResult.setText(
+                String.format(
+                    GlobalInstance.getStringResource(R.string.labelImportResult),
+                    this.gpxFileName,
+                    ObjectWithId.summarizeObjectListContents(this.objectList))
+                );
+
+        radioButtonNewCollection.setVisibility(View.VISIBLE);
+        radioButtonExistingDatabaseProfile.setVisibility(View.VISIBLE);
+        if (radioButtonNewCollectionIsChecked) {
+            radioButtonNewCollection.setChecked(true);
+        } else {
+            radioButtonExistingDatabaseProfile.setChecked(true);
+        }
 
         final AlertDialog dialog = (AlertDialog)getDialog();
         if (dialog != null) {
-            dialog.setTitle(gpxFileName);
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setVisibility(View.VISIBLE);
-            layoutRouteName.setVisibility(View.VISIBLE);
-            labelRouteDescription.setVisibility(View.VISIBLE);
-            switchReverseRoute.setVisibility(View.VISIBLE);
         }
     }
 
-    private void tryToImportRoute() {
-        if (route == null) {
+    private void setSelectedExistingDatabaseProfile(DatabaseProfile profile) {
+        layoutExistingDatabaseProfile.configure(profile, false, false);
+    }
+
+    private void execute() {
+        if (objectList == null) {
             return;
         }
 
-        if (switchReverseRoute.isChecked()) {
-            ArrayList<Point> reversedPointList = new ArrayList<Point>();
-            for (RouteObject routeObject : route.getRouteObjectList()) {
-                reversedPointList.add(routeObject.getPoint());
-            }
-            Collections.reverse(reversedPointList);
-            try {
-                route = Route.fromPointList(reversedPointList, false);
-            } catch (JSONException e) {
+        DatabaseProfile profileToAddObjectsTo = null;
+        if (radioButtonNewCollectionIsChecked) {
+            // create new collection
+
+            final String newCollectionName = layoutNewCollectionName.getInputText();
+            if (TextUtils.isEmpty(newCollectionName)) {
                 Toast.makeText(
                         getActivity(),
-                        GlobalInstance.getStringResource(R.string.messageGpxRouteParsingFailed),
+                        GlobalInstance.getStringResource(R.string.messageCollectionNameMissing),
                         Toast.LENGTH_LONG)
                     .show();
                 return;
             }
+
+            profileToAddObjectsTo = Collection.create(
+                    newCollectionName, switchPinNewCollection.isChecked());
+            if (profileToAddObjectsTo == null) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.messageCouldNotCreateCollection),
+                        Toast.LENGTH_LONG)
+                    .show();
+                return;
+            }
+
+        } else {
+            // add to existing database profile
+            if (layoutExistingDatabaseProfile.getProfile() instanceof DatabaseProfile) {
+                profileToAddObjectsTo = (DatabaseProfile) layoutExistingDatabaseProfile.getProfile();
+            }
+
+            if (profileToAddObjectsTo == null) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.messageNoProfileSelected),
+                        Toast.LENGTH_LONG)
+                    .show();
+                return;
+            }
+
+            for (ObjectWithId objectToAdd : objectList) {
+                profileToAddObjectsTo.add(objectToAdd);
+            }
         }
 
-        final String routeName = layoutRouteName.getInputText();
-        if (TextUtils.isEmpty(routeName)) {
-            Toast.makeText(
-                    getActivity(),
-                    GlobalInstance.getStringResource(R.string.messageGpxRouteNameMissing),
-                    Toast.LENGTH_LONG)
-                .show();
-            return;
-        }
-        route.rename(routeName);
+        Toast.makeText(
+                getActivity(),
+                String.format(
+                    GlobalInstance.getStringResource(R.string.messageAddObjectsToDatabaseProfileWasSuccessful),
+                    ObjectWithId.summarizeObjectListContents(this.objectList),
+                    profileToAddObjectsTo.getName()),
+                Toast.LENGTH_LONG)
+            .show();
 
-        DatabaseProfile.routesFromGpxFile().add(route);
-        MainActivity.loadRoute(
-                RouteFromGpxFileDialog.this.getContext(), route);
+        Bundle result = new Bundle();
+        getParentFragmentManager().setFragmentResult(REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, result);
         dismiss();
     }
 
@@ -261,23 +379,19 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             return;
         }
 
-        final AlertDialog dialog = (AlertDialog)getDialog();
-        if (dialog != null) {
-            dialog.setTitle(
-                    getResources().getString(R.string.messagePleaseWait));
-        }
-
         final Uri uri = resultData.getData();
+        labelImportResult.setText(
+                getResources().getString(R.string.messagePleaseWait));
         Executors.newSingleThreadExecutor().execute(() -> {
 
             try {
                 final String extractedFileName = extractFileNameFrom(uri);
-                final Route routeFromGpxFile = parseGpxFile(uri);
+                final ArrayList<ObjectWithId> extractedObjectList = parseGpxFile(uri);
                 (new Handler(Looper.getMainLooper())).post(() -> {
                     if (isAdded()) {
-                        layoutRouteName.setInputText(routeFromGpxFile.getName());
                         this.gpxFileName = extractedFileName;
-                        this.route = routeFromGpxFile;
+                        this.objectList = extractedObjectList;
+                        this.layoutNewCollectionName.setInputText(extractedFileName);
                         updateUI();
                     }
                 });
@@ -287,7 +401,8 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
                 (new Handler(Looper.getMainLooper())).post(() -> {
                     if (isAdded()) {
                         this.gpxFileName = null;
-                        this.route = null;
+                        this.objectList = null;
+                        this.layoutNewCollectionName.setInputText(routeParseException.getMessage());
                         SimpleMessageDialog.newInstance(
                                 routeParseException.getMessage())
                             .show(getChildFragmentManager(), "SimpleMessageDialog");
@@ -324,8 +439,8 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
         return fileName;
     }
 
-    private Route parseGpxFile(Uri uri) throws GpxFileParseException {
-        Route route = null;
+    private ArrayList<ObjectWithId> parseGpxFile(Uri uri) throws GpxFileParseException {
+        ArrayList<ObjectWithId> objectList = new ArrayList<ObjectWithId>();
         GpxFileParseException parseException = null;
 
         InputStream in = null;
@@ -413,6 +528,8 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             parser.require(XmlPullParser.END_TAG, null, "gpx");
 
             // create route
+            // at the moment there is only this one route
+            Route route = null;
             if (pointList.isEmpty()) {
                 throw new GpxFileParseException(
                         GlobalInstance.getStringResource(R.string.messageNoGpxTracksFound));
@@ -430,6 +547,8 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
             } else if (! TextUtils.isEmpty(metadataName)) {
                 route.rename(metadataName);
             }
+
+            objectList.add(route);
 
         } catch (GpxFileParseException e) {
             Timber.e("GpxFileParseException: %1$s", e.getMessage());
@@ -453,7 +572,7 @@ public class RouteFromGpxFileDialog extends DialogFragment implements FragmentRe
         if (parseException != null) {
             throw parseException;
         }
-        return route;
+        return objectList;
     }
 
     private GPS parsePoint(XmlPullParser parser, String defaultName)

@@ -5,27 +5,14 @@
         android:id="@+id/menuItemPlanRoute"
         android:title="@string/menuItemPlanRoute" />
     <item
-        android:id="@+id/menuItemCreateFavoriteCurrentPosition"
-        android:title="@string/menuItemCreateFavoriteCurrentPosition" />
+        android:id="@+id/menuItemSaveCurrentLocation"
+        android:title="@string/menuItemSaveCurrentLocation" />
     <item
-        android:id="@+id/menuItemRouteFromGpxFile"
-        android:title="@string/menuItemRouteFromGpxFile" />
-
+        android:id="@+id/menuItemOpenPointShareLink"
+        android:title="@string/menuItemOpenPointShareLink" />
     <item
-        android:id="@+id/menuItemShowPoint"
-        android:title="@string/menuItemShowPoint" >
-        <menu>
-            <item
-                android:id="@+id/menuItemShowPointFromPostAddress"
-                android:title="@string/menuItemShowPointFromPostAddress" />
-            <item
-                android:id="@+id/menuItemShowPointFromCoordinates"
-                android:title="@string/menuItemShowPointFromCoordinates" />
-            <item
-                android:id="@+id/menuItemShowPointFromUrl"
-                android:title="@string/menuItemShowPointFromUrl" />
-        </menu>
-    </item>
+        android:id="@+id/menuItemCollections"
+        android:title="@string/menuItemCollections" />
 
     <item
         android:id="@+id/menuItemMisc"

@@ -40,8 +40,6 @@ import android.content.IntentFilter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.Intent;
 import org.walkersguide.android.util.GlobalInstance;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -53,8 +51,7 @@ import androidx.annotation.NonNull;
 import org.walkersguide.android.ui.fragment.RootFragment;
 
 
-public class TripDetailsFragment extends RootFragment
-    implements OnRefreshListener, MenuProvider, Runnable {
+public class TripDetailsFragment extends RootFragment implements MenuProvider, Runnable {
 
 
     // instance constructors
@@ -86,7 +83,6 @@ public class TripDetailsFragment extends RootFragment
     private int listPosition;
 
 	// ui components
-    private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
     private ListView listViewTrip;
     private TextView labelHeading, labelEmptyListView;
 
@@ -136,7 +132,7 @@ public class TripDetailsFragment extends RootFragment
      * create view
      */
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
         if (departure != null) {
             return String.format(
                     "%1$s, %2$s",
@@ -147,7 +143,7 @@ public class TripDetailsFragment extends RootFragment
     }
 
     @Override public int getLayoutResourceId() {
-        return R.layout.layout_heading_and_list_view_without_add_button;
+        return R.layout.layout_heading_and_list_view;
     }
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
@@ -163,15 +159,8 @@ public class TripDetailsFragment extends RootFragment
             listPosition = 0;
         }
 
-        if (getDialog() == null) {
-            mainActivityController.configureToolbarTitle(getDialogTitle());
-        }
-
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
-
-        swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
-        swipeRefreshListView.setOnRefreshListener(this);
 
         listViewTrip = (ListView) view.findViewById(R.id.listView);
         listViewTrip.setVisibility(View.GONE);
@@ -187,10 +176,8 @@ public class TripDetailsFragment extends RootFragment
             }
         });
 
-        swipeRefreshEmptyTextView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshEmptyTextView);
-        swipeRefreshEmptyTextView.setOnRefreshListener(this);
-        listViewTrip.setEmptyView(swipeRefreshEmptyTextView);
         labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
+        listViewTrip.setEmptyView(labelEmptyListView);
         labelEmptyListView.setVisibility(View.GONE);
 
         if (station != null && departure != null) {
@@ -212,17 +199,6 @@ public class TripDetailsFragment extends RootFragment
         savedInstanceState.putSerializable(KEY_CACHED_STOP_LIST, cachedStopList);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
-    }
-
-    @Override public void onRefresh() {
-        if (! serverTaskExecutorInstance.taskInProgress(taskId)
-                && (station != null && departure != null)) {
-            Helper.vibrateOnce(
-                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
-            cachedStopList = null;
-            listPosition = 0;
-            prepareRequest();
-        }
     }
 
     @Override public void onResume() {
@@ -274,8 +250,6 @@ public class TripDetailsFragment extends RootFragment
 
         nextDeparturesHandler.removeCallbacks(TripDetailsFragment.this);
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            swipeRefreshListView.setRefreshing(true);
-            swipeRefreshEmptyTextView.setRefreshing(true);
 
             taskId = serverTaskExecutorInstance.executeTask(
                     new TripDetailsTask(
@@ -312,9 +286,6 @@ public class TripDetailsFragment extends RootFragment
                         labelEmptyListView.setText(ptException.getMessage());
                     }
                 }
-
-                swipeRefreshListView.setRefreshing(false);
-                swipeRefreshEmptyTextView.setRefreshing(false);
             }
         }
     };

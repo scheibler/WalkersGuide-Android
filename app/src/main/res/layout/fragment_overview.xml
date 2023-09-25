@@ -15,12 +15,22 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_alignParentBottom="true"
-        android:orientation="vertical" >
+        android:gravity="center_vertical"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/buttonCollections"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.0"
+            android:text="@string/buttonCollections"
+            android:textSize="@dimen/bigTextSize" />
 
         <Button
             android:id="@+id/buttonHistory"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1.0"
             android:text="@string/buttonHistory"
             android:textSize="@dimen/bigTextSize" />
     </LinearLayout>
@@ -40,10 +50,17 @@
             android:layout_height="wrap_content" />
 
         <include
-            layout="@layout/layout_heading_and_list_view_without_swipe_to_refresh"
+            layout="@layout/layout_single_expandable_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/labelNoPinnedObjectsHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="10dp"
+            android:text="@string/labelNoPinnedObjectsHint"
+            android:visibility="gone" />
     </LinearLayout>
 
 </RelativeLayout>

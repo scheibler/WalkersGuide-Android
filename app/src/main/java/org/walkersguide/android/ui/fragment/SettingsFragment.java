@@ -73,7 +73,7 @@ import android.content.Intent;
 import android.content.Context;
 import android.widget.EditText;
 import org.walkersguide.android.tts.TtsSettings;
-import org.walkersguide.android.ui.TextChangedListener;
+import org.walkersguide.android.ui.interfaces.TextChangedListener;
 import android.text.Editable;
 import android.widget.TextView;
 import android.view.KeyEvent;
@@ -82,12 +82,12 @@ import android.view.inputmethod.EditorInfo;
 import org.walkersguide.android.ui.activity.MainActivity;
 import android.app.Activity;
 import org.walkersguide.android.ui.activity.MainActivityController;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog;
-import org.walkersguide.android.ui.dialog.select.SelectRouteOrSimulationPointDialog.WhereToPut;
+import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
 import org.walkersguide.android.ui.view.TextViewAndActionButton;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.ui.fragment.RootFragment;
 import android.widget.Toast;
+import org.walkersguide.android.data.ObjectWithId;
 
 
 public class SettingsFragment extends RootFragment implements FragmentResultListener {
@@ -119,7 +119,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT, this, this);
+                    SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED, this, this);
@@ -138,12 +138,13 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectRouteOrSimulationPointDialog.REQUEST_SELECT_POINT)) {
-            Point point = (Point) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_POINT);
-            WhereToPut whereToPut = (WhereToPut) bundle.getSerializable(SelectRouteOrSimulationPointDialog.EXTRA_WHERE_TO_PUT);
-            if (point != null
-                    && whereToPut == SelectRouteOrSimulationPointDialog.WhereToPut.HOME_ADDRESS) {
-                settingsManagerInstance.setHomeAddress(point);
+        if (requestKey.equals(SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID)) {
+            SelectObjectWithIdFromMultipleSourcesDialog.Target objectWithIdTarget = (SelectObjectWithIdFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
+            ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
+            if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.USE_AS_HOME_ADDRESS
+                    && selectedObjectWithId instanceof Point) {
+                settingsManagerInstance.setHomeAddress((Point) selectedObjectWithId);
                 updateUI();
             }
         } else if (requestKey.equals(ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED)) {
@@ -188,7 +189,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
      * create view
      */
 
-    @Override public String getDialogTitle() {
+    @Override public String getTitle() {
         return getResources().getString(R.string.fragmentSettingsName);
     }
 
@@ -203,16 +204,12 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
             taskId = ServerTaskExecutor.NO_TASK_ID;
         }
 
-        if (getDialog() == null) {
-            mainActivityController.configureToolbarTitle(getDialogTitle());
-        }
-
         layoutHomeAddress = (TextViewAndActionButton) view.findViewById(R.id.layoutHomeAddress);
         layoutHomeAddress.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
             @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                SelectRouteOrSimulationPointDialog.newInstance(
-                        SelectRouteOrSimulationPointDialog.WhereToPut.HOME_ADDRESS)
-                    .show(getChildFragmentManager(), "SelectRouteOrSimulationPointDialog");
+                SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                        SelectObjectWithIdFromMultipleSourcesDialog.Target.USE_AS_HOME_ADDRESS)
+                    .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
