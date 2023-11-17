@@ -34,6 +34,8 @@ import androidx.annotation.RequiresApi;
 import android.content.res.TypedArray;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
 import org.walkersguide.android.data.object_with_id.Point;
+import android.widget.ImageView;
+import java.util.Locale;
 
 
 public class RouteObjectView extends LinearLayout {
@@ -41,9 +43,9 @@ public class RouteObjectView extends LinearLayout {
 
     private RouteObject routeObject;
 
-    private TextView labelSelectedRouteObject;
-    private TextViewAndActionButton layoutRouteSegment;
-    private TextViewAndActionButton layoutRoutePoint;
+    private ImageView imageViewSelected;
+    private ObjectWithIdView layoutRouteSegment;
+    private ObjectWithIdView layoutRoutePoint;
 
     public RouteObjectView(Context context) {
         super(context);
@@ -56,12 +58,14 @@ public class RouteObjectView extends LinearLayout {
     }
 
     private void init(Context context) {
-        setOrientation(LinearLayout.VERTICAL);
+        // configure enclosing linear layout
+        setOrientation(LinearLayout.HORIZONTAL);
+        setGravity(Gravity.CENTER_VERTICAL);
 
         View view = inflate(context, R.layout.layout_route_object_view, this);
-        labelSelectedRouteObject = (TextView) view.findViewById(R.id.labelSelectedRouteObject);
-        layoutRouteSegment = (TextViewAndActionButton) view.findViewById(R.id.layoutRouteSegment);
-        layoutRoutePoint = (TextViewAndActionButton) view.findViewById(R.id.layoutRoutePoint);
+        imageViewSelected = (ImageView) view.findViewById(R.id.imageViewSelected);
+        layoutRouteSegment = (ObjectWithIdView) view.findViewById(R.id.layoutRouteSegment);
+        layoutRoutePoint = (ObjectWithIdView) view.findViewById(R.id.layoutRoutePoint);
 
         reset();
     }
@@ -70,22 +74,21 @@ public class RouteObjectView extends LinearLayout {
         return this.routeObject;
     }
 
-    public void reset() {
+    private void reset() {
         this.routeObject = null;
-        this.labelSelectedRouteObject.setVisibility(View.GONE);
+        this.imageViewSelected.setVisibility(View.GONE);
         this.layoutRouteSegment.reset();
         this.layoutRouteSegment.setVisibility(View.GONE);
         this.layoutRoutePoint.reset();
     }
 
-    public void configureAsListItem(RouteObject object, boolean isSelected) {
+    public void configureAsListItem(RouteObject object, int instructionNumber, boolean isSelected) {
         this.reset();
         if (object != null) {
             this.routeObject = object;
-            if (isSelected) {
-                this.labelSelectedRouteObject.setVisibility(View.VISIBLE);
-            }
-            this.configureRouteObjectView();
+            this.imageViewSelected.setVisibility(
+                    isSelected ? View.VISIBLE : View.INVISIBLE);
+            this.configureRouteObjectView(instructionNumber, isSelected);
         }
     }
 
@@ -93,19 +96,27 @@ public class RouteObjectView extends LinearLayout {
         this.reset();
         if (object != null) {
             this.routeObject = object;
-            this.configureRouteObjectView();
+            this.configureRouteObjectView(-1, false);
         }
     }
 
-    private void configureRouteObjectView() {
+    private void configureRouteObjectView(int instructionNumber, boolean isSelected) {
         if (! this.routeObject.getIsFirstRouteObject()) {
+            if (isSelected) {
+                this.layoutRouteSegment.setPrefix(
+                        GlobalInstance.getStringResource(R.string.labelIndexSelected));
+            }
             this.layoutRouteSegment.configureAsSingleObject(
                     this.routeObject.getSegment(), this.routeObject.formatSegmentInstruction());
             this.layoutRouteSegment.setVisibility(View.VISIBLE);
         }
+
+        if (instructionNumber > -1) {
+            this.layoutRoutePoint.setPrefix(
+                    String.format(Locale.getDefault(), "%1$d.", instructionNumber));
+        }
         this.layoutRoutePoint.configureAsSingleObject(
-                this.routeObject.getPoint(),
-                this.routeObject.formatPointInstruction());
+                this.routeObject.getPoint(), this.routeObject.formatPointInstruction());
     }
 
 }

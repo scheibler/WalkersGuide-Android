@@ -90,7 +90,7 @@ public class P2pRouteRequest implements Serializable {
 
     private Long setPoint(Point newPoint) {
         if (newPoint != null
-                && newPoint.addToDatabase()) {
+                && newPoint.saveToDatabase()) {
             return newPoint.getId();
         }
         return null;

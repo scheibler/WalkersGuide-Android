@@ -1,5 +1,7 @@
 package org.walkersguide.android.util;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.walkersguide.android.data.profile.MutableProfile;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.tts.TtsSettings;
@@ -191,7 +193,7 @@ public class SettingsManager {
     public void setHomeAddress(Point newPoint) {
         Editor editor = settings.edit();
         if (newPoint != null
-                && HistoryProfile.allPoints().add(newPoint)) {
+                && HistoryProfile.allPoints().addObject(newPoint)) {
             editor.putLong(KEY_HOME_ADDRESS_ID, newPoint.getId());
         } else if (settings.contains(KEY_HOME_ADDRESS_ID)) {
             editor.remove(KEY_HOME_ADDRESS_ID);
@@ -453,14 +455,22 @@ public class SettingsManager {
     // location
 
     public GPS getGPSLocation() {
-        return gson.fromJson(
-                settings.getString(KEY_GPS_LOCATION, ""), GPS.class);
+        try {
+            return new GPS(
+                    new JSONObject(
+                        settings.getString(KEY_GPS_LOCATION, "")));
+        } catch (JSONException e) {}
+        return null;
     }
 
     public void setGPSLocation(GPS newLocation) {
         Editor editor = settings.edit();
-        editor.putString(
-                KEY_GPS_LOCATION, gson.toJson(newLocation));
+        try {
+            editor.putString(
+                    KEY_GPS_LOCATION, newLocation.toJson().toString());
+        } catch (JSONException e) {
+            return;
+        }
         editor.apply();
     }
 
@@ -472,7 +482,7 @@ public class SettingsManager {
     public void setSimulatedPoint(Point newPoint) {
         Editor editor = settings.edit();
         if (newPoint != null
-                && HistoryProfile.allPoints().add(newPoint)) {
+                && HistoryProfile.allPoints().addObject(newPoint)) {
             editor.putLong(KEY_SIMULATED_POINT_ID, newPoint.getId());
         } else if (settings.contains(KEY_SIMULATED_POINT_ID)) {
             editor.remove(KEY_SIMULATED_POINT_ID);
@@ -575,15 +585,15 @@ public class SettingsManager {
     }
 
 
-    public Route getSelectedRoute() {
+    public Route getLastSelectedRoute() {
         return Route.load(
                 settings.getLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID));
     }
 
-    public void setSelectedRoute(Route newRoute) {
+    public void setLastSelectedRoute(Route newRoute) {
         Editor editor = settings.edit();
         if (newRoute != null
-                && HistoryProfile.allRoutes().add(newRoute)) {
+                && HistoryProfile.allRoutes().addObject(newRoute)) {
             editor.putLong(KEY_SELECTED_ROUTE_ID, newRoute.getId());
         } else {
             editor.putLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID);

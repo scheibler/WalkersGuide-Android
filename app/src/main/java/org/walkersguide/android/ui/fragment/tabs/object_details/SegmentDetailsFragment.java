@@ -81,7 +81,7 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
     @Override public void onPrepareMenu(@NonNull Menu menu) {
         MenuItem menuItemOpenOsmWebsite = menu.findItem(R.id.menuItemOpenOsmWebsite);
         menuItemOpenOsmWebsite.setVisible(
-                segment != null && segment.getOsmId() != null);
+                segment != null && segment.hasOsmId());
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {

@@ -1,9 +1,7 @@
 package org.walkersguide.android.ui.adapter;
 
-import android.view.ViewGroup.MarginLayoutParams;
 import org.walkersguide.android.ui.view.ProfileView;
 import org.walkersguide.android.database.profile.StaticProfile;
-import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.R;
 
 
@@ -21,7 +19,9 @@ import android.widget.LinearLayout;
 import android.content.Context;
 import org.walkersguide.android.data.Profile;
 import android.widget.BaseExpandableListAdapter;
-import org.walkersguide.android.ui.view.TextViewAndActionButton;
+import org.walkersguide.android.ui.view.ObjectWithIdView;
+import android.widget.AbsListView.LayoutParams;
+import org.walkersguide.android.ui.UiHelper;
 
 
 public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
@@ -56,10 +56,9 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
             holder.layoutHeadingAndAddButton = (LinearLayout) convertView.findViewById(R.id.layoutHeadingAndAddButton);
             holder.labelHeading = (TextView) convertView.findViewById(R.id.labelHeading);
             holder.buttonAdd = (ImageButton) convertView.findViewById(R.id.buttonAdd);
-            // set top margin
-            MarginLayoutParams lp = (MarginLayoutParams) holder.layoutHeadingAndAddButton.getLayoutParams();
-            lp.topMargin = (int) (10 * GlobalInstance.getContext().getResources().getDisplayMetrics().density);
-            holder.layoutHeadingAndAddButton.setLayoutParams(lp);
+            // set padding
+            holder.layoutHeadingAndAddButton.setPadding(
+                    0, UiHelper.convertDpToPx(5), 0, UiHelper.convertDpToPx(5));
             convertView.setTag(holder);
         } else {
             holder = (EntryHolderParent) convertView.getTag();
@@ -120,20 +119,19 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
         Object childObject = getChild(groupPosition, childPosition);
 
         if (childObject instanceof Profile) {
-            ProfileView profileView = new ProfileView(this.context);
+            ProfileView profileView = new ProfileView(this.context, null, true);
             profileView.setLayoutParams(
                     new LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            profileView.configure((Profile) childObject, true, false);
+            profileView.configureAsListItem((Profile) childObject, true, true);
             return profileView;
 
         } else if (childObject instanceof ObjectWithId) {
-            TextViewAndActionButton objectView = new TextViewAndActionButton(this.context, null, true);
+            ObjectWithIdView objectView = new ObjectWithIdView(this.context);
             objectView.setLayoutParams(
                     new LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            objectView.configureAsListItem((ObjectWithId) childObject, true, null);
-            objectView.setAutoUpdate(true);
+            objectView.configureAsListItem((ObjectWithId) childObject, true);
             return objectView;
 
         } else {

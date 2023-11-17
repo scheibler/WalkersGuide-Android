@@ -48,7 +48,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
     }
 
 
-    private TextViewAndActionButton layoutCurrentAddress;
+    private ObjectWithIdView layoutCurrentAddress;
 
     public ResolveCurrentAddressView(Context context) {
         super(context);
@@ -69,12 +69,11 @@ public class ResolveCurrentAddressView extends LinearLayout {
         setOrientation(LinearLayout.VERTICAL);
 
         // current address
-        layoutCurrentAddress = new TextViewAndActionButton(
-                context, getResources().getString(R.string.pointSelectFromClosestAddress), true);
+        layoutCurrentAddress = new ObjectWithIdView(
+                context, getResources().getString(R.string.pointSelectFromClosestAddress));
         layoutCurrentAddress.setLayoutParams(
                 new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        layoutCurrentAddress.setAutoUpdate(true);
         addView(layoutCurrentAddress);
     }
 
@@ -102,13 +101,13 @@ public class ResolveCurrentAddressView extends LinearLayout {
         // get current position
         final Point currentLocation = PositionManager.getInstance().getCurrentLocation();
         if (currentLocation == null) {
-            layoutCurrentAddress.configureAsSingleObject(
-                    null, getResources().getString(R.string.errorNoLocationFound));
+            layoutCurrentAddress.setEmptyLabelText(
+                    getResources().getString(R.string.errorNoLocationFound));
             return;
         }
 
-        layoutCurrentAddress.configureAsSingleObject(
-                null, getResources().getString(R.string.messagePleaseWait));
+        layoutCurrentAddress.setEmptyLabelText(
+                getResources().getString(R.string.messagePleaseWait));
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
             taskId = serverTaskExecutorInstance.executeTask(
                     new ResolveCoordinatesTask(
@@ -137,14 +136,16 @@ public class ResolveCurrentAddressView extends LinearLayout {
                     }
 
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
-                    layoutCurrentAddress.configureAsSingleObject(
-                            null, context.getResources().getString(R.string.errorReqRequestCancelled));
+                    layoutCurrentAddress.reset();
+                    layoutCurrentAddress.setEmptyLabelText(
+                            context.getResources().getString(R.string.errorReqRequestCancelled));
 
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
                     AddressException addressException = (AddressException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
                     if (addressException != null) {
-                        layoutCurrentAddress.configureAsSingleObject(
-                                null, addressException.getMessage());
+                        layoutCurrentAddress.reset();
+                        layoutCurrentAddress.setEmptyLabelText(
+                                addressException.getMessage());
                     }
 
                 } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED)) {

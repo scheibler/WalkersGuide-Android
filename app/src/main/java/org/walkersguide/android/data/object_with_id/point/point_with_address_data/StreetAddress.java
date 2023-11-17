@@ -15,7 +15,7 @@ public class StreetAddress extends PointWithAddressData {
 
 
     public static class Builder extends PointWithAddressData.Builder {
-        public Builder(String name, double latitude, double longitude) {
+        public Builder(String name, double latitude, double longitude) throws JSONException {
             super(
                     Point.Type.STREET_ADDRESS,
                     name,

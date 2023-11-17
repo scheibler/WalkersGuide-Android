@@ -35,6 +35,10 @@ import android.text.Html;
 
 public class UiHelper {
 
+    public static int convertDpToPx(int dp) {
+        return (int) (dp * GlobalInstance.getContext().getResources().getDisplayMetrics().density);
+    }
+
 
     /**
      * keyboard

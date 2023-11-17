@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.fragment;
 
+import org.walkersguide.android.database.DatabaseProfile.ForObjects;
+import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -10,7 +12,8 @@ import androidx.fragment.app.FragmentResultListener;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.data.ObjectWithId;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton;
+    import org.walkersguide.android.ui.view.ObjectWithIdView;
+    import org.walkersguide.android.ui.view.ObjectWithIdView.OnDefaultObjectActionListener;
 import android.view.MenuItem;
 import timber.log.Timber;
 
@@ -65,33 +68,37 @@ import org.walkersguide.android.ui.fragment.RootFragment;
 import org.walkersguide.android.tts.TTSWrapper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
+import org.walkersguide.android.data.Profile;
+import android.widget.ImageButton;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
+import org.walkersguide.android.database.profile.Collection;
+import org.walkersguide.android.server.wg.poi.PoiProfile;
 
 
 public abstract class ObjectListFragment extends RootFragment
-        implements FragmentResultListener, MenuProvider, OnRefreshListener {
+        implements FragmentResultListener, MenuProvider, OnRefreshListener,
+                   ObjectWithIdView.OnDefaultObjectActionListener, ViewChangedListener {
     public static final String REQUEST_SELECT_OBJECT = "selectObject";
     public static final String EXTRA_OBJECT_WITH_ID = "objectWithId";
 
+    public abstract Profile getProfile();
     public abstract int getPluralResourceId();
     public abstract boolean isUiUpdateRequestInProgress();
     public abstract void requestUiUpdate();
     public abstract void requestMoreResults();
 
 
-    public static class BundleBuilder {
-        protected Bundle bundle = new Bundle();
-
+    public static class BundleBuilder extends RootFragment.BundleBuilder {
         public BundleBuilder() {
-            bundle.putSerializable(KEY_DIALOG_MODE, DialogMode.DISABLED);
+            super();
+            setSelectObjectWithId(false);
             setAutoUpdate(false);
             setViewingDirectionFilter(false);
-            setAnnounceObjectAhead(false);
         }
 
-        public BundleBuilder setIsDialog(boolean enableSelection) {
-            bundle.putSerializable(
-                    KEY_DIALOG_MODE,
-                    enableSelection ? DialogMode.SELECT : DialogMode.DEFAULT);
+        public BundleBuilder setSelectObjectWithId(boolean newState) {
+            bundle.putBoolean(KEY_SELECT_OBJECT_WITH_ID, newState);
             return this;
         }
         public BundleBuilder setAutoUpdate(boolean newState) {
@@ -102,10 +109,6 @@ public abstract class ObjectListFragment extends RootFragment
             bundle.putBoolean(KEY_VIEWING_DIRECTION_FILTER, newState);
             return this;
         }
-        public BundleBuilder setAnnounceObjectAhead(boolean newState) {
-            bundle.putBoolean(KEY_ANNOUNCE_OBJECT_AHEAD, newState);
-            return this;
-        }
 
         public Bundle build() {
             return bundle;
@@ -114,22 +117,27 @@ public abstract class ObjectListFragment extends RootFragment
 
 
     // dialog
-    private static final String KEY_DIALOG_MODE = "dialogMode";
+    private static final String KEY_SELECT_OBJECT_WITH_ID = "selectObjectWithId";
     private static final String KEY_AUTO_UPDATE = "autoUpdate";
     private static final String KEY_VIEWING_DIRECTION_FILTER = "viewingDirectionFilter";
-    private static final String KEY_ANNOUNCE_OBJECT_AHEAD = "announceObjectAhead";
     private static final String KEY_LIST_POSITION = "listPosition";
 
-    private enum DialogMode {
-        DISABLED, DEFAULT, SELECT
-    }
-
-    private DialogMode dialogMode;
+    private boolean selectObjectWithId, autoUpdate, viewingDirectionFilter;
+    private int listPosition;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        dialogMode = (DialogMode) getArguments().getSerializable(KEY_DIALOG_MODE);
-        setShowsDialog(dialogMode != DialogMode.DISABLED);
+        selectObjectWithId = getArguments().getBoolean(KEY_SELECT_OBJECT_WITH_ID);
+
+        if (savedInstanceState != null) {
+            autoUpdate = savedInstanceState.getBoolean(KEY_AUTO_UPDATE);
+            viewingDirectionFilter = savedInstanceState.getBoolean(KEY_VIEWING_DIRECTION_FILTER);
+            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
+        } else {
+            autoUpdate = getArguments().getBoolean(KEY_AUTO_UPDATE);
+            viewingDirectionFilter = getArguments().getBoolean(KEY_VIEWING_DIRECTION_FILTER);
+            listPosition = 0;
+        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -146,13 +154,17 @@ public abstract class ObjectListFragment extends RootFragment
         }
     }
 
+    @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+        Bundle result = new Bundle();
+        result.putSerializable(EXTRA_OBJECT_WITH_ID, objectWithId);
+        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_OBJECT, result);
+        dismiss();
+    }
+
 
     /**
      * create view
      */
-
-    private boolean autoUpdate, viewingDirectionFilter, announceObjectAhead;
-    private int listPosition;
 
     private TextView labelHeading, labelEmptyListView, labelMoreResultsFooter;
     private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
@@ -160,9 +172,7 @@ public abstract class ObjectListFragment extends RootFragment
 
     @Override public String getDialogButtonText() {
         return getResources().getString(
-                dialogMode == DialogMode.SELECT
-                ? R.string.dialogCancel
-                : R.string.dialogClose);
+                selectObjectWithId ? R.string.dialogCancel : R.string.dialogClose);
     }
 
     @Override public int getLayoutResourceId() {
@@ -170,19 +180,16 @@ public abstract class ObjectListFragment extends RootFragment
     }
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            autoUpdate = savedInstanceState.getBoolean(KEY_AUTO_UPDATE);
-            viewingDirectionFilter = savedInstanceState.getBoolean(KEY_VIEWING_DIRECTION_FILTER);
-            announceObjectAhead = savedInstanceState.getBoolean(KEY_ANNOUNCE_OBJECT_AHEAD);
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            autoUpdate = getArguments().getBoolean(KEY_AUTO_UPDATE);
-            viewingDirectionFilter = getArguments().getBoolean(KEY_VIEWING_DIRECTION_FILTER);
-            announceObjectAhead = getArguments().getBoolean(KEY_ANNOUNCE_OBJECT_AHEAD);
-            listPosition = 0;
-        }
-
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
+        ImageButton buttonAddObjectWithId = (ImageButton) view.findViewById(R.id.buttonAdd);
+        buttonAddObjectWithId.setVisibility(
+                isAddButtonVisible() ? View.VISIBLE : View.GONE);
+        buttonAddObjectWithId.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                addObjectWithIdButtonClicked(view);
+            }
+        });
+
         swipeRefreshListView = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshListView);
         swipeRefreshListView.setOnRefreshListener(this);
         listViewObject = (ListView) view.findViewById(R.id.listView);
@@ -220,8 +227,22 @@ public abstract class ObjectListFragment extends RootFragment
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean(KEY_AUTO_UPDATE,  autoUpdate);
         savedInstanceState.putBoolean(KEY_VIEWING_DIRECTION_FILTER,  viewingDirectionFilter);
-        savedInstanceState.putBoolean(KEY_ANNOUNCE_OBJECT_AHEAD,  announceObjectAhead);
         savedInstanceState.putInt(KEY_LIST_POSITION,  listPosition);
+    }
+
+    public boolean getAutoUpdate() {
+        return this.autoUpdate;
+    }
+
+    public boolean isAddButtonVisible() {
+        return false;
+    }
+
+    public void addObjectWithIdButtonClicked(View view) {
+    }
+
+    public boolean getSelectObjectWithId() {
+        return this.selectObjectWithId;
     }
 
     public ObjectWithIdAdapter getListAdapter() {
@@ -234,16 +255,16 @@ public abstract class ObjectListFragment extends RootFragment
         return null;
     }
 
-    public String getEmptyObjectListMessage() {
-        return "";
-    }
-
     public int getListPosition() {
         return this.listPosition;
     }
 
     public void resetListPosition() {
         listPosition = 0;
+    }
+
+    public String getEmptyObjectListMessage() {
+        return null;
     }
 
 
@@ -274,7 +295,6 @@ public abstract class ObjectListFragment extends RootFragment
     @Override public void onPrepareMenu(@NonNull Menu menu) {
         // refresh
         MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
-        Timber.d("menuItemRefresh: %1$s, isUiUpdateRequestInProgress: %2$s", menuItemRefresh, isUiUpdateRequestInProgress());
         menuItemRefresh.setTitle(
                 isUiUpdateRequestInProgress()
                 ? getResources().getString(R.string.menuItemCancel)
@@ -287,9 +307,6 @@ public abstract class ObjectListFragment extends RootFragment
         // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setChecked(viewingDirectionFilter);
-        // announce object ahead
-        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
-        menuItemAnnounceObjectAhead.setChecked(announceObjectAhead);
     }
 
     @Override public boolean onMenuItemSelected(MenuItem item) {
@@ -305,8 +322,6 @@ public abstract class ObjectListFragment extends RootFragment
             requestUiUpdate();
         } else if (item.getItemId() == R.id.menuItemJumpToTop) {
             listViewObject.setSelection(0);
-        } else if (item.getItemId() == R.id.menuItemAnnounceObjectAhead) {
-            announceObjectAhead = ! announceObjectAhead;
         } else {
             return false;
         }
@@ -326,6 +341,7 @@ public abstract class ObjectListFragment extends RootFragment
     @Override public void onPause() {
         super.onPause();
         Timber.d("onPause");
+        unregisterViewChangedBroadcastReceiver(viewChangedBroadcastReceiver);
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
@@ -337,123 +353,66 @@ public abstract class ObjectListFragment extends RootFragment
         filter.addAction(PositionManager.ACTION_NEW_LOCATION);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
         filter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
-        filter.addAction(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
         filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
         LocalBroadcastManager
             .getInstance(getActivity())
             .registerReceiver(mMessageReceiver, filter);
         // request ui update
+        registerViewChangedBroadcastReceiver(viewChangedBroadcastReceiver);
         requestUiUpdate();
     }
+
+
+    private BroadcastReceiver viewChangedBroadcastReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ViewChangedListener.ACTION_OBJECT_WITH_ID_LIST_CHANGED)) {
+                requestUiUpdate();
+            }
+        }
+    };
+
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         private AcceptNewPosition acceptNewPosition = AcceptNewPosition.newInstanceForPoiListUpdate();
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForPoiListUpdate();
-        private ObjectWithId lastClosestObject = null;
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Segment.ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED)) {
-                requestUiUpdate();
-
-            } else if (! getActivity().hasWindowFocus()) {
+            if (getDialog() == null && ! getActivity().hasWindowFocus()) {
                 if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
                         && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
                         && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
-                    Timber.d("update cause of important while window doesnt have focus");
                     requestUiUpdate();
                 }
+                return;
+            }
 
-            } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (currentLocation != null) {
-                    if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
-                        Timber.d("update cause of important");
-                        requestUiUpdate();
-                    } else if (autoUpdate
-                            && acceptNewPosition.updatePoint(currentLocation)) {
-                        Timber.d("update cause of new position");
-                        requestUiUpdate();
-                        Helper.vibrateOnce(
-                                Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
-                    }
+                if (currentLocation == null) {
+                    return;
+                }
+                if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
+                    Timber.d("update cause of important");
+                    requestUiUpdate();
+                } else if (autoUpdate
+                        && acceptNewPosition.updatePoint(currentLocation)) {
+                    Timber.d("update cause of new position");
+                    requestUiUpdate();
+                    Helper.vibrateOnce(
+                            Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 ObjectWithIdAdapter listAdapter = getListAdapter();
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (listAdapter != null && currentBearing != null) {
-                    Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-                    // find closest object
-                    ObjectWithId closestObject = null;
-                    RelativeBearing closestRelativeBearing = null;
-                    for (int i=0; i<listAdapter.getCount(); i++) {
-                        RelativeBearing relativeBearing = null;
-                        if (listAdapter.getItem(i) instanceof Point
-                                && currentLocation != null
-                                && i < 40) {
-                            relativeBearing = currentLocation
-                                .bearingTo(((Point) listAdapter.getItem(i)))
-                                .relativeTo(currentBearing);
-                        } else if (listAdapter.getItem(i) instanceof Segment) {
-                            relativeBearing = ((Segment) listAdapter.getItem(i))
-                                .getBearing()
-                                .relativeTo(currentBearing);
-                        }
-                        if (relativeBearing != null
-                                && (
-                                       closestRelativeBearing == null
-                                    || closestRelativeBearing.compareTo(relativeBearing) == 1)) {
-                            closestObject = listAdapter.getItem(i);
-                            closestRelativeBearing = relativeBearing;
-                        }
-                    }
-                    boolean lastClosestObjectUpdated = false;
-                    if (closestObject != null
-                            && ! closestObject.equals(lastClosestObject)
-                            && closestRelativeBearing != null
-                            && closestRelativeBearing.getDirection() == RelativeBearing.Direction.STRAIGHT_AHEAD) {
-                        lastClosestObject = closestObject;
-                        lastClosestObjectUpdated = true;
-                    }
-
-                    // auto-update
-                    if (autoUpdate) {
-                        if (viewingDirectionFilter && acceptNewBearing.updateBearing(currentBearing)) {
-                            Timber.d("notifyDataSetChanged viewingDirectionFilter");
-                            listAdapter.notifyDataSetChanged();
-                        } else if (listAdapter.hasListComparator() && lastClosestObjectUpdated) {
-                            // hack: update list adapter, if child is an IntersectionStructureFragment
-                            listAdapter.notifyDataSetChanged();
-                        }
-                    }
-
-                    // announce
-                    if (announceObjectAhead && lastClosestObjectUpdated) {
-                        String message = null;
-                        if (closestObject instanceof Point) {
-                            Point point = (Point) closestObject;
-                            message = point.formatNameAndSubType();
-                            if (currentLocation != null) {
-                                message += String.format(
-                                        ", %1$s",
-                                        GlobalInstance.getPluralResource(
-                                            R.plurals.inMeters,
-                                            point.distanceTo(currentLocation)));
-                            }
-                        } else if (closestObject instanceof Segment) {
-                            Segment segment = (Segment) closestObject;
-                            message = segment.formatNameAndSubType();
-                            if (segment instanceof IntersectionSegment
-                                    && ((IntersectionSegment) segment).isPartOfNextRouteSegment()) {
-                                message += String.format(
-                                        ", %1$s", GlobalInstance.getStringResource(R.string.labelPartOfNextRouteSegment));
-                                    }
-                        } else {
-                            message = closestObject.getName();
-                        }
-                        Timber.d("new object ahead: %1$s, %2$d°", message, closestRelativeBearing.getDegree());
-                        TTSWrapper.getInstance().screenReader(message);
-                    }
+                if (listAdapter == null || currentBearing == null) {
+                    return;
+                }
+                if (autoUpdate && viewingDirectionFilter
+                        && acceptNewBearing.updateBearing(currentBearing)) {
+                    Timber.d("notifyDataSetChanged viewingDirectionFilter");
+                    listAdapter.notifyDataSetChanged();
+                    updateHeadingListView();
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SHAKE_DETECTED)) {
@@ -502,18 +461,13 @@ public abstract class ObjectListFragment extends RootFragment
                 GlobalInstance.getStringResource(R.string.messagePleaseWait));
     }
 
-    public void populateUiAfterRequestWasSuccessful(String headingSecondLine,
-            ArrayList<? extends ObjectWithId> objectList,
-            boolean showIsFavoriteIndicator, boolean showMenuItemRemoveObject) {
+    public void populateUiAfterRequestWasSuccessful(String headingSecondLine, ObjectWithIdAdapter listAdapter) {
         labelHeading.setTag(headingSecondLine);
         swipeRefreshListView.setRefreshing(false);
         swipeRefreshEmptyTextView.setRefreshing(false);
 
         // fill list view
-        listViewObject.setAdapter(
-                new ObjectWithIdAdapter(
-                    ObjectListFragment.this.getContext(), objectList,
-                    showIsFavoriteIndicator, showMenuItemRemoveObject));
+        listViewObject.setAdapter(listAdapter);
         labelEmptyListView.setText(getEmptyObjectListMessage());
 
         // list position
@@ -535,10 +489,20 @@ public abstract class ObjectListFragment extends RootFragment
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
     }
 
+    public void populateUiAfterRequestWasSuccessful(String headingSecondLine,
+            ArrayList<? extends ObjectWithId> objectList) {
+        populateUiAfterRequestWasSuccessful(
+                headingSecondLine,
+                new ObjectWithIdAdapter(
+                    ObjectListFragment.this.getContext(), objectList,
+                    selectObjectWithId ? this : null,
+                    getProfile(), autoUpdate, viewingDirectionFilter));
+    }
+
     public void populateUiAndShowMoreResultsFooterAfterRequestWasSuccessful(
             String headingSecondLine, ArrayList<? extends ObjectWithId> objectList) {
         // only poi profiles call this function for now
-        populateUiAfterRequestWasSuccessful(headingSecondLine, objectList, true, false);
+        populateUiAfterRequestWasSuccessful(headingSecondLine, objectList);
 
         // more results
         if (getListAdapter().isEmpty()) {
@@ -597,62 +561,73 @@ public abstract class ObjectListFragment extends RootFragment
      * ObjectWithId adapter
      */
 
-    public class ObjectWithIdAdapter extends BaseAdapter {
+    public static class ObjectWithIdAdapter extends BaseAdapter {
 
         private Context context;
         private ArrayList<? extends ObjectWithId> objectList, filteredObjectList;
-        private boolean showIsFavoriteIndicator, showMenuItemRemoveObject;
-        private Comparator<ObjectWithId> listComparator;
+        private OnDefaultObjectActionListener onDefaultObjectActionListener;
+        private Profile profile;
+        private boolean autoUpdate, viewingDirectionFilter;
 
         public ObjectWithIdAdapter(Context context, ArrayList<? extends ObjectWithId> objectList,
-                boolean showIsFavoriteIndicator, boolean showMenuItemRemoveObject) {
+                OnDefaultObjectActionListener listener, Profile profile,
+                boolean autoUpdate, boolean viewingDirectionFilter) {
             this.context = context;
             this.objectList = objectList;
+            this.onDefaultObjectActionListener = listener;
+            this.profile = profile;
+            this.autoUpdate = autoUpdate;
+            this.viewingDirectionFilter = viewingDirectionFilter;
+            // must come after setting viewingDirectionFilter
             this.filteredObjectList = populateFilteredObjectList();
-            this.showIsFavoriteIndicator = showIsFavoriteIndicator;
-            this.showMenuItemRemoveObject = showMenuItemRemoveObject;
-            this.listComparator = null;
         }
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
-            TextViewAndActionButton layoutTextViewAndActionButton = null;
+            ObjectWithIdView layoutObject = null;
             if (convertView == null) {
-                layoutTextViewAndActionButton = new TextViewAndActionButton(this.context, null, true);
-                layoutTextViewAndActionButton.setLayoutParams(
+                layoutObject = new ObjectWithIdView(this.context);
+                layoutObject.setLayoutParams(
                         new LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             } else {
-                layoutTextViewAndActionButton = (TextViewAndActionButton) convertView;
+                layoutObject = (ObjectWithIdView) convertView;
             }
 
-            if (dialogMode == DialogMode.SELECT) {
-                layoutTextViewAndActionButton.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-                    @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                        dismiss();
-                        Bundle result = new Bundle();
-                        result.putSerializable(EXTRA_OBJECT_WITH_ID, view.getObject());
-                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_OBJECT, result);
-                    }
-                });
-            }
+            layoutObject.setAutoUpdate(this.autoUpdate);
+            layoutObject.setOnDefaultObjectActionListener(this.onDefaultObjectActionListener);
 
-            TextViewAndActionButton.OnLayoutResetListener listenerRemoveObject = null;
-            if (this.showMenuItemRemoveObject) {
-                listenerRemoveObject = new TextViewAndActionButton.OnLayoutResetListener() {
-                    @Override public void onLayoutReset(TextViewAndActionButton view) {
-                        ObjectWithId objectToRemove = view.getObject();
-                        if (objectToRemove != null) {
-                            objectToRemove.removeFromDatabase();
-                            requestUiUpdate();
+            if (this.profile != null && this.profile instanceof DatabaseProfile) {
+                final DatabaseProfile profileToBeRemovedFrom = (DatabaseProfile) this.profile;
+                if (       profileToBeRemovedFrom.equals(StaticProfile.excludedRoutingSegments())
+                        || profileToBeRemovedFrom.equals(StaticProfile.recordedRoutes())
+                        || profileToBeRemovedFrom instanceof Collection) {
+                    layoutObject.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
+                        @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
+                            profileToBeRemovedFrom.removeObject(objectWithId);
+                            // update parent view
+                            ViewChangedListener.sendObjectWithIdListChangedBroadcast();
                         }
-                    }
-                };
+                    });
+                }
             }
 
-            layoutTextViewAndActionButton.setAutoUpdate(autoUpdate);
-            layoutTextViewAndActionButton.configureAsListItem(
-                    getItem(position), this.showIsFavoriteIndicator, listenerRemoveObject);
-            return layoutTextViewAndActionButton;
+            ObjectWithId objectWithId = getItem(position);
+            boolean showIcon = false;
+            if (this.profile != null && this.profile instanceof DatabaseProfile) {
+                if (((DatabaseProfile) this.profile).getForObjects() == ForObjects.POINTS_AND_ROUTES) {
+                    showIcon = true;
+                }
+            } else if (this.profile != null && this.profile instanceof PoiProfile) {
+                for (Collection collection : ((PoiProfile) this.profile).getCollectionList()) {
+                    if (collection.containsObject(objectWithId)) {
+                        showIcon = true;
+                        break;
+                    }
+                }
+            }
+
+            layoutObject.configureAsListItem(objectWithId, showIcon);
+            return layoutObject;
         }
 
         @Override public int getCount() {
@@ -668,25 +643,21 @@ public abstract class ObjectListFragment extends RootFragment
         }
 
         @Override public void notifyDataSetChanged() {
-            if (this.listComparator != null) {
-                Collections.sort(this.objectList, this.listComparator);
-            }
             this.filteredObjectList = populateFilteredObjectList();
-            updateHeadingListView();
             // the following must be put after the object list was sorted and updated
             super.notifyDataSetChanged();
+        }
+
+        public Context getContext() {
+            return this.context;
         }
 
         public boolean isEmpty() {
             return this.filteredObjectList.isEmpty();
         }
 
-        public boolean  hasListComparator() {
-            return this.listComparator != null;
-        }
-
-        public void setListComparator(Comparator<ObjectWithId> newComparator) {
-            this.listComparator = newComparator;
+        protected void updateObjectList(ArrayList<? extends ObjectWithId> updatedObjectList) {
+            this.objectList = updatedObjectList;
         }
 
         private ArrayList<? extends ObjectWithId> populateFilteredObjectList() {
@@ -698,14 +669,10 @@ public abstract class ObjectListFragment extends RootFragment
                 // only include, what's ahead
                 ArrayList<ObjectWithId> filteredObjectList = new ArrayList<ObjectWithId>();
                 for (ObjectWithId object : this.objectList) {
-                    if (object instanceof Point) {
-                        if (((Point) object)
-                                .bearingFromCurrentLocation()
-                                .relativeToCurrentBearing()
-                                .withinRange(Angle.Quadrant.Q7.min, Angle.Quadrant.Q1.max)) {
-                            filteredObjectList.add(object);
-                        }
-                    } else {
+                    if (object
+                            .bearingFromCurrentLocation()
+                            .relativeToCurrentBearing()
+                            .withinRange(315, 45)) {
                         filteredObjectList.add(object);
                     }
                 }
@@ -715,7 +682,7 @@ public abstract class ObjectListFragment extends RootFragment
 
 
         private class EntryHolder {
-            public TextViewAndActionButton layoutTextViewAndActionButton;
+            public ObjectWithIdView layoutObject;
         }
     }
 

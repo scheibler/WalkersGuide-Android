@@ -83,7 +83,7 @@ import org.walkersguide.android.ui.activity.MainActivity;
 import android.app.Activity;
 import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
-import org.walkersguide.android.ui.view.TextViewAndActionButton;
+import org.walkersguide.android.ui.view.ObjectWithIdView;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.ui.fragment.RootFragment;
 import android.widget.Toast;
@@ -99,12 +99,11 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 	}
 
 
-    private MainActivityController mainActivityController;
     private SettingsManager settingsManagerInstance;
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
 
-    private TextViewAndActionButton layoutHomeAddress;
+    private ObjectWithIdView layoutHomeAddress;
     private Button buttonServerURL, buttonServerMap;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
@@ -116,6 +115,12 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 		super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+
+        if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+        } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -174,16 +179,6 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         }
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (context instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) context;
-            if (activity instanceof MainActivity) {
-                mainActivityController = (MainActivityController) ((MainActivity) activity);
-            }
-        }
-    }
-
 
     /**
      * create view
@@ -198,18 +193,18 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     }
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-        } else {
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-        }
-
-        layoutHomeAddress = (TextViewAndActionButton) view.findViewById(R.id.layoutHomeAddress);
-        layoutHomeAddress.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutHomeAddress = (ObjectWithIdView) view.findViewById(R.id.layoutHomeAddress);
+        layoutHomeAddress.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.USE_AS_HOME_ADDRESS)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
+            }
+        });
+        layoutHomeAddress.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
+            @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
+                settingsManagerInstance.setHomeAddress(null);
+                updateUI();
             }
         });
 
@@ -374,16 +369,8 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     }
 
     private void updateUI() {
-        Point homeAddress = settingsManagerInstance.getHomeAddress();
         layoutHomeAddress.configureAsSingleObject(
-                homeAddress,
-                homeAddress != null ? homeAddress.getName() : null,
-                new TextViewAndActionButton.OnLayoutResetListener() {
-                    @Override public void onLayoutReset(TextViewAndActionButton view) {
-                        settingsManagerInstance.setHomeAddress(null);
-                        updateUI();
-                    }
-                });
+                settingsManagerInstance.getHomeAddress());
 
         // WalkersGuide server url
         buttonServerURL.setText(

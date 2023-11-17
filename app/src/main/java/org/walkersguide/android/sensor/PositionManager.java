@@ -215,44 +215,45 @@ public class PositionManager implements android.location.LocationListener {
 
     private void processNewLocationObject(Location newLocationObject, boolean fromLocationSensor) {
         // try to create gps point from location object
-        GPS.Builder gpsBuilder = new GPS.Builder(
-                newLocationObject.getLatitude(), newLocationObject.getLongitude())
-            .updateTime(newLocationObject.getTime());
-
-        // optional args
-        if (newLocationObject.getProvider() != null) {
-            gpsBuilder.setProvider(newLocationObject.getProvider());
-        }
-        if (newLocationObject.hasAccuracy()) {
-            gpsBuilder.setAccuracy(newLocationObject.getAccuracy());
-        }
-        if (newLocationObject.hasAltitude()) {
-            gpsBuilder.setAltitude(newLocationObject.getAltitude());
-        }
-        if (newLocationObject.getExtras() != null) {
-            Bundle locationExtras = newLocationObject.getExtras();
-            if (locationExtras.containsKey("satellites")
-                    && locationExtras.getInt("satellites") >= 0) {
-                gpsBuilder.setNumberOfSatellites(locationExtras.getInt("satellites"));
-            }
-        }
-        if (newLocationObject.hasSpeed()) {
-            // convert from m/s into km/h
-            gpsBuilder.setSpeed(newLocationObject.getSpeed() * 3.6f);
-        }
-
-        // bearing sub object
-        if (newLocationObject.hasBearing()) {
-            gpsBuilder.setBearing(
-                    new BearingSensorValue(
-                        Math.round(newLocationObject.getBearing()),
-                        newLocationObject.getTime(),
-                        extractBearingSensorAccuracyRating(newLocationObject)));
-        }
-
-        // build
         GPS newLocation = null;
         try {
+
+            GPS.Builder gpsBuilder = new GPS.Builder(
+                    newLocationObject.getLatitude(), newLocationObject.getLongitude())
+                .setTime(newLocationObject.getTime());
+
+            // optional args
+            if (newLocationObject.getProvider() != null) {
+                gpsBuilder.setProvider(newLocationObject.getProvider());
+            }
+            if (newLocationObject.hasAccuracy()) {
+                gpsBuilder.setAccuracy(newLocationObject.getAccuracy());
+            }
+            if (newLocationObject.hasAltitude()) {
+                gpsBuilder.setAltitude(newLocationObject.getAltitude());
+            }
+            if (newLocationObject.getExtras() != null) {
+                Bundle locationExtras = newLocationObject.getExtras();
+                if (locationExtras.containsKey("satellites")
+                        && locationExtras.getInt("satellites") >= 0) {
+                    gpsBuilder.setNumberOfSatellites(locationExtras.getInt("satellites"));
+                }
+            }
+            if (newLocationObject.hasSpeed()) {
+                // convert from m/s into km/h
+                gpsBuilder.setSpeed(newLocationObject.getSpeed() * 3.6f);
+            }
+
+            // bearing sub object
+            if (newLocationObject.hasBearing()) {
+                gpsBuilder.setBearing(
+                        new BearingSensorValue(
+                            Math.round(newLocationObject.getBearing()),
+                            newLocationObject.getTime(),
+                            extractBearingSensorAccuracyRating(newLocationObject)));
+            }
+
+            // build
             newLocation = gpsBuilder.build();
         } catch (JSONException e) {}
 
@@ -399,7 +400,7 @@ public class PositionManager implements android.location.LocationListener {
         if (newPoint != null) {
             settingsManagerInstance.setSimulatedPoint(newPoint);
             // add to history
-            HistoryProfile.simulatedPoints().add(newPoint);
+            HistoryProfile.simulatedPoints().addObject(newPoint);
             // broadcast new simulated location action
             broadcastSimulatedLocation();
             // broadcast new location action

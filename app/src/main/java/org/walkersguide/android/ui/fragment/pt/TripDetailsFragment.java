@@ -89,6 +89,18 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+
+        station = (Location) getArguments().getSerializable(KEY_STATION);
+        departure = (Departure) getArguments().getSerializable(KEY_DEPARTURE);
+        if (savedInstanceState != null) {
+            cachedStopList = (ArrayList<Stop>) savedInstanceState.getSerializable(KEY_CACHED_STOP_LIST);
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
+        } else {
+            cachedStopList = null;
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+            listPosition = 0;
+        }
     }
 
 
@@ -147,18 +159,6 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
     }
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
-        station = (Location) getArguments().getSerializable(KEY_STATION);
-        departure = (Departure) getArguments().getSerializable(KEY_DEPARTURE);
-        if (savedInstanceState != null) {
-            cachedStopList = (ArrayList<Stop>) savedInstanceState.getSerializable(KEY_CACHED_STOP_LIST);
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            cachedStopList = null;
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-            listPosition = 0;
-        }
-
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
 

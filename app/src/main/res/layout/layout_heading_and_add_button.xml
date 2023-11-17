@@ -11,7 +11,7 @@
     <include
         layout="@layout/layout_single_text_view_heading"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1.0" />
 
     <ImageButton
@@ -20,9 +20,11 @@
         android:layout_height="match_parent"
         android:minWidth="@dimen/minWidth"
         android:minHeight="@dimen/minHeight"
+        android:padding="5dp"
         android:background="@null"
         app:tint="@color/image"
         android:src="@drawable/image_add"
+        android:contentDescription="@string/dialogAdd"
         android:visibility="gone" />
 
 </LinearLayout>

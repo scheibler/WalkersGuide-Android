@@ -39,7 +39,7 @@ public interface MutableProfile extends Serializable {
 
     public  MutableProfileParams getProfileParamsFromDatabase();
     public boolean setPinned(boolean pinned);
-    public boolean renameProfile(String newName);
-    public boolean removeProfile();
+    public boolean rename(String newName);
+    public boolean remove();
 
 }

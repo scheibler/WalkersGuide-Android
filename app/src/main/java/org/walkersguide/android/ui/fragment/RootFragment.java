@@ -18,6 +18,41 @@ import timber.log.Timber;
 
 public abstract class RootFragment extends DialogFragment {
 
+    public static class BundleBuilder {
+        protected Bundle bundle = new Bundle();
+
+        public BundleBuilder() {
+            setIsEmbedded(false);
+        }
+
+        public BundleBuilder setIsEmbedded(boolean newState) {
+            bundle.putBoolean(KEY_IS_EMBEDDED, newState);
+            return this;
+        }
+
+        public Bundle build() {
+            return bundle;
+        }
+    }
+
+
+    // dialog
+    private static final String KEY_IS_EMBEDDED = "isEmbedded";
+
+	@Override public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+        boolean isEmbedded = getArguments() != null
+            ? getArguments().getBoolean(KEY_IS_EMBEDDED) : false;
+        if (isEmbedded) {
+            setShowsDialog(false);
+        }
+    }
+
+
+    /**
+     * view
+     */
+
     public abstract String getTitle();
     public abstract int getLayoutResourceId();
 	public abstract View configureView(View view, Bundle savedInstanceState);

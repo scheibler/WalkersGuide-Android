@@ -73,11 +73,10 @@
             android:text="@string/buttonEnableLocationSimulation"
             android:theme="@style/HeadingTextView" />
 
-        <org.walkersguide.android.ui.view.TextViewAndActionButton
+        <org.walkersguide.android.ui.view.ObjectWithIdView
             android:id="@+id/layoutSimulationPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:includeDistanceOrBearingInformation="true"
             app:prefix="@string/labelPrefixSimulation" />
 
     </LinearLayout>

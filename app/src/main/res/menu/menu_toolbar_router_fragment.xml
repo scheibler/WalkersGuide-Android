@@ -2,6 +2,7 @@
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/menuItemRecalculate"
         android:title="@string/menuItemRecalculate" >
@@ -17,6 +18,23 @@
                 android:title="@string/menuItemRecalculateReturnRoute" />
         </menu>
     </item>
+
+    <item
+        android:id="@+id/menuItemJumpToRoutePoint"
+        android:title="@string/menuItemJumpToRoutePoint" >
+        <menu>
+            <item
+                android:id="@+id/menuItemJumpToFirstRoutePoint"
+                android:title="@string/menuItemJumpToFirstRoutePoint" />
+            <item
+                android:id="@+id/menuItemJumpToClosestRoutePoint"
+                android:title="@string/menuItemJumpToClosestRoutePoint" />
+            <item
+                android:id="@+id/menuItemJumpToLastRoutePoint"
+                android:title="@string/menuItemJumpToLastRoutePoint" />
+        </menu>
+    </item>
+
     <item
         android:id="@+id/menuItemAutoSkipToNextRoutePoint"
         android:title="@string/menuItemAutoSkipToNextRoutePoint"
@@ -29,4 +47,5 @@
         android:id="@+id/menuItemShowIntersectionLayoutDetails"
         android:title="@string/menuItemShowIntersectionLayoutDetails"
         android:checkable="true" />
+
 </menu>

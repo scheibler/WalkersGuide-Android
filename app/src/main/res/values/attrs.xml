@@ -5,9 +5,12 @@
         <attr name="labelAbove" format="boolean" />
     </declare-styleable>
 
-    <declare-styleable name="TextViewAndActionButton">
+    <declare-styleable name="ObjectWithIdAndProfileView">
         <attr name="prefix" format="string" />
         <attr name="compact" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="ObjectWithIdView">
         <attr name="includeDistanceOrBearingInformation" format="boolean" />
     </declare-styleable>
 

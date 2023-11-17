@@ -24,17 +24,12 @@ android {
 
     defaultConfig {
         resConfigs "en", "de"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 33
         multiDexEnabled true
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
-    }
-
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
     }
 
     signingConfigs {
@@ -59,13 +54,13 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionCode 8
-            versionName '3.0.0-b2'
+            versionCode 9
+            versionName '3.0.0-b3'
             signingConfig signingConfigs.beta
             // internal
             // database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-            buildConfigField 'Integer', 'DATABASE_VERSION', '11'
+            buildConfigField 'Integer', 'DATABASE_VERSION', '12'
             // server
             buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
             buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'

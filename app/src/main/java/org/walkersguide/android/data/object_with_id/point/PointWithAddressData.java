@@ -18,7 +18,7 @@ public abstract class PointWithAddressData extends Point implements Serializable
     private static final long serialVersionUID = 1l;
 
     public abstract static class Builder extends Point.Builder {
-        public Builder(Type type, String name, double latitude, double longitude) {
+        public Builder(Type type, String name, double latitude, double longitude) throws JSONException {
             super(type, name, latitude, longitude);
         }
 
@@ -182,7 +182,9 @@ public abstract class PointWithAddressData extends Point implements Serializable
     public String formatAddressShortLength() {
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
-            addressComponentList.add(this.formatRoadAndHouseNumber());
+            addressComponentList.add(
+                    this.formatRoadAndHouseNumber(
+                        this.road, this.houseNumber, this.extraName));
             addressComponentList.add(this.city);
             return TextUtils.join(", ", addressComponentList);
         }
@@ -193,7 +195,9 @@ public abstract class PointWithAddressData extends Point implements Serializable
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
             // road and house number
-            addressComponentList.add(this.formatRoadAndHouseNumber());
+            addressComponentList.add(
+                    this.formatRoadAndHouseNumber(
+                        this.road, this.houseNumber, this.extraName));
             // add residential or  city district if houseNumber == null
             if (this.houseNumber == null) {
                 if (this.residential != null) {
@@ -215,7 +219,9 @@ public abstract class PointWithAddressData extends Point implements Serializable
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
             // road and house number
-            addressComponentList.add(this.formatRoadAndHouseNumber());
+            addressComponentList.add(
+                    this.formatRoadAndHouseNumber(
+                        this.road, this.houseNumber, this.extraName));
             // extra name if not already present
             if (this.extraName != null
                     && ! TextUtils.join(", ", addressComponentList).toLowerCase(Locale.getDefault())
@@ -245,16 +251,16 @@ public abstract class PointWithAddressData extends Point implements Serializable
         return super.getOriginalName();
     }
 
-    private String formatRoadAndHouseNumber() {
-        if (this.road != null && this.houseNumber != null) {
+    public static String formatRoadAndHouseNumber(String road, String houseNumber, String alternative) {
+        if (road != null && houseNumber != null) {
             if (Locale.getDefault().getLanguage().equals(Locale.GERMAN.getLanguage())) {
-                return String.format("%1$s %2$s", this.road, this.houseNumber);
+                return String.format("%1$s %2$s", road, houseNumber);
             }
-            return String.format("%1$s %2$s", this.houseNumber, this.road);
-        } else if (this.road != null) {
-            return this.road;
+            return String.format("%1$s %2$s", houseNumber, road);
+        } else if (road != null) {
+            return road;
         }
-        return this.extraName;
+        return alternative;
     }
 
 

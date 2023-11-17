@@ -30,14 +30,8 @@
             android:id="@+id/layoutNewCollectionName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp" />
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switchPinNewCollection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="@string/switchPinNewCollection" />
+            app:labelAbove="true" />
 
 
         <!-- existing collection -->

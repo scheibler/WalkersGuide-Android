@@ -109,7 +109,7 @@ public class OverviewFragment extends Fragment
                 bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
             ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
             if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.ADD_TO_PINNED_POINTS_AND_ROUTES
-                    && StaticProfile.pinnedPointsAndRoutes().add(selectedObjectWithId)) {
+                    && StaticProfile.pinnedPointsAndRoutes().addObject(selectedObjectWithId)) {
                 requestUiUpdate();
             }
         }
@@ -142,7 +142,7 @@ public class OverviewFragment extends Fragment
         buttonCollections.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 mainActivityController.addFragment(
-                        CollectionListFragment.createFragment());
+                        CollectionListFragment.newInstance());
             }
         });
 
@@ -255,9 +255,14 @@ public class OverviewFragment extends Fragment
     }
 
     private void loadPinnedObjectsSuccessful(ArrayList<Profile> profileList, ArrayList<ObjectWithId> objectList) {
-        listViewPinnedObjects.setAdapter(
-                new PinnedObjectsAdapter(
-                    OverviewFragment.this.getContext(), this, profileList, objectList));
+        PinnedObjectsAdapter adapter = new PinnedObjectsAdapter(
+                OverviewFragment.this.getContext(), this, profileList, objectList);
+        listViewPinnedObjects.setAdapter(adapter);
+
+        // expand groups
+        for (int i=0; i<adapter.getGroupCount(); i++) {
+            listViewPinnedObjects.expandGroup(i);
+        }
 
         // list position
         listViewPinnedObjects.setSelection(listPosition);

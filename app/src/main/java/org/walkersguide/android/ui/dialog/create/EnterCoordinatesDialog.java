@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.ui.UiHelper;
 
@@ -25,7 +26,6 @@ import android.widget.Toast;
 
 
 import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import android.text.InputType;
 import org.json.JSONException;
@@ -176,19 +176,14 @@ public class EnterCoordinatesDialog extends DialogFragment {
             }
         }
 
-        GPS newLocation = null;
+        Point newLocation = null;
         try {
-            newLocation = new GPS.Builder(latitude, longitude).build();
+            newLocation = new Point.Builder(
+                    Point.Type.POINT, layoutOptionalName.getInputText(), latitude, longitude)
+                .build();
         } catch (JSONException e) {}
         if (newLocation != null
-                && HistoryProfile.allPoints().add(newLocation)) {
-
-            // rename if a name was given
-            String newName = layoutOptionalName.getInputText();
-            if (! TextUtils.isEmpty(newName)) {
-                newLocation.rename(newName);
-            }
-
+                && HistoryProfile.allPoints().addObject(newLocation)) {
             // push results and dismiss dialog
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, newLocation);

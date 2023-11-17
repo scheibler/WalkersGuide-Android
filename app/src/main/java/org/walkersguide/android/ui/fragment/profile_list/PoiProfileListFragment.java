@@ -46,19 +46,20 @@ import org.walkersguide.android.server.wg.poi.PoiProfile;
 
 public class PoiProfileListFragment extends ProfileListFragment implements FragmentResultListener {
 
-	public static PoiProfileListFragment createDialog(boolean enableSelection) {
+	public static PoiProfileListFragment selectProfile() {
 		PoiProfileListFragment fragment = new PoiProfileListFragment();
         fragment.setArguments(
                 new BundleBuilder()
-                .setIsDialog(enableSelection)
-                .build());
+                    .setSelectProfile(true)
+                    .build());
 		return fragment;
     }
 
-	public static PoiProfileListFragment createFragment() {
+	public static PoiProfileListFragment embedded() {
 		PoiProfileListFragment fragment = new PoiProfileListFragment();
         fragment.setArguments(
                 new BundleBuilder()
+                    .setIsEmbedded(true)
                     .build());
 		return fragment;
     }
@@ -80,7 +81,9 @@ public class PoiProfileListFragment extends ProfileListFragment implements Fragm
     }
 
     @Override public String getTitle() {
-        return getResources().getString(R.string.fragmentPoiProfileListName);
+        return getSelectProfile()
+            ? getResources().getString(R.string.fragmentPoiProfileListNameSelect)
+            : getResources().getString(R.string.fragmentPoiProfileListName);
     }
 
     @Override public int getPluralResourceId() {

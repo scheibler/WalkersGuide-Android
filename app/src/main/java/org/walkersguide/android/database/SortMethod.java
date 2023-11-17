@@ -12,10 +12,8 @@ public enum SortMethod {
     NAME_DESC(4, GlobalInstance.getStringResource(R.string.sortNameDesc)),
     DISTANCE_ASC(5, GlobalInstance.getStringResource(R.string.sortDistanceAsc)),
     DISTANCE_DESC(6, GlobalInstance.getStringResource(R.string.sortDistanceDesc)),
-    BEARING_ASC(7, GlobalInstance.getStringResource(R.string.sortBearingAsc)),
-    BEARING_DESC(8, GlobalInstance.getStringResource(R.string.sortBearingDesc)),
-    CREATED_ASC(9, GlobalInstance.getStringResource(R.string.sortCreatedAsc)),
-    CREATED_DESC(10, GlobalInstance.getStringResource(R.string.sortCreatedDesc));
+    CREATED_ASC(7, GlobalInstance.getStringResource(R.string.sortCreatedAsc)),
+    CREATED_DESC(8, GlobalInstance.getStringResource(R.string.sortCreatedDesc));
 
 
     private int id;

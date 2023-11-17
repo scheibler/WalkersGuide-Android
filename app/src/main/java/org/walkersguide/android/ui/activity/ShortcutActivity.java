@@ -53,7 +53,6 @@ import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import org.walkersguide.android.ui.dialog.edit.RenameObjectDialog;
 import android.widget.Toast;
 import android.view.MenuItem;
 import androidx.core.app.NavUtils;

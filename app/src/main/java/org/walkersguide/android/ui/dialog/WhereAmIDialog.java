@@ -4,7 +4,6 @@ import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.server.address.AddressException;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 

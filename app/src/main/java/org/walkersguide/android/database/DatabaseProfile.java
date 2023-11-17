@@ -40,10 +40,6 @@ public abstract class DatabaseProfile extends Profile implements Serializable {
                     sortMethodList.add(SortMethod.DISTANCE_ASC);
                     sortMethodList.add(SortMethod.DISTANCE_DESC);
                     break;
-                case SEGMENTS:
-                    sortMethodList.add(SortMethod.BEARING_ASC);
-                    sortMethodList.add(SortMethod.BEARING_DESC);
-                    break;
             }
             sortMethodList.add(SortMethod.NAME_ASC);
             sortMethodList.add(SortMethod.NAME_DESC);
@@ -64,8 +60,8 @@ public abstract class DatabaseProfile extends Profile implements Serializable {
     }
 
     public static DatabaseProfile load(long id) {
-        DatabaseProfile staticProfile = StaticProfile.load(id);
-        return staticProfile != null ? staticProfile : Collection.load(id);
+        Profile profile = Profile.load(id);
+        return profile instanceof DatabaseProfile ? (DatabaseProfile) profile : null;
     }
 
 
@@ -120,20 +116,20 @@ public abstract class DatabaseProfile extends Profile implements Serializable {
 
     // add / remove object from / to profile
 
-    public boolean contains(ObjectWithId object) {
+    public boolean containsObject(ObjectWithId object) {
         return AccessDatabase
             .getInstance()
             .getDatabaseProfileListFor(object)
             .contains(this);
     }
 
-    public boolean add(ObjectWithId object) {
+    public boolean addObject(ObjectWithId object) {
         return AccessDatabase
             .getInstance()
             .addObjectToDatabaseProfile(object, this);
     }
 
-    public boolean remove(ObjectWithId object) {
+    public boolean removeObject(ObjectWithId object) {
         return AccessDatabase
             .getInstance()
             .removeObjectFromDatabaseProfile(object, this);

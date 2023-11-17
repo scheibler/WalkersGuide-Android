@@ -1,38 +1,59 @@
 package org.walkersguide.android.server.wg.street_course;
 
+import org.walkersguide.android.R;
+import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import java.io.Serializable;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public class StreetCourseRequest implements Serializable {
     private static final long serialVersionUID = 1l;
 
 
-    private long nodeId, wayId, nextNodeId;
+    private IntersectionSegment intersectionSegment;
 
-    public StreetCourseRequest(long nodeId, long wayId, long nextNodeId) {
-        this.nodeId = nodeId;
-        this.wayId = wayId;
-        this.nextNodeId = nextNodeId;
+    public StreetCourseRequest(IntersectionSegment intersectionSegment) {
+        this.intersectionSegment = intersectionSegment;
+    }
+        /*
+        this.routeName = String.format(
+                GlobalInstance.getStringResource(R.string.routeNameWayCourse),
+                intersectionSegment.getName(),
+                intersectionSegment.getIntersectionName());*/
+
+    public String getStreetCourseName() {
+        return String.format(
+                GlobalInstance.getStringResource(R.string.routeNameStreetCourse),
+                this.intersectionSegment.getName(),
+                this.intersectionSegment.getBearing().getOrientation());
+    }
+
+    public String getStreetCourseDescription() {
+        return String.format(
+                GlobalInstance.getStringResource(R.string.routeDescriptionStreetCourse),
+                this.intersectionSegment.getIntersectionName(),
+                this.intersectionSegment.getName(),
+                this.intersectionSegment.getBearing().getOrientation());
     }
 
     public long getNodeId() {
-        return this.nodeId;
+        return this.intersectionSegment.getIntersectionNodeId();
     }
 
     public long getWayId() {
-        return this.wayId;
+        return this.intersectionSegment.getId();
     }
 
     public long getNextNodeId() {
-        return this.nextNodeId;
+        return this.intersectionSegment.getNextNodeId();
     }
 
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + Long.valueOf(this.nodeId).hashCode();
-        result = prime * result + Long.valueOf(this.wayId).hashCode();
-        result = prime * result + Long.valueOf(this.nextNodeId).hashCode();
+        result = prime * result + Long.valueOf(this.getNodeId()).hashCode();
+        result = prime * result + Long.valueOf(this.getWayId()).hashCode();
+        result = prime * result + Long.valueOf(this.getNextNodeId()).hashCode();
         return result;
     }
 
@@ -44,9 +65,9 @@ public class StreetCourseRequest implements Serializable {
         if (!(obj instanceof StreetCourseRequest))
             return false;
         StreetCourseRequest other = (StreetCourseRequest) obj;
-        return this.nodeId == other.getNodeId()
-            && this.wayId == other.getWayId()
-            && this.nextNodeId == other.getNextNodeId();
+        return this.getNodeId() == other.getNodeId()
+            && this.getWayId() == other.getWayId()
+            && this.getNextNodeId() == other.getNextNodeId();
     }
 
 }

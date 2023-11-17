@@ -1,13 +1,10 @@
 package org.walkersguide.android.data.object_with_id;
 
-import org.walkersguide.android.data.object_with_id.common.ObjectClass;
-import android.content.Intent;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import timber.log.Timber;
+import android.location.LocationManager;
+import org.walkersguide.android.data.ObjectWithId.Icon;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.database.profile.StaticProfile;
 
-import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
-import org.walkersguide.android.data.object_with_id.segment.RouteSegment;
 import org.walkersguide.android.data.angle.Bearing;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,61 +13,42 @@ import java.io.Serializable;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.object_with_id.common.TactilePaving;
 import org.walkersguide.android.data.object_with_id.common.Wheelchair;
-import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.GlobalInstance;
 import java.util.HashMap;
 import java.util.Map;
 import org.walkersguide.android.data.ObjectWithId;
-import org.walkersguide.android.database.util.AccessDatabase;
 import android.text.TextUtils;
 import java.util.Locale;
+import android.location.Location;
+import org.walkersguide.android.sensor.PositionManager;
+import java.util.Comparator;
+import org.walkersguide.android.data.angle.RelativeBearing;
+import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
-public abstract class Segment extends ObjectWithId implements Serializable {
+public class Segment extends ObjectWithId implements Serializable {
     private static final long serialVersionUID = 1l;
+
+    public enum Type {
+        SEGMENT, FOOTWAY_INTERSECTION, FOOTWAY_ROUTE
+    }
 
 
     /**
      * object creation helpers
      */
 
-    protected enum Type {
-        FOOTWAY_INTERSECTION, FOOTWAY_ROUTE;
-
-        public static Type fromString(String name) {
-            for (Type type : Type.values()) {
-                if (type.name().equalsIgnoreCase(name)) {
-                    return type;
-                }
-            }
-            return null;
-        }
-
-        @Override public String toString() {
-            return this.name().toLowerCase(Locale.ROOT);
-        }
-    }
-
-    public static Segment create(JSONObject jsonSegment) throws JSONException {
-        Type type = Type.fromString(jsonSegment.optString(KEY_TYPE, ""));
-        if (type != null) {
-            switch (type) {
-                case FOOTWAY_INTERSECTION:
-                    return new IntersectionSegment(jsonSegment);
-                case FOOTWAY_ROUTE:
-                    return new RouteSegment(jsonSegment);
-            }
-        }
-        throw new JSONException("Invalid segment type");
+    public static Segment fromJson(JSONObject jsonObject) throws JSONException {
+        return castToSegmentOrReturnNull(ObjectWithId.fromJson(jsonObject));
     }
 
     public static Segment load(long id) {
-        ObjectWithId object = AccessDatabase.getInstance().getObjectWithId(id);
-        if (object instanceof Segment) {
-            return (Segment) object;
-        }
-        return null;
+        return castToSegmentOrReturnNull(ObjectWithId.load(id));
+    }
+
+    private static Segment castToSegmentOrReturnNull(ObjectWithId objectWithId) {
+        return objectWithId instanceof Segment ? (Segment) objectWithId : null;
     }
 
 
@@ -79,31 +57,48 @@ public abstract class Segment extends ObjectWithId implements Serializable {
      */
 
     // mandatory params
-    private String name, type, subType;
+    private String subType;
     private Bearing bearing;
+    private Location startLocation, endLocation;
 
     // optional params
     private Integer lanes, maxSpeed;
     private Double width;
-    private String description, smoothness, surface;
+    private String smoothness, surface;
     private Boolean bewareBicyclists, segregated, tram;
     private Sidewalk sidewalk;
     private TactilePaving tactilePaving;
     private Wheelchair wheelchair;
 
     public Segment(JSONObject inputData) throws JSONException {
-        super(Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID));
-
-        this.name = inputData.getString("name");
-        this.type = inputData.getString("type");
-        this.subType = inputData.getString("sub_type");
+        super(
+                Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID),
+                Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
+                inputData);
+        this.subType = inputData.getString(KEY_SUB_TYPE);
         this.bearing = new Bearing(inputData.getInt(KEY_BEARING));
+
+        // start and end location
+        try {
+            this.startLocation = getLocationFromJsonObject(inputData, KEY_START);
+        } catch (JSONException e) {
+            Timber.d("no start location, using 0.0, 0.0");
+            this.startLocation = new Location(LocationManager.GPS_PROVIDER);
+            this.startLocation.setLatitude(0.0);
+            this.startLocation.setLongitude(0.0);
+        }
+        try {
+            this.endLocation = getLocationFromJsonObject(inputData, KEY_END);
+        } catch (JSONException e) {
+            Timber.d("no end location, using startLocation=%1$s and angle=%2$s", this.startLocation, this.bearing);
+            this.endLocation = Helper.calculateEndLocationForStartLocationAndAngle(this.startLocation, this.bearing);
+        }
+        //Timber.d("Segment: bearing=%1$d/%2$f, start=%3$s, end=%4$s", this.bearing.getDegree(), this.startLocation.bearingTo(this.endLocation), this.startLocation, this.endLocation);
 
         // optional parameters
         this.lanes = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_LANES);
         this.maxSpeed = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_MAX_SPEED);
         this.width = Helper.getNullableAndPositiveDoubleFromJsonObject(inputData, KEY_WIDTH);
-        this.description = Helper.getNullableStringFromJsonObject(inputData, KEY_DESCRIPTION);
         this.smoothness = Helper.getNullableStringFromJsonObject(inputData, KEY_SMOOTHNESS);
         this.surface = Helper.getNullableStringFromJsonObject(inputData, KEY_SURFACE);
 
@@ -137,14 +132,6 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
     // mandatory
 
-    public String getOriginalName() {
-        return this.name;
-    }
-
-    public ObjectClass getObjectClass() {
-        return ObjectClass.SEGMENT;
-    }
-
     public Bearing getBearing() {
         return this.bearing;
     }
@@ -176,10 +163,6 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
     public Double getWidth() {
         return this.width;
-    }
-
-    public String getDescription() {
-        return this.description;
     }
 
     public String getSmoothness() {
@@ -254,39 +237,65 @@ public abstract class Segment extends ObjectWithId implements Serializable {
 
 
     /**
-     * include or exclude from route calculation
-     */
-    public static final String ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED = "excludedFromRoutingStatusChanged";
-
-    public boolean isExcludedFromRouting() {
-        return StaticProfile.excludedRoutingSegments().contains(this);
-    }
-
-    public boolean excludeFromRouting() {
-        boolean success = StaticProfile.excludedRoutingSegments().add(this);
-        if (success) {
-            Intent excludedFromRoutingStatusChangedIntent = new Intent(ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
-            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(excludedFromRoutingStatusChangedIntent);
-        }
-        return success;
-    }
-
-    public boolean includeIntoRouting() {
-        boolean success = StaticProfile.excludedRoutingSegments().remove(this);
-        if (success) {
-            Intent excludedFromRoutingStatusChangedIntent = new Intent(ACTION_EXCLUDED_FROM_ROUTING_STATUS_CHANGED);
-            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(excludedFromRoutingStatusChangedIntent);
-        }
-        return success;
-    }
-
-
-    /**
      * super class methods
      */
 
+    @Override public Type getType() {
+        return (Type) super.getType();
+    }
+
+    @Override public Icon getIcon() {
+        return Icon.SEGMENT;
+    }
+
+    @Override public Location getLocationObject() {
+        Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+        if (currentLocation != null) {
+            float distanceFromStartLocation = currentLocation.getLocationObject().distanceTo(this.startLocation);
+            float distanceFromEndLocation = currentLocation.getLocationObject().distanceTo(this.endLocation);
+            return distanceFromStartLocation < distanceFromEndLocation ? this.startLocation : this.endLocation;
+        }
+        return null;
+    }
+
     @Override public String toString() {
         return formatNameAndSubType();
+    }
+
+
+    public static class SortByBearingRelativeTo implements Comparator<Segment> {
+        private Bearing initialViewingDirection;
+        private int offsetInDegree;
+        private boolean ascending;
+
+        public static SortByBearingRelativeTo currentBearing(int offsetInDegree, boolean ascending) {
+            return new SortByBearingRelativeTo(
+                    DeviceSensorManager.getInstance().getCurrentBearing(),
+                    offsetInDegree, ascending);
+        }
+
+        public SortByBearingRelativeTo(Bearing initialViewingDirection, int offsetInDegree, boolean ascending) {
+            this.initialViewingDirection = initialViewingDirection;
+            this.offsetInDegree = offsetInDegree;
+            this.ascending = ascending;
+        }
+
+        @Override public int compare(Segment segment1, Segment segment2) {
+            RelativeBearing bearing1 = segment1.getBearing().relativeTo(initialViewingDirection);;
+            RelativeBearing bearing2 = segment2.getBearing().relativeTo(initialViewingDirection);;
+            if (bearing1 != null && bearing2 != null) {
+                if (this.offsetInDegree != 0) {
+                    bearing1 = bearing1.shiftBy(this.offsetInDegree);
+                    bearing2 = bearing2.shiftBy(this.offsetInDegree);
+                }
+                if (this.ascending) {
+                    return bearing1.compareTo(bearing2);
+                } else {
+                    return bearing2.compareTo(bearing1);
+                }
+            }
+            return 1;
+        }
     }
 
 
@@ -295,17 +304,16 @@ public abstract class Segment extends ObjectWithId implements Serializable {
      */
 
     // mandatory params
-    public static final String KEY_NAME = "name";
-    public static final String KEY_TYPE = "type";
     public static final String KEY_SUB_TYPE = "sub_type";
     public static final String KEY_BEARING = "bearing";
+    public static final String KEY_START = "start";
+    public static final String KEY_END = "end";
 
     public static final String KEY_ID = "way_id";
     // optional  params
     public static final String KEY_LANES = "lanes";
     public static final String KEY_MAX_SPEED = "maxspeed";
     public static final String KEY_WIDTH = "width";
-    public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_SMOOTHNESS = "smoothness";
     public static final String KEY_SURFACE = "surface";
     public static final String KEY_BEWARE_BICYCLISTS = "beware_bicyclists";
@@ -315,15 +323,15 @@ public abstract class Segment extends ObjectWithId implements Serializable {
     public static final String KEY_TACTILE_PAVING = "tactile_paving";
     public static final String KEY_WHEELCHAIR = "wheelchair";
 
-    public JSONObject toJson() throws JSONException {
-        JSONObject jsonObject = new JSONObject();
+    @Override public JSONObject toJson() throws JSONException {
+        JSONObject jsonObject = super.toJson();
         jsonObject.put(KEY_ID, this.getId());
 
         // mandatory params
-        jsonObject.put(KEY_NAME, this.name);
-        jsonObject.put(KEY_TYPE, this.type);
         jsonObject.put(KEY_SUB_TYPE, this.subType);
         jsonObject.put(KEY_BEARING, this.bearing.getDegree());
+        jsonObject.put(KEY_START, putLocationToJsonObject(this.startLocation));
+        jsonObject.put(KEY_END, putLocationToJsonObject(this.endLocation));
 
         if (this.lanes != null) {
             jsonObject.put(KEY_LANES, this.lanes);
@@ -333,9 +341,6 @@ public abstract class Segment extends ObjectWithId implements Serializable {
         }
         if (this.width != null) {
             jsonObject.put(KEY_WIDTH, this.width);
-        }
-        if (this.description != null) {
-            jsonObject.put(KEY_DESCRIPTION, this.description);
         }
         if (this.smoothness != null) {
             jsonObject.put(KEY_SMOOTHNESS, this.smoothness);
@@ -369,11 +374,23 @@ public abstract class Segment extends ObjectWithId implements Serializable {
         return jsonObject;
     }
 
-    public static JSONObject addWayIdToJsonObject(JSONObject jsonSegment) throws JSONException {
-        if (jsonSegment.isNull("way_id")) {
-            jsonSegment.put("way_id", ObjectWithId.generateId());
-        }
-        return jsonSegment;
+    // helpers
+
+    public static Location getLocationFromJsonObject(JSONObject jsonObject, String key) throws JSONException {
+        JSONObject jsonLocation = jsonObject.getJSONObject(key);
+        Location location = new Location(LocationManager.GPS_PROVIDER);
+        location.setLatitude(
+                jsonLocation.getDouble("lat"));
+        location.setLongitude(
+                jsonLocation.getDouble("lon"));
+        return location;
+    }
+
+    public static JSONObject putLocationToJsonObject(Location location) throws JSONException {
+        JSONObject jsonLocation = new JSONObject();
+        jsonLocation.put("lat", location.getLatitude());
+        jsonLocation.put("lon", location.getLongitude());
+        return jsonLocation;
     }
 
 }

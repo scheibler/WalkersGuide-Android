@@ -37,7 +37,7 @@ import org.walkersguide.android.ui.fragment.object_list.simple.EntranceListFragm
 import org.walkersguide.android.ui.fragment.object_list.simple.IntersectionStructureFragment;
 import org.walkersguide.android.ui.fragment.object_list.simple.PedestrianCrossingListFragment;
 import org.walkersguide.android.data.object_with_id.Point;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton;
+    import org.walkersguide.android.ui.view.ObjectWithIdView;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.sensor.PositionManager;
 import timber.log.Timber;
@@ -51,11 +51,14 @@ import android.view.ViewGroup;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.ui.fragment.tabs.object_details.StreetCourseFragment;
 import org.walkersguide.android.ui.fragment.tabs.object_details.RouteDetailsFragment;
 import org.walkersguide.android.ui.fragment.tabs.object_details.SegmentDetailsFragment;
 import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import androidx.fragment.app.DialogFragment;
+import android.text.TextUtils;
 
 
 public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
@@ -80,15 +83,15 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 	private static ObjectDetailsTabLayoutFragment newInstance(ObjectWithId object, Tab selectedTab) {
         // add object to history
         if (object instanceof Intersection) {
-            HistoryProfile.intersectionPoints().add((Intersection) object);
+            HistoryProfile.intersectionPoints().addObject((Intersection) object);
         } else if (object instanceof Station) {
-            HistoryProfile.stationPoints().add((Station) object);
+            HistoryProfile.stationPoints().addObject((Station) object);
         } else if (object instanceof StreetAddress) {
-            HistoryProfile.addressPoints().add((StreetAddress) object);
+            HistoryProfile.addressPoints().addObject((StreetAddress) object);
         } else if (object instanceof Point) {
-            HistoryProfile.allPoints().add((Point) object);
+            HistoryProfile.allPoints().addObject((Point) object);
         } else if (object instanceof Route) {
-            HistoryProfile.allRoutes().add((Route) object);
+            HistoryProfile.allRoutes().addObject((Route) object);
         }
 
         // create fragment
@@ -107,7 +110,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
     private ObjectWithId object;
 
-    private TextView labelDetails;
+    private TextView labelDistanceAndBearing, labelUserAnnotation;
 
     @Override public int getLayoutResourceId() {
         return R.layout.fragment_object_details;
@@ -120,23 +123,19 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         object = (ObjectWithId) getArguments().getSerializable(KEY_OBJECT);
         Timber.d("configureView: object=%1$s", object);
         if (object != null) {
-            TextViewAndActionButton layoutObject = (TextViewAndActionButton) view.findViewById(R.id.layoutObject);
-            layoutObject.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-                @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
-                    // show context menu instead of details again (prevent loop)
-                    TextView label = view.getLabel();
-                    ObjectWithId objectWithId = view.getObject();
-                    if (label != null && objectWithId != null) {
-                        view.showContextMenu(label, objectWithId);
-                    }
+            ObjectWithIdView layoutObject = (ObjectWithIdView) view.findViewById(R.id.layoutObject);
+            layoutObject.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+                @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+                    // do nothing
                 }
             }, false);
-            layoutObject.configureAsSingleObject(
-                    object, object.formatNameAndSubType());
+            layoutObject.configureAsSingleObject(object);
 
             // details label
-    		labelDetails = (TextView) view.findViewById(R.id.labelDetails);
-            labelDetails.setVisibility(View.GONE);
+    		labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
+            labelDistanceAndBearing.setVisibility(View.GONE);
+    		labelUserAnnotation = (TextView) view.findViewById(R.id.labelUserAnnotation);
+            labelUserAnnotation.setVisibility(View.GONE);
 
             // prepare tab list
             ArrayList<Tab> tabList = new ArrayList<Tab>();
@@ -183,6 +182,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         } else if (object instanceof Segment) {
             LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(newDirectionReceiverForSegments);
         }
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(userAnnotationChanged);
     }
 
     @Override public void onResume() {
@@ -195,25 +195,22 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(newLocationAndDirectionReceiverForPoints, filter);
             // request current location to update the ui
-            labelDetails.setVisibility(View.VISIBLE);
+            labelDistanceAndBearing.setVisibility(View.VISIBLE);
             acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override public void run() {
+                    Timber.d("runnable get current location");
                     // wait, until onResume is finished and the ui has focus
                     PositionManager.getInstance().requestCurrentLocation();
                 }
             }, 200);
-
-        } else if (object instanceof Route) {
-            labelDetails.setText(((Route) object).getDescription());
-            labelDetails.setVisibility(View.VISIBLE);
 
         } else if (object instanceof Segment) {
             IntentFilter filter = new IntentFilter();
             filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(newDirectionReceiverForSegments, filter);
             // request current direction to update the ui
-            labelDetails.setVisibility(View.VISIBLE);
+            labelDistanceAndBearing.setVisibility(View.VISIBLE);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override public void run() {
                     // wait, until onResume is finished and the ui has focus
@@ -221,6 +218,23 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                 }
             }, 200);
         }
+
+        // user annotation
+        IntentFilter userAnnotationFilter = new IntentFilter();
+        userAnnotationFilter.addAction(ObjectWithIdView.UserAnnotationForObjectWithIdDialog.ACTION_USER_ANNOTATION_FOR_OBJECT_WITH_ID_WAS_SUCCESSFUL);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(userAnnotationChanged, userAnnotationFilter);
+        updateUserAnnotationLabel();
+    }
+
+    private void updateUserAnnotationLabel() {
+        labelUserAnnotation.setText(
+                String.format(
+                    "%1$s:\n%2$s",
+                    getResources().getString(R.string.labelUserAnnotation),
+                    object.getUserAnnotation())
+                );
+        labelUserAnnotation.setVisibility(
+                object != null && object.hasUserAnnotation() ? View.VISIBLE : View.GONE);
     }
 
 
@@ -238,15 +252,16 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         private TTSWrapper ttsWrapperInstance = TTSWrapper.getInstance();
 
         @Override public void onReceive(Context context, Intent intent) {
-            /*
-            if (! getActivity().hasWindowFocus()) {
+            if (getDialog() == null && ! getActivity().hasWindowFocus()) {
+                // fragment is embedded but not in the foreground
                 if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
                         && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
                         && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
+                    // only update, the distance label, if the current location was important
                     updateDistanceAndBearingLabel();
                 }
                 return;
-            }*/
+            }
 
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
                 Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
@@ -271,7 +286,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         }
 
         private void updateDistanceAndBearingLabel() {
-            labelDetails.setText(
+            labelDistanceAndBearing.setText(
                     String.format(
                         GlobalInstance.getStringResource(R.string.labelPointDistanceAndBearing),
                         ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter))
@@ -285,6 +300,10 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
 
         @Override public void onReceive(Context context, Intent intent) {
+            if (TextUtils.isEmpty(labelDistanceAndBearing.getText())) {
+                updateDirectionLabel();
+                return;
+            }
             if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
                 if (currentBearing != null
@@ -295,11 +314,19 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         }
 
         private void updateDirectionLabel() {
-            labelDetails.setText(
+            labelDistanceAndBearing.setText(
                     String.format(
                         GlobalInstance.getStringResource(R.string.labelSegmentDirection),
                         ((Segment) object).getBearing().relativeToCurrentBearing().getDirection())
                     );
+        }
+    };
+
+    private BroadcastReceiver userAnnotationChanged = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ObjectWithIdView.UserAnnotationForObjectWithIdDialog.ACTION_USER_ANNOTATION_FOR_OBJECT_WITH_ID_WAS_SUCCESSFUL)) {
+                updateUserAnnotationLabel();
+            }
         }
     };
 
@@ -335,39 +362,33 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                     case DEPARTURES:
                         if (object instanceof Station) {
                             Station station = (Station) object;
-                            return DeparturesFragment.newInstance(
+                            return DeparturesFragment.embedded(
                                     station.getLatitude(), station.getLongitude());
                         }
                         break;
                     case ENTRANCES:
                         if (object instanceof POI) {
                             POI poi = (POI) object;
-                            return EntranceListFragment.newInstance(
+                            return EntranceListFragment.embedded(
                                     poi.getEntranceList());
                         }
                         break;
                     case INTERSECTION_STRUCTURE:
                         if (object instanceof Intersection) {
-                            Intersection intersection = (Intersection) object;
-                            return IntersectionStructureFragment.newInstance(
-                                    intersection.getSegmentList());
+                            return IntersectionStructureFragment.embedded((Intersection) object);
                         }
                         break;
                     case PEDESTRIAN_CROSSINGS:
                         if (object instanceof Intersection) {
                             Intersection intersection = (Intersection) object;
-                            return PedestrianCrossingListFragment.newInstance(
+                            return PedestrianCrossingListFragment.embedded(
                                     intersection.getPedestrianCrossingList());
                         }
                         break;
                     case STREET_COURSE:
                         if (object instanceof IntersectionSegment) {
-                            IntersectionSegment intersectionSegment = (IntersectionSegment) object;
-                            return RouteDetailsFragment.streetCourse(
-                                    new StreetCourseRequest(
-                                        intersectionSegment.getIntersectionNodeId(),
-                                        intersectionSegment.getId(),
-                                        intersectionSegment.getNextNodeId()));
+                            return StreetCourseFragment.newInstance(
+                                    new StreetCourseRequest((IntersectionSegment) object));
                         }
                         break;
                 }
@@ -398,7 +419,9 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                     case PEDESTRIAN_CROSSINGS:
                         return getResources().getString(R.string.fragmentPedestrianCrossingsName);
                     case STREET_COURSE:
-                        return getResources().getString(R.string.fragmentStreetCourseDetailsName);
+                        return object instanceof IntersectionSegment
+                            ? (new StreetCourseRequest((IntersectionSegment) object)).getStreetCourseName()
+                            : getResources().getString(R.string.fragmentStreetCourseName);
                 }
             }
             return "";

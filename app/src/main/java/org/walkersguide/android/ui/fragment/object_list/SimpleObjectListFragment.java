@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.object_list;
 
+import org.walkersguide.android.ui.fragment.RootFragment;
 import org.walkersguide.android.ui.fragment.ObjectListFragment;
 import org.walkersguide.android.data.ObjectWithId;
 
@@ -21,11 +22,13 @@ import org.walkersguide.android.data.object_with_id.Point;
 import androidx.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuItem;
+import org.walkersguide.android.data.Profile;
 
 
 public abstract class SimpleObjectListFragment extends ObjectListFragment {
+    private static final String KEY_OBJECT_LIST = "objectList";
 
-    public abstract void  successfulViewPopulationFinished();
+    public abstract boolean  showObjectList();
 
     public static class BundleBuilder extends ObjectListFragment.BundleBuilder {
         public BundleBuilder(ArrayList<? extends ObjectWithId> objectList) {
@@ -36,20 +39,15 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
     }
 
 
-    // dialog
-    private static final String KEY_OBJECT_LIST = "objectList";
-
-
-    /**
-     * create view
-     */
-
     private ArrayList<? extends ObjectWithId> objectList;
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
-        view = super.configureView(view, savedInstanceState);
+	@Override public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
         objectList = (ArrayList<? extends ObjectWithId>) getArguments().getSerializable(KEY_OBJECT_LIST);
-        return view;
+    }
+
+    @Override public Profile getProfile() {
+        return null;
     }
 
 
@@ -62,9 +60,9 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
         // show auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
         menuItemAutoUpdate.setVisible(true);
-        // show announce object ahead
-        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
-        menuItemAnnounceObjectAhead.setVisible(true);
+        // viewing direction
+        MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
+        menuItemFilterResult.setVisible(true);
     }
 
 
@@ -87,8 +85,9 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
     @Override public void requestUiUpdate() {
         this.prepareRequest();
         if (objectList != null) {
-            super.populateUiAfterRequestWasSuccessful(null, objectList, true, false);
-            successfulViewPopulationFinished();
+            if (! showObjectList()) {
+                super.populateUiAfterRequestWasSuccessful(null, objectList);
+            }
         } else {
             super.populateUiAfterRequestFailed("");
         }

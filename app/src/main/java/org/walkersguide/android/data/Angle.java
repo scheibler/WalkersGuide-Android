@@ -10,6 +10,14 @@ public abstract class Angle implements Comparable<Angle>, Serializable {
     private static final long serialVersionUID = 1l;
     private static final int NUMBER_OF_ANGLES = 360;
 
+    public static int sanitise(int degree) {
+        degree %= NUMBER_OF_ANGLES;
+        if (degree < 0) {
+            degree += NUMBER_OF_ANGLES;
+        }
+        return degree;
+    }
+
 
     public enum Quadrant {
 
@@ -64,18 +72,15 @@ public abstract class Angle implements Comparable<Angle>, Serializable {
         return quadrant;
     }
 
+    public int differenceTo(Angle other) {
+        int difference = sanitise(this.degree - other.getDegree());
+        return difference > 180 ? NUMBER_OF_ANGLES - difference : difference;
+    }
+
     public boolean withinRange(int min, int max) {
         return min < max
             ? this.degree >= min && this.degree <= max
             : this.degree >= min || this.degree <= max;
-    }
-
-    private int sanitise(int degree) {
-        degree %= NUMBER_OF_ANGLES;
-        if (degree < 0) {
-            degree += NUMBER_OF_ANGLES;
-        }
-        return degree;
     }
 
     @Override public String toString() {

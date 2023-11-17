@@ -1,10 +1,7 @@
 package org.walkersguide.android.ui.fragment.profile_list;
 
-import org.walkersguide.android.ui.dialog.create.ImportGpxFileDialog;
+import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
 
-import org.walkersguide.android.database.profile.Collection;
-import org.walkersguide.android.ui.dialog.template.EnterStringDialog;
-import org.walkersguide.android.ui.dialog.create.CreatePoiProfileDialog;
 
 
 import org.walkersguide.android.R;
@@ -28,28 +25,21 @@ import java.util.concurrent.Executors;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.ui.fragment.ProfileListFragment;
-import org.walkersguide.android.server.wg.poi.PoiProfile;
 import android.view.View;
-import android.app.Dialog;
-import android.widget.PopupMenu;
-import android.view.Menu;
-import org.walkersguide.android.util.GlobalInstance;
-import android.view.MenuItem;
-import android.widget.Toast;
 
 
 public class CollectionListFragment extends ProfileListFragment implements FragmentResultListener {
 
-	public static CollectionListFragment createDialog(boolean enableSelection) {
+	public static CollectionListFragment selectProfile() {
 		CollectionListFragment fragment = new CollectionListFragment();
         fragment.setArguments(
                 new BundleBuilder()
-                .setIsDialog(enableSelection)
+                .setSelectProfile(true)
                 .build());
 		return fragment;
     }
 
-	public static CollectionListFragment createFragment() {
+	public static CollectionListFragment newInstance() {
 		CollectionListFragment fragment = new CollectionListFragment();
         fragment.setArguments(
                 new BundleBuilder()
@@ -63,25 +53,27 @@ public class CollectionListFragment extends ProfileListFragment implements Fragm
 
         getChildFragmentManager()
             .setFragmentResultListener(
-                    CreateEmptyCollectionDialog.REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL, this, this);
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, this, this);
+                    SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(CreateEmptyCollectionDialog.REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL)) {
-            // the newly created profile was already inserted into the database in the CreateEmptyCollectionDialog
-            // so just refresh the ui
-            requestUiUpdate();
-        } else if (requestKey.equals(ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL)) {
-            // same for the ImportGpxFileDialog
-            requestUiUpdate();
+        if (requestKey.equals(SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE)) {
+            SelectProfileFromMultipleSourcesDialog.Target profileTarget = (SelectProfileFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_TARGET);
+            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_PROFILE);
+            if (profileTarget == SelectProfileFromMultipleSourcesDialog.Target.CREATE_COLLECTION
+                    && selectedProfile != null) {
+                // the newly created profile was already inserted into the database in the CreateEmptyCollectionDialog or ImportGpxFileDialog
+                // so just refresh the ui
+                requestUiUpdate();
+            }
         }
     }
 
     @Override public String getTitle() {
-        return getResources().getString(R.string.fragmentCollectionListName);
+        return getSelectProfile()
+            ? getResources().getString(R.string.fragmentCollectionListNameSelect)
+            : getResources().getString(R.string.fragmentCollectionListName);
     }
 
     @Override public int getPluralResourceId() {
@@ -97,33 +89,9 @@ public class CollectionListFragment extends ProfileListFragment implements Fragm
     }
 
     @Override public void addProfileButtonClicked(View view) {
-        final int MENU_ITEM_EMPTY_COLLECTION = 1;
-        final int MENU_ITEM_FROM_GPX_FILE = 2;
-
-        PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
-        contextMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_EMPTY_COLLECTION, 1,
-                GlobalInstance.getStringResource(R.string.contextMenuItemCollectionListEmptyCollection));
-        contextMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_FROM_GPX_FILE, 2,
-                GlobalInstance.getStringResource(R.string.contextMenuItemCollectionListFromGpxFile));
-
-        contextMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == MENU_ITEM_EMPTY_COLLECTION) {
-                    CreateEmptyCollectionDialog.newInstance()
-                        .show(getChildFragmentManager(), "CreateEmptyCollectionDialog");
-                } else if (item.getItemId() == MENU_ITEM_FROM_GPX_FILE) {
-                    ImportGpxFileDialog.newInstance()
-                        .show(getChildFragmentManager(), "ImportGpxFileDialog");
-                } else {
-                    return false;
-                }
-                return true;
-            }
-        });
-
-        contextMenu.show();
+        SelectProfileFromMultipleSourcesDialog.newInstance(
+                SelectProfileFromMultipleSourcesDialog.Target.CREATE_COLLECTION)
+            .show(getChildFragmentManager(), "SelectProfileFromMultipleSourcesDialog");
     }
 
     @Override public void prepareRequest() {
@@ -143,41 +111,6 @@ public class CollectionListFragment extends ProfileListFragment implements Fragm
                 }
             });
         });
-    }
-
-
-    public static class CreateEmptyCollectionDialog extends EnterStringDialog {
-        public static final String REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL = "requestCreateEmptyCollectionWasSuccessful";
-
-
-        public static CreateEmptyCollectionDialog newInstance() {
-            CreateEmptyCollectionDialog dialog = new CreateEmptyCollectionDialog();
-            return dialog;
-        }
-
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            setDialogTitle(
-                    getResources().getString(R.string.layoutCollectionName));
-            setMissingInputMessage(
-                    getResources().getString(R.string.messageCollectionNameMissing));
-            return super.onCreateDialog(savedInstanceState);
-        }
-
-        @Override public void execute(String input) {
-            Collection emptyCollection = Collection.create(input, false);
-            if (emptyCollection == null) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageCouldNotCreateCollection),
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            Bundle result = new Bundle();
-            getParentFragmentManager().setFragmentResult(REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL, result);
-            dismiss();
-        }
     }
 
 }

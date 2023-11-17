@@ -343,7 +343,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
 
                     Route route = createRouteFromRecordedPointList(routeName);
                     if (route != null
-                            && StaticProfile.recordedRoutes().add(route)) {
+                            && StaticProfile.recordedRoutes().addObject(route)) {
                         routeRecordingState = RouteRecordingState.OFF;
                         recordedPointList.clear();
                         sendRouteRecordingChangedBroadcast();
@@ -434,7 +434,9 @@ public class WalkersGuideService extends Service implements LocationUpdate {
         LocationManager locationManager = (LocationManager) GlobalInstance.getContext().getSystemService(Context.LOCATION_SERVICE);
         return locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)
             || locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)
-            || locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER);
+            || (
+                   android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER));
     }
 
     public static boolean isForegroundLocationPermissionGranted() {
@@ -747,7 +749,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
     public int getNumberOfRecordedPointsByUser() {
         int numberOfAddedPointsByUser = 0;
         for (GPS gps : recordedPointList) {
-            if (gps.wasRenamed()) {
+            if (gps.hasCustomName()) {
                 numberOfAddedPointsByUser++;
             }
         }
@@ -798,26 +800,11 @@ public class WalkersGuideService extends Service implements LocationUpdate {
 
         // filter redundant points by turn value
         filteredRecordedPointList = new ArrayList<GPS>();
-        // first point must always be added
-        filteredRecordedPointList.add(recordedPointList.get(0));
-        for (int i=1; i<recordedPointList.size()-1; i++) {
-            GPS previous = filteredRecordedPointList.get(filteredRecordedPointList.size()-1);
-            GPS current = recordedPointList.get(i);
-            GPS next = recordedPointList.get(i+1);
-            // get bearings between segments
-            Bearing bearingFromPreviousToCurrent = previous.bearingTo(current);
-            Bearing bearingFromCurrentToNext = current.bearingTo(next);
-            // calculate turn between these two segments
-            Turn turn = bearingFromPreviousToCurrent.turnTo(bearingFromCurrentToNext);
-            Timber.d("%1$d: %2$s - %3$s = %4$s", filteredRecordedPointList.size(), bearingFromPreviousToCurrent, bearingFromCurrentToNext, turn);
-            // skip the current point, if object wasn't added manually or turn != cross
-            if (current.wasRenamed()      // hack to determine, if the point was added by the user
-                    || turn.getInstruction() != Turn.Instruction.CROSS) {
-                filteredRecordedPointList.add(current);
+        for (Point point : Helper.filterPointListByTurnValueAndImportantIntersections(recordedPointList)) {
+            if (point instanceof GPS) {
+                filteredRecordedPointList.add((GPS) point);
             }
         }
-        // and the last point must always be added too
-        filteredRecordedPointList.add(recordedPointList.get(recordedPointList.size()-1));
         recordedPointList = filteredRecordedPointList;
 
         // filter redundant points by small distance
@@ -828,7 +815,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
             GPS previous = filteredRecordedPointList.get(filteredRecordedPointList.size()-1);
             GPS current = recordedPointList.get(i);
             // skip, if the current point wasn't added manually and it is closer than 4m away from the previous one
-            if (current.wasRenamed()      // hack to determine, if the point was added by the user
+            if (current.hasCustomName()      // hack to determine, if the point was added by the user
                     || previous.distanceTo(current) > 3) {
                 filteredRecordedPointList.add(current);
             }
@@ -838,7 +825,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
         // rename recorded points
         int pointNumber = 1;
         for (GPS point : recordedPointList) {
-            if (! point.wasRenamed()) {         // don't rename points, who were added by the user
+            if (! point.hasCustomName()) {         // don't rename points, who were added by the user
                 point.rename(
                         String.format(
                             getResources().getString(R.string.labelRecordedPointName),
@@ -851,8 +838,8 @@ public class WalkersGuideService extends Service implements LocationUpdate {
         // create route
         Route route = null;
         try {
-            route = Route.fromPointList(recordedPointList, false);
-            route.rename(routeName);
+            route = Route.fromPointList(
+                    Route.Type.RECORDED_ROUTE, routeName, recordedPointList);
         } catch (JSONException e) {}
         return route;
     }

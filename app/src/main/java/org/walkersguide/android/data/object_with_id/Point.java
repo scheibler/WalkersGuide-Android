@@ -1,18 +1,10 @@
 package org.walkersguide.android.data.object_with_id;
 
-import org.walkersguide.android.data.object_with_id.common.ObjectClass;
-import org.walkersguide.android.database.DatabaseProfile;
 
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.Entrance;
-import org.walkersguide.android.data.object_with_id.point.GPS;
-import org.walkersguide.android.data.object_with_id.point.Intersection;
-import org.walkersguide.android.data.object_with_id.point.PedestrianCrossing;
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.POI;
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.poi.Station;
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.data.ObjectWithId.Icon;
 import org.walkersguide.android.data.object_with_id.common.TactilePaving;
 import org.walkersguide.android.data.object_with_id.common.Wheelchair;
 
@@ -29,7 +21,6 @@ import java.io.Serializable;
 import org.walkersguide.android.util.Helper;
 import android.text.TextUtils;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.database.util.AccessDatabase;
 import androidx.annotation.NonNull;
 import java.util.Locale;
 import android.content.Intent;
@@ -41,75 +32,44 @@ import android.content.Context;
 public class Point extends ObjectWithId implements Serializable {
     private static final long serialVersionUID = 1l;
 
+    public enum Type {
+        POINT, ENTRANCE, GPS, INTERSECTION, PEDESTRIAN_CROSSING, POI, STATION, STREET_ADDRESS
+    }
+
 
     /**
      * object creation helpers
      */
 
-    protected enum Type {
-        POINT, ENTRANCE, GPS, INTERSECTION, PEDESTRIAN_CROSSING, POI, STATION, STREET_ADDRESS;
-
-        public static Type fromString(String name) {
-            for (Type type : Type.values()) {
-                if (type.name().equalsIgnoreCase(name)) {
-                    return type;
-                }
-            }
-            return null;
-        }
-
-        @Override public String toString() {
-            return this.name().toLowerCase(Locale.ROOT);
-        }
-    }
-
-    public static Point create(JSONObject jsonPoint) throws JSONException {
-        Type type = Type.fromString(jsonPoint.optString(KEY_TYPE, ""));
-        if (type != null) {
-            switch (type) {
-                case POINT:
-                    return new Point(jsonPoint);
-                case ENTRANCE:
-                    return new Entrance(jsonPoint);
-                case GPS:
-                    return new GPS(jsonPoint);
-                case INTERSECTION:
-                    return new Intersection(jsonPoint);
-                case PEDESTRIAN_CROSSING:
-                    return new PedestrianCrossing(jsonPoint);
-                case POI:
-                    return new POI(jsonPoint);
-                case STATION:
-                    return new Station(jsonPoint);
-                case STREET_ADDRESS:
-                    return new StreetAddress(jsonPoint);
-            }
-        }
-        throw new JSONException("Invalid point type");
+    public static Point fromJson(JSONObject jsonObject) throws JSONException {
+        return castToPointOrReturnNull(ObjectWithId.fromJson(jsonObject));
     }
 
     public static Point load(long id) {
-        ObjectWithId object = AccessDatabase.getInstance().getObjectWithId(id);
-        if (object instanceof Point) {
-            return (Point) object;
-        }
-        return null;
+        return castToPointOrReturnNull(ObjectWithId.load(id));
+    }
+
+    private static Point castToPointOrReturnNull(ObjectWithId objectWithId) {
+        return objectWithId instanceof Point ? (Point) objectWithId : null;
     }
 
 
-    public abstract static class Builder {
-        public JSONObject inputData;
-        public Builder(Type type, String name, double latitude, double longitude) {
-            this.inputData = new JSONObject();
-            try {
-                this.inputData.put(KEY_TYPE, type.toString());
-                this.inputData.put(KEY_NAME, name);
-                this.inputData.put(KEY_SUB_TYPE, "");
-                this.inputData.put(KEY_LATITUDE, latitude);
-                this.inputData.put(KEY_LONGITUDE, longitude);
-            } catch (JSONException e) {}
+    public static class Builder extends ObjectWithId.Builder {
+        public Builder(Type type, String name, double latitude, double longitude) throws JSONException {
+            super(
+                    type,
+                    TextUtils.isEmpty(name)
+                    ? String.format(
+                        Locale.getDefault(), "%1$.3f, %2$.3f", latitude, longitude)
+                    : name);
+            super.inputData.put(KEY_SUB_TYPE, "");
+            super.inputData.put(KEY_LATITUDE, latitude);
+            super.inputData.put(KEY_LONGITUDE, longitude);
         }
-        public abstract Point build() throws JSONException;
+
+        public Point build() throws JSONException {
+            return new Point(super.inputData);
+        }
     }
 
 
@@ -118,25 +78,23 @@ public class Point extends ObjectWithId implements Serializable {
      */
 
     // mandatory params
-    private String name, type, subType;
+    private String subType;
     private double latitude, longitude;
     // optional params
-    private String description, altName, oldName, note, wikidataId;
+    private String altName, oldName, note, wikidataId;
     private TactilePaving tactilePaving;
     private Wheelchair wheelchair;
 
     public Point(JSONObject inputData) throws JSONException {
-        super(Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID));
-
-        // mandatory params
-        this.name = inputData.getString(KEY_NAME);
-        this.type = inputData.getString(KEY_TYPE);
+        super(
+                Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID),
+                Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
+                inputData);
         this.subType = inputData.getString(KEY_SUB_TYPE);
         this.latitude = inputData.getDouble(KEY_LATITUDE);
         this.longitude = inputData.getDouble(KEY_LONGITUDE);
 
         // optional parameters
-        this.description = Helper.getNullableStringFromJsonObject(inputData, KEY_DESCRIPTION);
         this.altName = Helper.getNullableStringFromJsonObject(inputData, KEY_ALT_NAME);
         this.oldName = Helper.getNullableStringFromJsonObject(inputData, KEY_OLD_NAME);
         this.note = Helper.getNullableStringFromJsonObject(inputData, KEY_NOTE);
@@ -152,14 +110,6 @@ public class Point extends ObjectWithId implements Serializable {
      * mandatory params
      */
 
-    public String getOriginalName() {
-        return this.name;
-    }
-
-    public ObjectClass getObjectClass() {
-        return ObjectClass.POINT;
-    }
-
     public String getSubType() {
         return this.subType;
     }
@@ -172,22 +122,11 @@ public class Point extends ObjectWithId implements Serializable {
         return this.longitude;
     }
 
-    public Location getLocationObject() {
-        Location location = new Location(LocationManager.GPS_PROVIDER);
-        location.setLatitude(this.latitude);
-        location.setLongitude(this.longitude);
-        return location;
-    }
-
 
     /**
      * optional params
      */
     private static final String WIKIDATA_BASE_URL = "https://m.wikidata.org/wiki/%1$s";
-
-    public String getDescription() {
-        return this.description;
-    }
 
     public String getAltName() {
         return this.altName;
@@ -256,69 +195,6 @@ public class Point extends ObjectWithId implements Serializable {
                 this.longitude);
     }
 
-    public String formatDistanceAndRelativeBearingFromCurrentLocation(int distancePluralResourceId) {
-        return formatDistanceAndRelativeBearingFromCurrentLocation(distancePluralResourceId, false);
-    }
-
-    public String formatDistanceAndRelativeBearingFromCurrentLocation(
-            int distancePluralResourceId, boolean showPreciseBearingValues) {
-        Integer distance = distanceFromCurrentLocation();
-        Bearing bearing = bearingFromCurrentLocation();
-        if (distance != null && bearing != null) {
-            RelativeBearing relativeBearing = bearing.relativeToCurrentBearing();
-            if (relativeBearing != null) {
-                String output = String.format(
-                        Locale.getDefault(),
-                        "%1$s, %2$s",
-                        GlobalInstance.getPluralResource(distancePluralResourceId, distance),
-                        relativeBearing.getDirection());
-                if (showPreciseBearingValues) {
-                    output += " ";
-                    output += String.format(
-                            Locale.ROOT,
-                            GlobalInstance.getStringResource(R.string.preciseBearingValues),
-                            relativeBearing.getDegree());
-                }
-                return output;
-            }
-        }
-        return "";
-    }
-
-    public Integer distanceFromCurrentLocation() {
-        Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-        if (currentLocation != null) {
-            return currentLocation.distanceTo(this);
-        }
-        return null;
-    }
-
-    public Integer distanceTo(Point other) {
-        if (other != null) {
-            return Integer.valueOf(
-                    (int) Math.round(
-                        this.getLocationObject().distanceTo(other.getLocationObject())));
-        }
-        return null;
-    }
-
-    public Bearing bearingFromCurrentLocation() {
-        Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-        if (currentLocation != null) {
-            return currentLocation.bearingTo(this);
-        }
-        return null;
-    }
-
-    public Bearing bearingTo(Point other) {
-        if (other != null) {
-            return new Bearing(
-                    (int) Math.round(
-                        this.getLocationObject().bearingTo(other.getLocationObject())));
-        }
-        return null;
-    }
-
 
     /**
      * share coordinates
@@ -331,11 +207,11 @@ public class Point extends ObjectWithId implements Serializable {
 
     public static void populateShareCoordinatesSubMenuEntries(SubMenu shareCoordinatesSubMenu) {
         shareCoordinatesSubMenu.add(
-                Menu.NONE, MENU_ITEM_SHARE_OSM_ORG_LINK, 1, GlobalInstance.getStringResource(R.string.objectMenuItemShareOsmOrgLink));
+                Menu.NONE, MENU_ITEM_SHARE_OSM_ORG_LINK, 1, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareOsmOrgLink));
         shareCoordinatesSubMenu.add(
-                Menu.NONE, MENU_ITEM_SHARE_GOOGLE_MAPS_LINK, 2, GlobalInstance.getStringResource(R.string.objectMenuItemShareGoogleMapsLink));
+                Menu.NONE, MENU_ITEM_SHARE_GOOGLE_MAPS_LINK, 2, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareGoogleMapsLink));
         shareCoordinatesSubMenu.add(
-                Menu.NONE, MENU_ITEM_SHARE_APPLE_MAPS_LINK, 3, GlobalInstance.getStringResource(R.string.objectMenuItemShareAppleMapsLink));
+                Menu.NONE, MENU_ITEM_SHARE_APPLE_MAPS_LINK, 3, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareAppleMapsLink));
     }
 
     // share intent
@@ -378,6 +254,21 @@ public class Point extends ObjectWithId implements Serializable {
      * super class methods
      */
 
+    @Override public Type getType() {
+        return (Type) super.getType();
+    }
+
+    @Override public Icon getIcon() {
+        return Icon.POINT;
+    }
+
+    @Override public Location getLocationObject() {
+        Location location = new Location(LocationManager.GPS_PROVIDER);
+        location.setLatitude(this.latitude);
+        location.setLongitude(this.longitude);
+        return location;
+    }
+
     @Override public String toString() {
         return formatNameAndSubType();
     }
@@ -389,13 +280,10 @@ public class Point extends ObjectWithId implements Serializable {
 
     public static final String KEY_ID = "node_id";
     // mandatory params
-    public static final String KEY_NAME = "name";
-    public static final String KEY_TYPE = "type";
     public static final String KEY_SUB_TYPE = "sub_type";
     public static final String KEY_LATITUDE = "lat";
     public static final String KEY_LONGITUDE = "lon";
     // optional params
-    public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_ALT_NAME = "alt_name";
     public static final String KEY_OLD_NAME = "old_name";
     public static final String KEY_NOTE = "note";
@@ -403,21 +291,16 @@ public class Point extends ObjectWithId implements Serializable {
     public static final String KEY_TACTILE_PAVING = "tactile_paving";
     public static final String KEY_WHEELCHAIR = "wheelchair";
 
-    public JSONObject toJson() throws JSONException {
-        JSONObject jsonObject = new JSONObject();
+    @Override public JSONObject toJson() throws JSONException {
+        JSONObject jsonObject = super.toJson();
         jsonObject.put(KEY_ID, this.getId());
 
         // mandatory params
-        jsonObject.put(KEY_NAME, this.name);
-        jsonObject.put(KEY_TYPE, this.type);
         jsonObject.put(KEY_SUB_TYPE, this.subType);
         jsonObject.put(KEY_LATITUDE, this.latitude);
         jsonObject.put(KEY_LONGITUDE, this.longitude);
 
         // optional parameters
-        if (this.description != null) {
-            jsonObject.put(KEY_DESCRIPTION, this.description);
-        }
         if (this.altName != null) {
             jsonObject.put(KEY_ALT_NAME, this.altName);
         }
@@ -438,13 +321,6 @@ public class Point extends ObjectWithId implements Serializable {
         }
 
         return jsonObject;
-    }
-
-    public static JSONObject addNodeIdToJsonObject(JSONObject jsonPoint) throws JSONException {
-        if (jsonPoint.isNull("node_id")) {
-            jsonPoint.put("node_id", ObjectWithId.generateId());
-        }
-        return jsonPoint;
     }
 
 }

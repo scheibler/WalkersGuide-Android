@@ -54,12 +54,8 @@ import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 
 
-public class RouteDetailsFragment extends Fragment implements FragmentResultListener, MenuProvider {
+public class RouteDetailsFragment extends Fragment {
 
-
-    // instance constructors
-    private static final String KEY_ROUTE = "route";
-    private static final String KEY_STREET_COURSE_REQUEST = "streetCourseRequest";
 
 	public static RouteDetailsFragment newInstance(Route route) {
 		RouteDetailsFragment fragment = new RouteDetailsFragment();
@@ -69,241 +65,76 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
 		return fragment;
 	}
 
-	public static RouteDetailsFragment streetCourse(StreetCourseRequest request) {
-		RouteDetailsFragment fragment = new RouteDetailsFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(KEY_STREET_COURSE_REQUEST, request);
-        fragment.setArguments(args);
-		return fragment;
-	}
-
 
     // fragment
-    private static final String KEY_TASK_ID = "taskId";
+    private static final String KEY_ROUTE = "route";
     private static final String KEY_LIST_POSITION = "listPosition";
-
-    private SettingsManager settingsManagerInstance;
-    private ServerTaskExecutor serverTaskExecutorInstance;
-
-    private StreetCourseRequest request;
-    private long taskId;
 
     private Route route;
     private int listPosition;
 
-    private ListView listViewRoute;
-    private TextView labelHeading, labelEmptyListView;
-
+    private TextView labelDescription, labelHeading;
+    private ListView listViewRouteObjects;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        settingsManagerInstance = SettingsManager.getInstance();
-        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
-
-        // fragment result listener
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    SelectMapDialog.REQUEST_SELECT_MAP, this, this);
-    }
-
-    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
-            settingsManagerInstance.setSelectedMap(
-                    (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
-            requestStreetCourse();
-        }
-    }
-
-
-    /**
-     * menu
-     */
-
-    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        if (modeStreetCourse()) {
-            menuInflater.inflate(R.menu.menu_toolbar_route_details_fragment_street_course, menu);
-        }
-    }
-
-    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menuItemRefresh) {
-            if (modeStreetCourse()) {
-                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-                    serverTaskExecutorInstance.cancelTask(taskId);
-                } else {
-                    requestStreetCourse();
-                }
-            }
-        } else if (item.getItemId() == R.id.menuItemLoadRoute) {
-            if (route != null) {
-                MainActivity.loadRoute(
-                        RouteDetailsFragment.this.getContext(), route);
-            }
+        route = (Route) getArguments().getSerializable(KEY_ROUTE);
+        if (savedInstanceState != null) {
+            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {
-            return false;
+            listPosition = route != null ? route.getCurrentPosition() : 0;
         }
-        return true;
     }
-
-
-    /**
-     * create view
-     */
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_heading_and_list_view, container, false);
+		return inflater.inflate(R.layout.fragment_route_details, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-        request = (StreetCourseRequest) getArguments().getSerializable(KEY_STREET_COURSE_REQUEST);
-        if (savedInstanceState != null) {
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-            route = (Route) savedInstanceState.getSerializable(KEY_ROUTE);
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-            route = (Route) getArguments().getSerializable(KEY_ROUTE);
-            listPosition = route != null ? route.getCurrentPosition() : 0;
-        }
-        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
+        labelDescription = (TextView) view.findViewById(R.id.labelDescription);
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
-        listViewRoute = (ListView) view.findViewById(R.id.listView);
-        labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
-        listViewRoute.setEmptyView(labelEmptyListView);
+        listViewRouteObjects = (ListView) view.findViewById(R.id.listViewRouteObjects);
     }
+
 
     /**
      * pause and resume
      */
 
 
-    @Override public void onResume() {
-        super.onResume();
-
-        if (route != null) {
-            showRoute();
-
-        } else if (modeStreetCourse()) {
-            IntentFilter localIntentFilter = new IntentFilter();
-            localIntentFilter.addAction(ServerTaskExecutor.ACTION_STREET_COURSE_TASK_SUCCESSFUL);
-            localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
-            localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
-            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
-            requestStreetCourse();
-        }
-    }
-
     @Override public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        showRoute();
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putLong(KEY_TASK_ID, taskId);
-        savedInstanceState.putSerializable(KEY_ROUTE,  route);
         savedInstanceState.putInt(KEY_LIST_POSITION,  listPosition);
     }
 
-    @Override public void onDestroy() {
-        super.onDestroy();
-        if (! getActivity().isChangingConfigurations()) {
-            serverTaskExecutorInstance.cancelTask(taskId);
-        }
-    }
-
-
-    /*
-     * street course request
-     */
-
-    private boolean modeStreetCourse() {
-        return request != null;
-    }
-
-    private void requestStreetCourse() {
-        // heading
-        ViewCompat.setAccessibilityLiveRegion(
-                labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
-        labelHeading.setText(
-                GlobalInstance.getPluralResource(R.plurals.point, 0));
-
-        // list view
-        listViewRoute.setAdapter(null);
-        listViewRoute.setOnScrollListener(null);
-        ViewCompat.setAccessibilityLiveRegion(
-                labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
-        labelEmptyListView.setText(
-                GlobalInstance.getStringResource(R.string.messagePleaseWait));
-
-        // start request
-        if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-            taskId = serverTaskExecutorInstance.executeTask(new StreetCourseTask(request));
-        }
-    }
-
-
-    // background task results
-
-    private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ServerTaskExecutor.ACTION_STREET_COURSE_TASK_SUCCESSFUL)
-                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
-                    || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
-                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
-                    return;
-                }
-
-                if (intent.getAction().equals(ServerTaskExecutor.ACTION_STREET_COURSE_TASK_SUCCESSFUL)) {
-                    route = (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE);
-                    ViewCompat.setAccessibilityLiveRegion(
-                            labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-                    listPosition = 0;
-                    showRoute();
-
-                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
-                    route = null;
-                    labelEmptyListView.setText(
-                            GlobalInstance.getStringResource(R.string.errorReqRequestCancelled));
-
-                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
-                    WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
-                    if (wgException != null) {
-                        if (wgException.showMapDialog()) {
-                            SelectMapDialog.newInstance(
-                                    settingsManagerInstance.getSelectedMap())
-                                .show(getChildFragmentManager(), "SelectMapDialog");
-                        } else {
-                            ViewCompat.setAccessibilityLiveRegion(
-                                    labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
-                        }
-                        labelEmptyListView.setText(wgException.getMessage());
-                    }
-                }
-            }
-        }
-    };
-
-
-    /**
-     * show route
-     */
-
     private void showRoute() {
+        if (route == null) {
+            return;
+        }
+
+        labelDescription.setText(route.getDescription());
         labelHeading.setText(
                 GlobalInstance.getPluralResource(
                     R.plurals.point, route.getRouteObjectList().size()));
-        listViewRoute.setAdapter(
+
+        listViewRouteObjects.setAdapter(
                 new RouteObjectAdapter(
-                    RouteDetailsFragment.this.getContext(),
-                    route.getRouteObjectList()));
-        labelEmptyListView.setText("");
+                    RouteDetailsFragment.this.getContext(), route));
 
         // list position
-        listViewRoute.setSelection(listPosition);
-        listViewRoute.setOnScrollListener(new AbsListView.OnScrollListener() {
+        listViewRouteObjects.setSelection(listPosition);
+        listViewRouteObjects.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override public void onScrollStateChanged(AbsListView view, int scrollState) {}
             @Override public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 if (listPosition != firstVisibleItem) {
@@ -314,14 +145,14 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
     }
 
 
-    private class RouteObjectAdapter extends BaseAdapter {
+    private static class RouteObjectAdapter extends BaseAdapter {
 
         private Context context;
-        private ArrayList<RouteObject> routeObjectList;
+        private Route route;
 
-        public RouteObjectAdapter(Context context, ArrayList<RouteObject> routeObjectList) {
+        public RouteObjectAdapter(Context context, Route route) {
             this.context = context;
-            this.routeObjectList = routeObjectList;
+            this.route = route;
         }
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -335,22 +166,21 @@ public class RouteDetailsFragment extends Fragment implements FragmentResultList
                 layoutRouteObject = (RouteObjectView) convertView;
             }
 
-            boolean showSelectedRouteObjectLabel = ! modeStreetCourse()
-                && getItem(position).equals(route.getCurrentRouteObject());
-            layoutRouteObject.configureAsListItem(getItem(position), showSelectedRouteObjectLabel);
+            boolean isSelected = getItem(position).equals(route.getCurrentRouteObject());
+            layoutRouteObject.configureAsListItem(getItem(position), position+1, isSelected);
             return layoutRouteObject;
         }
 
         @Override public int getCount() {
-            if (this.routeObjectList != null) {
-                return this.routeObjectList.size();
+            if (this.route != null) {
+                return this.route.getRouteObjectList().size();
             }
             return 0;
         }
 
         @Override public RouteObject getItem(int position) {
-            if (this.routeObjectList != null) {
-                return this.routeObjectList.get(position);
+            if (this.route != null) {
+                return this.route.getRouteObjectList().get(position);
             }
             return null;
         }

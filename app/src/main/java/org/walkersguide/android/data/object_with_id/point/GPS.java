@@ -23,33 +23,18 @@ public class GPS extends Point {
     public static final int OUTDATED_AFTER_MS = 300000;
 
     public static class Builder extends Point.Builder {
-        public Builder(double latitude, double longitude) {
+        public Builder(double latitude, double longitude) throws JSONException {
             super(
-                    Point.Type.GPS,
-                    String.format(
-                        Locale.getDefault(), "%1$f, %2$f", latitude, longitude),
-                    latitude,
-                    longitude);
-            try {
-                super.inputData.put(KEY_TIMESTAMP, System.currentTimeMillis());
-            } catch (JSONException e) {}
+                    Point.Type.GPS, null, latitude, longitude);
+            setTime(System.currentTimeMillis());
         }
 
-        // update timestamp
-        public Builder updateTime(final long newTime) {
-            try {
-                super.inputData.put(KEY_TIMESTAMP, newTime);
-            } catch (JSONException e) {}
+        public Builder setTime(final long newTime) throws JSONException {
+            super.inputData.put(KEY_TIMESTAMP, newTime);
             return this;
         }
 
         // optional params
-        public Builder setName(final String name) {
-            try {
-                super.inputData.put(KEY_NAME, name);
-            } catch (JSONException e) {}
-            return this;
-        }
         public Builder setProvider(final String provider) {
             try {
                 super.inputData.put(KEY_PROVIDER, provider);

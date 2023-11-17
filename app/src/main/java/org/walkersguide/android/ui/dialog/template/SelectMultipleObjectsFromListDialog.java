@@ -80,6 +80,7 @@ public abstract class SelectMultipleObjectsFromListDialog<T> extends DialogFragm
             : (ArrayList<T>) getArguments().getSerializable(KEY_SELECTED_OBJECTS_LIST);
 
         return new AlertDialog.Builder(getActivity())
+            .setTitle(getDialogTitle())
             .setMultiChoiceItems(
                     new String[]{getResources().getString(R.string.messagePleaseWait)},
                     null,
@@ -119,7 +120,7 @@ public abstract class SelectMultipleObjectsFromListDialog<T> extends DialogFragm
                     }
                     )
             .setNegativeButton(
-                    getResources().getString(R.string.dialogClose),
+                    getResources().getString(R.string.dialogCancel),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.routes;
 
+import org.walkersguide.android.data.object_with_id.Segment.SortByBearingRelativeTo;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Build;
 import android.annotation.SuppressLint;
@@ -14,7 +15,7 @@ import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import org.walkersguide.android.ui.view.RouteObjectView;
-import org.walkersguide.android.ui.view.TextViewAndActionButton;
+import org.walkersguide.android.ui.view.ObjectWithIdView;
 import android.widget.Toast;
 import timber.log.Timber;
 
@@ -60,7 +61,6 @@ import java.util.Locale;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.data.ObjectWithId;
-import org.walkersguide.android.data.ObjectWithId.SortByBearingRelativeTo;
 import org.walkersguide.android.util.Helper;
 import android.os.Handler;
 import android.os.Looper;
@@ -75,6 +75,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AbsListView;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
+import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.Angle;
 import java.util.Collections;
@@ -90,27 +91,36 @@ import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 
 
-public class RouterFragment extends Fragment implements FragmentResultListener, MenuProvider {
+public class RouterFragment extends Fragment implements MenuProvider {
 
 
 	// instance constructor
 
-	public static RouterFragment newInstance() {
+	public static RouterFragment newInstance(Route route, boolean showObjectWithIdView) {
+        route.jumpToRouteObjectAt(0);
+
 		RouterFragment fragment = new RouterFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_ROUTE, route);
+        args.putBoolean(KEY_SHOW_OBJECT_WITH_ID_VIEW, showObjectWithIdView);
+        fragment.setArguments(args);
 		return fragment;
 	}
 
 
     // fragment
+    private static final String KEY_ROUTE = "route";
+    private static final String KEY_SHOW_OBJECT_WITH_ID_VIEW = "showObjectWithIdView";
+
     private Route route;
+    private boolean showObjectWithIdView;
+
     private RouteBroadcastReceiver routeBroadcastReceiver;
 	private SettingsManager settingsManagerInstance;
     private TTSWrapper ttsWrapperInstance;
 
-    private TextViewAndActionButton layoutRoute;
-    private TextView labelTotalDistance;
+    private ObjectWithIdView layoutRoute;
     private TextView labelHeading;
-    private ImageButton buttonJumpToRoutePoint;
     private RouteObjectView layoutCurrentRouteObject;
     // optional intersection structure details
     private LinearLayout layoutIntersectionStructure;
@@ -126,19 +136,10 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
 		settingsManagerInstance = SettingsManager.getInstance();
         ttsWrapperInstance = TTSWrapper.getInstance();
 
-        getChildFragmentManager()
-            .setFragmentResultListener(
-                    JumpToRoutePointDialog.REQUEST_SELECT_ROUTE_POINT, this, this);
-    }
-
-    @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(JumpToRoutePointDialog.REQUEST_SELECT_ROUTE_POINT)) {
-            int newIndex = bundle.getInt(JumpToRoutePointDialog.EXTRA_ROUTE_POINT_INDEX, -1);
-            if (route != null && newIndex >= 0) {
-                route.jumpToRouteObjectAt(newIndex);
-                updateUi();
-            }
-        }
+        route = getArguments() != null
+            ? (Route) getArguments().getSerializable(KEY_ROUTE) : null;
+        showObjectWithIdView = getArguments() != null
+            ? getArguments().getBoolean(KEY_SHOW_OBJECT_WITH_ID_VIEW) : false;
     }
 
 
@@ -220,6 +221,26 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
             mainActivityController.openPlanRouteDialog();
 
+        } else if (item.getItemId() == R.id.menuItemJumpToFirstRoutePoint
+                || item.getItemId() == R.id.menuItemJumpToClosestRoutePoint
+                || item.getItemId() == R.id.menuItemJumpToLastRoutePoint) {
+            if (route == null) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.errorWgReqNoRouteSelected),
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+
+            if (item.getItemId() == R.id.menuItemJumpToFirstRoutePoint) {
+                route.jumpToRouteObjectAt(0);
+            } else if (item.getItemId() == R.id.menuItemJumpToClosestRoutePoint) {
+                route.jumpToRouteObject(route.getClosestRouteObjectFromCurrentLocation());
+            } else if (item.getItemId() == R.id.menuItemJumpToLastRoutePoint) {
+                route.jumpToRouteObjectAt(route.getRouteObjectList().size() - 1);
+            }
+            updateUi();
+
         } else if (item.getItemId() == R.id.menuItemAutoSkipToNextRoutePoint) {
             settingsManagerInstance.setAutoSkipToNextRoutePoint(
                     ! settingsManagerInstance.getAutoSkipToNextRoutePoint());
@@ -271,20 +292,8 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
 
         // content layout
 
-        layoutRoute = (TextViewAndActionButton) view.findViewById(R.id.layoutRoute);
-        labelTotalDistance = (TextView) view.findViewById(R.id.labelTotalDistance);
-
+        layoutRoute = (ObjectWithIdView) view.findViewById(R.id.layoutRoute);
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
-        buttonJumpToRoutePoint = (ImageButton) view.findViewById(R.id.buttonJumpToRoutePoint);
-        buttonJumpToRoutePoint.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                if (route != null) {
-                    JumpToRoutePointDialog.newInstance(route)
-                        .show(getChildFragmentManager(), "JumpToRoutePointDialog");
-                }
-            }
-        });
-
         layoutCurrentRouteObject = (RouteObjectView) view.findViewById(R.id.layoutCurrentRouteObject);
 
         layoutIntersectionStructure = (LinearLayout) view.findViewById(R.id.layoutIntersectionStructure);
@@ -332,8 +341,6 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
         super.onResume();
         Timber.d("onResume");
         layoutRoute.setVisibility(View.GONE);
-        labelTotalDistance.setVisibility(View.GONE);
-        buttonJumpToRoutePoint.setVisibility(View.GONE);
         layoutCurrentRouteObject.setVisibility(View.GONE);
         layoutIntersectionStructure.setVisibility(View.GONE);
         labelDistanceAndBearing.setVisibility(View.GONE);
@@ -341,11 +348,9 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
         buttonNextRouteObject.setVisibility(View.GONE);
 
         // load route from settings
-        route = settingsManagerInstance.getSelectedRoute();
         if (route != null) {
-            layoutRoute.setVisibility(View.VISIBLE);
-            labelTotalDistance.setVisibility(View.VISIBLE);
-            buttonJumpToRoutePoint.setVisibility(View.VISIBLE);
+            layoutRoute.setVisibility(
+                    showObjectWithIdView ? View.VISIBLE : View.GONE);
             layoutCurrentRouteObject.setVisibility(View.VISIBLE);
             labelDistanceAndBearing.setVisibility(View.VISIBLE);
             buttonPreviousRouteObject.setVisibility(View.VISIBLE);
@@ -384,22 +389,30 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
 
     private void updateUi() {
         RouteObject currentRouteObject = route.getCurrentRouteObject();
-
-        layoutRoute.configureAsSingleObject(route);
-        labelTotalDistance.setText(
-                String.format(
-                    GlobalInstance.getStringResource(R.string.labelTotalDistance),
-                    route.getElapsedLength(),
-                    GlobalInstance.getPluralResource(
-                        R.plurals.meters, route.getTotalLength()))
-                );
+        int progress = (int) Math.round(
+                ((route.getElapsedLength() * 1.0) / route.getTotalLength()) * 100.0);
 
         labelHeading.setText(
                 String.format(
                     GlobalInstance.getStringResource(R.string.labelRoutePosition),
                     route.getCurrentPosition() + 1,
-                    route.getRouteObjectList().size())
+                    route.getRouteObjectList().size(),
+                    route.getElapsedLength(),
+                    route.getTotalLength(),
+                    progress)
                 );
+        labelHeading.setContentDescription(
+                String.format(
+                    GlobalInstance.getStringResource(R.string.labelRoutePositionCD),
+                    route.getCurrentPosition() + 1,
+                    route.getRouteObjectList().size(),
+                    route.getElapsedLength(),
+                    GlobalInstance.getPluralResource(
+                        R.plurals.meters, route.getTotalLength()),
+                    progress)
+                );
+
+        layoutRoute.configureAsSingleObject(route);
         layoutCurrentRouteObject.configureAsSingleObject(currentRouteObject);
 
         // intersection structure
@@ -422,7 +435,7 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
                 LinkedHashMap<RelativeBearing,IntersectionSegment> intersectionSegmentRelativeToInstructionMap =
                     new LinkedHashMap<RelativeBearing,IntersectionSegment>();
                 // bearing offset = 157 -> sort the ways, which are strongly to the left of the user, to the top of the list
-                SortByBearingRelativeTo comparator = new ObjectWithId.SortByBearingRelativeTo(
+                SortByBearingRelativeTo comparator = new Segment.SortByBearingRelativeTo(
                         inverseBearingOfPreviousRouteSegment, Angle.Quadrant.Q3.max, true);
 
                 int index = 0;
@@ -605,159 +618,6 @@ public class RouterFragment extends Fragment implements FragmentResultListener, 
                 route.skipToNextRouteObject();
                 updateUi();
             }
-        }
-    }
-
-
-    /**
-     * jump to route point dialog
-     */
-
-    public static class JumpToRoutePointDialog extends DialogFragment {
-        public static final String REQUEST_SELECT_ROUTE_POINT = "selectRoutePoint";
-        public static final String EXTRA_ROUTE_POINT_INDEX = "routePointIndex";
-
-
-        // instance constructors
-
-        public static JumpToRoutePointDialog newInstance(Route route) {
-            ArrayList<Point> pointList = new ArrayList<Point>();
-            for (RouteObject routeObject : route.getRouteObjectList()) {
-                pointList.add(routeObject.getPoint());
-            }
-            JumpToRoutePointDialog dialog= new JumpToRoutePointDialog();
-            Bundle args = new Bundle();
-            args.putSerializable(KEY_POINT_LIST, pointList);
-            args.putInt(KEY_SELECTED_LIST_INDEX, route.getCurrentPosition());
-            dialog.setArguments(args);
-            return dialog;
-        }
-
-
-        // dialog
-        private static final String KEY_POINT_LIST = "pointList";
-        private static final String KEY_SELECTED_LIST_INDEX = "selectedListIndex";
-        private static final String KEY_LIST_POSITION = "listPosition";
-
-        private ArrayList<Point> pointList;
-        private int selectedListIndex;
-        private int listPosition;
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            pointList = (ArrayList<Point>) getArguments().getSerializable(KEY_POINT_LIST);
-            selectedListIndex = getArguments().getInt(KEY_SELECTED_LIST_INDEX);
-            if (savedInstanceState != null) {
-                listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-            } else {
-                listPosition = selectedListIndex;
-            }
-
-            return new AlertDialog.Builder(getActivity())
-                .setTitle(getResources().getString(R.string.jumpToRoutePointDialogTitle))
-                .setItems(
-                        new String[]{getResources().getString(R.string.messagePleaseWait)},
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .setNeutralButton(
-                        getResources().getString(R.string.buttonScrollToClosestPoint),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .setNegativeButton(
-                        getResources().getString(R.string.dialogCancel),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }
-                        )
-                .create();
-        }
-
-        @Override public void onStart() {
-            super.onStart();
-            AlertDialog dialog = (AlertDialog) getDialog();
-            if (dialog != null) {
-
-                Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-                buttonNeutral.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        AlertDialog dialog = (AlertDialog) getDialog();
-                        if (dialog != null) {
-                            ListView listViewItems = (ListView) dialog.getListView();
-                            if (listViewItems != null) {
-                                Pair<Integer,Integer> closest = null;
-                                for (int i=0; i<pointList.size(); i++) {
-                                    Integer distanceFromCurrentLocation = pointList.get(i).distanceFromCurrentLocation();
-                                    if (distanceFromCurrentLocation != null
-                                            && (closest == null || distanceFromCurrentLocation < closest.second)) {
-                                        closest = Pair.create(i, distanceFromCurrentLocation);
-                                    }
-                                }
-                                if (closest != null) {
-                                    listViewItems.setSelection(closest.first);
-                                }
-                            }
-                        }
-                    }
-                });
-
-                Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                buttonNegative.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View view) {
-                        dismiss();
-                    }
-                });
-
-                ListView listViewItems = (ListView) dialog.getListView();
-                listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-                        Bundle result = new Bundle();
-                        result.putSerializable(EXTRA_ROUTE_POINT_INDEX, position);
-                        getParentFragmentManager().setFragmentResult(REQUEST_SELECT_ROUTE_POINT, result);
-                        dismiss();
-                    }
-                });
-
-                // fill listview
-                ArrayList<String> pointToStringList = new ArrayList<String>();
-                int pointNumber = 1;
-                for (Point point : pointList) {
-                    pointToStringList.add(
-                            String.format(
-                                Locale.ROOT,
-                                "%1$d.\t%2$s\n\t%3$s",
-                                pointNumber++,
-                                point.getName(),
-                                point.formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.inMeters))
-                            );
-                }
-                listViewItems.setAdapter(
-                        new ArrayAdapter<String>(
-                            getActivity(), android.R.layout.select_dialog_singlechoice, pointToStringList));
-                listViewItems.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-                listViewItems.setItemChecked(selectedListIndex, true);
-
-                // list position
-                listViewItems.setSelection(listPosition);
-                listViewItems.setOnScrollListener(new AbsListView.OnScrollListener() {
-                    @Override public void onScrollStateChanged(AbsListView view, int scrollState) {}
-                    @Override public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                        if (listPosition != firstVisibleItem) {
-                            listPosition = firstVisibleItem;
-                        }
-                    }
-                });
-            }
-        }
-
-        @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-            super.onSaveInstanceState(savedInstanceState);
-            savedInstanceState.putInt(KEY_LIST_POSITION,  listPosition);
         }
     }
 

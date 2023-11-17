@@ -1,11 +1,11 @@
 package org.walkersguide.android.database.util;
 
-import org.walkersguide.android.data.object_with_id.common.ObjectClass;
 import org.walkersguide.android.server.wg.poi.PoiCategory;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile.PoiProfileParams;
 
 import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.data.ObjectWithId.ObjectWithIdParams;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.database.profile.Collection.CollectionParams;
 import org.walkersguide.android.database.DatabaseProfile;
@@ -68,103 +68,6 @@ public class AccessDatabase {
 
 
     /**
-     * objects
-     */
-
-    public ObjectWithId getObjectWithId(long id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
-                null, null, null, null);
-        ObjectWithId objectWithId = null;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            try {
-                objectWithId = createObject(
-                        cursor.getInt(
-                            cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_CLASS)),
-                        cursor.getString(
-                            cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_DATA)));
-            } catch (IllegalArgumentException | JSONException e) {}
-        }
-        cursor.close();
-        return objectWithId;
-    }
-
-    public String getObjectWithIdCustomName(ObjectWithId objectWithId) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, objectWithId.getId()),
-                null, null, null, null);
-        String customName = null;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            try {
-                String customNameFromDatabase = cursor.getString(
-                        cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_CUSTOM_NAME));
-                if (! TextUtils.isEmpty(customNameFromDatabase)) {
-                    customName = customNameFromDatabase;
-                }
-            } catch (IllegalArgumentException e) {}
-        }
-        cursor.close();
-        return customName;
-    }
-
-    public boolean addObjectWithId(ObjectWithId objectWithId) {
-        return addObjectWithId(
-                objectWithId, objectWithId.getCustomName());
-    }
-
-    public boolean addObjectWithId(ObjectWithId objectWithId, String customName) {
-        String objectWithIdSerialized = null;
-        try {
-            objectWithIdSerialized = objectWithId.toJson().toString();
-        } catch (JSONException e) {
-            Timber.d("addObjectWithId: %1$s", e.getMessage());
-            return false;
-        }
-
-        // add to or replace in objectWithIds table
-        ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.OBJECTS_ID, objectWithId.getId());
-        values.put(SQLiteHelper.OBJECTS_CLASS, objectWithId.getObjectClass().id);
-        values.put(SQLiteHelper.OBJECTS_DATA, objectWithIdSerialized);
-        values.put(SQLiteHelper.OBJECTS_CUSTOM_NAME, TextUtils.isEmpty(customName) ? "" : customName);
-        long rowIdTableObjectWithIds = database.insertWithOnConflict(
-                SQLiteHelper.TABLE_OBJECTS,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_REPLACE);
-        Timber.d("addObjectWithId: rowId=%1$d --  insert into %2$s table", rowIdTableObjectWithIds, SQLiteHelper.TABLE_OBJECTS);
-        return rowIdTableObjectWithIds == -1 ? false : true;
-    }
-
-    private ObjectWithId createObject(int classId, String stringJsonObjectWithId) throws JSONException {
-        return ObjectWithId.create(
-                ObjectClass.lookUpById(classId),
-                new JSONObject(stringJsonObjectWithId));
-    }
-
-    public boolean removeObjectWithId(ObjectWithId object) {
-        int numberOfRemovedRows = 0;
-        if (object != null) {
-            // remove from all database profiles
-            removeObjectFromDatabaseProfile(object, null);
-            // remove from objects table
-            numberOfRemovedRows = database.delete(
-                    SQLiteHelper.TABLE_OBJECTS,
-                    String.format(
-                        Locale.ROOT, "%1$s = ?", SQLiteHelper.OBJECTS_ID),
-                    new String[] { String.valueOf(object.getId()) });
-        }
-        return numberOfRemovedRows > 0 ? true : false;
-    }
-
-
-    /**
      * object mapping
      */
 
@@ -177,8 +80,9 @@ public class AccessDatabase {
         // build sql query
         String objectTableName = SQLiteHelper.TABLE_OBJECTS;
         String objectTableColumnId = SQLiteHelper.OBJECTS_ID;
-        String objectTableColumnClass = SQLiteHelper.OBJECTS_CLASS;
         String objectTableColumnData = SQLiteHelper.OBJECTS_DATA;
+        String objectTableColumnCustomName = SQLiteHelper.OBJECTS_CUSTOM_NAME;
+        String objectTableColumnUserAnnotation = SQLiteHelper.OBJECTS_USER_ANNOTATION;
         ArrayList<String> queryList = new ArrayList<String>();
 
         // select
@@ -189,7 +93,11 @@ public class AccessDatabase {
         queryList.add(", ");
         queryList.add(
                 String.format(
-                    Locale.ROOT, "%1$s.%2$s AS %2$s", objectTableName, objectTableColumnClass));
+                    Locale.ROOT, "%1$s.%2$s AS %2$s", objectTableName, objectTableColumnCustomName));
+        queryList.add(", ");
+        queryList.add(
+                String.format(
+                    Locale.ROOT, "%1$s.%2$s AS %2$s", objectTableName, objectTableColumnUserAnnotation));
 
         // from
         queryList.add("FROM");
@@ -238,15 +146,9 @@ public class AccessDatabase {
                 TextUtils.join(" ", queryList), new String[]{String.valueOf(profile.getId())});
         while (cursor.moveToNext()) {
             try {
-                objectList.add(
-                        createObject(
-                            cursor.getInt(
-                                    cursor.getColumnIndexOrThrow(objectTableColumnClass)),
-                            cursor.getString(
-                                    cursor.getColumnIndexOrThrow(objectTableColumnData)))
-                        );
+                objectList.add(createObjectWithIdFrom(cursor));
             } catch (IllegalArgumentException | JSONException e) {
-                Timber.e("error: %1$s", e.getMessage());
+                Timber.e("error: %1$s", e.toString());
             }
         }
         cursor.close();
@@ -276,10 +178,6 @@ public class AccessDatabase {
                 Collections.sort(
                         objectList, new ObjectWithId.SortByName(sortMethod.isAscending()));
                 break;
-            case BEARING_ASC:
-            case BEARING_DESC:
-                Collections.sort(
-                        objectList, ObjectWithId.SortByBearingRelativeTo.currentBearing(0, sortMethod.isAscending()));
             case DISTANCE_ASC:
             case DISTANCE_DESC:
                 Collections.sort(
@@ -319,7 +217,7 @@ public class AccessDatabase {
 
     public boolean addObjectToDatabaseProfile(ObjectWithId object, DatabaseProfile profile) {
         // add to objects table first
-        if (! addObjectWithId(object)) {
+        if (! object.saveToDatabase()) {
             return false;
         }
 
@@ -388,6 +286,82 @@ public class AccessDatabase {
 
 
     /**
+     * objects
+     */
+
+    public ObjectWithId getObjectWithId(long id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
+                String.format(
+                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
+                null, null, null, null);
+        ObjectWithId objectWithId = null;
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            try {
+                objectWithId = createObjectWithIdFrom(cursor);
+            } catch (IllegalArgumentException | JSONException e) {}
+        }
+        cursor.close();
+        return objectWithId;
+    }
+
+    public ObjectWithIdParams getObjectWithIdParams(long id) {
+        Cursor cursor = database.query(
+                SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
+                String.format(
+                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
+                null, null, null, null);
+        ObjectWithIdParams params = null;
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            params = new ObjectWithIdParams();
+            try {
+                params.id = cursor.getLong(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_ID));
+                params.data = cursor.getString(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_DATA));
+                params.customName = cursor.getString(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_CUSTOM_NAME));
+                params.userAnnotation = cursor.getString(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_USER_ANNOTATION));
+            } catch (IllegalArgumentException e) {
+                params = null;
+            }
+        }
+        cursor.close();
+        return params;
+    }
+
+    public boolean addOrUpdateObjectWithId(ObjectWithIdParams params) {
+        ContentValues values = new ContentValues();
+        values.put(SQLiteHelper.OBJECTS_ID, params.id);
+        values.put(SQLiteHelper.OBJECTS_DATA, params.data);
+        values.put(SQLiteHelper.OBJECTS_CUSTOM_NAME, params.customName);
+        values.put(SQLiteHelper.OBJECTS_USER_ANNOTATION, params.userAnnotation);
+        long rowIdTableObjectWithIds = database.insertWithOnConflict(
+                SQLiteHelper.TABLE_OBJECTS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        Timber.d("addOrUpdateObjectWithId: rowId=%1$d --  insert into %2$s table", rowIdTableObjectWithIds, SQLiteHelper.TABLE_OBJECTS);
+        return rowIdTableObjectWithIds == -1 ? false : true;
+    }
+
+    public boolean removeObjectWithId(ObjectWithId object) {
+        int numberOfRemovedRows = 0;
+        if (object != null) {
+            // remove from all database profiles
+            removeObjectFromDatabaseProfile(object, null);
+            // remove from objects table
+            numberOfRemovedRows = database.delete(
+                    SQLiteHelper.TABLE_OBJECTS,
+                    String.format(
+                        Locale.ROOT, "%1$s = ?", SQLiteHelper.OBJECTS_ID),
+                    new String[] { String.valueOf(object.getId()) });
+        }
+        return numberOfRemovedRows > 0 ? true : false;
+    }
+
+
+    /**
      * Collection
      */
 
@@ -417,9 +391,10 @@ public class AccessDatabase {
                 String.format(
                     Locale.ROOT, "%1$s = %2$d", SQLiteHelper.COLLECTION_ID, id),
                 null, null, null, null);
-        CollectionParams params = new CollectionParams();
+        CollectionParams params = null;
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
+            params = new CollectionParams();
             try {
                 params.name = cursor.getString(
                         cursor.getColumnIndexOrThrow(SQLiteHelper.COLLECTION_NAME));
@@ -504,9 +479,10 @@ public class AccessDatabase {
                 String.format(
                     Locale.ROOT, "%1$s = %2$d", SQLiteHelper.POI_PROFILE_ID, id),
                 null, null, null, null);
-        PoiProfileParams poiProfileParams = new PoiProfileParams();
+        PoiProfileParams poiProfileParams = null;
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
+            poiProfileParams = new PoiProfileParams();
             try {
                 poiProfileParams.name = cursor.getString(
                         cursor.getColumnIndexOrThrow(SQLiteHelper.POI_PROFILE_NAME));
@@ -608,6 +584,13 @@ public class AccessDatabase {
     /**
      * helper
      */
+
+    private ObjectWithId createObjectWithIdFrom(Cursor cursor) throws IllegalArgumentException, JSONException {
+        return ObjectWithId.fromJson(
+                new JSONObject(
+                    cursor.getString(
+                        cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_DATA))));
+    }
 
     public ArrayList<Long> getIdList(String tableName, String tableColumnId, String whereClause, String orderBy) {
         Cursor cursor = database.query(

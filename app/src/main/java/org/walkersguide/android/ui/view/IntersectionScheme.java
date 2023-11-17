@@ -76,7 +76,9 @@ public class IntersectionScheme extends View {
             paint.setColor(
                     segment.isPartOfNextRouteSegment() ?  Color.RED : Color.BLACK);
             canvas.drawLine(
-                    center.first, center.second, boundaryCoordinates.first, boundaryCoordinates.second, paint);
+                    center.first, center.second,
+                    boundaryCoordinates.first, boundaryCoordinates.second,
+                    paint);
             Timber.d("Segment: name=%1$s   degree=%2$d   stopX=%3$.2f   stopY=%4$.2f",
                     segment.getName(), entry.getKey().getDegree(), boundaryCoordinates.first, boundaryCoordinates.second);
         }
@@ -88,25 +90,10 @@ public class IntersectionScheme extends View {
     }
 
     private Pair<Float,Float> getBoundaryCoordinatesFor(Angle angle) {
-        float scaledX = 0.0f, scaledY = 0.0f;
-
-        if (angle.withinRange(316, 45)) {
-            scaledX = (float) Math.tan( Math.toRadians(angle.getDegree()) );
-            scaledY = 1.0f;
-        } else if (angle.withinRange(46, 135)) {
-            scaledX = 1.0f;
-            scaledY = (float) Math.tan( Math.toRadians(90-angle.getDegree()) );
-        } else if (angle.withinRange(136, 225)) {
-            scaledX = (float) Math.tan( Math.toRadians(-angle.getDegree()) );
-            scaledY = -1.0f;
-        } else if (angle.withinRange(226, 315)) {
-            scaledX = -1.0f;
-            scaledY = (float) Math.tan( Math.toRadians(angle.getDegree()-90) );
-        }
-
+        Pair<Float,Float> scaledBoundaryCoordinates = Helper.getScaledEndCoordinatesForLineWithAngle(angle);
         return Pair.create(
-                (scaledX * getHalfWidth()) + getHalfWidth(),
-                getHalfHeight() - (scaledY * getHalfHeight()) );
+                (scaledBoundaryCoordinates.first * getHalfWidth()) + getHalfWidth(),
+                getHalfHeight() - (scaledBoundaryCoordinates.second * getHalfHeight()) );
     }
 
     // hover and click

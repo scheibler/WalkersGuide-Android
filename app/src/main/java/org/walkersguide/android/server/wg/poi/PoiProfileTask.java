@@ -152,7 +152,7 @@ public class PoiProfileTask extends ServerTask {
             for (int i=0; i<jsonPointList.length(); i++) {
                 try {
                     newOnlyPoiList.add(
-                            Point.create(jsonPointList.getJSONObject(i)));
+                            Point.fromJson(jsonPointList.getJSONObject(i)));
                 } catch (JSONException e) {
                     Timber.e("server point profile request: point parsing error: %1$s", e.getMessage());
                 }

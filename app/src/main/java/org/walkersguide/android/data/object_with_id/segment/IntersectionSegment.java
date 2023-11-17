@@ -67,12 +67,8 @@ public class IntersectionSegment extends Segment implements Serializable {
         return false;
     }
 
-    public String formatRelativeBearingFromCurrentLocation() {
-        RelativeBearing relativeBearing = getBearing().relativeToCurrentBearing();
-        if (relativeBearing != null) {
-            return relativeBearing.getDirection().toString();
-        }
-        return "";
+    public RelativeBearing getRelativeBearingFromCurrentLocation() {
+        return getBearing().relativeToCurrentBearing();
     }
 
     @Override public String toString() {

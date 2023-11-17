@@ -6,20 +6,22 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/imageViewIsFavorite"
+        android:id="@+id/imageViewIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="2dp"
         app:tint="@color/image"
-        android:src="@drawable/favorite"
+        android:src="@null"
         android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/label"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/minHeight"
-        android:layout_weight="1.0" />
+        android:layout_weight="1.0"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:minHeight="@dimen/minHeight" />
 
     <ImageButton
         android:id="@+id/buttonActionFor"

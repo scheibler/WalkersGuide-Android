@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.object_list.extended;
 
+import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
 import android.widget.Toast;
 import org.walkersguide.android.database.DatabaseProfileRequest;
 import org.walkersguide.android.database.SortMethod;
@@ -40,6 +41,8 @@ import android.widget.Button;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import org.walkersguide.android.database.profile.Collection;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 
 
 public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment implements FragmentResultListener {
@@ -52,30 +55,21 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         }
     }
 
-	public static ObjectListFromDatabaseFragment createDialog(DatabaseProfile profile, boolean enableSelection) {
+	public static ObjectListFromDatabaseFragment selectObjectWithId(DatabaseProfile profile) {
 		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new DatabaseProfileRequest(profile))
-                .setIsDialog(enableSelection)
+                .setSelectObjectWithId(true)
                 .build());
 		return fragment;
     }
 
-	public static ObjectListFromDatabaseFragment createFragment(DatabaseProfile profile) {
+	public static ObjectListFromDatabaseFragment newInstance(DatabaseProfile profile) {
 		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new DatabaseProfileRequest(profile))
-                .build());
-		return fragment;
-    }
-
-	public static ObjectListFromDatabaseFragment createFragment(DatabaseProfile profile, SortMethod sortMethod) {
-		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
-        fragment.setArguments(
-                new BundleBuilder(
-                    new DatabaseProfileRequest(profile, null, sortMethod))
                 .build());
 		return fragment;
     }
@@ -89,9 +83,20 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (savedInstanceState != null) {
+            request = (DatabaseProfileRequest) savedInstanceState.getSerializable(KEY_REQUEST);
+        } else {
+            request = (DatabaseProfileRequest) getArguments().getSerializable(KEY_REQUEST);
+        }
+
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectSortMethodDialog.REQUEST_SELECT_SORT_METHOD, this, this);
+        if (isAddButtonVisible()) {
+            getChildFragmentManager()
+                .setFragmentResultListener(
+                        SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID, this, this);
+        }
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -100,9 +105,21 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                     (SortMethod) bundle.getSerializable(SelectSortMethodDialog.EXTRA_SORT_METHOD));
             resetListPosition();
             requestUiUpdate();
+        } else if (requestKey.equals(SelectObjectWithIdFromMultipleSourcesDialog.REQUEST_SELECT_OBJECT_WITH_ID)) {
+            SelectObjectWithIdFromMultipleSourcesDialog.Target objectWithIdTarget = (SelectObjectWithIdFromMultipleSourcesDialog.Target)
+                bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
+            ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
+            if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.ADD_TO_COLLECTION
+                    && this.request.getProfile().addObject(selectedObjectWithId)) {
+                requestUiUpdate();
+            }
         } else {
             super.onFragmentResult(requestKey, bundle);
         }
+    }
+
+    @Override public Profile getProfile() {
+        return request != null ?  request.getProfile() : null;
     }
 
 
@@ -112,13 +129,6 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
-
-        if (savedInstanceState != null) {
-            request = (DatabaseProfileRequest) savedInstanceState.getSerializable(KEY_REQUEST);
-        } else {
-            request = (DatabaseProfileRequest) getArguments().getSerializable(KEY_REQUEST);
-        }
-
         super.updateSearchTerm(request.getSearchTerm());
         return view;
     }
@@ -129,7 +139,11 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
     @Override public String getTitle() {
         if (request.hasProfile()) {
-            return request.getProfile().getName();
+            return getSelectObjectWithId()
+                ? String.format(
+                        getResources().getString(R.string.labelPleaseSelectFrom),
+                        request.getProfile().getName())
+                : request.getProfile().getName();
         }
         return null;
     }
@@ -141,6 +155,17 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
             return request.getProfile().getPluralResId();
         }
         return R.plurals.object;
+    }
+
+    @Override public boolean isAddButtonVisible() {
+        return ! getSelectObjectWithId()
+            && this.request.getProfile() instanceof Collection;
+    }
+
+    @Override public void addObjectWithIdButtonClicked(View view) {
+        SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
+                SelectObjectWithIdFromMultipleSourcesDialog.Target.ADD_TO_COLLECTION)
+            .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
     }
 
 
@@ -155,21 +180,18 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
     @Override public void onPrepareMenu(@NonNull Menu menu) {
         super.onPrepareMenu(menu);
-        boolean isPointDatabaseProfile = request != null
-            && request.hasProfile()
-            && request.getProfile().isForPoints();
+        boolean isHistoryProfile = this.request != null
+            && this.request.getProfile() instanceof HistoryProfile;
         // show auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
-        menuItemAutoUpdate.setVisible(isPointDatabaseProfile);
+        menuItemAutoUpdate.setVisible(! isHistoryProfile);
         // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
-        menuItemFilterResult.setVisible(isPointDatabaseProfile);
-        // show announce object ahead
-        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
-        menuItemAnnounceObjectAhead.setVisible(isPointDatabaseProfile);
+        menuItemFilterResult.setVisible(! isHistoryProfile);
         // clear profile
         MenuItem menuItemClearProfile = menu.findItem(R.id.menuItemClearProfile);
-        menuItemClearProfile.setVisible(request.getProfile() instanceof StaticProfile);
+        menuItemClearProfile.setVisible(
+                this.request != null && this.request.getProfile() instanceof StaticProfile);
     }
 
     @Override public boolean onMenuItemSelected(MenuItem item) {
@@ -288,7 +310,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                             String.format(
                                 GlobalInstance.getStringResource(R.string.labelHeadingSecondLineSortMethod),
                                 request.getSortMethod().toString()),
-                            objectList, false, false);
+                            objectList);
                 }
             });
         });

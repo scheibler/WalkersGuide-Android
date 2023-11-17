@@ -102,6 +102,7 @@
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteThirdViaPoint">Select third via point:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteDestinationPoint">Select destination point:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleHomeAddress">Select home address:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToCollection">Add to collection:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes">Select point or route to be pinned:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleSimulationPoint">Select point to simulate:</string>
     <string name="messageObjectWithIdIncompatibleTargetPointRequired">Please select a point.</string>
@@ -143,11 +144,13 @@
 
     <!-- SaveCurrentLocationDialog -->
     <string name="saveCurrentLocationDialogTitle">Save current location:</string>
+    <string name="saveCurrentLocationDialogTitleCollection">Add the current location to a collection:</string>
     <string name="saveCurrentLocationDialogTitleHome">Use the current location as home address:</string>
     <string name="saveCurrentLocationDialogTitlePin">Pin the current location:</string>
     <string name="labelName">Name</string>
     <string name="messageNameMissing">Please enter a name.</string>
     <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$d meters, %2$s</string>
+    <string name="messageSearchLocationInProgress">Current location is beeing retrieved, please wait…</string>
     <string name="messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful">The current location was pinned successfully.</string>
     <string name="messageCurrentLocationAddedToCollectionSuccessful">The current location was added to the collection %1$s.</string>
 
@@ -184,9 +187,8 @@
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
-    <string name="labelTotalDistance">Progress: %1$d of %2$s completed</string>
-    <string name="labelRoutePosition">Instruction %1$d of %2$d</string>
-    <string name="buttonJumpToRoutePoint">Jump to route point</string>
+    <string name="labelRoutePosition">%1$d of %2$d\t(%3$d of %4$d meters, %5$d%%)</string>
+    <string name="labelRoutePositionCD">Instruction %1$d of %2$d, %3$d of %4$s completed, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Intersection structure</string>
     <string name="buttonPreviousRouteObject">Previous route point</string>
     <string name="buttonNextRouteObject">Next route point</string>
@@ -195,6 +197,10 @@
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
     <string name="menuItemRecalculateOriginalRoute">Recalculate original route</string>
     <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
+    <string name="menuItemJumpToRoutePoint">Jump to route point</string>
+    <string name="menuItemJumpToFirstRoutePoint">First point</string>
+    <string name="menuItemJumpToClosestRoutePoint">Closest point</string>
+    <string name="menuItemJumpToLastRoutePoint">Last point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
     <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
     <string name="menuItemShowIntersectionLayoutDetails">Show intersection structure</string>
@@ -225,6 +231,9 @@
     <string name="messageSaveRecordedRouteFailed">Error: Can\'t save the recorded route.</string>
     <string name="messageSaveRecordedRouteSuccessful">Route was saved successfully.</string>
 
+    <!-- EnterRouteNameDialog -->
+    <string name="enterRouteNameDialogTitle">Route name:</string>
+
 
     <!--
         ProfileListFragment
@@ -232,8 +241,13 @@
 
     <!-- SelectProfileFromMultipleSourcesDialog -->
     <string name="selectProfileFromMultipleSourcesDialogTitle">Select profile:</string>
-    <string name="profileSelectFromCollections">Collections</string>
-    <string name="profileSelectFromPoiProfiles">Point profiles</string>
+    <string name="selectProfileFromMultipleSourcesDialogTitleCreate">Create collection:</string>
+    <string name="selectProfileFromMultipleSourcesDialogTitlePin">Pin profile:</string>
+    <string name="selectProfileFromMultipleSourcesDialogTitleTrack">Track profile:</string>
+    <string name="profileSelectFromCollections">Collection</string>
+    <string name="profileSelectFromPoiProfiles">Point profile</string>
+    <string name="profileSelectFromEmptyCollection">Empty collection</string>
+    <string name="profileSelectFromGpxFile">From GPX file</string>
     <string name="messageNoProfileSelected">No profile selected.</string>
     <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Only collections and point profiles are pinnable.</string>
     <string name="messageProfileIncompatibleTargetSaveCurrentLocation">The current location may only be pinned or added to a collection.</string>
@@ -241,9 +255,8 @@
 
     <!-- CollectionListFragment -->
     <string name="fragmentCollectionListName">Collections</string>
-    <string name="buttonAddCollection">Add collection</string>
-    <string name="contextMenuItemCollectionListEmptyCollection">Empty collection</string>
-    <string name="contextMenuItemCollectionListFromGpxFile">From GPX file</string>
+    <string name="fragmentCollectionListNameSelect">Select collection:</string>
+    <string name="buttonAddCollection">New collection</string>
     <string name="labelEmptyCollectionList">Add collections to assist in managing your collected points and routes.</string>
 
     <!-- create collections -->
@@ -252,14 +265,13 @@
     <string name="messageCouldNotCreateCollection">The collection could not be created.</string>
 
     <!-- ImportGpxFileDialog -->
-    <string name="importGpxFileDialogTitle">Select GPX file</string>
+    <string name="importGpxFileDialogTitle">Import GPX file</string>
+    <string name="importGpxFileDialogTitlePinned">Pin GPX file</string>
     <string name="labelSelectGpxFile">Select GPX file</string>
     <string name="labelImportResult">%1$s:\n%2$s found.</string>
     <string name="radioButtonNewCollection">Create new collection</string>
-    <string name="switchPinNewCollection">Pin collection in overview tab</string>
     <string name="radioButtonExistingDatabaseProfile">Add to existing collection</string>
     <!-- gpx import messages -->
-    <string name="messageGpxRouteNameMissing">Please enter a name for the route.</string>
     <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
     <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
     <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
@@ -270,7 +282,9 @@
     <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s was added to %2$s.</string>
 
     <!-- PoiProfileListFragment -->
-    <string name="fragmentPoiProfileListName">Nearby</string>
+    <string name="fragmentPoiProfileListName">Point profiles</string>
+    <string name="fragmentPoiProfileListNameEmbedded">Nearby</string>
+    <string name="fragmentPoiProfileListNameSelect">Select point profile:</string>
     <string name="buttonAddPoiProfile">Add point profile</string>
     <string name="labelEmptyPoiProfileList">Please create at least one point profile to search for nearby points of interest.</string>
 
@@ -301,20 +315,22 @@
     <string name="menuItemAutoUpdate">List auto update</string>
     <string name="menuItemFilterResult">Filter by viewing direction</string>
     <string name="menuItemJumpToTop">Jump to top of list</string>
-    <string name="menuItemAnnounceObjectAhead">Announce objects ahead</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Entrances</string>
     <string name="fragmentPedestrianCrossingsName">Crossings</string>
+    <string name="labelPleaseSelect">Please select:</string>
 
     <!-- IntersectionStructureFragment -->
     <string name="fragmentIntersectionStructureName">Intersection structure</string>
+    <string name="menuItemAnnounceWayAhead">Announce ways ahead</string>
     <string name="labelPartOfPreviousRouteSegment">Previous route segment</string>
     <string name="labelPartOfNextRouteSegment">Next route segment</string>
 
     <!-- ExtendedObjectListFragment -->
     <string name="hintSearch">Search</string>
     <string name="buttonClearSearch">Clear search</string>
+    <string name="labelPleaseSelectFrom">Please select from %1$s:</string>
 
     <!-- HikingTrailListFromServerFragment -->
     <string name="fragmentHikingTrailListName">Hiking trails</string>
@@ -343,6 +359,7 @@
     <!-- object details tab layout fragment -->
     <string name="pointDetailsActivityTitle">Details</string>
     <string name="labelPointDistanceAndBearing">Distance: %1$s</string>
+    <string name="labelUserAnnotation">My annotation</string>
 
     <!-- segment details activity -->
     <string name="segmentDetailsActivityTitle">Details</string>
@@ -417,8 +434,6 @@
 
     <!-- RouteDetailsFragment -->
     <string name="fragmentRouteDetailsName">Route details</string>
-    <string name="fragmentStreetCourseDetailsName">Street course</string>
-    <string name="menuItemLoadRoute">Load route</string>
 
     <!-- SegmentDetailsFragment -->
     <string name="fragmentSegmentDetailsName">Details</string>
@@ -440,6 +455,10 @@
     <string name="labelSegmentFootwayMaxSpeed">Max. speed (default=km/h)</string>
     <string name="labelSegmentFootwaySegregated">Cycleway and footway segregated</string>
     <string name="labelSegmentFootwayTram">Tram rails</string>
+
+    <!-- StreetCourseFragment -->
+    <string name="fragmentStreetCourseName">Street course</string>
+    <string name="menuItemWalkStreetCourse">Walk along</string>
 
 
     <!--
@@ -559,6 +578,7 @@
          ObjectWithIdView
     -->
     <string name="labelIsFavorite">Favorite</string>
+    <string name="messageCantReverseRoute">Could not reverse the selected route.</string>
 
     <!-- label prefix -->
     <string name="labelPrefixStart">Start</string>
@@ -569,33 +589,39 @@
     <string name="labelPrefixSimulation">Simulation</string>
 
     <!-- object context menu -->
-    <string name="objectMenuItemDetails">Details</string>
-    <string name="objectMenuItemDepartures">Departures</string>
-    <string name="objectMenuItemEntrances">Entrances</string>
-    <string name="objectMenuItemLoad">Load</string>
-    <string name="objectMenuItemStreetCourse">Street course</string>
-    <string name="objectMenuItemRename">Rename</string>
-    <string name="objectMenuItemResetLayout">Remove</string>
-    <string name="objectMenuItemAddToExcludeFromRouting">Exclude from routing</string>
-    <string name="objectMenuItemRemoveExcludeFromRouting">Include into routing again</string>
-    <string name="objectMenuItemStartLocationSimulation">Simulate location</string>
-    <string name="objectMenuItemStartBearingSimulation">Simulate bearing</string>
-    <string name="objectMenuItemEndSimulation">End simulation</string>
-    <string name="objectMenuItemOverview">Overview</string>
-    <string name="objectMenuItemOverviewAddToPinnedPoints">Add to pinned points</string>
-    <string name="objectMenuItemOverviewRemoveFromPinnedPoints">Remove from pinned points</string>
-    <string name="objectMenuItemRoutePlanner">Route planner</string>
-    <string name="objectMenuItemShareCoordinates">Share</string>
+    <string name="contextMenuItemObjectWithIdDepartures">Departures</string>
+    <string name="contextMenuItemObjectWithIdEntrances">Entrances</string>
+    <string name="contextMenuItemObjectWithIdLoadRoute">Load route</string>
+    <string name="contextMenuItemObjectWithIdStreetCourse">Street course</string>
+    <string name="contextMenuItemObjectWithIdExcludeFromRouting">From route planning excluded</string>
+    <string name="contextMenuItemObjectWithIdSimulateLocation">Location simulated</string>
+    <string name="contextMenuItemObjectWithIdSimulateBearing">Bearing simulated</string>
+    <string name="contextMenuItemObjectWithIdCollections">Collections</string>
+    <string name="contextMenuItemObjectWithIdRoutePlanner">Route planner</string>
+    <string name="contextMenuItemObjectWithIdShareCoordinates">Share</string>
+    <!-- load route sub menu -->
+    <string name="contextMenuItemObjectWithIdLoadRouteCurrentDirection">This direction</string>
+    <string name="contextMenuItemObjectWithIdLoadRouteOppositeDirection">Opposite direction</string>
     <!-- routeplanner context submenu -->
-    <string name="objectMenuItemUseAsStartPoint">As start point</string>
-    <string name="objectMenuItemUseAsViaPoint1">As via point 1</string>
-    <string name="objectMenuItemUseAsViaPoint2">As via point 2</string>
-    <string name="objectMenuItemUseAsViaPoint3">As via point 3</string>
-    <string name="objectMenuItemUseAsDestinationPoint">As destination point</string>
+    <string name="contextMenuItemObjectWithIdUseAsStartPoint">As start point</string>
+    <string name="contextMenuItemObjectWithIdUseAsViaPoint1">As via point 1</string>
+    <string name="contextMenuItemObjectWithIdUseAsViaPoint2">As via point 2</string>
+    <string name="contextMenuItemObjectWithIdUseAsViaPoint3">As via point 3</string>
+    <string name="contextMenuItemObjectWithIdUseAsDestinationPoint">As destination point</string>
     <!-- share coordinates context submenu -->
-    <string name="objectMenuItemShareOsmOrgLink">OpenStreetMap</string>
-    <string name="objectMenuItemShareGoogleMapsLink">Google maps</string>
-    <string name="objectMenuItemShareAppleMapsLink">Apple maps</string>
+    <string name="contextMenuItemObjectWithIdShareOsmOrgLink">OpenStreetMap</string>
+    <string name="contextMenuItemObjectWithIdShareGoogleMapsLink">Google maps</string>
+    <string name="contextMenuItemObjectWithIdShareAppleMapsLink">Apple maps</string>
+
+    <!-- UserAnnotationForObjectWithIdDialog -->
+    <string name="userAnnotationForObjectWithIdDialogTitle">Annotation for %1$s:</string>
+
+    <!-- RenameObjectWithIdDialog -->
+    <string name="renameObjectWithIdDialogTitle">Rename %1$s:</string>
+
+    <!-- UpdateObjectWithIdSelectedCollectionsDialog -->
+    <string name="updateObjectWithIdSelectedCollectionsDialogTitle">Add to collections:</string>
+
 
     <!--
          ProfileView
@@ -609,15 +635,9 @@
     <string name="contextMenuItemProfilePoiCategories">Point categories</string>
     <string name="contextMenuItemProfileCollections">Collections</string>
     <string name="contextMenuItemProfilePinShortcut">Add to launcher</string>
-    <!-- overview sub menu -->
-    <string name="contextMenuItemProfileOverviewPin">Pinned</string>
-    <string name="contextMenuItemProfileOverviewTrack">Tracked</string>
-    <string name="contextMenuItemProfileOverviewAddToBoth">Pin and track profile</string>
-    <string name="contextMenuItemProfileOverviewRemoveFromBoth">Remove from both</string>
 
     <!-- RenameProfileDialog -->
     <string name="renameProfileDialogTitle">Rename profile:</string>
-    <string name="messageProfileNameIsMissing">Please enter a profile name.</string>
 
     <!-- AddPoiProfileToHomeScreenDialog -->
     <string name="addPoiProfileToHomeScreenDialogTitle">Enter shortcut name:</string>
@@ -629,21 +649,12 @@
          other dialogs and layouts
     -->
 
-    <!-- RenameObjectDialog -->
-    <string name="renamePointDialogTitle">Rename point</string>
-    <string name="renameRouteDialogTitle">Rename route</string>
-    <string name="renameSegmentDialogTitle">Rename segment</string>
-    <string name="messageRenameObjectFailed">Rename object failed.</string>
-
-    <!-- EnterRouteNameDialog -->
-    <string name="enterRouteNameDialogTitle">Route name:</string>
-
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Clear</string>
     <string name="buttonClearInputWithLabel">Clear %1$s</string>
 
     <!-- RouteObjectView -->
-    <string name="labelSelectedRouteObject">Next way segment:</string>
+    <string name="labelIndexSelected">Current instruction</string>
 
     <!-- IntersectionScheme -->
     <string name="labelIntersectionScheme">Schematic diagram of the intersection</string>
@@ -652,8 +663,14 @@
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
     <string name="contextMenuItemOverview">Overview</string>
+    <string name="contextMenuItemUserAnnotation">Add annotation</string>
     <string name="contextMenuItemRename">Rename</string>
     <string name="contextMenuItemRemove">Remove</string>
+    <!-- overview sub menu -->
+    <string name="contextMenuItemOverviewPin">Pinned</string>
+    <string name="contextMenuItemOverviewTrack">Tracked</string>
+    <string name="contextMenuItemOverviewAddToBoth">Pin and track</string>
+    <string name="contextMenuItemOverviewRemoveFromBoth">Remove from both</string>
 
     <!-- dialog button labels -->
     <string name="dialogOK">OK</string>
@@ -675,18 +692,23 @@
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogSend">Send</string>
     <string name="dialogSomethingMissing">Something missing?</string>
+
+    <!-- other common labels and messages -->
     <string name="fillingWordAnd">and</string>
     <string name="messagePleaseWait">Please wait…</string>
+    <string name="messageNameIsMissing">Please enter a name.</string>
+    <string name="messageRenameFailed">Rename failed.</string>
+    <string name="messageSetUserAnnotationFailed">The annotation could not be saved.</string>
 
 
     <!--
          points, segments and routes
     -->
 
-    <!-- ObjectType -->
-    <string name="objectTypePoint">Point</string>
-    <string name="objectTypeRoute">Route</string>
-    <string name="objectTypeSegment">Way</string>
+    <!-- object icon -->
+    <string name="objectIconPoint">Point</string>
+    <string name="objectIconRoute">Route</string>
+    <string name="objectIconSegment">Way</string>
 
     <!-- Point -->
     <string name="preciseBearingValues">at %1$d°</string>
@@ -775,7 +797,7 @@
          profile
     -->
 
-    <!-- profile type -->
+    <!-- profile icon -->
     <string name="profileIconDatabase">Profile</string>
     <string name="profileIconCollection">Collection</string>
     <string name="profileIconHistory">History</string>
@@ -850,11 +872,11 @@
          route management
     -->
 
-    <!-- HikingTrail -->
-    <string name="hikingTrailToString">%1$s\nClosest distance: %2$s</string>
-
     <!-- Route -->
-    <string name="descriptionStreetCourse">The route is %1$s long and contains %2$s.</string>
+    <string name="routeNameStreetCourse">Way course for %1$s towards %2$s</string>
+    <string name="routeDescriptionStreetCourse">The route starts at the intersection %1$s and follows %2$s towards %3$s.</string>
+    <string name="routeDescriptionDefault">The route is %1$s long and contains %2$s.</string>
+    <string name="labelOppositeDirection">Opposite direction</string>
     <string name="messageAlmostArrivedAtRouteStart">Almost at start point</string>
     <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>

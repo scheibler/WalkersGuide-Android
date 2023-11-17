@@ -73,7 +73,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
 
     public enum Target {
         ROUTE_START_POINT, ROUTE_VIA_POINT_1, ROUTE_VIA_POINT_2, ROUTE_VIA_POINT_3, ROUTE_DESTINATION_POINT,
-        ADD_TO_PINNED_POINTS_AND_ROUTES, SIMULATE_LOCATION, USE_AS_HOME_ADDRESS
+        ADD_TO_COLLECTION, ADD_TO_PINNED_POINTS_AND_ROUTES, SIMULATE_LOCATION, USE_AS_HOME_ADDRESS
     }
 
     private Target target;
@@ -119,23 +119,22 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
 
         } else if (requestKey.equals(EnterCoordinatesDialog.REQUEST_ENTER_COORDINATES)) {
             objectWithIdSelected(
-                    (GPS) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES));
+                    (Point) bundle.getSerializable(EnterCoordinatesDialog.EXTRA_COORDINATES));
 
         } else if (requestKey.equals(ProfileListFragment.REQUEST_SELECT_PROFILE)) {
             Profile selectedProfile = (Profile) bundle.getSerializable(ProfileListFragment.EXTRA_PROFILE);
             Timber.d("onFragmentResult: profile selected");
             if (selectedProfile instanceof DatabaseProfile) {
-                ObjectListFromDatabaseFragment.createDialog((DatabaseProfile) selectedProfile, true)
+                ObjectListFromDatabaseFragment.selectObjectWithId((DatabaseProfile) selectedProfile)
                     .show(getChildFragmentManager(), "SelectPointDialog");
             } else if (selectedProfile instanceof PoiProfile) {
-                Timber.d("start poi dialog");
-                PoiListFromServerFragment.createDialog((PoiProfile) selectedProfile, true)
+                PoiListFromServerFragment.selectObjectWithId((PoiProfile) selectedProfile)
                     .show(getChildFragmentManager(), "SelectPointDialog");
             }
 
         } else if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
             objectWithIdSelected(
-                    (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES));
+                    (Point) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES));
 
         } else if (requestKey.equals(ObjectListFragment.REQUEST_SELECT_OBJECT)) {
             objectWithIdSelected(
@@ -163,6 +162,8 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
             case ROUTE_DESTINATION_POINT:
                 dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleRouteDestinationPoint);
                 break;
+            case ADD_TO_COLLECTION:
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleAddToCollection);
             case ADD_TO_PINNED_POINTS_AND_ROUTES:
                 dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes);
                 break;
@@ -283,6 +284,11 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                 }
 
                 switch (target) {
+                    case ADD_TO_COLLECTION:
+                        SaveCurrentLocationDialog.sendResultBundle(
+                                getResources().getString(R.string.saveCurrentLocationDialogTitleCollection))
+                            .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
+                        break;
                     case ADD_TO_PINNED_POINTS_AND_ROUTES:
                         SaveCurrentLocationDialog.sendResultBundle(
                                 getResources().getString(R.string.saveCurrentLocationDialogTitlePin))
@@ -327,12 +333,12 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                 break;
 
             case COLLECTIONS:
-                CollectionListFragment.createDialog(true)
+                CollectionListFragment.selectProfile()
                     .show(getChildFragmentManager(), "CollectionListFragment");
                 break;
 
             case POI:
-                PoiProfileListFragment.createDialog(true)
+                PoiProfileListFragment.selectProfile()
                     .show(getChildFragmentManager(), "PoiProfileListFragment");
                 break;
 

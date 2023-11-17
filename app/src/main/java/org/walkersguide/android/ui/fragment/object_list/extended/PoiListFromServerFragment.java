@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.object_list.extended;
 
+import org.walkersguide.android.ui.dialog.select.SelectCollectionsDialog;
 import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.data.Angle;
 import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
@@ -48,30 +49,32 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import org.walkersguide.android.database.profile.Collection;
+import org.walkersguide.android.ui.fragment.ObjectListFragment;
 
 
 public class PoiListFromServerFragment extends ExtendedObjectListFragment
         implements FragmentResultListener, Runnable {
 
 
-    public static class BundleBuilder extends ExtendedObjectListFragment.BundleBuilder {
+    public static class BundleBuilder extends ObjectListFragment.BundleBuilder {
         public BundleBuilder(PoiProfileRequest request) {
             super();
             bundle.putSerializable(KEY_REQUEST, request);
         }
     }
 
-	public static PoiListFromServerFragment createDialog(PoiProfile profile, boolean enableSelection) {
+	public static PoiListFromServerFragment selectObjectWithId(PoiProfile profile) {
 		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new PoiProfileRequest(profile))
-                .setIsDialog(enableSelection)
+                .setSelectObjectWithId(true)
                 .build());
 		return fragment;
     }
 
-	public static PoiListFromServerFragment createFragment(PoiProfile profile) {
+	public static PoiListFromServerFragment newInstance(PoiProfile profile) {
 		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
         fragment.setArguments(
                 new BundleBuilder(
@@ -95,9 +98,20 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
+        if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            request = (PoiProfileRequest) savedInstanceState.getSerializable(KEY_REQUEST);
+        } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+            request = (PoiProfileRequest) getArguments().getSerializable(KEY_REQUEST);
+        }
+
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectPoiCategoriesDialog.REQUEST_SELECT_POI_CATEGORIES, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SelectCollectionsDialog.REQUEST_SELECT_COLLECTIONS, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -107,10 +121,18 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
                     (ArrayList<PoiCategory>) bundle.getSerializable(SelectPoiCategoriesDialog.EXTRA_POI_CATEGORY_LIST));
             resetListPosition();
             requestUiUpdate();
-
+        } else if (requestKey.equals(SelectCollectionsDialog.REQUEST_SELECT_COLLECTIONS)) {
+            request.getProfile().setCollectionList(
+                    (ArrayList<Collection>) bundle.getSerializable(SelectCollectionsDialog.EXTRA_COLLECTION_LIST));
+            resetListPosition();
+            requestUiUpdate();
         } else {
             super.onFragmentResult(requestKey, bundle);
         }
+    }
+
+    @Override public Profile getProfile() {
+        return request != null ?  request.getProfile() : null;
     }
 
 
@@ -121,15 +143,6 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
-
-        if (savedInstanceState != null) {
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-            request = (PoiProfileRequest) savedInstanceState.getSerializable(KEY_REQUEST);
-        } else {
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-            request = (PoiProfileRequest) getArguments().getSerializable(KEY_REQUEST);
-        }
-
         super.updateSearchTerm(request.getSearchTerm());
 
         // show buttons
@@ -150,6 +163,11 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         buttonSelectCollections = (Button) view.findViewById(R.id.buttonSelectCollections);
         buttonSelectCollections.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
+                if (request.hasProfile()) {
+                    SelectCollectionsDialog.newInstance(
+                            request.getProfile().getCollectionList())
+                        .show(getChildFragmentManager(), "SelectCollectionsDialog");
+                }
             }
         });
 
@@ -162,7 +180,11 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 
     @Override public String getTitle() {
         if (request.hasProfile()) {
-            return request.getProfile().getName();
+            return getSelectObjectWithId()
+                ? String.format(
+                        getResources().getString(R.string.labelPleaseSelectFrom),
+                        request.getProfile().getName())
+                : request.getProfile().getName();
         }
         return null;
     }
@@ -190,9 +212,6 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setVisible(true);
-        // show announce object ahead
-        MenuItem menuItemAnnounceObjectAhead = menu.findItem(R.id.menuItemAnnounceObjectAhead);
-        menuItemAnnounceObjectAhead.setVisible(true);
     }
 
 
@@ -258,9 +277,15 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         buttonSelectCollections.setText(
                 GlobalInstance.getPluralResource(
                     R.plurals.collection, numberOfSelectedCollections));
-        buttonSelectPoiCategories.setContentDescription(
-                GlobalInstance.getPluralResource(
-                    R.plurals.collectionSelected, numberOfSelectedCollections));
+        buttonSelectCollections.setContentDescription(
+                String.format(
+                    "%1$s: %2$s",
+                    GlobalInstance.getPluralResource(
+                        R.plurals.collectionSelected, numberOfSelectedCollections),
+                    request.hasProfile()
+                    ? TextUtils.join(", ", request.getProfile().getCollectionList())
+                    : "")
+                );
     }
 
     @Override public void swipeToRefreshDetected() {

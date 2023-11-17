@@ -44,17 +44,14 @@ public abstract class ProfileListFragment extends RootFragment
     public abstract void requestUiUpdate();
 
 
-    public static class BundleBuilder {
-        protected Bundle bundle = new Bundle();
-
+    public static class BundleBuilder extends RootFragment.BundleBuilder {
         public BundleBuilder() {
-            bundle.putSerializable(KEY_DIALOG_MODE, DialogMode.DISABLED);
+            super();
+            setSelectProfile(false);
         }
 
-        public BundleBuilder setIsDialog(boolean enableSelection) {
-            bundle.putSerializable(
-                    KEY_DIALOG_MODE,
-                    enableSelection ? DialogMode.SELECT : DialogMode.DEFAULT);
+        public BundleBuilder setSelectProfile(boolean newState) {
+            bundle.putBoolean(KEY_SELECT_PROFILE, newState);
             return this;
         }
 
@@ -65,19 +62,15 @@ public abstract class ProfileListFragment extends RootFragment
 
 
     // dialog
-    private static final String KEY_DIALOG_MODE = "dialogMode";
+    private static final String KEY_SELECT_PROFILE = "selectProfile";
     private static final String KEY_LIST_POSITION = "listPosition";
 
-    private enum DialogMode {
-        DISABLED, DEFAULT, SELECT
-    }
-
-    protected DialogMode dialogMode;
+    private boolean selectProfile;
+    private int listPosition;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        dialogMode = (DialogMode) getArguments().getSerializable(KEY_DIALOG_MODE);
-        setShowsDialog(dialogMode != DialogMode.DISABLED);
+        selectProfile = getArguments().getBoolean(KEY_SELECT_PROFILE);
 
         if (savedInstanceState != null) {
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
@@ -98,16 +91,12 @@ public abstract class ProfileListFragment extends RootFragment
      * create view
      */
 
-    private int listPosition;
-
     private TextView labelHeading, labelEmptyListView;
 	private ListView listViewProfile;
 
     @Override public String getDialogButtonText() {
         return getResources().getString(
-                dialogMode == DialogMode.SELECT
-                ? R.string.dialogCancel
-                : R.string.dialogClose);
+                selectProfile ? R.string.dialogCancel : R.string.dialogClose);
     }
 
     @Override public int getLayoutResourceId() {
@@ -119,7 +108,8 @@ public abstract class ProfileListFragment extends RootFragment
         ImageButton buttonAddProfile = (ImageButton) view.findViewById(R.id.buttonAdd);
         buttonAddProfile.setContentDescription(
                 getContentDescriptionForAddProfileButton());
-        buttonAddProfile.setVisibility(View.VISIBLE);
+        buttonAddProfile.setVisibility(
+                selectProfile ? View.GONE : View.VISIBLE);
         buttonAddProfile.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 addProfileButtonClicked(view);
@@ -140,6 +130,10 @@ public abstract class ProfileListFragment extends RootFragment
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putInt(KEY_LIST_POSITION,  listPosition);
+    }
+
+    public boolean getSelectProfile() {
+        return this.selectProfile;
     }
 
     public ProfileAdapter getListAdapter() {
@@ -213,7 +207,7 @@ public abstract class ProfileListFragment extends RootFragment
                 new ProfileAdapter(
                     ProfileListFragment.this.getContext(),
                     profileList,
-                    dialogMode == DialogMode.SELECT ? this : null,
+                    selectProfile ? this : null,
                     true));
         labelEmptyListView.setText(getEmptyProfileListMessage());
 
@@ -261,9 +255,8 @@ public abstract class ProfileListFragment extends RootFragment
                 layoutProfileView = (ProfileView) convertView;
             }
 
-            layoutProfileView.setOnProfileDefaultActionListener(
-                    onProfileDefaultActionListener != null ? onProfileDefaultActionListener : null);
-            layoutProfileView.configure(
+            layoutProfileView.setOnProfileDefaultActionListener(onProfileDefaultActionListener);
+            layoutProfileView.configureAsListItem(
                     getItem(position), false, showContextMenuItemRemove);
             return layoutProfileView;
         }

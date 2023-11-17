@@ -204,17 +204,18 @@ public class GlobalInstance extends Application {
     /**
      * route position
      */
-    private LinkedHashMap<Route,Integer> routeCurrentPositionMap = new LinkedHashMap<Route,Integer>();
+    private LinkedHashMap<Long,Integer> routeCurrentPositionMap = new LinkedHashMap<Long,Integer>();
 
     public int getRouteCurrentPosition(Route route) {
-        if (this.routeCurrentPositionMap.containsKey(route)) {
-            return this.routeCurrentPositionMap.get(route);
+        long routeId = route.getId();
+        if (this.routeCurrentPositionMap.containsKey(routeId)) {
+            return this.routeCurrentPositionMap.get(routeId);
         }
         return 0;
     }
 
     public void setRouteCurrentPosition(Route route, int newPosition) {
-        this.routeCurrentPositionMap.put(route, newPosition);
+        this.routeCurrentPositionMap.put(route.getId(), newPosition);
     }
 
 

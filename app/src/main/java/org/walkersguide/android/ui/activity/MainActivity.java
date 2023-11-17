@@ -10,6 +10,7 @@ import org.walkersguide.android.ui.fragment.SettingsFragment;
 import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.ui.dialog.InfoDialog;
 import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
+import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.RoutesTabLayoutFragment;
 import org.walkersguide.android.shortcut.StaticShortcutAction;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
@@ -87,21 +88,24 @@ import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.os.IBinder;
 import androidx.fragment.app.FragmentManager;
+import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 
 
 public class MainActivity extends AppCompatActivity
         implements FragmentResultListener, MainActivityController, OnTabSelectedListener {
     public static String EXTRA_NEW_TAB = "newTab";
     public static String EXTRA_CLEAR_BACK_STACK = "clearBackStack";
+    public static String EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB = "openLastPointProfileInPointsTab";
 
     public static void loadRoute(Context context, Route route) {
         SettingsManager settingsManagerInstance = SettingsManager.getInstance();
-        settingsManagerInstance.setSelectedRoute(route);
+        settingsManagerInstance.setLastSelectedRoute(route);
         settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.ROUTES);
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
         mainActivityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mainActivityIntent.putExtra(EXTRA_CLEAR_BACK_STACK, true);
+        mainActivityIntent.putExtra(
+                EXTRA_CLEAR_BACK_STACK, true);
         context.startActivity(mainActivityIntent);
     }
 
@@ -112,7 +116,10 @@ public class MainActivity extends AppCompatActivity
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
         mainActivityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mainActivityIntent.putExtra(EXTRA_CLEAR_BACK_STACK, true);
+        mainActivityIntent.putExtra(
+                EXTRA_CLEAR_BACK_STACK, true);
+        mainActivityIntent.putExtra(
+                EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, true);
         context.startActivity(mainActivityIntent);
     }
 
@@ -134,6 +141,8 @@ public class MainActivity extends AppCompatActivity
     private NavigationView navigationView;
     private TabLayout tabLayout;
 
+    private boolean openLastPointProfileInPointsTab;
+
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -148,6 +157,12 @@ public class MainActivity extends AppCompatActivity
             savedInstanceState != null
             ? savedInstanceState.getBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME)
             : false;
+        openLastPointProfileInPointsTab = false;
+        if (savedInstanceState != null) {
+            openLastPointProfileInPointsTab = savedInstanceState.getBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB);
+        } else if (getIntent() != null && getIntent().getExtras() != null) {
+            openLastPointProfileInPointsTab = getIntent().getExtras().getBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, false);
+        }
 
         getSupportFragmentManager()
             .setFragmentResultListener(
@@ -208,7 +223,7 @@ public class MainActivity extends AppCompatActivity
                     PointFromCoordinatesLinkDialog.newInstance()
                         .show(getSupportFragmentManager(), "PointFromCoordinatesLinkDialog");
                 } else if (menuItem.getItemId() == R.id.menuItemCollections) {
-                    CollectionListFragment.createDialog(false)
+                    CollectionListFragment.newInstance()
                         .show(getSupportFragmentManager(), "CollectionListFragment");
                 } else if (menuItem.getItemId() == R.id.menuItemSettings) {
                     SettingsFragment.newInstance()
@@ -249,7 +264,7 @@ public class MainActivity extends AppCompatActivity
                     && intent.getExtras().getBoolean(EXTRA_CLEAR_BACK_STACK, false)) {
                 clearBackStackForTab(tabToOpen);
             }
-            Timber.d("new tab from intent: %1$s", tabToOpen);
+            Timber.d("new tab from intent: %1$s, openLastPointProfileInPointsTab=%2$s", tabToOpen, openLastPointProfileInPointsTab);
         }
         Timber.d("openTab");
         loadFragment(tabToOpen != null ? tabToOpen : getCurrentTab());
@@ -269,7 +284,7 @@ public class MainActivity extends AppCompatActivity
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: requestKey=%1$s", requestKey);
         if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
-            GPS sharedLocation = (GPS) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
+            Point sharedLocation = (Point) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
             if (sharedLocation != null) {
                 ObjectDetailsTabLayoutFragment.details(sharedLocation)
                     .show(getSupportFragmentManager(), "Details");
@@ -280,6 +295,7 @@ public class MainActivity extends AppCompatActivity
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME, skipPositionManagerInitialisationDuringOnResume);
+        savedInstanceState.putBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, openLastPointProfileInPointsTab);
     }
 
 
@@ -641,7 +657,7 @@ public class MainActivity extends AppCompatActivity
                     fragment = RoutesTabLayoutFragment.newInstance();
                     break;
                 case POINTS:
-                    fragment = PoiProfileListFragment.createFragment();
+                    fragment = PointsTabLayoutFragment.newInstance();
                     break;
                 default:
                     return;
@@ -657,6 +673,13 @@ public class MainActivity extends AppCompatActivity
 
         updateToolbarButtonInTheUpperLeftCorner();
         settingsManagerInstance.setSelectedTabForMainActivity(newTab);
+
+        if (openLastPointProfileInPointsTab && newTab == Tab.POINTS) {
+            openLastPointProfileInPointsTab = false;
+            addFragment(
+                    PoiListFromServerFragment.newInstance(
+                        settingsManagerInstance.getSelectedPoiProfile()));
+        }
     }
 
     @Override public void onTabUnselected(TabLayout.Tab tab) {
@@ -771,18 +794,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void previousFragment() {
-        int newIndex = getCurrentTab().position - 1;
         Tab previousTab = Tab.getTabAtPosition(
-                newIndex == -1 ? Tab.values().length - 1 : newIndex);
+                getCurrentTab().position - 1);
         if (previousTab != null) {
             loadFragment(previousTab);
         }
     }
 
     private void nextFragment() {
-        int newIndex = getCurrentTab().position + 1;
         Tab nextTab = Tab.getTabAtPosition(
-                newIndex == Tab.values().length ? 0 : newIndex);
+                getCurrentTab().position + 1);
         if (nextTab != null) {
             loadFragment(nextTab);
         }

@@ -80,7 +80,7 @@ public class Collection extends DatabaseProfile implements MutableProfile, Seria
     // profile class
 
     @Override public String getName() {
-        return getName();
+        return MutableProfile.super.getName();
     }
 
     @Override public Icon getIcon() {
@@ -94,7 +94,7 @@ public class Collection extends DatabaseProfile implements MutableProfile, Seria
         return  AccessDatabase.getInstance().getCollectionParams(getId());
     }
 
-    @Override public boolean renameProfile(String newName) {
+    @Override public boolean rename(String newName) {
         CollectionParams params = getProfileParamsFromDatabase();
         if (params != null && !TextUtils.isEmpty(newName)) {
             params.name = newName;
@@ -112,7 +112,7 @@ public class Collection extends DatabaseProfile implements MutableProfile, Seria
         return false;
     }
 
-    @Override public boolean removeProfile() {
+    @Override public boolean remove() {
         return AccessDatabase.getInstance().removeCollection(this.getId());
     }
 

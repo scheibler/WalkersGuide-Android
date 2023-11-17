@@ -263,7 +263,7 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
     };
 
     private void addressSelected(StreetAddress address) {
-        HistoryProfile.addressPoints().add(address);
+        HistoryProfile.addressPoints().addObject(address);
         // return
         Bundle result = new Bundle();
         result.putSerializable(EXTRA_STREET_ADDRESS, address);

@@ -1,5 +1,6 @@
 package org.walkersguide.android.server.wg.p2p;
 
+import org.walkersguide.android.R;
 import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
@@ -20,6 +21,9 @@ import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.database.SortMethod;
+import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.data.object_with_id.segment.RouteSegment;
+import org.walkersguide.android.data.angle.Turn;
 
 
 public class P2pRouteTask extends ServerTask {
@@ -47,9 +51,17 @@ public class P2pRouteTask extends ServerTask {
             // start, via and destination points
             JSONArray jsonSourcePoints = new JSONArray();
             jsonSourcePoints.put(startPoint.toJson());
-            JSONArray jsonViaPointList = createViaPointJsonArray();
-            for (int i=0; i<jsonViaPointList.length(); i++) {
-                jsonSourcePoints.put(jsonViaPointList.getJSONObject(i));
+            Point viaPoint1 = this.request.getViaPoint1();
+            if (viaPoint1 != null) {
+                jsonSourcePoints.put(viaPoint1.toJson());
+            }
+            Point viaPoint2 = this.request.getViaPoint2();
+            if (viaPoint2 != null) {
+                jsonSourcePoints.put(viaPoint2.toJson());
+            }
+            Point viaPoint3 = this.request.getViaPoint3();
+            if (viaPoint3 != null) {
+                jsonSourcePoints.put(viaPoint3.toJson());
             }
             jsonSourcePoints.put(destinationPoint.toJson());
             jsonServerParams.put("source_points", jsonSourcePoints);
@@ -91,25 +103,39 @@ public class P2pRouteTask extends ServerTask {
 
         Route route = null;
         try {
-            // convert flat route object list
-            JSONArray jsonRouteObjectList = new JSONArray();
+            Route.Builder routeBuilder = new Route.Builder(
+                    Route.Type.P2P_ROUTE, null, startPoint, destinationPoint)
+                .setViaPoints(
+                        this.request.getViaPoint1(),
+                        this.request.getViaPoint2(),
+                        this.request.getViaPoint3());
+            routeBuilder.setDescription(
+                    jsonServerResponse.getString("description"));
+
             JSONArray jsonFlatRouteObjectList = jsonServerResponse.getJSONArray("route");
             for (int i=0; i<jsonFlatRouteObjectList.length(); i+=2) {
-                JSONObject jsonRouteObject = new JSONObject();
-                if (i > 0) {
-                    jsonRouteObject.put("segment", jsonFlatRouteObjectList.getJSONObject(i-1));
+                JSONObject jsonCurrent = jsonFlatRouteObjectList.getJSONObject(i);
+                Point current = Point.fromJson(jsonCurrent);
+                if (current == null) {
+                    throw new JSONException("Parsing error");
                 }
-                jsonRouteObject.put("point", jsonFlatRouteObjectList.getJSONObject(i));
-                jsonRouteObjectList.put(jsonRouteObject);
+
+                if (i == 0) {
+                    routeBuilder.addFirstRouteObject(current);
+                    continue;
+                }
+
+                RouteSegment betweenPreviousAndCurrent = new RouteSegment(
+                        jsonFlatRouteObjectList.getJSONObject(i-1));
+                if (i == jsonFlatRouteObjectList.length() - 1) {
+                    routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current);
+                } else {
+                    Turn turn = new Turn(jsonCurrent.getInt("turn"));
+                    routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
+                }
             }
 
-            route = new Route(
-                    Route.convertRouteFromWebserverApiV4ToV5(
-                        startPoint.toJson(),
-                        destinationPoint.toJson(),
-                        createViaPointJsonArray(),
-                        jsonServerResponse.getString("description"),
-                        jsonRouteObjectList));
+            route = routeBuilder.build();
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_RESPONSE);
         }
@@ -117,23 +143,6 @@ public class P2pRouteTask extends ServerTask {
         if (! isCancelled()) {
             ServerTaskExecutor.sendP2pRouteTaskSuccessfulBroadcast(getId(), route);
         }
-    }
-
-    private JSONArray createViaPointJsonArray() throws JSONException {
-        JSONArray jsonViaPointList = new JSONArray();
-        Point viaPoint1 = this.request.getViaPoint1();
-        if (viaPoint1 != null) {
-            jsonViaPointList.put(viaPoint1.toJson());
-        }
-        Point viaPoint2 = this.request.getViaPoint2();
-        if (viaPoint2 != null) {
-            jsonViaPointList.put(viaPoint2.toJson());
-        }
-        Point viaPoint3 = this.request.getViaPoint3();
-        if (viaPoint3 != null) {
-            jsonViaPointList.put(viaPoint3.toJson());
-        }
-        return jsonViaPointList;
     }
 
 }

@@ -1,6 +1,6 @@
     package org.walkersguide.android.ui.dialog.toolbar;
 
-    import org.walkersguide.android.ui.view.TextViewAndActionButton;
+    import org.walkersguide.android.ui.view.ObjectWithIdView;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
@@ -58,7 +58,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
 
     private TextView labelGPSCoordinates, labelGPSAccuracy, labelGPSTime;
     private SwitchCompat buttonEnableSimulation;
-    private TextViewAndActionButton layoutSimulationPoint;
+    private ObjectWithIdView layoutSimulationPoint;
 
     public static LocationDetailsDialog newInstance() {
         LocationDetailsDialog dialog = new LocationDetailsDialog();
@@ -136,10 +136,9 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
             }
         });
 
-        layoutSimulationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutSimulationPoint);
-        layoutSimulationPoint.setAutoUpdate(true);
-        layoutSimulationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutSimulationPoint = (ObjectWithIdView) view.findViewById(R.id.layoutSimulationPoint);
+        layoutSimulationPoint.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.SIMULATE_LOCATION)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
@@ -239,13 +238,13 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
         // details
         contextMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_DETAILS, 1, GlobalInstance.getStringResource(R.string.objectMenuItemDetails));
+                Menu.NONE, MENU_ITEM_DETAILS, 1, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
         // pin
         contextMenu.getMenu().add(
                 Menu.NONE, MENU_ITEM_PIN, 2, GlobalInstance.getStringResource(R.string.currentLocationMenuItemAddToPinnedPoints));
         // share
         SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
-                Menu.NONE, Menu.NONE, 4, GlobalInstance.getStringResource(R.string.objectMenuItemShareCoordinates));
+                Menu.NONE, Menu.NONE, 4, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareCoordinates));
         Point.populateShareCoordinatesSubMenuEntries(shareCoordinatesSubMenu);
 
         contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {

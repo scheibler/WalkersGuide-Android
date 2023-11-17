@@ -70,41 +70,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <org.walkersguide.android.ui.view.TextViewAndActionButton
+            <org.walkersguide.android.ui.view.ObjectWithIdView
                 android:id="@+id/layoutRoute"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:includeDistanceOrBearingInformation="false" />
 
             <TextView
-                android:id="@+id/labelTotalDistance"
+                android:id="@+id/labelHeading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:focusable="true" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal" >
-
-                <TextView
-                    android:id="@+id/labelHeading"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.0"
-                    android:focusable="true"
-                    android:theme="@style/HeadingTextView" />
-
-                <ImageButton
-                    android:id="@+id/buttonJumpToRoutePoint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:background="@null"
-                    app:tint="@color/image"
-                    android:src="@drawable/image_chevron_right"
-                    android:contentDescription="@string/buttonJumpToRoutePoint" />
-            </LinearLayout>
+                android:focusable="true"
+                android:theme="@style/HeadingTextView" />
 
             <org.walkersguide.android.ui.view.RouteObjectView
                 android:id="@+id/layoutCurrentRouteObject"

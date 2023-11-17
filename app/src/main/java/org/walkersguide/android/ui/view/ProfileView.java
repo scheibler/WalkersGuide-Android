@@ -15,7 +15,6 @@ import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import androidx.appcompat.app.AppCompatActivity;
-import org.walkersguide.android.ui.dialog.edit.RenameObjectDialog;
 import org.walkersguide.android.data.ObjectWithId;
 import android.view.MenuItem;
 import timber.log.Timber;
@@ -89,7 +88,9 @@ public class ProfileView extends LinearLayout {
     private MainActivityController mainActivityController;
     private SettingsManager settingsManagerInstance;
 
-    private String prefix;
+    private String prefix = null;
+    private boolean compact = false;
+
     private Profile profile;
     private boolean showProfileIcon, showContextMenuItemRemove;
 
@@ -99,13 +100,30 @@ public class ProfileView extends LinearLayout {
 
     public ProfileView(Context context) {
         super(context);
-        this.prefix = null;
         this.initUi(context);
     }
 
-    public ProfileView(Context context, String prefix) {
+    public ProfileView(Context context, String prefix, boolean compact) {
         super(context);
         this.prefix = prefix;
+        this.compact = compact;
+        this.initUi(context);
+    }
+
+    public ProfileView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        // parse xml layout attributes
+        TypedArray sharedAttributeArray = context.obtainStyledAttributes(
+                attrs, R.styleable.ObjectWithIdAndProfileView);
+        if (sharedAttributeArray != null) {
+            this.prefix = sharedAttributeArray.getString(
+                    R.styleable.ObjectWithIdAndProfileView_prefix);
+            this.compact = sharedAttributeArray.getBoolean(
+                    R.styleable.ObjectWithIdAndProfileView_compact, false);
+            sharedAttributeArray.recycle();
+        }
+
         this.initUi(context);
     }
 
@@ -119,10 +137,14 @@ public class ProfileView extends LinearLayout {
         setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 
         View rootView = inflate(context, R.layout.layout_text_view_and_action_button, this);
-        imageViewProfileIcon = (ImageView) rootView.findViewById(R.id.imageViewIsFavorite);
+        imageViewProfileIcon = (ImageView) rootView.findViewById(R.id.imageViewIcon);
         imageViewProfileIcon.setVisibility(View.GONE);
 
         label = (TextView) rootView.findViewById(R.id.label);
+        if (compact) {
+            label.setEllipsize(TextUtils.TruncateAt.END);
+            label.setSingleLine();
+        }
         label.setContentDescription(null);
         label.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -183,11 +205,13 @@ public class ProfileView extends LinearLayout {
 
     // convigure view
 
-    public void configure(Profile profile) {
-        configure(profile, false, false);
+    public void configureAsSingleObject(Profile profile) {
+        configureAsListItem(profile, false, false);
+        ViewCompat.setAccessibilityDelegate(
+                this.label, UiHelper.getAccessibilityDelegateViewClassButton());
     }
 
-    public void configure(Profile profile, boolean showProfileIcon, boolean showContextMenuItemRemove) {
+    public void configureAsListItem(Profile profile, boolean showProfileIcon, boolean showContextMenuItemRemove) {
         this.reset();
         if (mainActivityController != null && profile != null) {
             this.profile = profile;
@@ -198,9 +222,12 @@ public class ProfileView extends LinearLayout {
     }
 
     private void updateLabelAndButtonText() {
-        String labelText = this.profile != null
-            ? this.profile.toString()
-            : GlobalInstance.getStringResource(R.string.labelNothingSelected);
+        String labelText = null;
+        if (this.profile != null) {
+            labelText = this.compact ? this.profile.getName() : this.profile.toString();
+        } else {
+            labelText = GlobalInstance.getStringResource(R.string.labelNothingSelected);
+        }
 
         // prepare complete label text
         if (this.prefix != null) {
@@ -237,6 +264,43 @@ public class ProfileView extends LinearLayout {
 
 
     /**
+     * broadcasts
+     */
+
+    @Override public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(profileViewReceiver);
+    }
+
+    @Override public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UpdatePoiProfileSelectedCollectionsDialog.ACTION_UPDATE_COLLECTIONS_WAS_SUCCESSFUL);
+        filter.addAction(UpdatePoiProfileSelectedPoiCategoriesDialog.ACTION_UPDATE_POI_CATEGORIES_WAS_SUCCESSFUL);
+        filter.addAction(RenameProfileDialog.ACTION_RENAME_PROFILE_WAS_SUCCESSFUL);
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(profileViewReceiver, filter);
+
+        // check, if profile was removed in the background
+        if (this.profile instanceof MutableProfile
+                && ((MutableProfile) this.profile).profileWasRemoved()) {
+            reset();
+        }
+    }
+
+    private BroadcastReceiver profileViewReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(UpdatePoiProfileSelectedCollectionsDialog.ACTION_UPDATE_COLLECTIONS_WAS_SUCCESSFUL)) {
+                updateLabelAndButtonText();
+            } else if (intent.getAction().equals(UpdatePoiProfileSelectedPoiCategoriesDialog.ACTION_UPDATE_POI_CATEGORIES_WAS_SUCCESSFUL)) {
+                updateLabelAndButtonText();
+            } else if (intent.getAction().equals(RenameProfileDialog.ACTION_RENAME_PROFILE_WAS_SUCCESSFUL)) {
+                updateLabelAndButtonText();
+            }
+        }
+    };
+
+
+    /**
      * context menu
      */
 
@@ -252,6 +316,7 @@ public class ProfileView extends LinearLayout {
     private static final int MENU_ITEM_OVERVIEW_TRACK = 201;
     private static final int MENU_ITEM_OVERVIEW_ADD_TO_BOTH = 202;
     private static final int MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH = 203;
+
 
     public void showContextMenu(final View view, final Profile profile) {
         PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
@@ -283,13 +348,13 @@ public class ProfileView extends LinearLayout {
             // pin
             MenuItem menuItemOverviewPin = overviewSubMenu.add(
                     Menu.NONE, MENU_ITEM_OVERVIEW_PIN, 0,
-                    GlobalInstance.getStringResource(R.string.contextMenuItemProfileOverviewPin));
+                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
             menuItemOverviewPin.setCheckable(true);
             menuItemOverviewPin.setChecked(profileIsPinned);
             // track
             MenuItem menuItemOverviewTrack = overviewSubMenu.add(
                     Menu.NONE, MENU_ITEM_OVERVIEW_TRACK, 1,
-                    GlobalInstance.getStringResource(R.string.contextMenuItemProfileOverviewTrack));
+                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
             menuItemOverviewTrack.setCheckable(true);
             menuItemOverviewTrack.setChecked(profileIsTracked);
 
@@ -297,12 +362,12 @@ public class ProfileView extends LinearLayout {
                 // neither pinned or tracked
                 overviewSubMenu.add(
                         Menu.NONE, MENU_ITEM_OVERVIEW_ADD_TO_BOTH, 2,
-                        GlobalInstance.getStringResource(R.string.contextMenuItemProfileOverviewAddToBoth));
+                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewAddToBoth));
             } else if (profileIsPinned && profileIsTracked) {
                 // both, pinned and tracked
                 overviewSubMenu.add(
                         Menu.NONE, MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH, 2,
-                        GlobalInstance.getStringResource(R.string.contextMenuItemProfileOverviewRemoveFromBoth));
+                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewRemoveFromBoth));
             }
 
             // end "overview" submenu
@@ -343,10 +408,10 @@ public class ProfileView extends LinearLayout {
         if (menuItemId == MENU_ITEM_DETAILS) {
             DialogFragment profileDetailsFragment = null;
             if (selectedProfile instanceof DatabaseProfile) {
-                profileDetailsFragment = ObjectListFromDatabaseFragment.createFragment((DatabaseProfile) selectedProfile);
+                profileDetailsFragment = ObjectListFromDatabaseFragment.newInstance((DatabaseProfile) selectedProfile);
             } else if (selectedProfile instanceof PoiProfile) {
                 settingsManagerInstance.setSelectedPoiProfile((PoiProfile) selectedProfile);
-                profileDetailsFragment = PoiListFromServerFragment.createFragment((PoiProfile) selectedProfile);
+                profileDetailsFragment = PoiListFromServerFragment.newInstance((PoiProfile) selectedProfile);
             }
             if (profileDetailsFragment != null) {
                 mainActivityController.addFragment(profileDetailsFragment);
@@ -395,7 +460,7 @@ public class ProfileView extends LinearLayout {
 
         } else if (menuItemId == MENU_ITEM_RENAME) {
             RenameProfileDialog.newInstance((MutableProfile) selectedProfile)
-                .show(mainActivityController.getFragmentManagerInstance(), "RenameObjectDialog");
+                .show(mainActivityController.getFragmentManagerInstance(), "RenameProfileDialog");
 
         } else if (menuItemId == MENU_ITEM_REMOVE) {
             new AlertDialog.Builder(context)
@@ -408,7 +473,7 @@ public class ProfileView extends LinearLayout {
                         getResources().getString(R.string.dialogYes),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                if (((MutableProfile) selectedProfile).removeProfile()) {
+                                if (((MutableProfile) selectedProfile).remove()) {
                                     reset();
                                     ViewChangedListener.sendProfileListChangedBroadcast();
                                     dialog.dismiss();
@@ -433,41 +498,8 @@ public class ProfileView extends LinearLayout {
 
 
     /**
-     * broadcasts
+     * dialogs
      */
-
-    @Override public void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(profileViewReceiver);
-    }
-
-    @Override public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UpdatePoiProfileSelectedCollectionsDialog.ACTION_UPDATE_COLLECTIONS_WAS_SUCCESSFUL);
-        filter.addAction(UpdatePoiProfileSelectedPoiCategoriesDialog.ACTION_UPDATE_POI_CATEGORIES_WAS_SUCCESSFUL);
-        filter.addAction(RenameProfileDialog.ACTION_RENAME_PROFILE_WAS_SUCCESSFUL);
-        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(profileViewReceiver, filter);
-
-        // check, if profile was removed in the background
-        if (this.profile instanceof MutableProfile
-                && ((MutableProfile) this.profile).profileWasRemoved()) {
-            reset();
-        }
-    }
-
-    private BroadcastReceiver profileViewReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(UpdatePoiProfileSelectedCollectionsDialog.ACTION_UPDATE_COLLECTIONS_WAS_SUCCESSFUL)) {
-                updateLabelAndButtonText();
-            } else if (intent.getAction().equals(UpdatePoiProfileSelectedPoiCategoriesDialog.ACTION_UPDATE_POI_CATEGORIES_WAS_SUCCESSFUL)) {
-                updateLabelAndButtonText();
-            } else if (intent.getAction().equals(RenameProfileDialog.ACTION_RENAME_PROFILE_WAS_SUCCESSFUL)) {
-                updateLabelAndButtonText();
-            }
-        }
-    };
-
 
     public static class RenameProfileDialog extends EnterStringDialog {
         public static final String ACTION_RENAME_PROFILE_WAS_SUCCESSFUL = "action.renameProfileWasSuccessful";
@@ -493,7 +525,7 @@ public class ProfileView extends LinearLayout {
                 setDialogTitle(
                         getResources().getString(R.string.renameProfileDialogTitle));
                 setMissingInputMessage(
-                        getResources().getString(R.string.messageProfileNameIsMissing));
+                        getResources().getString(R.string.messageNameIsMissing));
 
                 return super.onCreateDialog(savedInstanceState);
             }
@@ -501,14 +533,14 @@ public class ProfileView extends LinearLayout {
         }
 
         @Override public void execute(String input) {
-            if (profile.renameProfile(input)) {
+            if (profile.rename(input)) {
                 Intent intent = new Intent(ACTION_RENAME_PROFILE_WAS_SUCCESSFUL);
                 LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
                 dismiss();
             } else {
                 Toast.makeText(
                         getActivity(),
-                        getResources().getString(R.string.messageRenameObjectFailed),
+                        getResources().getString(R.string.messageRenameFailed),
                         Toast.LENGTH_LONG).show();
             }
         }
@@ -533,7 +565,7 @@ public class ProfileView extends LinearLayout {
         private PoiProfile poiProfile;
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            poiProfile = (PoiProfile) savedInstanceState.getSerializable(KEY_POI_PROFILE);
+            poiProfile = (PoiProfile) getArguments().getSerializable(KEY_POI_PROFILE);
             if (poiProfile != null) {
                 return super.onCreateDialog(savedInstanceState);
             }
@@ -580,7 +612,7 @@ public class ProfileView extends LinearLayout {
         private PoiProfile poiProfile;
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            poiProfile = (PoiProfile) savedInstanceState.getSerializable(KEY_POI_PROFILE);
+            poiProfile = (PoiProfile) getArguments().getSerializable(KEY_POI_PROFILE);
             if (poiProfile != null) {
                 return super.onCreateDialog(savedInstanceState);
             }

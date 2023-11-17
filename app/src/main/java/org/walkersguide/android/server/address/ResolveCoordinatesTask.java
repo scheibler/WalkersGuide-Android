@@ -84,7 +84,7 @@ public class ResolveCoordinatesTask extends ServerTask {
                         AddressException.RC_NO_ADDRESS_FOR_COORDINATES);
             }
 
-            addressPointProfile.add(newAddress);
+            addressPointProfile.addObject(newAddress);
             ServerTaskExecutor.sendResolveCoordinatesTaskSuccessfulBroadcast(getId(), newAddress);
         }
     }

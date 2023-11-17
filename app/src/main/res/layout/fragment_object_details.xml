@@ -6,14 +6,23 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <org.walkersguide.android.ui.view.TextViewAndActionButton
+    <org.walkersguide.android.ui.view.ObjectWithIdView
         android:id="@+id/layoutObject"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:compact="true" />
+        app:compact="true"
+        app:includeDistanceOrBearingInformation="false" />
 
     <TextView
-        android:id="@+id/labelDetails"
+        android:id="@+id/labelDistanceAndBearing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:focusable="true" />
+
+    <TextView
+        android:id="@+id/labelUserAnnotation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="3dp"

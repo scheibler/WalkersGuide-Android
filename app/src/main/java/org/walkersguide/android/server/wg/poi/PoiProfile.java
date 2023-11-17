@@ -53,7 +53,7 @@ public class PoiProfile extends Profile implements MutableProfile, Serializable 
     // profile class
 
     @Override public String getName() {
-        return getName();
+        return MutableProfile.super.getName();
     }
 
     @Override public Icon getIcon() {
@@ -86,7 +86,7 @@ public class PoiProfile extends Profile implements MutableProfile, Serializable 
         return  AccessDatabase.getInstance().getPoiProfileParams(getId());
     }
 
-    @Override public boolean renameProfile(String newName) {
+    @Override public boolean rename(String newName) {
         PoiProfileParams params = getProfileParamsFromDatabase();
         if (params != null && !TextUtils.isEmpty(newName)) {
             params.name = newName;
@@ -104,7 +104,7 @@ public class PoiProfile extends Profile implements MutableProfile, Serializable 
         return false;
     }
 
-    @Override public boolean removeProfile() {
+    @Override public boolean remove() {
         return AccessDatabase.getInstance().removePoiProfile(this.getId());
     }
 

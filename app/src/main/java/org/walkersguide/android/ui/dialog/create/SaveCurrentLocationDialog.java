@@ -123,7 +123,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
         labelGPSSignal = (TextView) view.findViewById(R.id.labelGPSSignal);
         labelGPSSignal.setTag(null);
         labelGPSSignal.setText(
-                getResources().getString(R.string.messagePleaseWait));
+                getResources().getString(R.string.messageSearchLocationInProgress));
         ViewCompat.setAccessibilityLiveRegion(
                 labelGPSSignal, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
 
@@ -206,7 +206,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
     }
 
     private void setTargetDatabaseProfile(DatabaseProfile profile) {
-        layoutTargetDatabaseProfile.configure(profile, false, false);
+        layoutTargetDatabaseProfile.configureAsSingleObject(profile);
     }
 
 
@@ -222,6 +222,9 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
                                 Math.round(gpsLocation.getAccuracy()),
                                 gpsLocation.formatTimestamp())
                             );
+                    // only tell me once
+                    ViewCompat.setAccessibilityLiveRegion(
+                            labelGPSSignal, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
                 }
             }
         }
@@ -259,7 +262,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
         } else {
             Profile selectedProfile = layoutTargetDatabaseProfile.getProfile();
             if (selectedProfile instanceof DatabaseProfile
-                    && ((DatabaseProfile) selectedProfile).add(currentLocation)) {
+                    && ((DatabaseProfile) selectedProfile).addObject(currentLocation)) {
                 Toast.makeText(
                         getActivity(),
                         selectedProfile.equals(StaticProfile.pinnedPointsAndRoutes())

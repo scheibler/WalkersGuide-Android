@@ -8,6 +8,7 @@ import java.io.Serializable;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.data.object_with_id.Point;
 
 
 public class RouteSegment extends Segment implements Serializable {
@@ -18,10 +19,9 @@ public class RouteSegment extends Segment implements Serializable {
      * object creation helpers
      */
 
-    public static RouteSegment create(IntersectionSegment sourceSegment,
-            Bearing newBearing, Integer newDistance) throws JSONException {
-        if (newBearing == null || newDistance == null) {
-            throw new JSONException("bearing or distance missing");
+    public static RouteSegment create(IntersectionSegment sourceSegment, Point start, Point end) throws JSONException {
+        if (start == null || end == null) {
+            throw new JSONException("start or end point missing");
         }
 
         JSONObject jsonRouteSegment;
@@ -33,11 +33,17 @@ public class RouteSegment extends Segment implements Serializable {
                     KEY_NAME, GlobalInstance.getStringResource(R.string.routeSegmentNameUnknown));
             jsonRouteSegment.put(KEY_SUB_TYPE, "");
         }
+        jsonRouteSegment.put(KEY_TYPE, Segment.Type.FOOTWAY_ROUTE.toString());
 
         // refresh some entries
-        jsonRouteSegment.put(Segment.KEY_TYPE, Segment.Type.FOOTWAY_ROUTE.toString());
-        jsonRouteSegment.put(KEY_BEARING, newBearing.getDegree());
-        jsonRouteSegment.put(KEY_DISTANCE, newDistance);
+        jsonRouteSegment.put(
+                KEY_START, Segment.putLocationToJsonObject(start.getLocationObject()));
+        jsonRouteSegment.put(
+                KEY_END, Segment.putLocationToJsonObject(end.getLocationObject()));
+        jsonRouteSegment.put(
+                KEY_BEARING, start.bearingTo(end).getDegree());
+        jsonRouteSegment.put(
+                KEY_DISTANCE, start.distanceTo(end));
         return new RouteSegment(jsonRouteSegment);
     }
 

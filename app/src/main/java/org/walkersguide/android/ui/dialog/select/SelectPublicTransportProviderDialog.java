@@ -180,7 +180,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             if (convertView == null) {
                 holder = new EntryHolderParent();
                 convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_heading, parent, false);
-                holder.labelCountry = (TextView) convertView.findViewById(R.id.label);
+                holder.labelCountry = (TextView) convertView.findViewById(R.id.labelHeading);
                 convertView.setTag(holder);
             } else {
                 holder = (EntryHolderParent) convertView.getTag();

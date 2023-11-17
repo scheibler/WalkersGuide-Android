@@ -94,7 +94,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
     @Override public void onPrepareMenu(@NonNull Menu menu) {
         MenuItem menuItemOpenOsmWebsite = menu.findItem(R.id.menuItemOpenOsmWebsite);
         menuItemOpenOsmWebsite.setVisible(
-                point != null && point.getOsmId() != null);
+                point != null && point.hasOsmId());
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
@@ -672,7 +672,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                         new TextViewBuilder(
                                 PointDetailsFragment.this.getContext(),
                                 String.format(
-                                    "%1$s: %2$s",
+                                    "%1$s:\n%2$s",
                                     getResources().getString(R.string.labelSegmentFootwayDescription),
                                     point.getDescription()))
                             .create()
@@ -703,18 +703,6 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                         );
             }
 
-            if (point.getNote() != null) {
-                layoutAttributes.addView(
-                        new TextViewBuilder(
-                                PointDetailsFragment.this.getContext(),
-                                String.format(
-                                    "%1$s: %2$s",
-                                    getResources().getString(R.string.labelPointNote),
-                                    point.getNote()))
-                            .create()
-                        );
-            }
-
             if (point.getWikidataUrl() != null) {
                 TextView labelWikidataUrl = new TextViewBuilder(
                         PointDetailsFragment.this.getContext(),
@@ -731,6 +719,18 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                     }
                 });
                 layoutAttributes.addView(labelWikidataUrl);
+            }
+
+            if (point.getNote() != null) {
+                layoutAttributes.addView(
+                        new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s:\n%2$s",
+                                    getResources().getString(R.string.labelPointNote),
+                                    point.getNote()))
+                            .create()
+                        );
             }
         }
 

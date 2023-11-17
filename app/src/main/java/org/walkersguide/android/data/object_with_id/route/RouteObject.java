@@ -46,7 +46,7 @@ public class RouteObject implements Serializable {
         } else {
             this.segment = new RouteSegment(inputData.getJSONObject(KEY_SEGMENT));
         }
-        this.point = Point.create(inputData.getJSONObject(KEY_POINT));
+        this.point = Point.fromJson(inputData.getJSONObject(KEY_POINT));
 
         // turn
         if (this.isFirstRouteObject || this.isLastRouteObject) {

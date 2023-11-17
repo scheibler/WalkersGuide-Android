@@ -11,11 +11,12 @@
         android:padding="@dimen/activityMargin"
         android:orientation="vertical">
 
-            <org.walkersguide.android.ui.view.TextViewAndActionButton
+            <org.walkersguide.android.ui.view.ObjectWithIdView
                 android:id="@+id/layoutHomeAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:prefix="@string/labelHomeAddress" />
+                app:prefix="@string/labelHomeAddress"
+                app:compact="true" />
 
 
         <!-- server settings -->

@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import org.walkersguide.android.data.object_with_id.point.PointWithAddressData;
 
 
 public class AddressUtility {
@@ -19,11 +20,14 @@ public class AddressUtility {
 
 
     public static StreetAddress createStreetAddressFromOSM(JSONObject jsonAddressData) throws JSONException {
+        String houseNumber = null, road = null, city = null;
+        String displayName = jsonAddressData.getString("display_name");
+
         StreetAddress.Builder addressBuilder = new StreetAddress.Builder(
-                jsonAddressData.getString("display_name"),
+                displayName,
                 jsonAddressData.getDouble("lat"),
                 jsonAddressData.getDouble("lon"));
-        addressBuilder.setDisplayName(jsonAddressData.getString("display_name"));
+        addressBuilder.setDisplayName(displayName);
 
         // address sub object
         JSONObject jsonAddressComponentList = jsonAddressData.getJSONObject("address");
@@ -31,11 +35,14 @@ public class AddressUtility {
         while (keysIterator.hasNext()) {
             String type = (String)keysIterator.next();
             if (type.equals("house_number")) {
-                addressBuilder.setHouseNumber(jsonAddressComponentList.getString(type));
+                houseNumber = jsonAddressComponentList.getString(type);
+                addressBuilder.setHouseNumber(houseNumber);
             } else if (type.equals("pedestrian")) {
-                addressBuilder.setRoad(jsonAddressComponentList.getString(type));
+                road = jsonAddressComponentList.getString(type);
+                addressBuilder.setRoad(road);
             } else if (type.equals("road")) {
-                addressBuilder.setRoad(jsonAddressComponentList.getString(type));
+                road = jsonAddressComponentList.getString(type);
+                addressBuilder.setRoad(road);
             } else if (type.equals("residential")) {
                 addressBuilder.setResidential(jsonAddressComponentList.getString(type));
             } else if (type.equals("suburb")) {
@@ -45,9 +52,11 @@ public class AddressUtility {
             } else if (type.equals("postcode")) {
                 addressBuilder.setZipcode(jsonAddressComponentList.getString(type));
             } else if (type.equals("village")) {
-                addressBuilder.setCity(jsonAddressComponentList.getString(type));
+                city = jsonAddressComponentList.getString(type);
+                addressBuilder.setCity(city);
             } else if (type.equals("city")) {
-                addressBuilder.setCity(jsonAddressComponentList.getString(type));
+                city = jsonAddressComponentList.getString(type);
+                addressBuilder.setCity(city);
             } else if (type.equals("state")) {
                 addressBuilder.setState(jsonAddressComponentList.getString(type));
             } else if (type.equals("country")) {
@@ -57,6 +66,13 @@ public class AddressUtility {
             } else if (type.equals(jsonAddressData.getString("type"))) {
                 addressBuilder.setExtraName(jsonAddressComponentList.getString(type));
             }
+        }
+
+        // set shorter name, if possible
+        if (road != null && city != null) {
+            addressBuilder.setName(
+                    String.format(
+                        "%1$s, %2$s", PointWithAddressData.formatRoadAndHouseNumber(road, houseNumber, null), city));
         }
 
         return addressBuilder.build();

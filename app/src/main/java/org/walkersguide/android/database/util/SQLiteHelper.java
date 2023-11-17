@@ -28,6 +28,7 @@ import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.util.GlobalInstance;
 import java.io.File;
 import java.util.Locale;
+import android.text.TextUtils;
 
 
 public class SQLiteHelper extends SQLiteOpenHelper {
@@ -47,11 +48,11 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     // objects table
     public static final String TABLE_OBJECTS = SQLiteHelper.V10_TABLE_OBJECTS;
     public static final String OBJECTS_ID = SQLiteHelper.V10_OBJECTS_ID;
-    public static final String OBJECTS_CLASS = SQLiteHelper.V10_OBJECTS_TYPE;
     public static final String OBJECTS_DATA = SQLiteHelper.V10_OBJECTS_DATA;
     public static final String OBJECTS_CUSTOM_NAME = SQLiteHelper.V10_OBJECTS_CUSTOM_NAME;
+    public static final String OBJECTS_USER_ANNOTATION = SQLiteHelper.V12_OBJECTS_USER_ANNOTATION;
     public static final String[] TABLE_OBJECTS_ALL_COLUMNS = {
-        OBJECTS_ID, OBJECTS_CLASS, OBJECTS_DATA, OBJECTS_CUSTOM_NAME
+        OBJECTS_ID, OBJECTS_DATA, OBJECTS_CUSTOM_NAME, OBJECTS_USER_ANNOTATION
     };
 
     // collection table
@@ -95,7 +96,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
     @Override public void onCreate(SQLiteDatabase database) {
-        database.execSQL(V10_CREATE_TABLE_OBJECTS);
+        database.execSQL(V12_CREATE_TABLE_OBJECTS);
         database.execSQL(V10_CREATE_TABLE_MAPPING);
         createV12CollectionsTable(database);
         createV12PoiProfileTable(database);
@@ -233,6 +234,20 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         + V10_POI_PROFILE_CATEGORY_ID_LIST + " TEXT NOT NULL, "
         + V10_POI_PROFILE_INCLUDE_FAVORITES + " INTEGER NOT NULL);";
 
+    public static long createDatabaseV10RouteId(JSONArray jsonRouteObjectList) throws JSONException {
+        final int prime = 31;
+        int result = jsonRouteObjectList.length();
+        for (int i=1; i<jsonRouteObjectList.length(); i++) {
+            // start at index '1' is intentional, route object at '0' has no segment
+            int distance = jsonRouteObjectList
+                .getJSONObject(i)
+                .getJSONObject("segment")
+                .getInt("distance");
+            result = ((prime * result) + distance) % (Integer.MAX_VALUE - 1);
+        }
+        return ObjectWithId.FIRST_LOCAL_ID + result;
+    }
+
     private void configureDbVersion10(SQLiteDatabase database) {
         ArrayList<ContentValues> mappingTableValuesList = new ArrayList<ContentValues>();
         ContentValues mappingTableValues = null;
@@ -261,7 +276,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()) {
             try {
                 // point data
-                JSONObject jsonPointData = Point.addNodeIdToJsonObject(
+                JSONObject jsonPointData = addNodeIdToJsonObject(
                         new JSONObject(cursor.getString(cursor.getColumnIndexOrThrow("data"))));
                 // point ids
                 long oldPointId = cursor.getLong(cursor.getColumnIndexOrThrow("_id"));
@@ -317,7 +332,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()) {
             try {
                 // segment data
-                JSONObject jsonSegmentData = Segment.addWayIdToJsonObject(
+                JSONObject jsonSegmentData = addWayIdToJsonObject(
                         new JSONObject(cursor.getString(cursor.getColumnIndexOrThrow("data"))));
                 // new segment id
                 long newSegmentId = jsonSegmentData.getLong("way_id");
@@ -358,7 +373,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 "route", oldRouteColumns, null, null, null, null, "_id ASC");
         while (cursor.moveToNext()) {
             try {
-                JSONObject jsonV10Route = Route.convertRouteFromWebserverApiV4ToV5(
+                JSONObject jsonV10Route = convertRouteFromWebserverApiV4ToV5(
                         new JSONObject(
                             cursor.getString(cursor.getColumnIndexOrThrow("start"))),
                         new JSONObject(
@@ -446,10 +461,94 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         database.execSQL(buildDropTableQuery("poi_profile"));
     }
 
+    private static JSONObject convertRouteFromWebserverApiV4ToV5(
+            JSONObject jsonStartPoint, JSONObject jsonDestinationPoint, JSONArray jsonViaPointList,
+            String description, JSONArray jsonOldRouteObjectList) throws JSONException {
+        JSONObject jsonRoute = new JSONObject();
+
+        jsonRoute.put(
+                "start_point", addNodeIdToJsonObject(jsonStartPoint));
+        jsonRoute.put(
+                "destination_point", addNodeIdToJsonObject(jsonDestinationPoint));
+        if (jsonViaPointList != null) {
+            if (jsonViaPointList.length() > 0) {
+                jsonRoute.put(
+                        "via_point_1", addNodeIdToJsonObject(jsonViaPointList.getJSONObject(0)));
+            }
+            if (jsonViaPointList.length() > 1) {
+                jsonRoute.put(
+                        "via_point_2", addNodeIdToJsonObject(jsonViaPointList.getJSONObject(1)));
+            }
+            if (jsonViaPointList.length() > 2) {
+                jsonRoute.put(
+                        "via_point_3", addNodeIdToJsonObject(jsonViaPointList.getJSONObject(2)));
+            }
+        }
+
+        JSONArray jsonRouteObjectList = new JSONArray();
+        for (int i=0; i<jsonOldRouteObjectList.length(); i++) {
+            boolean isFirstRouteObject = i == 0 ? true : false;
+            boolean isLastRouteObject = i == (jsonOldRouteObjectList.length() - 1) ? true : false;
+
+            JSONObject jsonRouteObject = new JSONObject();
+            jsonRouteObject.put("is_first_route_object", isFirstRouteObject);
+            jsonRouteObject.put("is_last_route_object", isLastRouteObject);
+
+            // segment
+            if (! isFirstRouteObject) {
+                JSONObject jsonSegment = addWayIdToJsonObject(
+                        jsonOldRouteObjectList.getJSONObject(i).getJSONObject("segment"));
+                jsonRouteObject.put("segment", jsonSegment);
+            }
+
+            // point
+            JSONObject jsonPoint = addNodeIdToJsonObject(
+                    jsonOldRouteObjectList.getJSONObject(i).getJSONObject("point"));
+            // extract turn value
+            if (! isFirstRouteObject && ! isLastRouteObject) {
+                jsonRouteObject.put("turn", jsonPoint.getInt("turn"));
+            }
+            // cleanup point
+            jsonPoint.remove("turn");
+            // add
+            jsonRouteObject.put("point", jsonPoint);
+
+            jsonRouteObjectList.put(jsonRouteObject);
+        }
+        jsonRoute.put("instructions", jsonRouteObjectList);
+
+        jsonRoute.put("route_id", createDatabaseV10RouteId(jsonRouteObjectList));
+        jsonRoute.put("description", description);
+        return jsonRoute;
+    }
+
+    private static JSONObject addNodeIdToJsonObject(JSONObject jsonPoint) throws JSONException {
+        if (jsonPoint.isNull("node_id")) {
+            jsonPoint.put("node_id", ObjectWithId.generateId());
+        }
+        return jsonPoint;
+    }
+
+    private static JSONObject addWayIdToJsonObject(JSONObject jsonSegment) throws JSONException {
+        if (jsonSegment.isNull("way_id")) {
+            jsonSegment.put("way_id", ObjectWithId.generateId());
+        }
+        return jsonSegment;
+    }
+
 
     /*
      * db version >= 12
      */
+
+    // objects table
+    private static final String V12_OBJECTS_USER_ANNOTATION = "userAnnotation";
+    private static final String V12_CREATE_TABLE_OBJECTS =
+          "CREATE TABLE IF NOT EXISTS " + V10_TABLE_OBJECTS + "( "
+        + V10_OBJECTS_ID + " INTEGER PRIMARY KEY, "
+        + V10_OBJECTS_DATA + " TEXT NOT NULL, "
+        + V10_OBJECTS_CUSTOM_NAME + " TEXT DEFAULT '', "
+        + V12_OBJECTS_USER_ANNOTATION + " TEXT DEFAULT '');";
 
     // collections table
     private static final String V12_TABLE_COLLECTION = "collection";
@@ -537,6 +636,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         database.execSQL(
                 "UPDATE mapping SET profile_id = 89 WHERE profile_id = 5502500;");
 
+        // collections table
+
         // create collections table
         createV12CollectionsTable(database);
 
@@ -556,6 +657,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             database.execSQL(
                     "UPDATE mapping SET profile_id = " + favoritesCollectionId + " WHERE profile_id = 5000000;");
         }
+
+        // poi profile table
 
         // create new poi profile table
         createV12PoiProfileTable(database);
@@ -582,6 +685,114 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         // delete old poi profile table
         database.execSQL(buildDropTableQuery("poi_profiles"));
+
+        // objects table
+
+        // recreate objects table without type but with userAnnotation column
+        // rename old
+        database.execSQL("ALTER TABLE objects RENAME TO objects_old");
+        // create new
+        database.execSQL(V12_CREATE_TABLE_OBJECTS);
+
+        // copy
+        int total=0, invalidType=0, ncName=0, error=0, pmType=0, smType=0, rmType=0, pmName=0, smName=0, rmName=0;
+        Cursor objectsCursor = database.query(
+                "objects_old",
+                new String[]{V10_OBJECTS_ID, V10_OBJECTS_TYPE, V10_OBJECTS_DATA, V10_OBJECTS_CUSTOM_NAME},
+                null, null, null, null, V10_OBJECTS_ID + " ASC");
+        while (objectsCursor.moveToNext()) {
+            try {
+
+                ContentValues objectValues = new ContentValues();
+                objectValues.put(
+                        V10_OBJECTS_ID,
+                        objectsCursor.getLong(
+                            objectsCursor.getColumnIndexOrThrow(V10_OBJECTS_ID)));
+
+                int objectType = objectsCursor.getInt(
+                        objectsCursor.getColumnIndexOrThrow(V10_OBJECTS_TYPE));
+                if (objectType < 1 || objectType > 3) {
+                    invalidType++;
+                    continue;
+                }
+
+                JSONObject objectData = new JSONObject(
+                        objectsCursor.getString(
+                            objectsCursor.getColumnIndexOrThrow(V10_OBJECTS_DATA)));
+                // missing key "type" in json data
+                if (objectData.isNull("type")) {
+                    switch (objectType) {
+                        case 1:     // point
+                            objectData.put("type", "point");
+                            pmType++;
+                            break;
+                        case 2:     // segment
+                            objectData.put("type", "segment");
+                            smType++;
+                            break;
+                        case 3:     // route
+                            objectData.put("type", "p2p_route");
+                            rmType++;
+                            break;
+                    }
+                }
+                // missing key "name" in json data
+                if (objectData.isNull("name")) {
+                    switch (objectType) {
+                        case 1:     // point
+                            objectData.put(
+                                    "name",
+                                    String.format(
+                                        Locale.getDefault(),
+                                        "%1$.3f, %2$.3f",
+                                        objectData.getDouble("lat"),
+                                        objectData.getDouble("lon"))
+                                    );
+                            pmName++;
+                            break;
+                        case 2:     // segment
+                            objectData.put("name", "Segment");
+                            smName++;
+                            break;
+                        case 3:     // route
+                            objectData.put(
+                                    "name",
+                                    String.format(
+                                        "%1$s: %2$s\n%3$s: %4$s",
+                                        GlobalInstance.getStringResource(R.string.labelPrefixStart),
+                                        objectData.getJSONObject("start_point").getString("name"),
+                                        GlobalInstance.getStringResource(R.string.labelPrefixDestination),
+                                        objectData.getJSONObject("destination_point").getString("name"))
+                                    );
+                            rmName++;
+                            break;
+                    }
+                }
+                objectValues.put(V10_OBJECTS_DATA, objectData.toString());
+
+                // custom name
+                String objectCustomName = objectsCursor.getString(
+                        objectsCursor.getColumnIndexOrThrow(V10_OBJECTS_CUSTOM_NAME));
+                if (! TextUtils.isEmpty(objectCustomName)) {
+                    ncName++;
+                    objectValues.put(V10_OBJECTS_CUSTOM_NAME, objectCustomName);
+                }
+
+                database.insertWithOnConflict(
+                        V10_TABLE_OBJECTS, null, objectValues, SQLiteDatabase.CONFLICT_REPLACE);
+                total++;
+            } catch (IllegalArgumentException | JSONException e) {
+                Timber.e("V12, fill objects table without type but with userAnnotation column: %1$s", e.getMessage());
+                error++;
+            }
+        }
+        objectsCursor.close();
+        Timber.d("total=%1$d, invalidType=%2$d, restoredCustomNames=%3$d, error=%4$d", total, invalidType, ncName, error);
+        Timber.d("missing type: point=%1$d, segment=%2$d, route=%3$d", pmType, smType, rmType);
+        Timber.d("missing name: point=%1$d, segment=%2$d, route=%3$d", pmName, smName, rmName);
+
+        // delete old objects table
+        database.execSQL(buildDropTableQuery("objects_old"));
     }
 
     private void createV12CollectionsTable(SQLiteDatabase database) {

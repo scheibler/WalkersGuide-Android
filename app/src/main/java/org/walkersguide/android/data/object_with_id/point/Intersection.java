@@ -1,5 +1,7 @@
 package org.walkersguide.android.data.object_with_id.point;
 
+import org.walkersguide.android.util.Helper;
+import android.location.Location;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -9,10 +11,13 @@ import org.json.JSONObject;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.R;
 import java.io.Serializable;
-import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Point;
 import android.text.TextUtils;
+import androidx.core.util.Pair;
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.data.angle.RelativeBearing;
+import org.walkersguide.android.data.object_with_id.Segment;
 
 
 public class Intersection extends Point implements Serializable {
@@ -27,7 +32,9 @@ public class Intersection extends Point implements Serializable {
 
         // way segment list
         this.segmentList = new ArrayList<IntersectionSegment>();
-        JSONArray jsonIntersectionSegmentList = inputData.getJSONArray(KEY_WAY_LIST);
+        JSONArray jsonIntersectionSegmentList = getJsonIntersectionSegmentListWithStartAndEndCoordinates(
+                inputData.getJSONArray(KEY_WAY_LIST),
+                super.getLocationObject());
         for (int j=0; j<jsonIntersectionSegmentList.length(); j++) {
             JSONObject jsonIntersectionSegment = jsonIntersectionSegmentList.getJSONObject(j);
             // include intersection node id, if not already present
@@ -63,6 +70,26 @@ public class Intersection extends Point implements Serializable {
         return this.segmentList;
     }
 
+    public IntersectionSegment findMatchingIntersectionSegmentFor(long nextNodeId) {
+        for (IntersectionSegment intersectionSegment : this.segmentList) {
+            if (nextNodeId == intersectionSegment.getNextNodeId()) {
+                return intersectionSegment;
+            }
+        }
+        return null;
+    }
+
+    public IntersectionSegment findClosestIntersectionSegmentTo(Bearing bearing, int threshold) {
+        Pair<IntersectionSegment,Integer> closest = null;
+        for (IntersectionSegment intersectionSegment : this.segmentList) {
+            int difference = intersectionSegment.getBearing().differenceTo(bearing);
+            if (closest == null || closest.second > difference) {
+                closest = Pair.create(intersectionSegment, difference);
+            }
+        }
+        return closest.second <= threshold ? closest.first : null;
+    }
+
     public ArrayList<PedestrianCrossing> getPedestrianCrossingList() {
         return this.pedestrianCrossingList;
     }
@@ -72,7 +99,9 @@ public class Intersection extends Point implements Serializable {
     }
 
     public boolean isImportant() {
-        return this.numberOfStreetsWithName > 1;
+        return this.numberOfStreetsWithName != null
+            ? this.numberOfStreetsWithName > 1
+            : false;
     }
 
     public String formatNumberOfStreets() {
@@ -144,6 +173,46 @@ public class Intersection extends Point implements Serializable {
         }
 
         return jsonObject;
+    }
+
+
+    private static JSONArray getJsonIntersectionSegmentListWithStartAndEndCoordinates(
+            JSONArray jsonIntersectionSegmentList, Location intersectionLocation) throws JSONException {
+        JSONArray newJsonIntersectionSegmentList = new JSONArray();
+
+        for (int j=0; j<jsonIntersectionSegmentList.length(); j++) {
+            JSONObject jsonIntersectionSegment = jsonIntersectionSegmentList.getJSONObject(j);
+
+            Location startLocation = null, endLocation = null;
+            try {
+                startLocation = Segment.getLocationFromJsonObject(
+                        jsonIntersectionSegment, Segment.KEY_START);
+                endLocation = Segment.getLocationFromJsonObject(
+                        jsonIntersectionSegment, Segment.KEY_END);
+            } catch (JSONException e) {}
+
+            if (startLocation == null || endLocation == null) {
+                startLocation = intersectionLocation;
+                if (startLocation == null) {
+                    throw new JSONException("intersectionLocation is null");
+                }
+                jsonIntersectionSegment.put(
+                        Segment.KEY_START, Segment.putLocationToJsonObject(startLocation));
+
+                endLocation = Helper.calculateEndLocationForStartLocationAndAngle(
+                        startLocation,
+                        new Bearing(jsonIntersectionSegment.getInt(Segment.KEY_BEARING)));
+                if (endLocation == null) {
+                    throw new JSONException("Could not calculate end coordinates from bearing");
+                }
+                jsonIntersectionSegment.put(
+                        Segment.KEY_END, Segment.putLocationToJsonObject(endLocation));
+            }
+
+            newJsonIntersectionSegmentList.put(jsonIntersectionSegment);
+        }
+
+        return newJsonIntersectionSegmentList;
     }
 
 }

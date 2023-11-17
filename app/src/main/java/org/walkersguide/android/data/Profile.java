@@ -3,17 +3,32 @@ package org.walkersguide.android.data;
 import org.walkersguide.android.R;
 import java.io.Serializable;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.database.util.SQLiteHelper;
+import org.walkersguide.android.database.profile.Collection;
+import org.walkersguide.android.server.wg.poi.PoiProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public abstract class Profile implements Comparable<Profile>, Serializable {
     private static final long serialVersionUID = 1l;
 
-    public static final int LAST_STATIC_PROFILE_ID = 49;
     // id ranges
     // StaticProfile: 10 <= ID <= 39
     // HistoryProfile: 40 <= ID <= 99
     // PoiProfile: 100 <= ID <= 999999
     // Collection: 1000000 <= ID <= 9999999
+
+    public static Profile load(long id) {
+        if (id >= SQLiteHelper.TABLE_COLLECTION_FIRST_ID
+                && id <= SQLiteHelper.TABLE_COLLECTION_LAST_ID) {
+            return Collection.load(id);
+        } else if (id >= SQLiteHelper.TABLE_POI_PROFILE_FIRST_ID
+                && id <= SQLiteHelper.TABLE_POI_PROFILE_LAST_ID) {
+            return PoiProfile.load(id);
+        } else {
+            return StaticProfile.load(id);
+        }
+    }
 
 
     public enum Icon {

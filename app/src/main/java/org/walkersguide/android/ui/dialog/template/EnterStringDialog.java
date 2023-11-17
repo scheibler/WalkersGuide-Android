@@ -21,6 +21,7 @@ import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public abstract class EnterStringDialog extends DialogFragment {
@@ -35,7 +36,7 @@ public abstract class EnterStringDialog extends DialogFragment {
         this.dialogTitle = dialogTitle;
     }
 
-    private String positiveButtonText = getResources().getString(R.string.dialogOK);
+    private String positiveButtonText = GlobalInstance.getStringResource(R.string.dialogOK);
     public void setPositiveButtonText(String positiveButtonText) {
         this.positiveButtonText = positiveButtonText;
     }
@@ -122,7 +123,8 @@ public abstract class EnterStringDialog extends DialogFragment {
 
     private void checkInput() {
         String input = layoutInput.getInputText();
-        if (TextUtils.isEmpty(input)) {
+        if (TextUtils.isEmpty(input)
+                && ! TextUtils.isEmpty(missingInputMessage)) {
             Toast.makeText(
                     getActivity(),
                     missingInputMessage,

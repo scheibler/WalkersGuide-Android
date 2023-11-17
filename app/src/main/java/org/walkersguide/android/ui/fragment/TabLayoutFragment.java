@@ -56,6 +56,15 @@ public abstract class TabLayoutFragment extends RootFragment {
     private TabLayout tabLayout;
     private Enum<?> selectedTab;
 
+	@Override public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            selectedTab = (Enum<?>) savedInstanceState.getSerializable(KEY_SELECTED_TAB);
+        } else if (getArguments() != null) {
+            selectedTab = (Enum<?>) getArguments().getSerializable(KEY_SELECTED_TAB);
+        }
+    }
+
     @Override public String getTitle() {
         AbstractTabAdapter adapter = (AbstractTabAdapter) viewPager.getAdapter();
         if (adapter != null && this.selectedTab != null) {
@@ -90,12 +99,6 @@ public abstract class TabLayoutFragment extends RootFragment {
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
             @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
-
-        if (savedInstanceState != null) {
-            selectedTab = (Enum<?>) savedInstanceState.getSerializable(KEY_SELECTED_TAB);
-        } else if (getArguments() != null) {
-            selectedTab = (Enum<?>) getArguments().getSerializable(KEY_SELECTED_TAB);
-        }
 
         return view;
     }

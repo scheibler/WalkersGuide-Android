@@ -20,7 +20,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import android.text.TextUtils;
 import android.text.InputType;
@@ -42,6 +41,9 @@ import org.walkersguide.android.server.ServerUtility;
 import org.json.JSONObject;
 import java.net.URLDecoder;
 import java.io.UnsupportedEncodingException;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
+import org.walkersguide.android.data.object_with_id.Point;
 
 public class PointFromCoordinatesLinkDialog extends DialogFragment {
     public static final String REQUEST_FROM_COORDINATES_LINK = "fromCoordinatesLink";
@@ -59,7 +61,7 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
     // dialog
     private static final String KEY_LINK_URL = "linkUrl";
 
-    private EditTextAndClearInputButton layoutLinkUrl;
+    private EditTextAndClearInputButton layoutLinkUrl, layoutOptionalName;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         String linkUrl;
@@ -81,11 +83,27 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
             }
         }
 
-        layoutLinkUrl = new EditTextAndClearInputButton(getActivity());
+        // custom view
+        final ViewGroup nullParent = null;
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_point_from_coordinates_link, nullParent);
+
+        layoutLinkUrl = (EditTextAndClearInputButton) view.findViewById(R.id.layoutLinkUrl);
         layoutLinkUrl.setHint(getResources().getString(R.string.editHintMapLinkURL));
         layoutLinkUrl.setInputText(linkUrl);
         layoutLinkUrl.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
         layoutLinkUrl.setEditorAction(
+                EditorInfo.IME_ACTION_NEXT,
+                new EditTextAndClearInputButton.OnSelectedActionClickListener() {
+                    @Override public void onSelectedActionClicked() {
+                        layoutOptionalName.requestFocus();
+                    }
+                });
+
+        layoutOptionalName = (EditTextAndClearInputButton) view.findViewById(R.id.layoutOptionalName);
+        layoutOptionalName.setLabelText(
+                getResources().getString(R.string.labelOptionalName));
+        layoutOptionalName.setEditorAction(
                 EditorInfo.IME_ACTION_DONE,
                 new EditTextAndClearInputButton.OnSelectedActionClickListener() {
                     @Override public void onSelectedActionClicked() {
@@ -96,7 +114,7 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
         // create dialog
         return new AlertDialog.Builder(getActivity())
             .setTitle(getResources().getString(R.string.pointFromCoordinatesLinkDialogTitle))
-            .setView(layoutLinkUrl)
+            .setView(view)
             .setPositiveButton(
                 getResources().getString(R.string.dialogOK),
                 new DialogInterface.OnClickListener() {
@@ -305,12 +323,14 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
     }
 
     private void createPointAndDismissDialogOrShowErrorMessage(double latitude, double longitude) {
-        GPS extractedCoordinates = null;
+        Point extractedCoordinates = null;
         try {
-            extractedCoordinates = new GPS.Builder(latitude, longitude).build();
+            extractedCoordinates = new Point.Builder(
+                    Point.Type.POINT, layoutOptionalName.getInputText(), latitude, longitude)
+                .build();
         } catch (JSONException e) {}
         if (extractedCoordinates != null
-                && HistoryProfile.allPoints().add(extractedCoordinates)) {
+                && HistoryProfile.allPoints().addObject(extractedCoordinates)) {
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, extractedCoordinates);
             getParentFragmentManager().setFragmentResult(REQUEST_FROM_COORDINATES_LINK, result);

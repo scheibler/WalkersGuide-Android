@@ -127,7 +127,7 @@ public class HistoryFragment extends RootFragment {
             if (convertView == null) {
                 holder = new EntryHolderParent();
                 convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_heading, parent, false);
-                holder.label = (TextView) convertView.findViewById(R.id.label);
+                holder.label = (TextView) convertView.findViewById(R.id.labelHeading);
                 convertView.setTag(holder);
             } else {
                 holder = (EntryHolderParent) convertView.getTag();
@@ -159,7 +159,7 @@ public class HistoryFragment extends RootFragment {
             } else {
                 layoutHistoryProfile = (ProfileView) convertView;
             }
-            layoutHistoryProfile.configure(getChild(groupPosition, childPosition), false, false);
+            layoutHistoryProfile.configureAsListItem(getChild(groupPosition, childPosition), false, false);
             return layoutHistoryProfile;
         }
 

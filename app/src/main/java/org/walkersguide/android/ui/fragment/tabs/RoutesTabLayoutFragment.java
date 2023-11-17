@@ -86,7 +86,8 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
             if (tab != null) {
                 switch (tab) {
                     case ROUTER:
-                        return RouterFragment.newInstance();
+                        return RouterFragment.newInstance(
+                                SettingsManager.getInstance().getLastSelectedRoute(), true);
                     case RECORD:
                         return RecordRouteFragment.newInstance();
                 }

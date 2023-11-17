@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.routes;
 
+import android.view.accessibility.AccessibilityEvent;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.dialog.template.EnterStringDialog;
 import android.content.IntentFilter;
@@ -88,6 +89,12 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
+        } else {
+            listPosition = 0;
+        }
+
         getChildFragmentManager()
             .setFragmentResultListener(
                     SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION, this, this);
@@ -113,11 +120,6 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
-        if (savedInstanceState != null) {
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            listPosition = 0;
-        }
 
         // recorded routes
 
@@ -174,7 +176,7 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
                 .beginTransaction()
                 .replace(
                         R.id.fragmentContainerRecordedRouteList,
-                        ObjectListFromDatabaseFragment.createFragment(StaticProfile.recordedRoutes()),
+                        ObjectListFromDatabaseFragment.newInstance(StaticProfile.recordedRoutes()),
                         tag)
                 .commit();
         }
@@ -347,6 +349,7 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
 
                         default:
                             setRecordRouteUiToDefaults();
+                            buttonStartRouteRecording.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
                             ViewChangedListener.sendObjectWithIdListChangedBroadcast();
                     }
                 }

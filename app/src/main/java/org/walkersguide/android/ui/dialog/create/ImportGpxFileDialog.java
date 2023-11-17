@@ -1,10 +1,10 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import androidx.core.view.ViewCompat;
 import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
 import org.walkersguide.android.database.profile.Collection;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import org.walkersguide.android.ui.view.ProfileView;
-import androidx.appcompat.widget.SwitchCompat;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.ui.UiHelper;
@@ -62,25 +62,35 @@ import org.walkersguide.android.data.ObjectWithId;
 import android.widget.RadioButton;
 import org.walkersguide.android.data.Profile;
 import android.widget.CompoundButton;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.walkersguide.android.util.Helper;
 
 
 public class ImportGpxFileDialog extends DialogFragment implements FragmentResultListener {
     public static final String REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL = "requestImportOfGpxFileWasSuccessful";
+    public static final String EXTRA_GPX_FILE_PROFILE = "gpxFileProfile";
 
 
     // instance constructors
 
-    public static ImportGpxFileDialog newInstance() {
+    public static ImportGpxFileDialog newInstance(boolean isPinned) {
         ImportGpxFileDialog dialog = new ImportGpxFileDialog();
+        Bundle args = new Bundle();
+        args.putBoolean(KEY_IS_PINNED, isPinned);
+        dialog.setArguments(args);
         return dialog;
     }
 
     // dialog
+    private static final String KEY_IS_PINNED = "isPinned";
+    private static final String KEY_FILE_PICKING_IN_PROGRESS = "filePickingInProgress";
     private static final String KEY_GPX_FILE_NAME = "gpxFileName";
     private static final String KEY_OBJECT_LIST = "objectList";
     private static final String KEY_RADIO_BUTTON_NEW_COLLECTION_IS_CHECKED = "radioButtonNewCollectionIsChecked";
     private static final String KEY_SELECTED_EXISTING_DATABASE_PROFILE = "selectedExistingDatabaseProfile";
 
+    private boolean isPinned, filePickingInProgress;
     private String gpxFileName;
     private ArrayList<ObjectWithId> objectList;
     private boolean radioButtonNewCollectionIsChecked;
@@ -89,7 +99,6 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
     // new collection
     private RadioButton radioButtonNewCollection;
     private EditTextAndClearInputButton layoutNewCollectionName;
-    private SwitchCompat switchPinNewCollection;
     // add to existing DatabaseProfile
     private RadioButton radioButtonExistingDatabaseProfile;
     private ProfileView layoutExistingDatabaseProfile;
@@ -121,12 +130,15 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+        isPinned = getArguments().getBoolean(KEY_IS_PINNED);
 
         if (savedInstanceState != null) {
+            filePickingInProgress = savedInstanceState.getBoolean(KEY_FILE_PICKING_IN_PROGRESS);
             gpxFileName = savedInstanceState.getString(KEY_GPX_FILE_NAME);
             objectList = (ArrayList<ObjectWithId>) savedInstanceState.getSerializable(KEY_OBJECT_LIST);
             radioButtonNewCollectionIsChecked = savedInstanceState.getBoolean(KEY_RADIO_BUTTON_NEW_COLLECTION_IS_CHECKED);
         } else {
+            filePickingInProgress = false;
             gpxFileName = null;
             objectList = null;
             radioButtonNewCollectionIsChecked = true;
@@ -145,12 +157,10 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
             @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     layoutNewCollectionName.setVisibility(View.VISIBLE);
-                    switchPinNewCollection.setVisibility(View.VISIBLE);
                     // uncheck existing profile radio button
                     radioButtonExistingDatabaseProfile.setChecked(false);
                 } else {
                     layoutNewCollectionName.setVisibility(View.GONE);
-                    switchPinNewCollection.setVisibility(View.GONE);
                 }
                 radioButtonNewCollectionIsChecked = isChecked;
             }
@@ -166,8 +176,6 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                         execute();
                     }
                 });
-
-        switchPinNewCollection = (SwitchCompat) view.findViewById(R.id.switchPinNewCollection);
 
         // existing database profile
         radioButtonExistingDatabaseProfile = (RadioButton) view.findViewById(R.id.radioButtonExistingDatabaseProfile);
@@ -198,7 +206,10 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
-            .setTitle(getResources().getString(R.string.importGpxFileDialogTitle))
+            .setTitle(
+                    isPinned
+                    ? getResources().getString(R.string.importGpxFileDialogTitlePinned)
+                    : getResources().getString(R.string.importGpxFileDialogTitle))
             .setView(view)
             .setPositiveButton(
                     getResources().getString(R.string.dialogOK),
@@ -237,11 +248,14 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
             });
 
             if (gpxFileName == null) {
+                if (filePickingInProgress) {
+                    return;
+                }
+
                 labelImportResult.setText(
                         getResources().getString(R.string.labelSelectGpxFile));
                 radioButtonNewCollection.setVisibility(View.GONE);
                 layoutNewCollectionName.setVisibility(View.GONE);
-                switchPinNewCollection.setVisibility(View.GONE);
                 radioButtonExistingDatabaseProfile.setVisibility(View.GONE);
                 layoutExistingDatabaseProfile.setVisibility(View.GONE);
                 buttonPositive.setVisibility(View.GONE);
@@ -250,6 +264,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("application/*");
                 startActivityForResult(intent, RC_SELECT_GPX_FILE);
+                filePickingInProgress = true;
 
             } else {
                 updateUI();
@@ -259,6 +274,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(KEY_FILE_PICKING_IN_PROGRESS, this.filePickingInProgress);
         if (this.gpxFileName != null) {
             savedInstanceState.putString(KEY_GPX_FILE_NAME, this.gpxFileName);
         }
@@ -283,13 +299,17 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                     this.gpxFileName,
                     ObjectWithId.summarizeObjectListContents(this.objectList))
                 );
+        ViewCompat.setAccessibilityLiveRegion(
+                labelImportResult, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
 
-        radioButtonNewCollection.setVisibility(View.VISIBLE);
-        radioButtonExistingDatabaseProfile.setVisibility(View.VISIBLE);
         if (radioButtonNewCollectionIsChecked) {
             radioButtonNewCollection.setChecked(true);
         } else {
             radioButtonExistingDatabaseProfile.setChecked(true);
+        }
+        if (! isPinned) {
+            radioButtonNewCollection.setVisibility(View.VISIBLE);
+            radioButtonExistingDatabaseProfile.setVisibility(View.VISIBLE);
         }
 
         final AlertDialog dialog = (AlertDialog)getDialog();
@@ -299,7 +319,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
     }
 
     private void setSelectedExistingDatabaseProfile(DatabaseProfile profile) {
-        layoutExistingDatabaseProfile.configure(profile, false, false);
+        layoutExistingDatabaseProfile.configureAsSingleObject(profile);
     }
 
     private void execute() {
@@ -321,8 +341,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 return;
             }
 
-            profileToAddObjectsTo = Collection.create(
-                    newCollectionName, switchPinNewCollection.isChecked());
+            profileToAddObjectsTo = Collection.create(newCollectionName, isPinned);
             if (profileToAddObjectsTo == null) {
                 Toast.makeText(
                         getActivity(),
@@ -346,12 +365,11 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                     .show();
                 return;
             }
-
-            for (ObjectWithId objectToAdd : objectList) {
-                profileToAddObjectsTo.add(objectToAdd);
-            }
         }
 
+        for (ObjectWithId objectToAdd : objectList) {
+            profileToAddObjectsTo.addObject(objectToAdd);
+        }
         Toast.makeText(
                 getActivity(),
                 String.format(
@@ -362,6 +380,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
             .show();
 
         Bundle result = new Bundle();
+        result.putSerializable(EXTRA_GPX_FILE_PROFILE, profileToAddObjectsTo);
         getParentFragmentManager().setFragmentResult(REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, result);
         dismiss();
     }
@@ -373,9 +392,11 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
     @Override public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         super.onActivityResult(requestCode, resultCode, resultData);
+        filePickingInProgress = false;
         if (requestCode != RC_SELECT_GPX_FILE
                 || resultCode != AppCompatActivity.RESULT_OK
                 || resultData == null) {
+            dismiss();
             return;
         }
 
@@ -386,12 +407,17 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
             try {
                 final String extractedFileName = extractFileNameFrom(uri);
-                final ArrayList<ObjectWithId> extractedObjectList = parseGpxFile(uri);
+                final ArrayList<ObjectWithId> extractedObjectList = parseGpxFile(extractedFileName, uri);
+                try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {}
                 (new Handler(Looper.getMainLooper())).post(() -> {
                     if (isAdded()) {
                         this.gpxFileName = extractedFileName;
                         this.objectList = extractedObjectList;
                         this.layoutNewCollectionName.setInputText(extractedFileName);
+                        ViewCompat.setAccessibilityLiveRegion(
+                                labelImportResult, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                         updateUI();
                     }
                 });
@@ -439,7 +465,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
         return fileName;
     }
 
-    private ArrayList<ObjectWithId> parseGpxFile(Uri uri) throws GpxFileParseException {
+    private ArrayList<ObjectWithId> parseGpxFile(String extractedFileName, Uri uri) throws GpxFileParseException {
         ArrayList<ObjectWithId> objectList = new ArrayList<ObjectWithId>();
         GpxFileParseException parseException = null;
 
@@ -529,26 +555,26 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
             // create route
             // at the moment there is only this one route
-            Route route = null;
             if (pointList.isEmpty()) {
                 throw new GpxFileParseException(
                         GlobalInstance.getStringResource(R.string.messageNoGpxTracksFound));
             }
-            try {
-                route = Route.fromPointList(pointList, false);
-            } catch (JSONException e) {
-                throw new GpxFileParseException(
-                            GlobalInstance.getStringResource(R.string.messageGpxRouteParsingFailed));
-            }
 
-            // overwrite route name
+            // route name
+            String routeName;
             if (! TextUtils.isEmpty(trackName)) {
-                route.rename(trackName);
+                routeName = trackName;
             } else if (! TextUtils.isEmpty(metadataName)) {
-                route.rename(metadataName);
+                routeName = metadataName;
+            } else {
+                routeName = String.format(
+                        "%1$s: %2$s",
+                        extractedFileName,
+                        GlobalInstance.getPluralResource(R.plurals.route, 1));
             }
 
-            objectList.add(route);
+            objectList.add(
+                    Route.fromPointList(Route.Type.GPX_TRACK, routeName, pointList));
 
         } catch (GpxFileParseException e) {
             Timber.e("GpxFileParseException: %1$s", e.getMessage());
@@ -557,6 +583,9 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
             Timber.e("IOException: %1$s", e.getMessage());
             parseException = new GpxFileParseException(
                     GlobalInstance.getStringResource(R.string.messageOpenGpxFileFailed));
+        } catch (JSONException e) {
+            parseException = new GpxFileParseException(
+                    GlobalInstance.getStringResource(R.string.messageGpxRouteParsingFailed));
         } catch (XmlPullParserException e) {
             Timber.e("XmlPullParserException: %1$s", e.getMessage());
             parseException = new GpxFileParseException(
@@ -576,29 +605,57 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
     }
 
     private GPS parsePoint(XmlPullParser parser, String defaultName)
-            throws XmlPullParserException, IOException, GpxFileParseException {
+            throws XmlPullParserException, IOException, JSONException, GpxFileParseException {
         GPS.Builder gpsBuilder = new GPS.Builder(
                 Double.valueOf(parser.getAttributeValue(null, "lat")),
                 Double.valueOf(parser.getAttributeValue(null, "lon")));
+        gpsBuilder.setName(defaultName);
 
-        String name = defaultName;
+        // parse optional attributes
         while (parser.nextTag() == XmlPullParser.START_TAG) {
-            if (parser.getName().equals("name")) {
+
+            if (parser.getName().equals("ele")) {
+                parser.require(XmlPullParser.START_TAG, null, "ele");
+                Double altitude = null;
+                try {
+                    altitude = Double.valueOf(
+                            parser.nextText());
+                } catch (NumberFormatException | NullPointerException e) {}
+                if (altitude != null) {
+                    gpsBuilder.setAltitude(altitude);
+                }
+                parser.require(XmlPullParser.END_TAG, null, "ele");
+
+            } else if (parser.getName().equals("name")) {
                 parser.require(XmlPullParser.START_TAG, null, "name");
-                name = parser.nextText();
+                String name = parser.nextText();
+                if (! TextUtils.isEmpty(name)) {
+                    gpsBuilder.setName(name);
+                }
                 parser.require(XmlPullParser.END_TAG, null, "name");
+
+            } else if (parser.getName().equals("desc")) {
+                parser.require(XmlPullParser.START_TAG, null, "desc");
+                String description = parser.nextText();
+                if (! TextUtils.isEmpty(description)) {
+                    gpsBuilder.setDescription(description);
+                }
+                parser.require(XmlPullParser.END_TAG, null, "desc");
+
+            } else if (parser.getName().equals("time")) {
+                parser.require(XmlPullParser.START_TAG, null, "time");
+                Date createdDate = Helper.parseTimestamp(parser.nextText());
+                if (createdDate != null) {
+                    gpsBuilder.setTime(createdDate.getTime());
+                }
+                parser.require(XmlPullParser.END_TAG, null, "time");
+
             } else {
                 skipTag(parser);
             }
         }
-        gpsBuilder.setName(name);
 
-        try {
-            return gpsBuilder.build();
-        } catch (JSONException e) {
-            throw new GpxFileParseException(
-                    GlobalInstance.getStringResource(R.string.messageGpxRoutePointParsingFailed));
-        }
+        return gpsBuilder.build();
     }
 
     private void skipTag(XmlPullParser parser) throws XmlPullParserException, IOException {

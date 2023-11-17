@@ -160,7 +160,7 @@ public class HistoryProfile extends StaticProfile implements Serializable {
 
     // add / remove object from / to profile
 
-    @Override public boolean add(ObjectWithId object) {
+    @Override public boolean addObject(ObjectWithId object) {
         HistoryProfile allObjectsProfile = null;
         if (object instanceof Point
                 && this.getId() != ID_HISTORY_ALL_POINTS) {
@@ -177,7 +177,7 @@ public class HistoryProfile extends StaticProfile implements Serializable {
                 return false;
             }
         }
-        return super.add(object);
+        return super.addObject(object);
     }
 
 }

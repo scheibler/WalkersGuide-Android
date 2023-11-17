@@ -1,9 +1,7 @@
 package org.walkersguide.android.util;
 
-
-
-
-
+import android.location.LocationManager;
+import timber.log.Timber;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -14,9 +12,118 @@ import android.os.Build;
 import android.os.VibrationEffect;
 import android.content.Context;
 import java.util.ArrayList;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.point.Intersection;
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.data.angle.Turn;
+import java.util.List;
+import android.location.Location;
+import org.walkersguide.android.data.Angle;
+import androidx.core.util.Pair;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.util.Date;
+import java.text.FieldPosition;
+import java.lang.UnsupportedOperationException;
+import java.text.ParsePosition;
 
 
 public class Helper {
+
+    public static ArrayList<Point> filterPointListByTurnValueAndImportantIntersections(ArrayList<? extends Point> pointList) {
+        ArrayList<Point> filteredPointList = new ArrayList<Point>();
+
+        // first point must always be added
+        filteredPointList.add(pointList.get(0));
+
+        for (int i=1; i<pointList.size()-1; i++) {
+            Point previous = filteredPointList.get(filteredPointList.size()-1);
+            Point current = pointList.get(i);
+            Point next = pointList.get(i+1);
+
+            // get bearings between segments
+            Bearing bearingFromPreviousToCurrent = previous.bearingTo(current);
+            Bearing bearingFromCurrentToNext = current.bearingTo(next);
+
+            // calculate turn between these two segments
+            Turn turn = bearingFromPreviousToCurrent.turnTo(bearingFromCurrentToNext);
+
+            // current is an important intersection
+            boolean isImportantIntersection = false;
+            if (current instanceof Intersection) {
+                isImportantIntersection = ((Intersection) current).isImportant();
+            }
+            Timber.d("%1$s - %2$s = %3$s, isImportant=%4$s", bearingFromPreviousToCurrent, bearingFromCurrentToNext, turn, isImportantIntersection);
+
+            // skip the current point, if:
+            // - it wasn't added manually
+            // - and the point is no important intersection
+            // - and turn == cross
+            if (       current.hasCustomName()      // hack to determine, if the point was added by the user
+                    || turn.getInstruction() != Turn.Instruction.CROSS
+                    || isImportantIntersection) {
+                filteredPointList.add(current);
+            }
+        }
+
+        // and the last point must always be added too
+        filteredPointList.add(pointList.get(pointList.size()-1));
+
+        return filteredPointList;
+    }
+
+
+    /**
+     * date and time
+     */
+    private static final String ISO_8601_FORMAT1 = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private static final String ISO_8601_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+    public static Date parseTimestamp(String timestamp) {
+        try {
+            return (new SimpleDateFormat(ISO_8601_FORMAT1)).parse(timestamp);
+        } catch (Exception e) {}
+        try {
+            return (new SimpleDateFormat(ISO_8601_FORMAT2)).parse(timestamp);
+        } catch (Exception e) {}
+        return null;
+    }
+
+
+    /**
+     * geometry functions
+     */
+
+    public static Pair<Float,Float> getScaledEndCoordinatesForLineWithAngle(Angle angle) {
+        float scaledX = 0.0f, scaledY = 0.0f;
+
+        if (angle.withinRange(316, 45)) {
+            scaledX = (float) Math.tan( Math.toRadians(angle.getDegree()) );
+            scaledY = 1.0f;
+        } else if (angle.withinRange(46, 135)) {
+            scaledX = 1.0f;
+            scaledY = (float) Math.tan( Math.toRadians(90-angle.getDegree()) );
+        } else if (angle.withinRange(136, 225)) {
+            scaledX = (float) Math.tan( Math.toRadians(-angle.getDegree()) );
+            scaledY = -1.0f;
+        } else if (angle.withinRange(226, 315)) {
+            scaledX = -1.0f;
+            scaledY = (float) Math.tan( Math.toRadians(angle.getDegree()-90) );
+        }
+
+        return Pair.create(scaledX, scaledY);
+    }
+
+    public static Location calculateEndLocationForStartLocationAndAngle(Location startLocation, Angle angle) {
+        Pair<Float,Float> scaledEndCoordinates = getScaledEndCoordinatesForLineWithAngle(angle);
+        Location endLocation = new Location(LocationManager.GPS_PROVIDER);
+        endLocation.setLatitude(
+                startLocation.getLatitude() + (scaledEndCoordinates.second / 10000));
+        endLocation.setLongitude(
+                startLocation.getLongitude() + (scaledEndCoordinates.first / 10000));
+        return endLocation;
+    }
+
 
     /**
      * json
@@ -34,7 +141,7 @@ public class Helper {
         if (! jsonObject.isNull(key)) {
             try {
                 double doubleFromJson = jsonObject.getDouble(key);
-                if (doubleFromJson > 0) {
+                if (doubleFromJson >= 0) {
                     return doubleFromJson;
                 }
             } catch (JSONException e) {}
@@ -46,7 +153,7 @@ public class Helper {
         if (! jsonObject.isNull(key)) {
             try {
                 int integerFromJson = jsonObject.getInt(key);
-                if (integerFromJson > 0) {
+                if (integerFromJson >= 0) {
                     return integerFromJson;
                 }
             } catch (JSONException e) {}
@@ -58,7 +165,7 @@ public class Helper {
         if (! jsonObject.isNull(key)) {
             try {
                 long longFromJson = jsonObject.getLong(key);
-                if (longFromJson > 0) {
+                if (longFromJson >= 0) {
                     return longFromJson;
                 }
             } catch (JSONException e) {}
@@ -87,6 +194,19 @@ public class Helper {
         return null;
     }
 
+    public static <T extends Enum> T getEnumByNameFromJsonObject(
+            JSONObject jsonObject, String key, T[] enumValues) {
+        String name = jsonObject.optString(key, null);
+        if (name != null) {
+            for (T t : enumValues) {
+                if (t.name().equalsIgnoreCase(name)) {
+                    return t;
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * compare objects
@@ -100,7 +220,11 @@ public class Helper {
     }
 
     public static boolean compareArrayLists(ArrayList<? extends Object> list1, ArrayList<? extends Object> list2) {
-        if (list1.size() != list2.size()) {
+        if (list1 == null) {
+            return list2 == null;
+        } else if (list2 == null) {
+            return list1 == null;
+        } else if (list1.size() != list2.size()) {
             return false;
         }
         for (Object object : list1) {

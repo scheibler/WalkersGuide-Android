@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.select;
 
+import org.walkersguide.android.ui.dialog.create.ImportGpxFileDialog;
 import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
 import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.data.profile.MutableProfile;
@@ -47,10 +48,11 @@ import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.ui.fragment.ObjectListFragment;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-import timber.log.Timber;
 import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.util.SettingsManager;
 import android.widget.Toast;
+import org.walkersguide.android.ui.dialog.template.EnterStringDialog;
+import org.walkersguide.android.database.profile.Collection;
 
 
 
@@ -75,29 +77,55 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
     private static final String KEY_TARGET = "target";
 
     public enum Target {
-        ADD_TO_PINNED_PROFILES, SET_AS_TRACKED_PROFILE, SAVE_CURRENT_LOCATION, GPX_FILE_IMPORT
+        CREATE_COLLECTION, ADD_TO_PINNED_PROFILES, SET_AS_TRACKED_PROFILE, SAVE_CURRENT_LOCATION, GPX_FILE_IMPORT
     }
 
     private Target target;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    CreateEmptyCollectionDialog.REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     ProfileListFragment.REQUEST_SELECT_PROFILE, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(ProfileListFragment.REQUEST_SELECT_PROFILE)) {
+        if (requestKey.equals(CreateEmptyCollectionDialog.REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL)) {
+            profileSelected((DatabaseProfile) bundle.getSerializable(CreateEmptyCollectionDialog.EXTRA_EMPTY_COLLECTION));
+        } else if (requestKey.equals(ProfileListFragment.REQUEST_SELECT_PROFILE)) {
             profileSelected((Profile) bundle.getSerializable(ProfileListFragment.EXTRA_PROFILE));
+        } else if (requestKey.equals(ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL)) {
+            profileSelected((DatabaseProfile) bundle.getSerializable(ImportGpxFileDialog.EXTRA_GPX_FILE_PROFILE));
         }
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         target = (Target) getArguments().getSerializable(KEY_TARGET);
 
+        String dialogTitle = null;
+        switch (target) {
+            case CREATE_COLLECTION:
+                dialogTitle = getResources().getString(R.string.selectProfileFromMultipleSourcesDialogTitleCreate);
+                break;
+            case ADD_TO_PINNED_PROFILES:
+                dialogTitle = getResources().getString(R.string.selectProfileFromMultipleSourcesDialogTitlePin);
+                break;
+            case SET_AS_TRACKED_PROFILE:
+                dialogTitle = getResources().getString(R.string.selectProfileFromMultipleSourcesDialogTitleTrack);
+                break;
+            default:
+                dialogTitle = getResources().getString(R.string.selectProfileFromMultipleSourcesDialogTitle);
+        }
+
         return new AlertDialog.Builder(getActivity())
-            .setTitle(getResources().getString(R.string.selectProfileFromMultipleSourcesDialogTitle))
+            .setTitle(dialogTitle)
             .setItems(
                     new String[]{getResources().getString(R.string.messagePleaseWait)},
                     new DialogInterface.OnClickListener() {
@@ -127,17 +155,27 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
             });
 
             // fill listview
-            ArrayList<SourceAction> sourceActionList = new ArrayList<SourceAction>(
-                    Arrays.asList(SourceAction.values()));
-
-            // remove action "PINNED_PROFILE"
+            ArrayList<SourceAction> sourceActionList = new ArrayList<SourceAction>();
             switch (target) {
+                case CREATE_COLLECTION:
+                    sourceActionList.add(SourceAction.EMPTY_COLLECTION);
+                    sourceActionList.add(SourceAction.FROM_GPX_FILE);
+                    break;
                 case ADD_TO_PINNED_PROFILES:
-                    sourceActionList.remove(SourceAction.STATIC_PROFILE_PINNED_POINTS_AND_ROUTES);
+                    sourceActionList.add(SourceAction.COLLECTIONS);
+                    sourceActionList.add(SourceAction.POI_PROFILES);
+                    sourceActionList.add(SourceAction.FROM_GPX_FILE);
+                    break;
+                case SET_AS_TRACKED_PROFILE:
+                    sourceActionList.add(SourceAction.COLLECTIONS);
+                    sourceActionList.add(SourceAction.POI_PROFILES);
                     break;
                 case SAVE_CURRENT_LOCATION:
+                    sourceActionList.add(SourceAction.STATIC_PROFILE_PINNED_POINTS_AND_ROUTES);
+                    sourceActionList.add(SourceAction.COLLECTIONS);
+                    break;
                 case GPX_FILE_IMPORT:
-                    sourceActionList.remove(SourceAction.POI_PROFILES);
+                    sourceActionList.add(SourceAction.COLLECTIONS);
                     break;
             }
 
@@ -163,7 +201,9 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
 
         STATIC_PROFILE_PINNED_POINTS_AND_ROUTES(StaticProfile.pinnedPointsAndRoutes().getName()),
         COLLECTIONS(GlobalInstance.getStringResource(R.string.profileSelectFromCollections)),
-        POI_PROFILES(GlobalInstance.getStringResource(R.string.profileSelectFromPoiProfiles));
+        POI_PROFILES(GlobalInstance.getStringResource(R.string.profileSelectFromPoiProfiles)),
+        EMPTY_COLLECTION(GlobalInstance.getStringResource(R.string.profileSelectFromEmptyCollection)),
+        FROM_GPX_FILE(GlobalInstance.getStringResource(R.string.profileSelectFromGpxFile));
 
         private String name;
 
@@ -178,16 +218,29 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
 
     private void executeAction(SourceAction action) {
         switch (action) {
+
             case STATIC_PROFILE_PINNED_POINTS_AND_ROUTES:
                 profileSelected(StaticProfile.pinnedPointsAndRoutes());
                 break;
+
             case COLLECTIONS:
-                CollectionListFragment.createDialog(true)
+                CollectionListFragment.selectProfile()
                     .show(getChildFragmentManager(), "CollectionListFragment");
                 break;
+
             case POI_PROFILES:
-                PoiProfileListFragment.createDialog(true)
+                PoiProfileListFragment.selectProfile()
                     .show(getChildFragmentManager(), "PoiProfileListFragment");
+                break;
+
+            case EMPTY_COLLECTION:
+                CreateEmptyCollectionDialog.newInstance()
+                    .show(getChildFragmentManager(), "CreateEmptyCollectionDialog");
+                break;
+
+            case FROM_GPX_FILE:
+                ImportGpxFileDialog.newInstance(true)
+                    .show(getChildFragmentManager(), "ImportGpxFileDialog");
                 break;
         }
     }
@@ -243,6 +296,43 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
         result.putSerializable(EXTRA_PROFILE, profile);
         getParentFragmentManager().setFragmentResult(REQUEST_SELECT_PROFILE, result);
         dismiss();
+    }
+
+
+    public static class CreateEmptyCollectionDialog extends EnterStringDialog {
+        public static final String REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL = "requestCreateEmptyCollectionWasSuccessful";
+    public static final String EXTRA_EMPTY_COLLECTION = "emptyCollection";
+
+
+        public static CreateEmptyCollectionDialog newInstance() {
+            CreateEmptyCollectionDialog dialog = new CreateEmptyCollectionDialog();
+            return dialog;
+        }
+
+
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setDialogTitle(
+                    getResources().getString(R.string.layoutCollectionName));
+            setMissingInputMessage(
+                    getResources().getString(R.string.messageCollectionNameMissing));
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        @Override public void execute(String input) {
+            Collection emptyCollection = Collection.create(input, false);
+            if (emptyCollection == null) {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getString(R.string.messageCouldNotCreateCollection),
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_EMPTY_COLLECTION, emptyCollection);
+            getParentFragmentManager().setFragmentResult(REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL, result);
+            dismiss();
+        }
     }
 
 }

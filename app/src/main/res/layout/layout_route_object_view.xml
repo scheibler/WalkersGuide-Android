@@ -5,23 +5,31 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/labelSelectedRouteObject"
-        android:layout_width="match_parent"
+    <ImageView
+        android:id="@+id/imageViewSelected"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:text="@string/labelSelectedRouteObject"
-        android:theme="@style/HeadingTextView" />
+        android:paddingLeft="2dp"
+        android:paddingRight="2dp"
+        app:tint="@color/image"
+        android:src="@drawable/selected"
+        android:importantForAccessibility="no" />
 
-    <org.walkersguide.android.ui.view.TextViewAndActionButton
-        android:id="@+id/layoutRouteSegment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <org.walkersguide.android.ui.view.TextViewAndActionButton
-        android:id="@+id/layoutRoutePoint"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp" />
+        android:layout_weight="1.0"
+        android:orientation="vertical" >
+
+        <org.walkersguide.android.ui.view.ObjectWithIdView
+            android:id="@+id/layoutRouteSegment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <org.walkersguide.android.ui.view.ObjectWithIdView
+            android:id="@+id/layoutRoutePoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
 </merge>

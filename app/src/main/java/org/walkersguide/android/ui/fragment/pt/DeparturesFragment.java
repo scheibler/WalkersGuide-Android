@@ -73,7 +73,7 @@ import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.server.pt.NearbyStationsTask;
 import org.walkersguide.android.server.pt.StationDeparturesTask;
 import org.walkersguide.android.server.pt.PtException;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton;
+    import org.walkersguide.android.ui.view.ObjectWithIdView;
 import org.walkersguide.android.util.Helper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
@@ -81,8 +81,6 @@ import org.walkersguide.android.ui.fragment.RootFragment;
 
 
 public class DeparturesFragment extends RootFragment implements FragmentResultListener, MenuProvider, Runnable {
-    private static final String KEY_IS_DIALOG = "isDialog";
-
 
     // constructors
 
@@ -91,11 +89,12 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
     private Point coordinatesForStationRequest;
 
-	public static DeparturesFragment newInstance(double latitude, double longitude) {
+	public static DeparturesFragment embedded(double latitude, double longitude) {
 		DeparturesFragment fragment = new DeparturesFragment();
-        Bundle args = new Bundle();
+        Bundle args = new RootFragment.BundleBuilder()
+            .setIsEmbedded(true)
+            .build();
         args.putSerializable(KEY_COORDINATES_FOR_STATION_REQUEST, Point.fromDouble(latitude, longitude));
-        args.putBoolean(KEY_IS_DIALOG, false);
         fragment.setArguments(args);
 		return fragment;
 	}
@@ -112,7 +111,6 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         Bundle args = new Bundle();
         args.putSerializable(KEY_STATION, station);
         args.putSerializable(KEY_DEPARTURE_TIME, departureTime);
-        args.putBoolean(KEY_IS_DIALOG, true);
         fragment.setArguments(args);
 		return fragment;
 	}
@@ -137,14 +135,24 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
 	@Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (! getArguments().getBoolean(KEY_IS_DIALOG)) {
-            // is required, when the fragment is attached via ViewPager
-            setShowsDialog(false);
-        }
-
         settingsManagerInstance = SettingsManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         nextDeparturesHandler= new Handler(Looper.getMainLooper());
+
+        coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
+        if (savedInstanceState != null) {
+            cachedDepartureList = (ArrayList<Departure>) savedInstanceState.getSerializable(KEY_CACHED_DEPARTURE_LIST);
+            station = (Location) savedInstanceState.getSerializable(KEY_STATION);
+            departureTime = (Date) savedInstanceState.getSerializable(KEY_DEPARTURE_TIME);
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
+        } else {
+            cachedDepartureList = null;
+            station = (Location) getArguments().getSerializable(KEY_STATION);
+            departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+            listPosition = 0;
+        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -249,21 +257,6 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
     }
 
 	@Override public View configureView(View view, Bundle savedInstanceState) {
-        coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
-        if (savedInstanceState != null) {
-            cachedDepartureList = (ArrayList<Departure>) savedInstanceState.getSerializable(KEY_CACHED_DEPARTURE_LIST);
-            station = (Location) savedInstanceState.getSerializable(KEY_STATION);
-            departureTime = (Date) savedInstanceState.getSerializable(KEY_DEPARTURE_TIME);
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            cachedDepartureList = null;
-            station = (Location) getArguments().getSerializable(KEY_STATION);
-            departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-            listPosition = 0;
-        }
-
         LinearLayout layoutTop = (LinearLayout) view.findViewById(R.id.layoutTop);
         layoutTop.setVisibility(View.GONE);
 
@@ -295,19 +288,19 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
             if (coordinatesForStationRequest == null && station != null) {
                 GPS stationGpsPoint = null;
                 try {
-                    stationGpsPoint = new GPS.Builder(
+                    GPS.Builder gpsBuilder = new GPS.Builder(
                             station.coord.getLatAsDouble(),
-                            station.coord.getLonAsDouble())
-                        .setName(
-                                String.format(
-                                    "%1$s %2$s",
-                                    GlobalInstance.getStringResource(R.string.labelNearby),
-                                    PtUtility.getLocationName(station)))
-                        .build();
+                            station.coord.getLonAsDouble());
+                    gpsBuilder.setName(
+                            String.format(
+                                "%1$s %2$s",
+                                GlobalInstance.getStringResource(R.string.labelNearby),
+                                PtUtility.getLocationName(station)));
+                    stationGpsPoint = gpsBuilder.build();
                 } catch (JSONException e) {}
 
                 if (stationGpsPoint != null) {
-                    TextViewAndActionButton layoutStationGpsPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutStationGpsPoint);
+                    ObjectWithIdView layoutStationGpsPoint = (ObjectWithIdView) view.findViewById(R.id.layoutStationGpsPoint);
                     layoutStationGpsPoint.configureAsSingleObject(stationGpsPoint);
                     layoutTop.setVisibility(View.VISIBLE);
                 }

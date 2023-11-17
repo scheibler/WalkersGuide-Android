@@ -5,6 +5,7 @@
         android:id="@+id/menuItemRefresh"
         android:title="@string/menuItemRefresh" />
     <item
-        android:id="@+id/menuItemLoadRoute"
-        android:title="@string/menuItemLoadRoute" />
+        android:id="@+id/menuItemWalkStreetCourse"
+        android:title="@string/menuItemWalkStreetCourse"
+        android:checkable="true" />
 </menu>

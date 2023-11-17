@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.ui.activity.MainActivity;
+import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.server.wg.p2p.P2pRouteTask;
@@ -7,7 +9,7 @@ import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
 
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
-    import org.walkersguide.android.ui.view.TextViewAndActionButton;
+    import org.walkersguide.android.ui.view.ObjectWithIdView;
 import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog.Target;
@@ -74,10 +76,10 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     private ProgressUpdater progressUpdater;
 
     // ui components
-    private TextViewAndActionButton layoutStartPoint, layoutDestinationPoint;
+    private ObjectWithIdView layoutStartPoint, layoutDestinationPoint;
     private LinearLayout layoutViaPointList;
     private SwitchCompat switchShowViaPointList;
-    private TextViewAndActionButton layoutViaPoint1, layoutViaPoint2, layoutViaPoint3;
+    private ObjectWithIdView layoutViaPoint1, layoutViaPoint2, layoutViaPoint3;
 
     public static PlanRouteDialog newInstance() {
         PlanRouteDialog dialog = new PlanRouteDialog();
@@ -157,20 +159,18 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_plan_route, nullParent);
 
-        layoutStartPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutStartPoint);
-        layoutStartPoint.setAutoUpdate(true);
-        layoutStartPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutStartPoint = (ObjectWithIdView) view.findViewById(R.id.layoutStartPoint);
+        layoutStartPoint.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_START_POINT)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
 
-        layoutDestinationPoint = (TextViewAndActionButton) view.findViewById(R.id.layoutDestinationPoint);
-        layoutDestinationPoint.setAutoUpdate(true);
-        layoutDestinationPoint.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutDestinationPoint = (ObjectWithIdView) view.findViewById(R.id.layoutDestinationPoint);
+        layoutDestinationPoint.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_DESTINATION_POINT)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
@@ -188,30 +188,54 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
             }
         });
 
-        layoutViaPoint1 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint1);
-        layoutViaPoint1.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutViaPoint1 = (ObjectWithIdView) view.findViewById(R.id.layoutViaPoint1);
+        layoutViaPoint1.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_1)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
+        layoutViaPoint1.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
+            @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
+                P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                p2pRouteRequest.setViaPoint1(null);
+                settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                updateUI();
+            }
+        });
 
-        layoutViaPoint2 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint2);
-        layoutViaPoint2.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutViaPoint2 = (ObjectWithIdView) view.findViewById(R.id.layoutViaPoint2);
+        layoutViaPoint2.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_2)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
+        layoutViaPoint2.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
+            @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
+                P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                p2pRouteRequest.setViaPoint2(null);
+                settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                updateUI();
+            }
+        });
 
-        layoutViaPoint3 = (TextViewAndActionButton) view.findViewById(R.id.layoutViaPoint3);
-        layoutViaPoint3.setOnObjectDefaultActionListener(new TextViewAndActionButton.OnObjectDefaultActionListener() {
-            @Override public void onObjectDefaultAction(TextViewAndActionButton view) {
+        layoutViaPoint3 = (ObjectWithIdView) view.findViewById(R.id.layoutViaPoint3);
+        layoutViaPoint3.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
+            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_3)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
+            }
+        });
+        layoutViaPoint3.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
+            @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
+                P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                p2pRouteRequest.setViaPoint3(null);
+                settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+                updateUI();
             }
         });
 
@@ -329,44 +353,9 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         layoutViaPointList.setVisibility(
                 p2pRouteRequest.hasViaPoint() ? View.VISIBLE : View.GONE);
 
-        Point viaPoint1 = p2pRouteRequest.getViaPoint1();
-        layoutViaPoint1.configureAsSingleObject(
-                viaPoint1,
-                viaPoint1 != null ? viaPoint1.getName() : null,
-                new TextViewAndActionButton.OnLayoutResetListener() {
-                    @Override public void onLayoutReset(TextViewAndActionButton view) {
-                        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
-                        p2pRouteRequest.setViaPoint1(null);
-                        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-                        updateUI();
-                    }
-                });
-
-        Point viaPoint2 = p2pRouteRequest.getViaPoint2();
-        layoutViaPoint2.configureAsSingleObject(
-                viaPoint2,
-                viaPoint2 != null ? viaPoint2.getName() : null,
-                new TextViewAndActionButton.OnLayoutResetListener() {
-                    @Override public void onLayoutReset(TextViewAndActionButton view) {
-                        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
-                        p2pRouteRequest.setViaPoint2(null);
-                        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-                        updateUI();
-                    }
-                });
-
-        Point viaPoint3 = p2pRouteRequest.getViaPoint3();
-        layoutViaPoint3.configureAsSingleObject(
-                viaPoint3,
-                viaPoint3 != null ? viaPoint3.getName() : null,
-                new TextViewAndActionButton.OnLayoutResetListener() {
-                    @Override public void onLayoutReset(TextViewAndActionButton view) {
-                        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
-                        p2pRouteRequest.setViaPoint3(null);
-                        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-                        updateUI();
-                    }
-                });
+        layoutViaPoint1.configureAsSingleObject(p2pRouteRequest.getViaPoint1());
+        layoutViaPoint2.configureAsSingleObject(p2pRouteRequest.getViaPoint2());
+        layoutViaPoint3.configureAsSingleObject(p2pRouteRequest.getViaPoint3());
     }
 
     private void updatePositiveButtonText(boolean requestInProgress) {
@@ -393,7 +382,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
                 if (intent.getAction().equals(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL)) {
                     Route newRoute = (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE);
-                    HistoryProfile.plannedRoutes().add(newRoute);
+                    HistoryProfile.plannedRoutes().addObject(newRoute);
                     Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                     MainActivity.loadRoute(
                             PlanRouteDialog.this.getContext(), newRoute);
@@ -460,8 +449,8 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                     updateUI();
 
                 } else if (item.getItemId() == MENU_ITEM_EXCLUDED_WAYS) {
-                    ObjectListFromDatabaseFragment.createDialog(StaticProfile.excludedRoutingSegments(), false)
-                        .show(getChildFragmentManager(), "ExcludedWaysDialog");
+                    ObjectListFromDatabaseFragment.newInstance(StaticProfile.excludedRoutingSegments())
+                        .show(getChildFragmentManager(), "ConfigureWayClassWeightsDialog");
 
                 } else if (item.getItemId() == MENU_ITEM_ROUTING_WAY_CLASSES) {
                     ConfigureWayClassWeightsDialog.newInstance(

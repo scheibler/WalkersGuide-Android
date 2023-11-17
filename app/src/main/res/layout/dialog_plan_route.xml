@@ -13,18 +13,16 @@
 
         <!-- start and destination -->
 
-        <org.walkersguide.android.ui.view.TextViewAndActionButton
+        <org.walkersguide.android.ui.view.ObjectWithIdView
             android:id="@+id/layoutStartPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:includeDistanceOrBearingInformation="true"
             app:prefix="@string/labelPrefixStart" />
 
-        <org.walkersguide.android.ui.view.TextViewAndActionButton
+        <org.walkersguide.android.ui.view.ObjectWithIdView
             android:id="@+id/layoutDestinationPoint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:includeDistanceOrBearingInformation="true"
             app:prefix="@string/labelPrefixDestination" />
 
 
@@ -46,21 +44,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <org.walkersguide.android.ui.view.TextViewAndActionButton
+            <org.walkersguide.android.ui.view.ObjectWithIdView
                 android:id="@+id/layoutViaPoint1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:prefix="@string/labelPrefixVia1"
                 app:compact="true" />
 
-            <org.walkersguide.android.ui.view.TextViewAndActionButton
+            <org.walkersguide.android.ui.view.ObjectWithIdView
                 android:id="@+id/layoutViaPoint2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:prefix="@string/labelPrefixVia2"
                 app:compact="true" />
 
-            <org.walkersguide.android.ui.view.TextViewAndActionButton
+            <org.walkersguide.android.ui.view.ObjectWithIdView
                 android:id="@+id/layoutViaPoint3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

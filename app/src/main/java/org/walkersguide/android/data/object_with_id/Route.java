@@ -1,6 +1,6 @@
 package org.walkersguide.android.data.object_with_id;
 
-import org.walkersguide.android.data.object_with_id.common.ObjectClass;
+import org.walkersguide.android.data.ObjectWithId.Icon;
 
 import org.walkersguide.android.data.angle.Turn;
 import android.content.Context;
@@ -23,103 +23,159 @@ import org.walkersguide.android.data.object_with_id.segment.RouteSegment;
 import org.walkersguide.android.data.object_with_id.route.RouteObject;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
+import org.walkersguide.android.database.util.SQLiteHelper;
+import android.text.TextUtils;
+import java.util.Collections;
+import timber.log.Timber;
+import androidx.core.util.Pair;
+import android.location.Location;
+import android.location.LocationManager;
 
 
 public class Route extends ObjectWithId implements Serializable {
     private static final long serialVersionUID = 1l;
 
+    public enum Type {
+        P2P_ROUTE, STREET_COURSE, GPX_TRACK, RECORDED_ROUTE
+    }
+
+
     /**
      * object creation helpers
      */
 
-    public static Route create(JSONObject jsonRoute) throws JSONException {
-        return new Route(jsonRoute);
+    public static Route fromJson(JSONObject jsonObject) throws JSONException {
+        return castToRouteOrReturnNull(ObjectWithId.fromJson(jsonObject));
     }
 
     public static Route load(long id) {
-        ObjectWithId object = AccessDatabase.getInstance().getObjectWithId(id);
-        if (object instanceof Route) {
-            return (Route) object;
-        }
-        return null;
+        return castToRouteOrReturnNull(ObjectWithId.load(id));
     }
 
-    public static Route fromPointList(ArrayList<? extends Point> pointList, boolean filterRedundantPoints) throws JSONException {
+    private static Route castToRouteOrReturnNull(ObjectWithId objectWithId) {
+        return objectWithId instanceof Route ? (Route) objectWithId : null;
+    }
+
+    public static Route fromPointList(Type routeType, String routeName, ArrayList<? extends Point> pointList) throws JSONException {
+        return fromPointList(routeType, routeName, null, false, pointList);
+    }
+
+    public static Route fromPointList(Type routeType, String routeName, String routeDescription,
+            boolean reversed, ArrayList<? extends Point> pointList) throws JSONException {
         Route.Builder routeBuilder = new Route.Builder(
-                pointList.get(0), pointList.get(pointList.size()-1));
+                routeType, routeName, pointList.get(0), pointList.get(pointList.size()-1))
+            .setReversed(reversed);
+        if (! TextUtils.isEmpty(routeDescription)) {
+            routeBuilder.setDescription(routeDescription);
+        }
 
         IntersectionSegment cachedSourceSegment = null;
-        Point lastAddedPoint = null;
         for (int i=0; i<pointList.size(); i++) {
 
             Point current = pointList.get(i);
             if (i == 0) {
-                lastAddedPoint = current;
                 routeBuilder.addFirstRouteObject(current);
                 continue;
             }
 
             Point previous = pointList.get(i-1);
             if (previous instanceof Intersection) {
+                Intersection previousIntersection = (Intersection) previous;
                 // update cached source segment
-                for (IntersectionSegment intersectionSegment : ((Intersection) previous).getSegmentList()) {
-                    if (current.getId() == intersectionSegment.getNextNodeId()) {
-                        cachedSourceSegment = intersectionSegment;
-                        break;
-                    }
+                IntersectionSegment segmentNextNodeId = previousIntersection.findMatchingIntersectionSegmentFor(current.getId());
+                if (segmentNextNodeId != null) {
+                    cachedSourceSegment = segmentNextNodeId;
+                } else {
+                    cachedSourceSegment = previousIntersection
+                        .findClosestIntersectionSegmentTo(previous.bearingTo(current), 5);
                 }
             }
 
-            RouteSegment betweenPreviousAndCurrent = RouteSegment.create(
-                    cachedSourceSegment,
-                    previous.bearingTo(current),
-                    lastAddedPoint.distanceTo(current));
-
+            RouteSegment betweenPreviousAndCurrent = RouteSegment.create(cachedSourceSegment, previous, current);
             if (i == pointList.size() - 1) {
-                lastAddedPoint = current;
                 routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current);
             } else {
                 Turn turn = betweenPreviousAndCurrent.getBearing().turnTo(
                         current.bearingTo(pointList.get(i+1)));
-                if (! filterRedundantPoints
-                        || turn.getInstruction() != Turn.Instruction.CROSS
-                        || (
-                               current instanceof Intersection
-                            && ((Intersection) current).isImportant())) {
-                    lastAddedPoint = current;
-                    routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
-                }
+                routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
             }
         }
 
         return routeBuilder.build();
     }
 
+    public static Route reverse(Route route) throws JSONException {
+        if (route == null || ! route.isReversable()) {
+            throw new JSONException("Route is null or not reversable");
+        }
+
+        // extract points and reverse list
+        ArrayList<Point> reversedPointList = new ArrayList<Point>();
+        for (RouteObject routeObject : route.getRouteObjectList()) {
+            reversedPointList.add(routeObject.getPoint());
+        }
+        Collections.reverse(reversedPointList);
+
+        Route reversedRoute = Route.fromPointList(
+                route.getType(), route.getOriginalName(), null, ! route.isReversed(), reversedPointList);
+        Timber.d("reversed route with custom name %1$s and id=%2$d / %3$d", route.getOriginalName(), route.getId(), reversedRoute.getId());
+        if (route.hasCustomName()) {
+            reversedRoute.rename(route.getCustomName());
+        }
+        return reversedRoute;
+    }
+
 
     // builder
 
-    public static class Builder {
-        public JSONObject inputData;
+    public static class Builder extends ObjectWithId.Builder {
         public int totalDistance, numberOfIntersections;
 
-        public Builder(Point startPoint, Point destination_point) throws JSONException {
-            this.inputData = new JSONObject();
-            this.inputData.put(KEY_START_POINT, startPoint.toJson());
-            this.inputData.put(KEY_DESTINATION_POINT, destination_point.toJson());
-            this.inputData.put(KEY_ROUTE_OBJECT_LIST, new JSONArray());
+        public Builder(Type type, String name, Point startPoint, Point destinationPoint) throws JSONException {
+            super(
+                    type,
+                    TextUtils.isEmpty(name)
+                    ? String.format(
+                        "%1$s: %2$s\n%3$s: %4$s",
+                        GlobalInstance.getStringResource(R.string.labelPrefixStart),
+                        startPoint.getName(),
+                        GlobalInstance.getStringResource(R.string.labelPrefixDestination),
+                        destinationPoint.getName())
+                    : name);
+            inputData.put(KEY_START_POINT, startPoint.toJson());
+            inputData.put(KEY_DESTINATION_POINT, destinationPoint.toJson());
+            inputData.put(KEY_ROUTE_OBJECT_LIST, new JSONArray());
             this.totalDistance = 0;
             this.numberOfIntersections = 0;
         }
 
+        public Builder setReversed(final boolean reversed) throws JSONException {
+            inputData.put(KEY_REVERSED, reversed);
+            return this;
+        }
+
+        public Builder setViaPoints(final Point via1, final Point via2, final Point via3) throws JSONException {
+            if (via1 != null) {
+                inputData.put(KEY_VIA_POINT_1, via1);
+            }
+            if (via2 != null) {
+                inputData.put(KEY_VIA_POINT_2, via2);
+            }
+            if (via3 != null) {
+                inputData.put(KEY_VIA_POINT_3, via3);
+            }
+            return this;
+        }
+
         public Builder addFirstRouteObject(final Point point) throws JSONException {
-            this.inputData
+            inputData
                 .getJSONArray(KEY_ROUTE_OBJECT_LIST)
                 .put((new RouteObject(true, false, null, point, null)).toJson());
             return this;
         }
 
         public Builder addRouteObject(RouteSegment segment, Point point, Turn turn) throws JSONException {
-            this.inputData
+            inputData
                 .getJSONArray(KEY_ROUTE_OBJECT_LIST)
                 .put((new RouteObject(false, false, segment, point, turn)).toJson());
             this.totalDistance += segment.getDistance();
@@ -130,7 +186,7 @@ public class Route extends ObjectWithId implements Serializable {
         }
 
         public Builder addLastRouteObject(RouteSegment segment, Point point) throws JSONException {
-            this.inputData
+            inputData
                 .getJSONArray(KEY_ROUTE_OBJECT_LIST)
                 .put((new RouteObject(false, true, segment, point, null)).toJson());
             this.totalDistance += segment.getDistance();
@@ -138,18 +194,22 @@ public class Route extends ObjectWithId implements Serializable {
         }
 
         public Route build() throws JSONException {
-            String routeDescription = String.format(
-                    GlobalInstance.getStringResource(R.string.descriptionStreetCourse),
-                    GlobalInstance.getPluralResource(R.plurals.meter, this.totalDistance),
-                    this.numberOfIntersections > 0
-                    ? GlobalInstance.getPluralResource(
-                        R.plurals.intersection, this.numberOfIntersections)
-                    : GlobalInstance.getPluralResource(
-                        R.plurals.point, this.inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST).length())
-                    );
-            // build and return
-            inputData.put(KEY_ID, Route.createDatabaseV10RouteId(inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST)));
-            inputData.put(KEY_DESCRIPTION, routeDescription);
+            inputData.put(
+                    KEY_ID,
+                    SQLiteHelper.createDatabaseV10RouteId(
+                        inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST)));
+            if (inputData.isNull(ObjectWithId.KEY_DESCRIPTION)) {
+                setDescription(
+                        String.format(
+                            GlobalInstance.getStringResource(R.string.routeDescriptionDefault),
+                            GlobalInstance.getPluralResource(R.plurals.meter, this.totalDistance),
+                            this.numberOfIntersections > 0
+                            ? GlobalInstance.getPluralResource(
+                                R.plurals.intersection, this.numberOfIntersections)
+                            : GlobalInstance.getPluralResource(
+                                R.plurals.point, inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST).length()))
+                        );
+            }
             return new Route(inputData);
         }
     }
@@ -161,29 +221,36 @@ public class Route extends ObjectWithId implements Serializable {
 
     private Point startPoint, destinationPoint;
     private Point viaPoint1, viaPoint2, viaPoint3;
-    private String description;
+    private boolean reversed;
     private ArrayList<RouteObject> routeObjectList;
 
     public Route(JSONObject inputData) throws JSONException {
-        super(Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID));
-        this.description = inputData.getString(KEY_DESCRIPTION);
+        super(
+                Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID),
+                Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
+                inputData);
+        this.reversed = false;
+        try {
+            this.reversed = inputData.getBoolean(KEY_REVERSED);
+        } catch (JSONException e) {}
 
         // start, destination and via points
-        this.startPoint = Point.create(inputData.getJSONObject(KEY_START_POINT));
-        this.destinationPoint = Point.create(inputData.getJSONObject(KEY_DESTINATION_POINT));
+        this.startPoint = Point.fromJson(inputData.getJSONObject(KEY_START_POINT));
+        this.destinationPoint = Point.fromJson(inputData.getJSONObject(KEY_DESTINATION_POINT));
         if (! inputData.isNull(KEY_VIA_POINT_1)) {
-            this.viaPoint1 = Point.create(inputData.getJSONObject(KEY_VIA_POINT_1));
+            this.viaPoint1 = Point.fromJson(inputData.getJSONObject(KEY_VIA_POINT_1));
         }
         if (! inputData.isNull(KEY_VIA_POINT_2)) {
-            this.viaPoint2 = Point.create(inputData.getJSONObject(KEY_VIA_POINT_2));
+            this.viaPoint2 = Point.fromJson(inputData.getJSONObject(KEY_VIA_POINT_2));
         }
         if (! inputData.isNull(KEY_VIA_POINT_3)) {
-            this.viaPoint3 = Point.create(inputData.getJSONObject(KEY_VIA_POINT_3));
+            this.viaPoint3 = Point.fromJson(inputData.getJSONObject(KEY_VIA_POINT_3));
         }
 
         // route object list
         this.routeObjectList = new ArrayList<RouteObject>();
-        JSONArray jsonRouteObjectList = inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST);
+        JSONArray jsonRouteObjectList = getJsonRouteObjectListWithStartAndEndRouteSegmentCoordinates(
+                inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST));
         for (int j=0; j<jsonRouteObjectList.length(); j++) {
             this.routeObjectList.add(
                     new RouteObject(
@@ -194,25 +261,21 @@ public class Route extends ObjectWithId implements Serializable {
         }
     }
 
-    public String getOriginalName() {
-        return String.format(
-                "%1$s: %2$s\n%3$s: %4$s",
-                GlobalInstance.getStringResource(R.string.labelPrefixStart),
-                this.startPoint.getName(),
-                GlobalInstance.getStringResource(R.string.labelPrefixDestination),
-                this.destinationPoint.getName());
-    }
-
-    public ObjectClass getObjectClass() {
-        return ObjectClass.ROUTE;
-    }
-
-    public String getDescription() {
-        return this.description;
-    }
-
     public String formatNameAndSubType() {
         return getName();
+    }
+
+    public boolean isReversable() {
+        switch (getType()) {
+            case GPX_TRACK:
+            case RECORDED_ROUTE:
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isReversed() {
+        return this.reversed;
     }
 
     public ArrayList<RouteObject> getRouteObjectList() {
@@ -300,8 +363,40 @@ public class Route extends ObjectWithId implements Serializable {
      * super class methods
      */
 
+    @Override public Type getType() {
+        return (Type) super.getType();
+    }
+
+    @Override public Icon getIcon() {
+        return Icon.ROUTE;
+    }
+
+    @Override public Location getLocationObject() {
+        Integer distanceFromStartPoint = this.startPoint.distanceFromCurrentLocation();
+        Integer distanceFromDestinationPoint = this.destinationPoint.distanceFromCurrentLocation();
+        if (distanceFromStartPoint != null && distanceFromDestinationPoint != null) {
+            Location location = new Location(LocationManager.GPS_PROVIDER);
+            if (distanceFromStartPoint < distanceFromDestinationPoint) {
+                location.setLatitude(startPoint.getLatitude());
+                location.setLongitude(startPoint.getLongitude());
+            } else {
+                location.setLatitude(destinationPoint.getLatitude());
+                location.setLongitude(destinationPoint.getLongitude());
+            }
+            return location;
+        }
+        return null;
+    }
+
     @Override public String toString() {
-        return getName();
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(super.getName());
+        if (isReversable() && isReversed()) {
+            stringBuilder.append(System.lineSeparator());
+            stringBuilder.append(
+                    GlobalInstance.getStringResource(R.string.labelOppositeDirection));
+        }
+        return stringBuilder.toString();
     }
 
 
@@ -319,6 +414,18 @@ public class Route extends ObjectWithId implements Serializable {
 
     public RouteObject getCurrentRouteObject() {
         return this.routeObjectList.get(getCurrentPosition());
+    }
+
+    public RouteObject getClosestRouteObjectFromCurrentLocation() {
+        Pair<RouteObject,Integer> closest = null;
+        for (RouteObject routeObject : this.routeObjectList) {
+            Integer distanceFromCurrentLocation = routeObject.getPoint().distanceFromCurrentLocation();
+            if (distanceFromCurrentLocation != null
+                    && (closest == null || distanceFromCurrentLocation < closest.second)) {
+                closest = Pair.create(routeObject, distanceFromCurrentLocation);
+            }
+        }
+        return closest != null ? closest.first : null;
     }
 
     public boolean hasPreviousRouteObject() {
@@ -363,7 +470,7 @@ public class Route extends ObjectWithId implements Serializable {
      */
 
     public static final String KEY_ID = "route_id";
-    public static final String KEY_DESCRIPTION = "description";
+    public static final String KEY_REVERSED = "reversed";
     public static final String KEY_START_POINT = "start_point";
     public static final String KEY_DESTINATION_POINT = "destination_point";
     public static final String KEY_VIA_POINT_1 = "via_point_1";
@@ -371,10 +478,10 @@ public class Route extends ObjectWithId implements Serializable {
     public static final String KEY_VIA_POINT_3 = "via_point_3";
     public static final String KEY_ROUTE_OBJECT_LIST = "instructions";
 
-    public JSONObject toJson() throws JSONException {
-        JSONObject jsonObject = new JSONObject();
+    @Override public JSONObject toJson() throws JSONException {
+        JSONObject jsonObject = super.toJson();
         jsonObject.put(KEY_ID, this.getId());
-        jsonObject.put(KEY_DESCRIPTION, this.description);
+        jsonObject.put(KEY_REVERSED, this.reversed);
 
         jsonObject.put(KEY_START_POINT, this.startPoint.toJson());
         jsonObject.put(KEY_DESTINATION_POINT, this.destinationPoint.toJson());
@@ -398,83 +505,56 @@ public class Route extends ObjectWithId implements Serializable {
     }
 
 
-    /**
-     * convert webserver api 4 to api 5
-     */
+    private static JSONArray getJsonRouteObjectListWithStartAndEndRouteSegmentCoordinates(
+            JSONArray jsonRouteObjectList) throws JSONException {
+        JSONArray newJsonRouteObjectList = new JSONArray();
+        newJsonRouteObjectList.put(
+                jsonRouteObjectList.getJSONObject(0));
 
-    public static JSONObject convertRouteFromWebserverApiV4ToV5(
-            JSONObject jsonStartPoint, JSONObject jsonDestinationPoint, JSONArray jsonViaPointList,
-            String description, JSONArray jsonOldRouteObjectList) throws JSONException {
-        JSONObject jsonRoute = new JSONObject();
+        for (int j=1; j<jsonRouteObjectList.length(); j++) {
+            JSONObject jsonPreviousRouteObject = jsonRouteObjectList.getJSONObject(j-1);
+            JSONObject jsonCurrentRouteObject = jsonRouteObjectList.getJSONObject(j);
 
-        jsonRoute.put(
-                "start_point", Point.addNodeIdToJsonObject(jsonStartPoint));
-        jsonRoute.put(
-                "destination_point", Point.addNodeIdToJsonObject(jsonDestinationPoint));
-        if (jsonViaPointList != null) {
-            if (jsonViaPointList.length() > 0) {
-                jsonRoute.put(
-                        "via_point_1", Point.addNodeIdToJsonObject(jsonViaPointList.getJSONObject(0)));
+            // check if the route segment is missing its coordinates
+            JSONObject jsonCurrentRouteSegment = jsonCurrentRouteObject.getJSONObject(RouteObject.KEY_SEGMENT);
+            Location startLocation = null, endLocation = null;
+            try {
+                startLocation = Segment.getLocationFromJsonObject(
+                        jsonCurrentRouteSegment, Segment.KEY_START);
+                endLocation = Segment.getLocationFromJsonObject(
+                        jsonCurrentRouteSegment, Segment.KEY_END);
+            } catch (JSONException e) {
+                Timber.d("coordinates missing");
             }
-            if (jsonViaPointList.length() > 1) {
-                jsonRoute.put(
-                        "via_point_2", Point.addNodeIdToJsonObject(jsonViaPointList.getJSONObject(1)));
+
+            // add "start" and "end" coordinates to route segments, if not already done so
+            if (startLocation == null || endLocation == null) {
+                startLocation = Point.fromJson(
+                        jsonPreviousRouteObject.getJSONObject(RouteObject.KEY_POINT))
+                    .getLocationObject();
+                if (startLocation == null) {
+                    throw new JSONException("Could not extract start coordinates for route segment");
+                }
+                jsonCurrentRouteSegment.put(
+                        Segment.KEY_START, Segment.putLocationToJsonObject(startLocation));
+
+                endLocation = Point.fromJson(
+                        jsonCurrentRouteObject.getJSONObject(RouteObject.KEY_POINT))
+                    .getLocationObject();
+                if (endLocation == null) {
+                    throw new JSONException("Could not extract end coordinates for route segment");
+                }
+                jsonCurrentRouteSegment.put(
+                        Segment.KEY_END, Segment.putLocationToJsonObject(endLocation));
+
+                jsonCurrentRouteObject.put(
+                        RouteObject.KEY_SEGMENT, jsonCurrentRouteSegment);
             }
-            if (jsonViaPointList.length() > 2) {
-                jsonRoute.put(
-                        "via_point_3", Point.addNodeIdToJsonObject(jsonViaPointList.getJSONObject(2)));
-            }
+
+            newJsonRouteObjectList.put(jsonCurrentRouteObject);
         }
 
-        JSONArray jsonRouteObjectList = new JSONArray();
-        for (int i=0; i<jsonOldRouteObjectList.length(); i++) {
-            boolean isFirstRouteObject = i == 0 ? true : false;
-            boolean isLastRouteObject = i == (jsonOldRouteObjectList.length() - 1) ? true : false;
-
-            JSONObject jsonRouteObject = new JSONObject();
-            jsonRouteObject.put("is_first_route_object", isFirstRouteObject);
-            jsonRouteObject.put("is_last_route_object", isLastRouteObject);
-
-            // segment
-            if (! isFirstRouteObject) {
-                JSONObject jsonSegment = Segment.addWayIdToJsonObject(
-                        jsonOldRouteObjectList.getJSONObject(i).getJSONObject("segment"));
-                jsonRouteObject.put("segment", jsonSegment);
-            }
-
-            // point
-            JSONObject jsonPoint = Point.addNodeIdToJsonObject(
-                    jsonOldRouteObjectList.getJSONObject(i).getJSONObject("point"));
-            // extract turn value
-            if (! isFirstRouteObject && ! isLastRouteObject) {
-                jsonRouteObject.put("turn", jsonPoint.getInt("turn"));
-            }
-            // cleanup point
-            jsonPoint.remove("turn");
-            // add
-            jsonRouteObject.put("point", jsonPoint);
-
-            jsonRouteObjectList.put(jsonRouteObject);
-        }
-        jsonRoute.put("instructions", jsonRouteObjectList);
-
-        jsonRoute.put("route_id", createDatabaseV10RouteId(jsonRouteObjectList));
-        jsonRoute.put("description", description);
-        return jsonRoute;
-    }
-
-    private static long createDatabaseV10RouteId(JSONArray jsonRouteObjectList) throws JSONException {
-        final int prime = 31;
-        int result = jsonRouteObjectList.length();
-        for (int i=1; i<jsonRouteObjectList.length(); i++) {
-            // start at index '1' is intentional, route object at '0' has no segment
-            int distance = jsonRouteObjectList
-                .getJSONObject(i)
-                .getJSONObject("segment")
-                .getInt("distance");
-            result = ((prime * result) + distance) % NUMBER_OF_LOCAL_IDS;
-        }
-        return FIRST_LOCAL_ID + result;
+        return newJsonRouteObjectList;
     }
 
 }
