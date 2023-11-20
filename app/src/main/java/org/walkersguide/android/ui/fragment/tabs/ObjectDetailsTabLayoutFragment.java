@@ -363,7 +363,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                         if (object instanceof Station) {
                             Station station = (Station) object;
                             return DeparturesFragment.embedded(
-                                    station.getLatitude(), station.getLongitude());
+                                    station.getId(), station.getLatitude(), station.getLongitude());
                         }
                         break;
                     case ENTRANCES:

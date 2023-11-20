@@ -59,11 +59,6 @@
         android:layout_marginBottom="10dp"
         android:background="@color/divider" />
 
-    <!--
-    <include
-        layout="@layout/layout_heading_and_list_view" />
-    -->
-
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerRecordedRouteList"
         android:layout_width="match_parent"

@@ -78,6 +78,7 @@ import org.walkersguide.android.util.Helper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import org.walkersguide.android.ui.fragment.RootFragment;
+import android.widget.CheckedTextView;
 
 
 public class DeparturesFragment extends RootFragment implements FragmentResultListener, MenuProvider, Runnable {
@@ -85,15 +86,18 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
     // constructors
 
     // used by ObjectDetailsTabLayoutFragment
+    private static final String KEY_OSM_ID = "osmId";
     private static final String KEY_COORDINATES_FOR_STATION_REQUEST = "coordinatesForStationRequest";
 
+    private Long osmId;
     private Point coordinatesForStationRequest;
 
-	public static DeparturesFragment embedded(double latitude, double longitude) {
+	public static DeparturesFragment embedded(Long osmId, double latitude, double longitude) {
 		DeparturesFragment fragment = new DeparturesFragment();
         Bundle args = new RootFragment.BundleBuilder()
             .setIsEmbedded(true)
             .build();
+        args.putSerializable(KEY_OSM_ID, osmId);
         args.putSerializable(KEY_COORDINATES_FOR_STATION_REQUEST, Point.fromDouble(latitude, longitude));
         fragment.setArguments(args);
 		return fragment;
@@ -117,6 +121,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
 
     // fragment
+    private static final String KEY_CACHED_NEARBY_STATION_LIST = "cachedNearbyStationList";
     private static final String KEY_CACHED_DEPARTURE_LIST = "cachedDepartureList";
     private static final String KEY_TASK_ID = "taskId";
     private static final String KEY_LIST_POSITION = "listPosition";
@@ -125,6 +130,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
 
+    private ArrayList<Location> cachedNearbyStationList;
     private ArrayList<Departure> cachedDepartureList;
     private int listPosition;
 	private Handler nextDeparturesHandler;
@@ -139,14 +145,17 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         nextDeparturesHandler= new Handler(Looper.getMainLooper());
 
+        osmId = getArguments().getLong(KEY_OSM_ID);
         coordinatesForStationRequest = (Point) getArguments().getSerializable(KEY_COORDINATES_FOR_STATION_REQUEST);
         if (savedInstanceState != null) {
+            cachedNearbyStationList = (ArrayList<Location>) savedInstanceState.getSerializable(KEY_CACHED_NEARBY_STATION_LIST);
             cachedDepartureList = (ArrayList<Departure>) savedInstanceState.getSerializable(KEY_CACHED_DEPARTURE_LIST);
             station = (Location) savedInstanceState.getSerializable(KEY_STATION);
             departureTime = (Date) savedInstanceState.getSerializable(KEY_DEPARTURE_TIME);
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {
+            cachedNearbyStationList = null;
             cachedDepartureList = null;
             station = (Location) getArguments().getSerializable(KEY_STATION);
             departureTime = (Date) getArguments().getSerializable(KEY_DEPARTURE_TIME);
@@ -183,6 +192,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         } else if (requestKey.equals(SelectPtStationDialog.REQUEST_SELECT_STATION)) {
             station = (Location) bundle.getSerializable(SelectPtStationDialog.EXTRA_STATION);
             departureTime = new Date();
+            settingsManagerInstance.addSelectedPteStationIdToCache(osmId, station.id);
 
         } else if (requestKey.equals(SelectDepartureDateAndTimeDialog.REQUEST_SELECT_DATE_AND_TIME)) {
             departureTime = (Date) bundle.getSerializable(SelectDepartureDateAndTimeDialog.EXTRA_DEPARTURE_TIME);
@@ -211,6 +221,9 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
             menuItemRefresh.setTitle(
                     getResources().getString(R.string.menuItemRefresh));
         }
+        MenuItem menuItemSelectStation = menu.findItem(R.id.menuItemSelectStation);
+        menuItemSelectStation.setVisible(
+                osmId != null && cachedNearbyStationList != null);
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
@@ -225,14 +238,21 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
                 prepareRequest();
             }
 
+        } else if (item.getItemId() == R.id.menuItemSelectDepartureDateAndTime) {
+            SelectDepartureDateAndTimeDialog.newInstance(departureTime)
+                .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
+
         } else if (item.getItemId() == R.id.menuItemPublicTransportProvider) {
             SelectPublicTransportProviderDialog.newInstance(
                     settingsManagerInstance.getSelectedNetworkId())
                 .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
 
-        } else if (item.getItemId() == R.id.menuItemSelectDepartureDateAndTime) {
-            SelectDepartureDateAndTimeDialog.newInstance(departureTime)
-                .show(getChildFragmentManager(), "SelectDepartureDateAndTimeDialog");
+        } else if (item.getItemId() == R.id.menuItemSelectStation) {
+            SelectPtStationDialog.newInstance(
+                    coordinatesForStationRequest,
+                    cachedNearbyStationList,
+                    settingsManagerInstance.getSelectedPteStationIdFromCache(osmId))
+                .show(getChildFragmentManager(), "SelectPtStationDialog");
 
         } else {
             return false;
@@ -291,11 +311,11 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
                     GPS.Builder gpsBuilder = new GPS.Builder(
                             station.coord.getLatAsDouble(),
                             station.coord.getLonAsDouble());
-                    gpsBuilder.setName(
-                            String.format(
-                                "%1$s %2$s",
-                                GlobalInstance.getStringResource(R.string.labelNearby),
-                                PtUtility.getLocationName(station)));
+                        gpsBuilder.setName(
+                                String.format(
+                                    "%1$s %2$s",
+                                    GlobalInstance.getStringResource(R.string.labelNearby),
+                                    PtUtility.getLocationName(station)));
                     stationGpsPoint = gpsBuilder.build();
                 } catch (JSONException e) {}
 
@@ -317,6 +337,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_CACHED_NEARBY_STATION_LIST, cachedNearbyStationList);
         savedInstanceState.putSerializable(KEY_CACHED_DEPARTURE_LIST, cachedDepartureList);
         savedInstanceState.putSerializable(KEY_STATION, station);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
@@ -448,24 +469,47 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
         // select
         switch (nearbyStationList.size()) {
+
             case 0:
                 ViewCompat.setAccessibilityLiveRegion(
                         labelEmptyListView, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                 labelEmptyListView.setText(
                         getResources().getString(R.string.labelNoPtStationsNearby));
                 break;
+
             case 1:
                 station = nearbyStationList.get(0);
                 departureTime = new Date();
                 listPosition = 0;
                 prepareRequest();
                 break;
+
             default:
-                if (isAdded()) {
-                    SelectPtStationDialog.newInstance(coordinatesForStationRequest, nearbyStationList)
-                        .show(getChildFragmentManager(), "SelectPtStationDialog");
+                cachedNearbyStationList = nearbyStationList;
+
+                // look for prior user preference for this osm station
+                String pteIdFromCache = settingsManagerInstance.getSelectedPteStationIdFromCache(osmId);
+                if (pteIdFromCache != null) {
+                    for (Location nearbyStation : nearbyStationList) {
+                        if (pteIdFromCache.equals(nearbyStation.id)) {
+                            station = nearbyStation;
+                            break;
+                        }
+                    }
                 }
-                labelEmptyListView.setText("");
+
+                if (station != null) {
+                    // found in cache
+                    departureTime = new Date();
+                    listPosition = 0;
+                    prepareRequest();
+                } else {
+                    // must ask user
+                    SelectPtStationDialog.newInstance(coordinatesForStationRequest, nearbyStationList, pteIdFromCache)
+                        .show(getChildFragmentManager(), "SelectPtStationDialog");
+                    labelEmptyListView.setText(
+                            getResources().getString(R.string.labelSelectStation));
+                }
                 break;
         }
     }
@@ -475,11 +519,13 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         public static final String REQUEST_SELECT_STATION = "selectStation";
         public static final String EXTRA_STATION = "station";
 
-        public static SelectPtStationDialog newInstance(Point currentPosition, ArrayList<Location> stationList) {
+        public static SelectPtStationDialog newInstance(Point currentPosition,
+                ArrayList<Location> stationList, String selectedStationId) {
             SelectPtStationDialog selectPtStationDialogInstance = new SelectPtStationDialog();
             Bundle args = new Bundle();
             args.putSerializable("currentPosition", currentPosition);
             args.putSerializable("stationList", stationList);
+            args.putString("selectedStationId", selectedStationId);
             selectPtStationDialogInstance.setArguments(args);
             return selectPtStationDialogInstance;
         }
@@ -487,10 +533,12 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
         private Point currentPosition;
         private ArrayList<Location> stationList;
+        private String selectedStationId;
 
         @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
             currentPosition = (Point) getArguments().getSerializable("currentPosition");
             stationList = (ArrayList<Location>) getArguments().getSerializable("stationList");
+            selectedStationId = getArguments().getString("selectedStationId");
             return new AlertDialog.Builder(getActivity())
                 .setTitle(getResources().getString(R.string.selectPtStationDialogTitle))
                 .setItems(
@@ -537,8 +585,19 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
                 });
 
                 // fill listview
-                listViewItems.setAdapter(
-                        new StationAdapter(getActivity(), currentPosition, stationList));
+                StationAdapter adapter = new StationAdapter(
+                        getActivity(), currentPosition, stationList);
+                listViewItems.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                listViewItems.setAdapter(adapter);
+
+                if (selectedStationId != null) {
+                    for (int i=0; i<stationList.size(); i++) {
+                        if (selectedStationId.equals(stationList.get(i).id)) {
+                            listViewItems.setItemChecked(i, true);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -551,18 +610,26 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         private ArrayList<Location> stationList;
 
         public StationAdapter(Context context, Point position, ArrayList<Location> stationList) {
-            super(context, R.layout.layout_single_text_view);
+            super(context, R.layout.layout_single_text_view_checkbox);
             this.context = context;
             this.position = position;
             this.stationList = stationList;
         }
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
+            return populateView(position, convertView, parent);
+        }
+
+        @Override public View getDropDownView(int position, View convertView,ViewGroup parent) {
+            return populateView(position, convertView, parent);
+        }
+
+        private View populateView(int position, View convertView, ViewGroup parent) {
             EntryHolder holder;
             if (convertView == null) {
-                convertView = LayoutInflater.from(this.context).inflate(R.layout.layout_single_text_view, parent, false);
+                convertView = LayoutInflater.from(this.context).inflate(R.layout.layout_single_text_view_checkbox, parent, false);
                 holder = new EntryHolder();
-                holder.label = (TextView) convertView.findViewById(R.id.label);
+                holder.label = (CheckedTextView) convertView.findViewById(R.id.label);
                 convertView.setTag(holder);
             } else {
                 holder = (EntryHolder) convertView.getTag();
@@ -587,6 +654,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
                 }
                 holder.label.setText(TextUtils.join("\n", stationDescriptionList));
             }
+
             return convertView;
         }
 
@@ -602,7 +670,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         }
 
         private class EntryHolder {
-            public TextView label;
+            public CheckedTextView label;
         }
     }
 

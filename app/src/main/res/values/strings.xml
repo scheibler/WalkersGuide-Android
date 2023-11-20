@@ -12,8 +12,8 @@
     <string name="walkersGuideServiceNotificationChannelDescription">Is shown in the notification area and on the lock screen as long as WalkersGuide is running.</string>
 
     <!-- status message -->
-    <string name="walkersGuideServiceStateForeground">WalkersGuide service is running</string>
-    <string name="walkersGuideServiceStateStopped">WalkersGuide service was stopped</string>
+    <string name="walkersGuideServiceStateForeground">WalkersGuide running</string>
+    <string name="walkersGuideServiceStateStopped">WalkersGuide stopped</string>
 
     <!-- missing location provider -->
     <string name="messageNoLocationProviderAvailable">No location sensor hardware available.
@@ -32,6 +32,22 @@
     <!-- location provider disabled -->
     <string name="messageLocationProviderDisabled">Location service disabled. The app won\'t receive any location updates</string>
     <string name="messageLocationProviderDisabledShort">Location service disabled</string>
+
+    <!-- RouteRecordingState -->
+    <string name="wgRouteRecordingStateOff">Off</string>
+    <string name="wgRouteRecordingStatePaused">Paused</string>
+    <string name="wgRouteRecordingStateRunning">On</string>
+    <string name="messageRouteRecordingPaused">Route recording paused</string>
+
+    <!-- TrackingMode -->
+    <string name="wgTrackingModeOff">Off</string>
+    <string name="wgTrackingModePassive">Passive</string>
+    <string name="wgTrackingModeActive">Active</string>
+
+    <!-- TrackingMode hints -->
+    <string name="wgTrackingModeHintOff">Tracking disabled</string>
+    <string name="wgTrackingModeHintPassive">Points and routes are announced when you pass close by them.</string>
+    <string name="wgTrackingModeHintActive">Turn your smartphone and listen, which points and routes are in front of you.</string>
 
 
     <!--
@@ -75,8 +91,9 @@
     <!-- main menu -->
     <string name="menuItemPlanRoute">Plan route</string>
     <string name="menuItemSaveCurrentLocation">Save current location</string>
-    <string name="menuItemOpenPointShareLink">Open shared location link</string>
     <string name="menuItemCollections">Collections</string>
+    <string name="menuItemHistory">History</string>
+    <string name="menuItemOpenPointShareLink">Open shared location link</string>
     <string name="menuItemMisc">Miscellaneous:</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
@@ -103,7 +120,8 @@
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteDestinationPoint">Select destination point:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleHomeAddress">Select home address:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToCollection">Add to collection:</string>
-    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes">Select point or route to be pinned:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes">Select point or route to pin:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToTrackedObjects">Select point to track:</string>
     <string name="selectObjectWithIdFromMultipleSourcesDialogTitleSimulationPoint">Select point to simulate:</string>
     <string name="messageObjectWithIdIncompatibleTargetPointRequired">Please select a point.</string>
     <!-- list items -->
@@ -147,6 +165,7 @@
     <string name="saveCurrentLocationDialogTitleCollection">Add the current location to a collection:</string>
     <string name="saveCurrentLocationDialogTitleHome">Use the current location as home address:</string>
     <string name="saveCurrentLocationDialogTitlePin">Pin the current location:</string>
+    <string name="saveCurrentLocationDialogTitleTrack">Track the current location:</string>
     <string name="labelName">Name</string>
     <string name="messageNameMissing">Please enter a name.</string>
     <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$d meters, %2$s</string>
@@ -178,12 +197,18 @@
     <string name="labelSomethingPinned">%1$s pinned</string>
     <string name="buttonAddPinnedProfile">Pin profile</string>
     <string name="buttonAddPinnedPointOrRoute">Pin point or route</string>
-    <string name="contextMenuItemPinnedObjectListAddCollection">Collection</string>
-    <string name="contextMenuItemPinnedObjectListAddPoiProfile">Point profile</string>
     <string name="labelNoPinnedObjectsHint">Here you can add point profiles and collections as well as points and routes.</string>
     <!-- bottom layout -->
     <string name="buttonCollections">Collections</string>
     <string name="buttonHistory">History</string>
+
+    <!-- tracking fragment -->
+    <string name="fragmentTrackingName">Tracking</string>
+    <string name="spinnerTrackingModeCD">Tracking mode</string>
+    <string name="spinnerTrackingModePrompt">Select tracking mode:</string>
+    <string name="layoutTrackedProfile">Tracked profile:</string>
+    <string name="buttonAddTrackedPoint">Add point</string>
+    <string name="labelNoTrackedObjectsHint">Add points which you want to follow.</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
@@ -205,10 +230,6 @@
     <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
     <string name="menuItemShowIntersectionLayoutDetails">Show intersection structure</string>
 
-    <!-- JumpToRoutePointDialog -->
-    <string name="jumpToRoutePointDialogTitle">Jump to route point:</string>
-    <string name="buttonScrollToClosestPoint">Scroll to closest point</string>
-
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Record</string>
     <string name="menuItemCancelRouteRecording">Cancel recording</string>
@@ -225,7 +246,6 @@
     <string name="buttonFinishRecordingCD">Finish recording and save route</string>
     <string name="labelRecordedPointName">Point %1$d</string>
     <string name="labelNoRecordedRoutes">No routes have been recorded yet.</string>
-    <string name="messageRouteRecordingPaused">Route recording paused</string>
     <string name="messageRecordedRouteTooFewPoints">Can\'t save the recorded route. It still contains too few points.</string>
     <string name="messageRecordedRouteNameIsMissing">Please enter a name for the recorded route.</string>
     <string name="messageSaveRecordedRouteFailed">Error: Can\'t save the recorded route.</string>
@@ -467,10 +487,12 @@
 
     <!-- DeparturesFragment -->
     <string name="fragmentDeparturesName">Departures</string>
-    <string name="menuItemPublicTransportProvider">Public transport provider</string>
     <string name="menuItemSelectDepartureDateAndTime">Departure time</string>
+    <string name="menuItemPublicTransportProvider">Public transport provider</string>
+    <string name="menuItemSelectStation">Select station</string>
     <string name="labelNearby">Nearby</string>
     <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
+    <string name="labelSelectStation">Please select a station.</string>
     <!-- DepartureAdapter -->
     <string name="labelDepartureAdapter">%1$s\nto %2$s\n%3$s %4$s</string>
     <string name="labelDepartureAdapterCD">%1$s to %2$s, %3$s, %4$s</string>
@@ -1113,6 +1135,12 @@
         name="object">
         <item quantity="one">1 object</item>
         <item quantity="other">%d objects</item>
+    </plurals>
+
+    <plurals
+        name="trackedObject">
+        <item quantity="one">1 tracked object</item>
+        <item quantity="other">%d tracked objects</item>
     </plurals>
 
     <plurals

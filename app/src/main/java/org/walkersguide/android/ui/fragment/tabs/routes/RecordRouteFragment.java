@@ -71,7 +71,6 @@ import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragme
 
 
 public class RecordRouteFragment extends Fragment implements FragmentResultListener, MenuProvider {
-    private final static String KEY_LIST_POSITION = "listPosition";
 
 	public static RecordRouteFragment newInstance() {
 		RecordRouteFragment fragment = new RecordRouteFragment();
@@ -82,18 +81,8 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
     private Button buttonStartRouteRecording, buttonPauseOrResumeRecording, buttonFinishRecording;
     private LinearLayout layoutRouteRecordingInProgress;
 
-    // recorded routes
-    private int listPosition;
-    //private TextView labelRecordedRoutesHeading;
-	//private ListView listViewRecordedRoutes;
-
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            listPosition = 0;
-        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -160,15 +149,6 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
 
         // recorded routes
 
-        /*
-        labelRecordedRoutesHeading = (TextView) view.findViewById(R.id.labelHeading);
-        listViewRecordedRoutes = (ListView) view.findViewById(R.id.listView);
-        TextView labelEmptyListView = (TextView) view.findViewById(R.id.labelEmptyListView);
-        labelEmptyListView.setText(
-                GlobalInstance.getStringResource(R.string.labelNoRecordedRoutes));
-        listViewRecordedRoutes.setEmptyView(labelEmptyListView);
-        */
-
         String tag = "recordedRoutes";
         // only replace, if the fragment is not already attached
         if (getChildFragmentManager().findFragmentByTag(tag) == null) {
@@ -182,18 +162,19 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
         }
     }
 
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
-    }
-
 
     /**
      * menu
      */
+    private boolean showCancelRecordingMenuItem;
 
     @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         menuInflater.inflate(R.menu.menu_toolbar_record_route_fragment, menu);
+    }
+
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        MenuItem menuItemCancelRouteRecording = menu.findItem(R.id.menuItemCancelRouteRecording);
+        menuItemCancelRouteRecording.setVisible(showCancelRecordingMenuItem);
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
@@ -255,49 +236,8 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
                 );
         buttonStartRouteRecording.setVisibility(View.VISIBLE);
         layoutRouteRecordingInProgress.setVisibility(View.GONE);
+        showCancelRecordingMenuItem = false;
     }
-
-    /*
-//import org.walkersguide.android.ui.adapter.SimpleObjectWithIdAdapter;
-
-        labelRecordedRoutesHeading.setText(
-                GlobalInstance.getPluralResource(R.plurals.recordedRoute, 0));
-        listViewRecordedRoutes.setAdapter(null);
-        listViewRecordedRoutes.setOnScrollListener(null);
-
-        Executors.newSingleThreadExecutor().execute(() -> {
-            final ArrayList<ObjectWithId> objectList = AccessDatabase
-                .getInstance()
-                .getObjectListFor(
-                        new DatabaseProfileRequest(StaticProfile.recordedRoutes()));
-            (new Handler(Looper.getMainLooper())).post(() -> {
-                if (isAdded()) {
-                    if (! objectList.isEmpty()) {
-                        loadRecordedRoutesSuccessful(objectList);
-                    }
-                }
-            });
-        });
-
-    private void loadRecordedRoutesSuccessful(ArrayList<ObjectWithId> objectList) {
-        labelRecordedRoutesHeading.setText(
-                GlobalInstance.getPluralResource(R.plurals.recordedRoute, objectList.size()));
-
-        listViewRecordedRoutes.setAdapter(
-                new SimpleObjectWithIdAdapter(
-                    RecordRouteFragment.this.getContext(), objectList, this, false));
-
-        // list position
-        listViewRecordedRoutes.setSelection(listPosition);
-        listViewRecordedRoutes.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override public void onScrollStateChanged(AbsListView view, int scrollState) {}
-            @Override public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if (listPosition != firstVisibleItem) {
-                    listPosition = firstVisibleItem;
-                }
-            }
-        });
-    }*/
 
 
     /**
@@ -345,6 +285,7 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
                             buttonFinishRecording.setVisibility(
                                     intent.getIntExtra(WalkersGuideService.EXTRA_NUMBER_OF_POINTS, 0) >= 2
                                     ? View.VISIBLE : View.GONE);
+                            showCancelRecordingMenuItem = true;
                             break;
 
                         default:

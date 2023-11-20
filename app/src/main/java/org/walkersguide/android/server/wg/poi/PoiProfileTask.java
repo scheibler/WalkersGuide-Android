@@ -160,37 +160,38 @@ public class PoiProfileTask extends ServerTask {
         }
 
         // include points from collections
-        ArrayList<Point> newAllPointList = new ArrayList<Point>(newOnlyPoiList);
-        int newAllPointListLookupRadius = PoiProfileResult.calculateLookupRadius(
-                newAllPointList, newCenter, newRadius, newNumberOfResults);
+        ArrayList<ObjectWithId> newAllObjectList = new ArrayList<ObjectWithId>();
+        for (Point poi : newOnlyPoiList) {
+            newAllObjectList.add(poi);
+        }
+        int newAllObjectListLookupRadius = PoiProfileResult.calculateLookupRadius(
+                newAllObjectList, newCenter, newRadius, newNumberOfResults);
         for (Collection collection : request.getProfile().getCollectionList()) {
             DatabaseProfileRequest databaseProfileRequest = new DatabaseProfileRequest(
                     collection, request.getSearchTerm(), SortMethod.DISTANCE_ASC);
             for (ObjectWithId objectWithId : accessDatabaseInstance.getObjectListFor(databaseProfileRequest)) {
-                if (objectWithId instanceof Point) {
-                    Point collectionPoint = (Point) objectWithId;
-                    if (newCenter.distanceTo(collectionPoint) > newAllPointListLookupRadius) {
-                        // collections sorted by distance (ascending), therefore "break" instead of "continue"
-                        break;
-                    }
-                    // add if not already present
-                    if (! newAllPointList.contains(collectionPoint)) {
-                        newAllPointList.add(collectionPoint);
-                    }
+                if (newCenter.distanceTo(objectWithId) > newAllObjectListLookupRadius) {
+                    // collections sorted by distance (ascending), therefore "break" instead of "continue"
+                    break;
+                }
+                // add if not already present
+                if (! newAllObjectList.contains(objectWithId)) {
+                    newAllObjectList.add(objectWithId);
                 }
             }
         }
 
         Collections.sort(
-                newAllPointList,
+                newAllObjectList,
                 new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
         // reset list position
         boolean newResetListPosition = this.action == RequestAction.UPDATE
             && (
                        cachedResult == null
-                    || ! PoiProfileResult.hasSameFirstPoi(cachedResult.getAllPointList(), newAllPointList));
+                    || ! PoiProfileResult.hasSameFirstPoi(
+                        cachedResult.getAllObjectList(), newAllObjectList));
         PoiProfileResult newResult = new PoiProfileResult(newRadius, newNumberOfResults,
-                newCenter, newAllPointList, newOnlyPoiList, newResetListPosition);
+                newCenter, newAllObjectList, newOnlyPoiList, newResetListPosition);
 
         if (! isCancelled()) {
             // add to cache

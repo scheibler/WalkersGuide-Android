@@ -29,6 +29,17 @@ import org.walkersguide.android.util.SettingsManager;
 
 public class DeviceSensorManager implements SensorEventListener {
 
+    public interface DeviceSensorUpdate {
+        public void newBearing(Bearing bearing);
+        public void shakeDetected();
+    }
+
+    private DeviceSensorUpdate deviceSensorUpdateListener;
+
+    public void setDeviceSensorUpdateListener(DeviceSensorUpdate listener) {
+        this.deviceSensorUpdateListener = listener;
+    }
+
 
     /**
      * singleton
@@ -156,8 +167,13 @@ public class DeviceSensorManager implements SensorEventListener {
     }
 
     private void broadcastCurrentBearing() {
+        Bearing currentBearing = getCurrentBearing();
+        if (deviceSensorUpdateListener != null) {
+            deviceSensorUpdateListener.newBearing(currentBearing);
+        }
+
         Intent intent = new Intent(ACTION_NEW_BEARING);
-        intent.putExtra(EXTRA_BEARING, getCurrentBearing());
+        intent.putExtra(EXTRA_BEARING, currentBearing);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
@@ -440,23 +456,31 @@ public class DeviceSensorManager implements SensorEventListener {
         if ((now - mLastForce) > SHAKE_TIMEOUT) {
             mShakeCount = 0;
         }
+
         if ((now - mLastTime) > TIME_THRESHOLD) {
             long diff = now - mLastTime;
             float speed = Math.abs(
                     newAccelerometerValues[0] + newAccelerometerValues[1]
                     + newAccelerometerValues[2] - valuesAccelerometer[0]
                     - valuesAccelerometer[1] - valuesAccelerometer[2]) / diff * 10000;
+
             if (speed > settingsManagerInstance.getSelectedShakeIntensity().threshold) {
                 if ((++mShakeCount >= SHAKE_COUNT)
                         && (now - mLastShake > SHAKE_DURATION)) {
                     mLastShake = now;
                     mShakeCount = 0;
+
+                    if (deviceSensorUpdateListener != null) {
+                        deviceSensorUpdateListener.shakeDetected();
+                    }
+
                     // broadcast shake detected
                     Intent intent = new Intent(ACTION_SHAKE_DETECTED);
                     LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
                 }
                 mLastForce = now;
             }
+
             mLastTime = now;
         }
     }

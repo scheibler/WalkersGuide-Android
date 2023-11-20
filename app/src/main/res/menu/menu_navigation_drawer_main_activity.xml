@@ -11,6 +11,9 @@
         android:id="@+id/menuItemCollections"
         android:title="@string/menuItemCollections" />
     <item
+        android:id="@+id/menuItemHistory"
+        android:title="@string/menuItemHistory" />
+    <item
         android:id="@+id/menuItemOpenPointShareLink"
         android:title="@string/menuItemOpenPointShareLink" />
 

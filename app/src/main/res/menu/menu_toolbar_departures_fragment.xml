@@ -11,4 +11,7 @@
     <item
         android:id="@+id/menuItemPublicTransportProvider"
         android:title="@string/menuItemPublicTransportProvider" />
+    <item
+        android:id="@+id/menuItemSelectStation"
+        android:title="@string/menuItemSelectStation" />
 </menu>

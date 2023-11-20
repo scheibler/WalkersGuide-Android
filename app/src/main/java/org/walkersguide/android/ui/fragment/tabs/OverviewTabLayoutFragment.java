@@ -1,6 +1,7 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
 import org.walkersguide.android.ui.fragment.tabs.overview.OverviewFragment;
+import org.walkersguide.android.ui.fragment.tabs.overview.TrackingFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
 import android.text.format.DateFormat;
@@ -70,7 +71,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
      */
 
     private enum Tab {
-        OVERVIEW
+        OVERVIEW, TRACKING
     }
 
 
@@ -86,6 +87,8 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case OVERVIEW:
                         return OverviewFragment.newInstance();
+                    case TRACKING:
+                        return TrackingFragment.newInstance();
                 }
             }
             return null;
@@ -97,6 +100,8 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case OVERVIEW:
                         return getResources().getString(R.string.fragmentOverviewName);
+                    case TRACKING:
+                        return getResources().getString(R.string.fragmentTrackingName);
                 }
             }
             return null;

@@ -206,12 +206,16 @@ public class ProfileView extends LinearLayout {
     // convigure view
 
     public void configureAsSingleObject(Profile profile) {
-        configureAsListItem(profile, false, false);
+        configure(profile, false, false);
         ViewCompat.setAccessibilityDelegate(
                 this.label, UiHelper.getAccessibilityDelegateViewClassButton());
     }
 
     public void configureAsListItem(Profile profile, boolean showProfileIcon, boolean showContextMenuItemRemove) {
+        configure(profile, showProfileIcon, showContextMenuItemRemove);
+    }
+
+    private void configure(Profile profile, boolean showProfileIcon, boolean showContextMenuItemRemove) {
         this.reset();
         if (mainActivityController != null && profile != null) {
             this.profile = profile;
@@ -343,7 +347,7 @@ public class ProfileView extends LinearLayout {
             SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
                     Menu.NONE, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverview));
             boolean profileIsPinned = mutableProfile.isPinned();
-            boolean profileIsTracked = mutableProfile.equals(settingsManagerInstance.getTrackedMutableProfile());
+            boolean profileIsTracked = mutableProfile.isTracked();
 
             // pin
             MenuItem menuItemOverviewPin = overviewSubMenu.add(
@@ -429,7 +433,7 @@ public class ProfileView extends LinearLayout {
                 && menuItemId <= MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
             MutableProfile mutableProfile = (MutableProfile) selectedProfile;
             boolean profileIsPinned = mutableProfile.isPinned();
-            boolean profileIsTracked = mutableProfile.equals(settingsManagerInstance.getTrackedMutableProfile());
+            boolean profileIsTracked = mutableProfile.isTracked();
 
             // pin
             if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
@@ -444,11 +448,11 @@ public class ProfileView extends LinearLayout {
             // track
             if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
                 // toggle
-                settingsManagerInstance.setTrackedMutableProfile(profileIsTracked ? null : mutableProfile);
+                mutableProfile.setTracked(! profileIsTracked);
             } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                settingsManagerInstance.setTrackedMutableProfile(mutableProfile);
+                mutableProfile.setTracked(true);
             } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                settingsManagerInstance.setTrackedMutableProfile(null);
+                mutableProfile.setTracked(false);
             }
 
             // update parent view

@@ -54,8 +54,8 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionCode 9
-            versionName '3.0.0-b3'
+            versionCode 10
+            versionName '3.0.0-b4'
             signingConfig signingConfigs.beta
             // internal
             // database

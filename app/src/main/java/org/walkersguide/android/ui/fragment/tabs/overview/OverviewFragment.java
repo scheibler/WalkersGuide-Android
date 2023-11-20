@@ -2,7 +2,6 @@ package org.walkersguide.android.ui.fragment.tabs.overview;
 
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.data.profile.MutableProfile;
-import org.walkersguide.android.ui.fragment.profile_list.PoiProfileListFragment;
 import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter;
 import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter.OnAddButtonClick;
 import org.walkersguide.android.database.profile.StaticProfile;
@@ -29,7 +28,6 @@ import android.os.Handler;
 import android.os.Looper;
 import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
-import org.walkersguide.android.data.object_with_id.Point;
 import androidx.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,20 +40,16 @@ import androidx.fragment.app.FragmentResultListener;
 import android.content.Context;
 import android.widget.Button;
 import androidx.lifecycle.Lifecycle;
-import timber.log.Timber;
 import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
-import android.content.DialogInterface;
-import androidx.appcompat.app.AlertDialog;
 import android.widget.ExpandableListView;
 import android.content.BroadcastReceiver;
 import org.walkersguide.android.data.Profile;
 import android.widget.BaseExpandableListAdapter;
+import android.content.Intent;
+import org.walkersguide.android.util.Helper;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
-import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
-import android.content.Intent;
-import android.widget.PopupMenu;
-import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
 public class OverviewFragment extends Fragment
@@ -210,11 +204,19 @@ public class OverviewFragment extends Fragment
     @Override public void onPause() {
         super.onPause();
         unregisterViewChangedBroadcastReceiver(viewChangedBroadcastReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
     @Override public void onResume() {
         super.onResume();
         registerViewChangedBroadcastReceiver(viewChangedBroadcastReceiver);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
+        LocalBroadcastManager
+            .getInstance(getActivity())
+            .registerReceiver(mMessageReceiver, filter);
+
         requestUiUpdate();
     }
 
@@ -222,6 +224,15 @@ public class OverviewFragment extends Fragment
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ViewChangedListener.ACTION_OBJECT_WITH_ID_LIST_CHANGED)
                     || intent.getAction().equals(ViewChangedListener.ACTION_PROFILE_LIST_CHANGED)) {
+                requestUiUpdate();
+            }
+        }
+    };
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(DeviceSensorManager.ACTION_SHAKE_DETECTED)) {
+                Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                 requestUiUpdate();
             }
         }

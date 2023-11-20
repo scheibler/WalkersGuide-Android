@@ -226,7 +226,8 @@ public class IntersectionScheme extends View {
                                     intersectionSegmentRelativeToInstructionMap.size())
                                 )
                             );
-                    Helper.vibrateOnce(100);
+                    Helper.vibrateOnce(
+                            100, Helper.VIBRATION_INTENSITY_WEAK);
                     this.lastAnnouncedSegment = null;
                     this.atCenter = true;
                 }
@@ -253,7 +254,8 @@ public class IntersectionScheme extends View {
                         this.lastAnnouncedSegment = segment;
                         this.atSegment = true;
                     }
-                    Helper.vibrateOnce(50);
+                    Helper.vibrateOnce(
+                            Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
                 } else {
                     this.atSegment = false;
                 }

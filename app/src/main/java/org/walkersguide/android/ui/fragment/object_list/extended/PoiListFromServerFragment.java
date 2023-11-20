@@ -369,7 +369,7 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
                 String.format(
                     GlobalInstance.getStringResource(R.string.labelHeadingSecondLineRadius),
                     GlobalInstance.getPluralResource(R.plurals.meter, result.getLookupRadius())),
-                result.getAllPointList());
+                result.getAllObjectList());
     }
 
     // progress vibration

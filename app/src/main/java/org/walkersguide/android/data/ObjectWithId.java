@@ -392,6 +392,24 @@ public abstract class ObjectWithId implements Serializable {
         return null;
     }
 
+    public boolean isWithinRangeOfCurrentBearing(int minAngle, int maxAngle) {
+        Bearing bearingFromCurrentLocation = this.bearingFromCurrentLocation();
+        if (bearingFromCurrentLocation != null) {
+            return bearingFromCurrentLocation
+                .relativeToCurrentBearing()
+                .withinRange(minAngle, maxAngle);
+        }
+        return false;
+    }
+
+    public boolean isWithinRangeOfCurrentLocation(int thresholdInMeters) {
+        Integer distanceFromCurrentLocation = this.distanceFromCurrentLocation();
+        if (distanceFromCurrentLocation != null) {
+            return distanceFromCurrentLocation < thresholdInMeters;
+        }
+        return false;
+    }
+
 
     // database
 

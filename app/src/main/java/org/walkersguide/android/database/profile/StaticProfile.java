@@ -13,6 +13,7 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import java.util.Arrays;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.database.DatabaseProfile.ForObjects;
+import org.walkersguide.android.util.WalkersGuideService;
 
 
 public class StaticProfile extends DatabaseProfile implements Serializable {
@@ -96,6 +97,20 @@ public class StaticProfile extends DatabaseProfile implements Serializable {
 
     @Override public String getName() {
         return this.name;
+    }
+
+    @Override public boolean addObject(ObjectWithId object) {
+        if (this.getId() == ID_TRACKED_POINTS) {
+            WalkersGuideService.invalidateTrackedObjectList();
+        }
+        return super.addObject(object);
+    }
+
+    @Override public boolean removeObject(ObjectWithId object) {
+        if (this.getId() == ID_TRACKED_POINTS) {
+            WalkersGuideService.invalidateTrackedObjectList();
+        }
+        return super.removeObject(object);
     }
 
 }

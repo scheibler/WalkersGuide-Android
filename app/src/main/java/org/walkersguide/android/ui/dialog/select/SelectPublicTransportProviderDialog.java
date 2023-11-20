@@ -212,7 +212,7 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             EntryHolderChild holder;
             if (convertView == null) {
                 holder = new EntryHolderChild();
-                convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_checked, parent, false);
+                convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_checkbox, parent, false);
                 holder.labelProvider = (CheckedTextView) convertView.findViewById(R.id.label);
                 convertView.setTag(holder);
             } else {

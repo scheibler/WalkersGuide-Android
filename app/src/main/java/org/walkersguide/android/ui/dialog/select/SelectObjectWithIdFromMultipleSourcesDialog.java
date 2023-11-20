@@ -73,7 +73,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
 
     public enum Target {
         ROUTE_START_POINT, ROUTE_VIA_POINT_1, ROUTE_VIA_POINT_2, ROUTE_VIA_POINT_3, ROUTE_DESTINATION_POINT,
-        ADD_TO_COLLECTION, ADD_TO_PINNED_POINTS_AND_ROUTES, SIMULATE_LOCATION, USE_AS_HOME_ADDRESS
+        ADD_TO_COLLECTION, ADD_TO_PINNED_POINTS_AND_ROUTES, ADD_TO_TRACKED_OBJECTS, SIMULATE_LOCATION, USE_AS_HOME_ADDRESS
     }
 
     private Target target;
@@ -164,8 +164,12 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                 break;
             case ADD_TO_COLLECTION:
                 dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleAddToCollection);
+                break;
             case ADD_TO_PINNED_POINTS_AND_ROUTES:
                 dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes);
+                break;
+            case ADD_TO_TRACKED_OBJECTS:
+                dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleAddToTrackedObjects);
                 break;
             case SIMULATE_LOCATION:
                 dialogTitle = getResources().getString(R.string.selectObjectWithIdFromMultipleSourcesDialogTitleSimulationPoint);
@@ -252,10 +256,10 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
         CLOSEST_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromClosestAddress)),
         HOME_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromHomeAddress)),
         ENTER_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromEnterAddress)),
-        ENTER_COORDINATES(GlobalInstance.getStringResource(R.string.pointSelectFromEnterCoordinates)),
         COLLECTIONS(GlobalInstance.getStringResource(R.string.pointSelectFromCollections)),
         POI(GlobalInstance.getStringResource(R.string.pointSelectFromPOI)),
-        FROM_COORDINATES_LINK(GlobalInstance.getStringResource(R.string.pointSelectFromCoordinatesLink));
+        FROM_COORDINATES_LINK(GlobalInstance.getStringResource(R.string.pointSelectFromCoordinatesLink)),
+        ENTER_COORDINATES(GlobalInstance.getStringResource(R.string.pointSelectFromEnterCoordinates));
 
         private String name;
 
@@ -290,8 +294,11 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                             .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                         break;
                     case ADD_TO_PINNED_POINTS_AND_ROUTES:
+                    case ADD_TO_TRACKED_OBJECTS:
                         SaveCurrentLocationDialog.sendResultBundle(
-                                getResources().getString(R.string.saveCurrentLocationDialogTitlePin))
+                                target == Target.ADD_TO_PINNED_POINTS_AND_ROUTES
+                                ? getResources().getString(R.string.saveCurrentLocationDialogTitlePin)
+                                : getResources().getString(R.string.saveCurrentLocationDialogTitleTrack))
                             .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                         break;
                     case USE_AS_HOME_ADDRESS:

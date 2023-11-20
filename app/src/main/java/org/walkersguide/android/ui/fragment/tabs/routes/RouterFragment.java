@@ -97,7 +97,9 @@ public class RouterFragment extends Fragment implements MenuProvider {
 	// instance constructor
 
 	public static RouterFragment newInstance(Route route, boolean showObjectWithIdView) {
-        route.jumpToRouteObjectAt(0);
+        if (route != null) {
+            route.jumpToRouteObjectAt(0);
+        }
 
 		RouterFragment fragment = new RouterFragment();
         Bundle args = new Bundle();

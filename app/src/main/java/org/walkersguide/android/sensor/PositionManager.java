@@ -171,12 +171,13 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     private void broadcastCurrentLocation(boolean isImportant) {
+        Point currentLocation = getCurrentLocation();
         if (locationUpdateListener != null) {
-            locationUpdateListener.newLocation(getCurrentLocation(), isImportant);
+            locationUpdateListener.newLocation(currentLocation, isImportant);
         }
 
         Intent intent = new Intent(ACTION_NEW_LOCATION);
-        intent.putExtra(EXTRA_NEW_LOCATION, getCurrentLocation());
+        intent.putExtra(EXTRA_NEW_LOCATION, currentLocation);
         intent.putExtra(EXTRA_IS_IMPORTANT, isImportant);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }

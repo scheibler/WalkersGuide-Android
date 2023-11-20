@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment;
 
-import org.walkersguide.android.database.DatabaseProfile.ForObjects;
+import org.walkersguide.android.ui.adapter.ObjectWithIdAdapter;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
@@ -9,8 +9,6 @@ import org.walkersguide.android.server.wg.status.OSMMap;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
 
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.data.ObjectWithId;
     import org.walkersguide.android.ui.view.ObjectWithIdView;
     import org.walkersguide.android.ui.view.ObjectWithIdView.OnDefaultObjectActionListener;
@@ -22,17 +20,12 @@ import android.os.Bundle;
 
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.ListView;
 import android.widget.TextView;
 
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.R;
-import android.app.Dialog;
-import android.content.DialogInterface;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.DialogFragment;
 import java.util.ArrayList;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -41,10 +34,6 @@ import android.content.IntentFilter;
 import androidx.core.view.ViewCompat;
 import android.widget.AbsListView;
 import android.content.Intent;
-import android.widget.BaseAdapter;
-import java.util.Comparator;
-import java.util.Collections;
-import android.view.WindowManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.server.ServerTaskExecutor;
@@ -58,22 +47,13 @@ import android.view.MenuInflater;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.data.object_with_id.Point;
 import android.text.TextUtils;
-import org.walkersguide.android.data.Angle;
 import org.walkersguide.android.data.angle.Bearing;
 import android.widget.HeaderViewListAdapter;
-import org.walkersguide.android.data.angle.RelativeBearing;
-import org.walkersguide.android.data.object_with_id.Segment;
-import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.ui.fragment.RootFragment;
-import org.walkersguide.android.tts.TTSWrapper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import org.walkersguide.android.data.Profile;
 import android.widget.ImageButton;
-import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.database.profile.StaticProfile;
-import org.walkersguide.android.database.profile.Collection;
-import org.walkersguide.android.server.wg.poi.PoiProfile;
 
 
 public abstract class ObjectListFragment extends RootFragment
@@ -560,130 +540,5 @@ public abstract class ObjectListFragment extends RootFragment
     /**
      * ObjectWithId adapter
      */
-
-    public static class ObjectWithIdAdapter extends BaseAdapter {
-
-        private Context context;
-        private ArrayList<? extends ObjectWithId> objectList, filteredObjectList;
-        private OnDefaultObjectActionListener onDefaultObjectActionListener;
-        private Profile profile;
-        private boolean autoUpdate, viewingDirectionFilter;
-
-        public ObjectWithIdAdapter(Context context, ArrayList<? extends ObjectWithId> objectList,
-                OnDefaultObjectActionListener listener, Profile profile,
-                boolean autoUpdate, boolean viewingDirectionFilter) {
-            this.context = context;
-            this.objectList = objectList;
-            this.onDefaultObjectActionListener = listener;
-            this.profile = profile;
-            this.autoUpdate = autoUpdate;
-            this.viewingDirectionFilter = viewingDirectionFilter;
-            // must come after setting viewingDirectionFilter
-            this.filteredObjectList = populateFilteredObjectList();
-        }
-
-        @Override public View getView(int position, View convertView, ViewGroup parent) {
-            ObjectWithIdView layoutObject = null;
-            if (convertView == null) {
-                layoutObject = new ObjectWithIdView(this.context);
-                layoutObject.setLayoutParams(
-                        new LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            } else {
-                layoutObject = (ObjectWithIdView) convertView;
-            }
-
-            layoutObject.setAutoUpdate(this.autoUpdate);
-            layoutObject.setOnDefaultObjectActionListener(this.onDefaultObjectActionListener);
-
-            if (this.profile != null && this.profile instanceof DatabaseProfile) {
-                final DatabaseProfile profileToBeRemovedFrom = (DatabaseProfile) this.profile;
-                if (       profileToBeRemovedFrom.equals(StaticProfile.excludedRoutingSegments())
-                        || profileToBeRemovedFrom.equals(StaticProfile.recordedRoutes())
-                        || profileToBeRemovedFrom instanceof Collection) {
-                    layoutObject.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
-                        @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
-                            profileToBeRemovedFrom.removeObject(objectWithId);
-                            // update parent view
-                            ViewChangedListener.sendObjectWithIdListChangedBroadcast();
-                        }
-                    });
-                }
-            }
-
-            ObjectWithId objectWithId = getItem(position);
-            boolean showIcon = false;
-            if (this.profile != null && this.profile instanceof DatabaseProfile) {
-                if (((DatabaseProfile) this.profile).getForObjects() == ForObjects.POINTS_AND_ROUTES) {
-                    showIcon = true;
-                }
-            } else if (this.profile != null && this.profile instanceof PoiProfile) {
-                for (Collection collection : ((PoiProfile) this.profile).getCollectionList()) {
-                    if (collection.containsObject(objectWithId)) {
-                        showIcon = true;
-                        break;
-                    }
-                }
-            }
-
-            layoutObject.configureAsListItem(objectWithId, showIcon);
-            return layoutObject;
-        }
-
-        @Override public int getCount() {
-            return this.filteredObjectList.size();
-        }
-
-        @Override public ObjectWithId getItem(int position) {
-            return this.filteredObjectList.get(position);
-        }
-
-        @Override public long getItemId(int position) {
-            return position;
-        }
-
-        @Override public void notifyDataSetChanged() {
-            this.filteredObjectList = populateFilteredObjectList();
-            // the following must be put after the object list was sorted and updated
-            super.notifyDataSetChanged();
-        }
-
-        public Context getContext() {
-            return this.context;
-        }
-
-        public boolean isEmpty() {
-            return this.filteredObjectList.isEmpty();
-        }
-
-        protected void updateObjectList(ArrayList<? extends ObjectWithId> updatedObjectList) {
-            this.objectList = updatedObjectList;
-        }
-
-        private ArrayList<? extends ObjectWithId> populateFilteredObjectList() {
-            if (this.objectList == null) {
-                return new ArrayList<ObjectWithId>();
-            } else if (! viewingDirectionFilter) {
-                return this.objectList;
-            } else {
-                // only include, what's ahead
-                ArrayList<ObjectWithId> filteredObjectList = new ArrayList<ObjectWithId>();
-                for (ObjectWithId object : this.objectList) {
-                    if (object
-                            .bearingFromCurrentLocation()
-                            .relativeToCurrentBearing()
-                            .withinRange(315, 45)) {
-                        filteredObjectList.add(object);
-                    }
-                }
-                return filteredObjectList;
-            }
-        }
-
-
-        private class EntryHolder {
-            public ObjectWithIdView layoutObject;
-        }
-    }
 
 }

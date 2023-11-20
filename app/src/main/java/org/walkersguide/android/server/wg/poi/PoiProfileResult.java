@@ -6,28 +6,30 @@ import java.io.Serializable;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.database.SortMethod;
 import timber.log.Timber;
+import org.walkersguide.android.data.ObjectWithId;
 
 
 public class PoiProfileResult implements Serializable{
     private static final long serialVersionUID = 1l;
 
-    public static int calculateLookupRadius(ArrayList<Point> pointList, Point center, int radius, int numberOfResults) {
-        if (pointList.size() >= numberOfResults) {
-            return pointList.get(
-                    pointList.size() - 1)
+    public static int calculateLookupRadius(ArrayList<ObjectWithId> objectList, Point center, int radius, int numberOfResults) {
+        if (objectList.size() >= numberOfResults) {
+            return objectList.get(
+                    objectList.size() - 1)
                 .distanceTo(center);
         }
         return radius;
     }
 
-    public static int calculateLookupNumberOfResults(ArrayList<Point> pointList) {
-        return pointList.size();
+    public static int calculateLookupNumberOfResults(ArrayList<ObjectWithId> objectList) {
+        return objectList.size();
     }
 
-    public static boolean hasSameFirstPoi(ArrayList<Point> oldPoiList, ArrayList<Point> newPoiList) {
-        if (oldPoiList != null && ! oldPoiList.isEmpty()
-                && newPoiList != null && ! newPoiList.isEmpty()) {
-            return oldPoiList.get(0).equals(newPoiList.get(0));
+    public static boolean hasSameFirstPoi(
+            ArrayList<ObjectWithId> oldObjectList, ArrayList<ObjectWithId> newObjectList) {
+        if (       oldObjectList != null && ! oldObjectList.isEmpty()
+                && newObjectList != null && ! newObjectList.isEmpty()) {
+            return oldObjectList.get(0).equals(newObjectList.get(0));
         }
         return false;
     }
@@ -43,15 +45,16 @@ public class PoiProfileResult implements Serializable{
 
     private int radius, numberOfResults;
     private Point center;
-    private ArrayList<Point> allPoiList, onlyPoiList;
+    private ArrayList<ObjectWithId> allObjectList;
+    private ArrayList<Point> onlyPoiList;
     private boolean resetListPosition;
 
     public PoiProfileResult(int radius, int numberOfResults, Point center,
-            ArrayList<Point> allPoiList, ArrayList<Point> onlyPoiList, boolean resetListPosition) {
+            ArrayList<ObjectWithId> allObjectList, ArrayList<Point> onlyPoiList, boolean resetListPosition) {
         this.radius = radius;
         this.numberOfResults = numberOfResults;
         this.center = center;
-        this.allPoiList = allPoiList;
+        this.allObjectList = allObjectList;
         this.onlyPoiList = onlyPoiList;
         this.resetListPosition = resetListPosition;
     }
@@ -62,7 +65,7 @@ public class PoiProfileResult implements Serializable{
 
     public int getLookupRadius() {
         return PoiProfileResult.calculateLookupRadius(
-                this.allPoiList, this.center, this.radius, this.numberOfResults);
+                this.allObjectList, this.center, this.radius, this.numberOfResults);
     }
 
     public int getNumberOfResults() {
@@ -70,15 +73,15 @@ public class PoiProfileResult implements Serializable{
     }
 
     public int getLookupNumberOfResults() {
-        return PoiProfileResult.calculateLookupNumberOfResults(this.allPoiList);
+        return PoiProfileResult.calculateLookupNumberOfResults(this.allObjectList);
     }
 
     public Point getCenter() {
         return this.center;
     }
 
-    public ArrayList<Point> getAllPointList() {
-        return this.allPoiList;
+    public ArrayList<ObjectWithId> getAllObjectList() {
+        return this.allObjectList;
     }
 
     public ArrayList<Point> getOnlyPoiList() {

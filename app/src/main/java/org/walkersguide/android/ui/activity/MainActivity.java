@@ -89,6 +89,7 @@ import android.content.ComponentName;
 import android.os.IBinder;
 import androidx.fragment.app.FragmentManager;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
+import org.walkersguide.android.ui.fragment.HistoryFragment;
 
 
 public class MainActivity extends AppCompatActivity
@@ -225,6 +226,9 @@ public class MainActivity extends AppCompatActivity
                 } else if (menuItem.getItemId() == R.id.menuItemCollections) {
                     CollectionListFragment.newInstance()
                         .show(getSupportFragmentManager(), "CollectionListFragment");
+                } else if (menuItem.getItemId() == R.id.menuItemHistory) {
+                    HistoryFragment.newInstance()
+                        .show(getSupportFragmentManager(), "HistoryFragment");
                 } else if (menuItem.getItemId() == R.id.menuItemSettings) {
                     SettingsFragment.newInstance()
                         .show(getSupportFragmentManager(), "SettingsFragment");

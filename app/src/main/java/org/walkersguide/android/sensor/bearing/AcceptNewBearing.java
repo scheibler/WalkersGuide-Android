@@ -21,6 +21,10 @@ public class AcceptNewBearing implements Serializable {
         return new AcceptNewBearing(30, 1);
     }
 
+    public static AcceptNewBearing newInstanceForActiveTrackingMode() {
+        return new AcceptNewBearing(6, 0);
+    }
+
 
     private final int angleThreshold, timeThreshold;
 

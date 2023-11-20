@@ -50,6 +50,8 @@ import de.schildbach.pte.NetworkId;
 import com.google.gson.GsonBuilder;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
+import org.walkersguide.android.data.Profile;
+import java.util.HashMap;
 
 
 public class SettingsManager {
@@ -90,6 +92,7 @@ public class SettingsManager {
     private static final String KEY_SELECTED_MAP = "selectedMap";
     // public transport
     private static final String KEY_SELECTED_NETWORK_ID = "selectedNetworkId";
+    private static final String KEY_PTE_AND_OSM_STATION_ID_SELECTION_CACHE = "pteAndOsmStationIdSelectionCache";
     // bearing sensor
     private static final String KEY_SELECTED_BEARING_SENSOR = "selectedBearingSensor";
     private static final String KEY_BEARING_SENSOR_VALUE_FROM_COMPASS = "bearingSensorValueFromCompass";
@@ -100,7 +103,7 @@ public class SettingsManager {
     private static final String KEY_SIMULATED_POINT_ID = "simulatedPointId";
     // poi settings
     private static final String KEY_SELECTED_POI_PROFILE_ID = "selectedPoiProfileId";
-    private static final String KEY_TRACKED_MUTABLE_PROFILE_ID = "trackedMutableProfileId";
+    private static final String KEY_TRACKED_PROFILE_ID = "trackedProfileId";
     // p2p route settings
     private static final String KEY_P2P_ROUTE_REQUEST = "p2pRouteRequest";
     private static final String KEY_WAY_CLASS_SETTINGS = "wayClassWeightSettings";
@@ -391,6 +394,32 @@ public class SettingsManager {
         editor.apply();
     }
 
+    public String getSelectedPteStationIdFromCache(Long osmId) {
+        if (osmId != null) {
+            return getSelectedPteAndOsmStationIdCache().get(osmId);
+        }
+        return null;
+    }
+
+    public void addSelectedPteStationIdToCache(Long osmId, String pteId) {
+        HashMap<Long,String> cache = getSelectedPteAndOsmStationIdCache();
+        cache.put(osmId, pteId);
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_PTE_AND_OSM_STATION_ID_SELECTION_CACHE,
+                gson.toJson(
+                    cache,
+                    new TypeToken<Map<Long,String>>() {}.getType()));
+        editor.apply();
+    }
+
+    private HashMap<Long,String> getSelectedPteAndOsmStationIdCache() {
+        HashMap<Long,String> cache = gson.fromJson(
+                settings.getString(KEY_PTE_AND_OSM_STATION_ID_SELECTION_CACHE, ""),
+                new TypeToken<Map<Long,String>>() {}.getType());
+        return cache != null ? cache : new HashMap<Long,String>();
+    }
+
 
     /**
      * sensor settings
@@ -510,17 +539,17 @@ public class SettingsManager {
         editor.apply();
     }
 
-    public MutableProfile getTrackedMutableProfile() {
-        return MutableProfile.load(
-                settings.getLong(KEY_TRACKED_MUTABLE_PROFILE_ID, 0l));
+    public Profile getTrackedProfile() {
+        return Profile.load(
+                settings.getLong(KEY_TRACKED_PROFILE_ID, 0l));
     }
 
-    public void setTrackedMutableProfile(MutableProfile newProfile) {
+    public void setTrackedProfileId(Long newProfileId) {
         Editor editor = settings.edit();
-        if (newProfile != null) {
-            editor.putLong(KEY_TRACKED_MUTABLE_PROFILE_ID, newProfile.getId());
-        } else if (settings.contains(KEY_TRACKED_MUTABLE_PROFILE_ID)) {
-            editor.remove(KEY_TRACKED_MUTABLE_PROFILE_ID);
+        if (newProfileId != null) {
+            editor.putLong(KEY_TRACKED_PROFILE_ID, newProfileId);
+        } else if (settings.contains(KEY_TRACKED_PROFILE_ID)) {
+            editor.remove(KEY_TRACKED_PROFILE_ID);
         }
         editor.apply();
     }

@@ -1,17 +1,15 @@
 package org.walkersguide.android.ui.fragment;
 
+import org.walkersguide.android.ui.adapter.ProfileAdapter;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.view.ProfileView;
 import org.walkersguide.android.ui.view.ProfileView.OnProfileDefaultActionListener;
 
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 
 import android.os.Bundle;
 
 
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,12 +19,9 @@ import org.walkersguide.android.R;
 import java.util.ArrayList;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import android.content.IntentFilter;
 import androidx.core.view.ViewCompat;
 import android.widget.AbsListView;
 import android.content.Intent;
-import android.widget.BaseAdapter;
 import org.walkersguide.android.ui.fragment.RootFragment;
 import org.walkersguide.android.data.Profile;
 import android.widget.ImageButton;
@@ -221,66 +216,6 @@ public abstract class ProfileListFragment extends RootFragment
                 }
             }
         });
-    }
-
-
-    /**
-     * Profile adapter
-     */
-
-    public static class ProfileAdapter extends BaseAdapter {
-
-        private Context context;
-        private ArrayList<? extends Profile> profileList;
-        private OnProfileDefaultActionListener onProfileDefaultActionListener;
-        private boolean showContextMenuItemRemove;
-
-        public ProfileAdapter(Context context, ArrayList<? extends Profile> profileList,
-                OnProfileDefaultActionListener onProfileDefaultActionListener,
-                boolean showContextMenuItemRemove) {
-            this.context = context;
-            this.profileList = profileList;
-            this.onProfileDefaultActionListener = onProfileDefaultActionListener;
-            this.showContextMenuItemRemove = showContextMenuItemRemove;
-        }
-
-        @Override public View getView(int position, View convertView, ViewGroup parent) {
-            ProfileView layoutProfileView = null;
-            if (convertView == null) {
-                layoutProfileView = new ProfileView(this.context);
-                layoutProfileView.setLayoutParams(
-                        new LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            } else {
-                layoutProfileView = (ProfileView) convertView;
-            }
-
-            layoutProfileView.setOnProfileDefaultActionListener(onProfileDefaultActionListener);
-            layoutProfileView.configureAsListItem(
-                    getItem(position), false, showContextMenuItemRemove);
-            return layoutProfileView;
-        }
-
-        @Override public int getCount() {
-            return this.profileList.size();
-        }
-
-        @Override public Profile getItem(int position) {
-            return this.profileList.get(position);
-        }
-
-        @Override public long getItemId(int position) {
-            return position;
-        }
-
-        public boolean isEmpty() {
-            return this.profileList.isEmpty();
-        }
-
-
-        private class EntryHolder {
-            public ProfileView layoutProfileView;
-        }
     }
 
 }

@@ -1,5 +1,7 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.sensor.position.AcceptNewPosition;
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.R;
@@ -76,6 +78,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import timber.log.Timber;
 
 import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.sensor.DeviceSensorManager.DeviceSensorUpdate;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.sensor.PositionManager.LocationUpdate;
 import org.walkersguide.android.util.GlobalInstance;
@@ -88,9 +91,23 @@ import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.object_with_id.route.RouteObject;
 import org.walkersguide.android.data.angle.Turn;
 import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.server.ServerTaskExecutor;
+import java.util.concurrent.Executors;
+import org.walkersguide.android.database.DatabaseProfileRequest;
+import org.walkersguide.android.database.util.AccessDatabase;
+import org.walkersguide.android.data.Profile;
+import org.walkersguide.android.server.wg.poi.PoiProfile;
+import org.walkersguide.android.server.wg.poi.PoiProfileTask;
+import org.walkersguide.android.server.wg.poi.PoiProfileResult;
+import org.walkersguide.android.server.wg.WgException;
+import java.util.Collections;
+import org.walkersguide.android.tts.TTSWrapper;
 
 
-public class WalkersGuideService extends Service implements LocationUpdate {
+public class WalkersGuideService extends Service implements LocationUpdate, DeviceSensorUpdate {
 
 
     /**
@@ -195,8 +212,10 @@ public class WalkersGuideService extends Service implements LocationUpdate {
 
     private NotificationManager notificationManagerInstance = null;
 
+    private AccessDatabase accessDatabaseInstance;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
+    private ServerTaskExecutor serverTaskExecutorInstance;
 	private SettingsManager settingsManagerInstance;
 
     public enum ServiceState {
@@ -208,8 +227,10 @@ public class WalkersGuideService extends Service implements LocationUpdate {
         super.onCreate();
         this.notificationManagerInstance = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         //
+    accessDatabaseInstance = AccessDatabase.getInstance();
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
         positionManagerInstance = PositionManager.getInstance();
+        serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 		settingsManagerInstance = SettingsManager.getInstance();
         // off state
         this.serviceState = ServiceState.OFF;
@@ -243,6 +264,12 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                     IntentFilter sensorIntentFilter = new IntentFilter();
                     sensorIntentFilter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
                     registerReceiver(sensorIntentReceiver, sensorIntentFilter);
+                    // listen for server task results
+                    IntentFilter serverTaskResultFilter = new IntentFilter();
+                    serverTaskResultFilter.addAction(ServerTaskExecutor.ACTION_POI_PROFILE_TASK_SUCCESSFUL);
+                    serverTaskResultFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+                    LocalBroadcastManager.getInstance(this).registerReceiver(
+                            serverTaskResultReceiver, serverTaskResultFilter);
                     // state change: off -> stopped
                     serviceState = ServiceState.STOPPED;
                     serviceStateChanged = true;
@@ -254,6 +281,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                         positionManagerInstance.startGPS();
                         positionManagerInstance.setLocationUpdateListener(this);
                         deviceSensorManagerInstance.startSensors();
+                        deviceSensorManagerInstance.setDeviceSensorUpdateListener(this);
                         // state change: stopped -> foreground
                         serviceState = ServiceState.FOREGROUND;
                         serviceStateChanged = true;
@@ -292,6 +320,31 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                     break;
             }
 
+        // tracking
+
+        } else if (intent.getAction().equals(ACTION_SET_TRACKING_MODE)) {
+            TrackingMode newTrackingMode = (TrackingMode) intent.getSerializableExtra(EXTRA_NEW_TRACKING_MODE);
+            if (newTrackingMode != null
+                    && this.trackingMode != newTrackingMode) {
+                switch (newTrackingMode) {
+                    case PASSIVE:
+                    case ACTIVE:
+                        updateTrackedObjectList();
+                        break;
+                }
+                this.trackingMode = newTrackingMode;
+                sendTrackingModeChangedBroadcast();
+                updateServiceNotification();
+            }
+
+        } else if (intent.getAction().equals(ACTION_INVALIDATE_TRACKED_OBJECT_LIST)) {
+            if (this.trackingMode != TrackingMode.OFF) {
+                updateTrackedObjectList();
+            }
+
+        } else if (intent.getAction().equals(ACTION_REQUEST_TRACKING_MODE)) {
+            sendTrackingModeChangedBroadcast();
+
         // route recording
 
         } else if (intent.getAction().equals(ACTION_START_ROUTE_RECORDING)) {
@@ -301,6 +354,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                 case PAUSED:
                     routeRecordingState = RouteRecordingState.RUNNING;
                     sendRouteRecordingChangedBroadcast();
+                    updateServiceNotification();
                     break;
             }
 
@@ -309,10 +363,12 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                 case PAUSED:
                     routeRecordingState = RouteRecordingState.RUNNING;
                     sendRouteRecordingChangedBroadcast();
+                    updateServiceNotification();
                     break;
                 case RUNNING:
                     routeRecordingState = RouteRecordingState.PAUSED;
                     sendRouteRecordingChangedBroadcast();
+                    updateServiceNotification();
                     break;
             }
 
@@ -320,15 +376,6 @@ public class WalkersGuideService extends Service implements LocationUpdate {
             switch (routeRecordingState) {
                 case RUNNING:
                 case PAUSED:
-                    /*
-                    //Route testRoute = Route.load(9223372035729079104l);
-                    Route testRoute = Route.load(9223372032695025401l);
-                    for (RouteObject obj : testRoute.getRouteObjectList()) {
-                        GPS gps = (GPS) obj.getPoint();
-                        gps.rename(null);
-                        recordedPointList.add(gps);
-                    }*/
-
                     String routeName = intent.getStringExtra(EXTRA_ROUTE_NAME);
                     if (TextUtils.isEmpty(routeName)) {
                         sendRouteRecordingFailedBroadcast(
@@ -347,6 +394,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                         routeRecordingState = RouteRecordingState.OFF;
                         recordedPointList.clear();
                         sendRouteRecordingChangedBroadcast();
+                        updateServiceNotification();
                         Toast.makeText(
                                 WalkersGuideService.this,
                                 getResources().getString(R.string.messageSaveRecordedRouteSuccessful),
@@ -366,6 +414,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                     routeRecordingState = RouteRecordingState.OFF;
                     recordedPointList.clear();
                     sendRouteRecordingChangedBroadcast();
+                    updateServiceNotification();
                     break;
             }
 
@@ -399,10 +448,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
         deviceSensorManagerInstance.stopSensors();
         serviceState = ServiceState.STOPPED;
         sendServiceStateChangedBroadcast();
-        // update service notification
-        notificationManagerInstance.notify(
-                WALKERS_GUIDE_SERVICE_NOTIFICATION_ID,
-                getWalkersGuideServiceNotification());
+        updateServiceNotification();
     }
 
     private void destroyService() {
@@ -414,6 +460,7 @@ public class WalkersGuideService extends Service implements LocationUpdate {
                 routeRecordingState = RouteRecordingState.OFF;
                 recordedPointList.clear();
                 unregisterReceiver(sensorIntentReceiver);
+                LocalBroadcastManager.getInstance(this).unregisterReceiver(serverTaskResultReceiver);
                 break;
         }
 
@@ -549,28 +596,52 @@ public class WalkersGuideService extends Service implements LocationUpdate {
             "%1$s.channel.walkers_guide_service", BuildConfig.APPLICATION_ID);
     private static final int WALKERS_GUIDE_SERVICE_NOTIFICATION_ID = 8203;
 
+    private void updateServiceNotification() {
+        notificationManagerInstance.notify(
+                WALKERS_GUIDE_SERVICE_NOTIFICATION_ID,
+                getWalkersGuideServiceNotification());
+    }
+
     private Notification getWalkersGuideServiceNotification() {
         Intent launchWalkersGuideActivityIntent = new Intent(
                 WalkersGuideService.this, MainActivity.class);
         launchWalkersGuideActivityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-        String message = "";
+        String message;
         switch (serviceState) {
+
             case FOREGROUND:
                 message = getResources().getString(R.string.walkersGuideServiceStateForeground);
-                break;
-            case STOPPED:
-                if (! isLocationModuleEnabled()) {
-                    message = getResources().getString(R.string.messageLocationProviderDisabledShort);
-                } else if (routeRecordingState != RouteRecordingState.OFF) {
-                    message = getResources().getString(R.string.messageRouteRecordingPaused);
-                } else {
-                    // fallback message, should not be shown
-                    message = getResources().getString(R.string.walkersGuideServiceStateStopped);
+                if (trackingMode != TrackingMode.OFF) {
+                    message += String.format(
+                            "\n- %1$s: %2$s",
+                            getResources().getString(R.string.fragmentTrackingName),
+                            trackingMode);
+                }
+                if (routeRecordingState != RouteRecordingState.OFF) {
+                    message += String.format(
+                            "\n- %1$s: %2$s",
+                            getResources().getString(R.string.fragmentRecordRouteName),
+                            routeRecordingState);
                 }
                 break;
-            // case OFF doesn't show a notification
+
+            case STOPPED:
+                message = getResources().getString(R.string.walkersGuideServiceStateStopped);
+                if (! isLocationModuleEnabled()) {
+                    message += String.format(
+                            "\n- %1$s", getResources().getString(R.string.messageLocationProviderDisabledShort));
+                }
+                if (routeRecordingState != RouteRecordingState.OFF) {
+                    message += String.format(
+                            "\n- %1$s", getResources().getString(R.string.messageRouteRecordingPaused));
+                }
+                break;
+
+            default:
+                // case OFF doesn't show a notification
+                message = "";
         }
 
         return new NotificationCompat.Builder(this, WALKERS_GUIDE_SERVICE_NOTIFICATION_CHANNEL_ID)
@@ -621,11 +692,28 @@ public class WalkersGuideService extends Service implements LocationUpdate {
 
 
     /**
-     * location updates
+     * location and device sensor updates
      */
 
+    // location
+    private AcceptNewPosition acceptNewPositionForTrackedObjectListUpdate = AcceptNewPosition.newInstanceForPoiListUpdate();
+    private AcceptNewPosition acceptNewPositionForNearbyObjectAnnouncement = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
+
     @Override public void newLocation(Point point, boolean isImportant) {
-        //Timber.d("newLocation: point=%1$s, isImportant=%2$s", point, isImportant);
+        if (trackingMode != TrackingMode.OFF
+                && (
+                       isImportant
+                    || acceptNewPositionForTrackedObjectListUpdate.updatePoint(point))) {
+            Helper.vibrateOnce(100, Helper.VIBRATION_INTENSITY_WEAK);
+            updateTrackedObjectList();
+            cleanupAnnouncedObjectBlacklistInPassiveTrackingMode();
+        }
+
+        if (this.trackedObjectList != null
+                && this.trackingMode == TrackingMode.PASSIVE
+                && acceptNewPositionForNearbyObjectAnnouncement.updatePoint(point)) {
+            announceObjectsNearbyInPassiveTrackingMode();
+        }
     }
 
     @Override public void newGPSLocation(GPS gps) {
@@ -642,6 +730,215 @@ public class WalkersGuideService extends Service implements LocationUpdate {
     @Override public void newSimulatedLocation(Point point) {
     }
 
+    // device sensor data
+    private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForActiveTrackingMode();
+
+    @Override public void newBearing(Bearing bearing) {
+        if (this.trackedObjectList != null
+                && this.trackingMode == TrackingMode.ACTIVE
+                && acceptNewBearing.updateBearing(bearing)) {
+            Helper.vibrateOnce(30, Helper.VIBRATION_INTENSITY_WEAK);
+            announceObjectsAheadInActiveTrackingMode();
+        }
+    }
+
+    @Override public void shakeDetected() {
+    }
+
+
+    /**
+     * track objects
+     */
+    private TrackingMode trackingMode = TrackingMode.OFF;
+    private ArrayList<ObjectWithId> trackedObjectList = null;
+
+    public enum TrackingMode {
+        OFF(
+                GlobalInstance.getStringResource(R.string.wgTrackingModeOff),
+                GlobalInstance.getStringResource(R.string.wgTrackingModeHintOff)),
+        PASSIVE(
+                GlobalInstance.getStringResource(R.string.wgTrackingModePassive),
+                GlobalInstance.getStringResource(R.string.wgTrackingModeHintPassive)),
+        ACTIVE(
+                GlobalInstance.getStringResource(R.string.wgTrackingModeActive),
+                GlobalInstance.getStringResource(R.string.wgTrackingModeHintActive));
+
+        public String name, hint;
+
+        private TrackingMode(String name, String hint) {
+            this.name = name;
+            this.hint = hint;
+        }
+
+        @Override public String toString() {
+            return this.name;
+        }
+    }
+
+    // tracking mode requests
+
+    private static final String ACTION_SET_TRACKING_MODE = String.format(
+            "%1$s.action.setTrackingMode", BuildConfig.APPLICATION_ID);
+    private static final String EXTRA_NEW_TRACKING_MODE = "newTrackingMode";
+
+    public static void setTrackingMode(TrackingMode newMode) {
+        Intent intent = createServiceRequestIntent(ACTION_SET_TRACKING_MODE);
+        intent.putExtra(EXTRA_NEW_TRACKING_MODE, newMode);
+        GlobalInstance.getContext().startService(intent);
+    }
+
+    private static final String ACTION_REQUEST_TRACKING_MODE = String.format(
+            "%1$s.action.requestTrackingMode", BuildConfig.APPLICATION_ID);
+
+    public static void requestTrackingMode() {
+        GlobalInstance.getContext().startService(
+                createServiceRequestIntent(ACTION_REQUEST_TRACKING_MODE));
+    }
+
+    private static final String ACTION_INVALIDATE_TRACKED_OBJECT_LIST = String.format(
+            "%1$s.invalidateTrackedObjectList.requestTrackingMode", BuildConfig.APPLICATION_ID);
+
+    public static void invalidateTrackedObjectList() {
+        GlobalInstance.getContext().startService(
+                createServiceRequestIntent(ACTION_INVALIDATE_TRACKED_OBJECT_LIST));
+    }
+
+    // broadcast responses
+
+    public static final String ACTION_TRACKING_MODE_CHANGED = String.format(
+            "%1$s.action.trackingModeChanged", BuildConfig.APPLICATION_ID);
+    public static final String EXTRA_TRACKING_MODE = "trackingMode";
+
+    private void sendTrackingModeChangedBroadcast() {
+        Intent intent = new Intent(ACTION_TRACKING_MODE_CHANGED);
+        intent.putExtra(EXTRA_TRACKING_MODE, trackingMode);
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
+    }
+
+    // rest
+    private long trackingProfileRequestTaskId = ServerTaskExecutor.NO_TASK_ID;
+    private ArrayList<ObjectWithId> announcedObjectBlacklistInPassiveTrackingMode = new ArrayList<ObjectWithId>();
+
+    private static ArrayList<ObjectWithId> concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(
+            ArrayList<ObjectWithId> trackedProfileResultList) {
+        ArrayList<ObjectWithId> concatenatedObjectList = new ArrayList<ObjectWithId>();
+        if (trackedProfileResultList != null) {
+            concatenatedObjectList.addAll(trackedProfileResultList);
+        }
+        concatenatedObjectList.addAll(
+                AccessDatabase.getInstance().getObjectListFor(
+                    new DatabaseProfileRequest(StaticProfile.trackedPoints())));
+        Collections.sort(
+                concatenatedObjectList,
+                new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
+        return concatenatedObjectList;
+    }
+
+    private void updateTrackedObjectList() {
+        Profile trackedProfile = settingsManagerInstance.getTrackedProfile();
+        this.trackedObjectList = null;
+
+        if (trackedProfile instanceof PoiProfile) {
+            if (serverTaskExecutorInstance.taskInProgress(trackingProfileRequestTaskId)) {
+                return;
+            }
+            Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+            if (currentLocation == null) {
+                return;
+            }
+            PoiProfileRequest request = new PoiProfileRequest((PoiProfile) trackedProfile);
+            trackingProfileRequestTaskId = serverTaskExecutorInstance.executeTask(
+                    new PoiProfileTask(
+                        request, PoiProfileTask.RequestAction.UPDATE, currentLocation));
+
+        } else if (trackedProfile instanceof DatabaseProfile) {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                this.trackedObjectList = concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(
+                        accessDatabaseInstance.getObjectListFor(
+                            new DatabaseProfileRequest((DatabaseProfile) trackedProfile)));
+            });
+
+        } else {
+            this.trackedObjectList = concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(null);
+        }
+    }
+
+    private BroadcastReceiver serverTaskResultReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ServerTaskExecutor.ACTION_POI_PROFILE_TASK_SUCCESSFUL)
+                    && trackingProfileRequestTaskId == intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                trackedObjectList = concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(
+                        ((PoiProfileResult) intent.getSerializableExtra(
+                            ServerTaskExecutor.EXTRA_POI_PROFILE_RESULT))
+                        .getAllObjectList());
+
+            } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)
+                    && trackingProfileRequestTaskId == intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
+                trackedObjectList = null;
+                WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                if (wgException != null) {
+                    Toast.makeText(
+                            context,
+                            wgException.getMessage(),
+                            Toast.LENGTH_LONG)
+                        .show();
+                }
+            }
+        }
+    };
+
+    private void announceObjectsNearbyInPassiveTrackingMode() {
+        final int DISTANCE_THRESHOLD_IN_METERS = 30;
+        ObjectWithId matchingObjectWithId = null;
+        for (ObjectWithId objectWithId : this.trackedObjectList) {
+            if (objectWithId.isWithinRangeOfCurrentLocation(30)
+                    && objectWithId.isWithinRangeOfCurrentBearing(300, 60)) {
+                matchingObjectWithId = objectWithId;
+                break;
+                    }
+        }
+        if (matchingObjectWithId != null
+                && ! announcedObjectBlacklistInPassiveTrackingMode.contains(matchingObjectWithId)) {
+            TTSWrapper.getInstance().announce(
+                    String.format(
+                        "%1$s %2$s",
+                        matchingObjectWithId.formatNameAndSubType(),
+                        matchingObjectWithId.formatDistanceAndRelativeBearingFromCurrentLocation(
+                            R.plurals.inMeters))
+                    );
+            announcedObjectBlacklistInPassiveTrackingMode.add(matchingObjectWithId);
+        }
+    }
+
+    private synchronized void cleanupAnnouncedObjectBlacklistInPassiveTrackingMode() {
+        ListIterator<ObjectWithId> objectListIterator = this.announcedObjectBlacklistInPassiveTrackingMode.listIterator();
+        while(objectListIterator.hasNext()){
+            ObjectWithId objectWithId = objectListIterator.next();
+            if (! objectWithId.isWithinRangeOfCurrentLocation(100)) {
+                objectListIterator.remove();
+            }
+        }
+    }
+
+    private void announceObjectsAheadInActiveTrackingMode() {
+        ArrayList<String> messageList = new ArrayList<String>();
+        for (ObjectWithId objectWithId :
+                Helper.filterObjectWithIdListByViewingDirection(this.trackedObjectList, 357, 3)) {
+            messageList.add(
+                    String.format(
+                        "%1$s %2$s",
+                        objectWithId.formatNameAndSubType(),
+                        GlobalInstance.getPluralResource(
+                            R.plurals.inMeters, objectWithId.distanceFromCurrentLocation()))
+                    );
+        }
+
+        if (! messageList.isEmpty()) {
+            TTSWrapper.getInstance().announce(
+                    TextUtils.join(", ", messageList));
+        }
+    }
+
 
     /**
      * route recording
@@ -652,7 +949,19 @@ public class WalkersGuideService extends Service implements LocationUpdate {
     private RouteRecordingState routeRecordingState = RouteRecordingState.OFF;
 
     public enum RouteRecordingState {
-        OFF, PAUSED, RUNNING
+        OFF(GlobalInstance.getStringResource(R.string.wgRouteRecordingStateOff)),
+        PAUSED(GlobalInstance.getStringResource(R.string.wgRouteRecordingStatePaused)),
+        RUNNING(GlobalInstance.getStringResource(R.string.wgRouteRecordingStateRunning));
+
+        public String name;
+
+        private RouteRecordingState(String name) {
+            this.name = name;
+        }
+
+        @Override public String toString() {
+            return this.name;
+        }
     }
 
     // control route recording requests

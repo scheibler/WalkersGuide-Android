@@ -26,9 +26,21 @@ import java.util.Date;
 import java.text.FieldPosition;
 import java.lang.UnsupportedOperationException;
 import java.text.ParsePosition;
+import org.walkersguide.android.data.ObjectWithId;
 
 
 public class Helper {
+
+    public static ArrayList<ObjectWithId> filterObjectWithIdListByViewingDirection(
+            ArrayList<? extends ObjectWithId> objectList, int minAngle, int maxAngle) {
+        ArrayList<ObjectWithId> filteredObjectList = new ArrayList<ObjectWithId>();
+        for (ObjectWithId object : objectList) {
+            if (object.isWithinRangeOfCurrentBearing(minAngle, maxAngle)) {
+                filteredObjectList.add(object);
+            }
+        }
+        return filteredObjectList;
+    }
 
     public static ArrayList<Point> filterPointListByTurnValueAndImportantIntersections(ArrayList<? extends Point> pointList) {
         ArrayList<Point> filteredPointList = new ArrayList<Point>();
