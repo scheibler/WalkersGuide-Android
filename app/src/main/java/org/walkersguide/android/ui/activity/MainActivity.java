@@ -373,7 +373,8 @@ public class MainActivity extends AppCompatActivity
             locationDescriptionBuilder.append(
                     getResources().getString(R.string.errorNoLocationFound));
 
-        } else if (currentLocation instanceof GPS) {
+        } else if (currentLocation instanceof GPS
+                && ! positionManagerInstance.getSimulationEnabled()) {
             GPS currentGPSLocation = (GPS) currentLocation;
             locationDescriptionBuilder.append(
                     currentGPSLocation.formatAccuracyInMeters());

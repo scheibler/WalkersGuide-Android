@@ -26,14 +26,41 @@
             android:layout_weight="1.0" />
     </LinearLayout>
 
-    <org.walkersguide.android.ui.view.ProfileView
-        android:id="@+id/layoutTrackedProfile"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        app:compact="true"
-        app:prefix="@string/layoutTrackedProfile" />
+        android:orientation="vertical" >
+
+        <org.walkersguide.android.ui.view.ProfileView
+            android:id="@+id/layoutTrackedProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:compact="true"
+            app:prefix="@string/layoutTrackedProfile" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:labelFor="@+id/spinnerAnnouncementRadius"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:text="@string/labelAnnouncementRadius" />
+
+            <Spinner
+                android:id="@+id/spinnerAnnouncementRadius"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dialog"
+                android:prompt="@string/spinnerAnnouncementRadiusPrompt" />
+        </LinearLayout>
+    </LinearLayout>
 
     <include
         layout="@layout/layout_heading_and_list_view" />

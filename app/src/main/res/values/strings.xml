@@ -41,13 +41,13 @@
 
     <!-- TrackingMode -->
     <string name="wgTrackingModeOff">Off</string>
-    <string name="wgTrackingModePassive">Passive</string>
-    <string name="wgTrackingModeActive">Active</string>
+    <string name="wgTrackingModeDistance">Distance</string>
+    <string name="wgTrackingModeBearing">Viewing direction</string>
 
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Tracking disabled</string>
-    <string name="wgTrackingModeHintPassive">Points and routes are announced when you pass close by them.</string>
-    <string name="wgTrackingModeHintActive">Turn your smartphone and listen, which points and routes are in front of you.</string>
+    <string name="wgTrackingModeHintDistance">Points and routes are announced when you pass close by them.</string>
+    <string name="wgTrackingModeHintBearing">Turn your smartphone and listen, which points and routes are in front of you.</string>
 
 
     <!--
@@ -206,7 +206,9 @@
     <string name="fragmentTrackingName">Tracking</string>
     <string name="spinnerTrackingModeCD">Tracking mode</string>
     <string name="spinnerTrackingModePrompt">Select tracking mode:</string>
-    <string name="layoutTrackedProfile">Tracked profile:</string>
+    <string name="layoutTrackedProfile">Tracked profile</string>
+    <string name="labelAnnouncementRadius">Within radius of:</string>
+    <string name="spinnerAnnouncementRadiusPrompt">Announcements within radius of:</string>
     <string name="buttonAddTrackedPoint">Add point</string>
     <string name="labelNoTrackedObjectsHint">Add points which you want to follow.</string>
 
@@ -357,19 +359,24 @@
     <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
+    <string name="labelHeadingSecondLineObjectTypeFilter">Filter%1$s</string>
     <string name="labelHeadingSecondLineSortMethod">Sorted by %1$s</string>
     <!-- toolbar menu -->
+    <string name="menuItemObjectTypeFilter">Filter by type</string>
     <string name="menuItemSortMethod">Sort method</string>
     <string name="menuItemClearProfile">Clear profile</string>
     <!-- clear profile dialog -->
     <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
 
-    <!-- PoiListFromServerFragment -->
-    <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
-    <string name="labelMoreResults">Get more points</string>
+    <!-- SelectObjectTypeFilterDialog -->
+    <string name="selectObjectTypeFilterDialogTitle">Which objects do you want to see?</string>
 
     <!-- SelectSortMethodDialog -->
     <string name="selectSortMethodDialogTitle">Select sort method:</string>
+
+    <!-- PoiListFromServerFragment -->
+    <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
+    <string name="labelMoreResults">Get more points</string>
 
 
     <!--
@@ -432,6 +439,7 @@
     <string name="labelPointWithAddressDataCountry">Country</string>
     <!-- gps -->
     <string name="labelPointGPSDetailsHeading">GPS Details</string>
+    <string name="labelPointGPSTimestamp">Created at</string>
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Intersection</string>
     <!-- pedestrian crossing -->
@@ -613,6 +621,7 @@
     <!-- object context menu -->
     <string name="contextMenuItemObjectWithIdDepartures">Departures</string>
     <string name="contextMenuItemObjectWithIdEntrances">Entrances</string>
+    <string name="contextMenuItemObjectWithIdPedestrianCrossings">Crossings</string>
     <string name="contextMenuItemObjectWithIdLoadRoute">Load route</string>
     <string name="contextMenuItemObjectWithIdStreetCourse">Street course</string>
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">From route planning excluded</string>
@@ -648,7 +657,7 @@
     <!--
          ProfileView
     -->
-    <string name="labelPrefixAddTo">Add to:</string>
+    <string name="labelPrefixAddTo">Add to</string>
     <string name="messageUpdateCollectionsFailed">Can\'t save the selected collections.</string>
     <string name="messageUpdatePoiCategoriesFailed">Can\'t save the selected point categories.</string>
     <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
@@ -852,6 +861,12 @@
 
     <!-- Collection -->
     <string name="collectionNameFavorites">Favorites</string>
+
+    <!-- ObjectTypeFilter -->
+    <string name="objectTypeFilterAll">All</string>
+    <string name="objectTypeFilterPoints">Points</string>
+    <string name="objectTypeFilterRoutes">Routes</string>
+    <string name="objectTypeFilterSegments">Segments</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Last visited, ascending</string>

@@ -40,13 +40,13 @@
 
     <!-- TrackingMode -->
     <string name="wgTrackingModeOff">Aus</string>
-    <string name="wgTrackingModePassive">Passiv</string>
-    <string name="wgTrackingModeActive">Aktiv</string>
+    <string name="wgTrackingModeDistance">Entfernung</string>
+    <string name="wgTrackingModeBearing">Blickrichtung</string>
 
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Keine Verfolgung</string>
-    <string name="wgTrackingModeHintPassive">Punkte und Routen werden angesagt, wenn du nahe an ihnen vorbeikommst.</string>
-    <string name="wgTrackingModeHintActive">Lass dir ansagen, welche Punkte und Routen sich in Blickrichtung befinden.</string>
+    <string name="wgTrackingModeHintDistance">Punkte und Routen werden angesagt, wenn du nahe an ihnen vorbeikommst.</string>
+    <string name="wgTrackingModeHintBearing">Lass dir ansagen, welche Punkte und Routen sich in Blickrichtung befinden.</string>
 
 
     <!--
@@ -205,14 +205,16 @@
     <string name="fragmentTrackingName">Verfolgen</string>
     <string name="spinnerTrackingModeCD">Verfolgungsmodus</string>
     <string name="spinnerTrackingModePrompt">Verfolgungsmodus auswählen:</string>
-    <string name="layoutTrackedProfile">Verfolgtes Profil:</string>
+    <string name="layoutTrackedProfile">Verfolgtes Profil</string>
+    <string name="labelAnnouncementRadius">Im Umkreis von:</string>
+    <string name="spinnerAnnouncementRadiusPrompt">Ansagen im Umkreis von:</string>
     <string name="buttonAddTrackedPoint">Punkt hinzufügen</string>
     <string name="labelNoTrackedObjectsHint">Hier kannst du Punkte hinterlegen, die du verfolgen möchtest.</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
     <string name="labelRoutePosition">%1$d von %2$d\t(%3$d von %4$d meter, %5$d%%)</string>
-    <string name="labelRoutePositionCD">Anweisung %1$d von %2$d. %3$d von %4$s zurückgelegt, %5$d%%</string>
+    <string name="labelRoutePositionCD">Anweisung %1$d von %2$d, %3$d von %4$s zurückgelegt, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Kreuzungsaufbau</string>
     <string name="buttonPreviousRouteObject">Vorheriger Routenpunkt</string>
     <string name="buttonNextRouteObject">Nächster Routenpunkt</string>
@@ -356,19 +358,24 @@
     <string name="labelNoHikingTrailsNearby">Keine Wanderwege gefunden.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
+    <string name="labelHeadingSecondLineObjectTypeFilter">Filter%1$s</string>
     <string name="labelHeadingSecondLineSortMethod">Sortiert nach %1$s</string>
     <!-- toolbar menu -->
+    <string name="menuItemObjectTypeFilter">Nach Typ filtern</string>
     <string name="menuItemSortMethod">Sortieren</string>
     <string name="menuItemClearProfile">Profil leeren</string>
     <!-- clear profile dialog -->
     <string name="clearProfileDialogTitle">Möchtest du alle Einträge des Profils \"%1$s\" entfernen?</string>
 
-    <!-- PoiListFromServerFragment -->
-    <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
-    <string name="labelMoreResults">Weitere Punkte laden</string>
+    <!-- SelectObjectTypeFilterDialog -->
+    <string name="selectObjectTypeFilterDialogTitle">Welche Objekte sollen angezeigt werden?</string>
 
     <!-- SelectSortMethodDialog -->
     <string name="selectSortMethodDialogTitle">Sortiermethode auswählen:</string>
+
+    <!-- PoiListFromServerFragment -->
+    <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
+    <string name="labelMoreResults">Weitere Punkte laden</string>
 
 
     <!--
@@ -431,6 +438,7 @@
     <string name="labelPointWithAddressDataCountry">Lang</string>
     <!-- gps -->
     <string name="labelPointGPSDetailsHeading">GPS Details</string>
+    <string name="labelPointGPSTimestamp">Erstellt am</string>
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Kreuzung</string>
     <!-- pedestrian crossing -->
@@ -611,6 +619,7 @@
     <!-- object context menu -->
     <string name="contextMenuItemObjectWithIdDepartures">Abfahrten</string>
     <string name="contextMenuItemObjectWithIdEntrances">Eingänge</string>
+    <string name="contextMenuItemObjectWithIdPedestrianCrossings">Querungen</string>
     <string name="contextMenuItemObjectWithIdLoadRoute">Route laden</string>
     <string name="contextMenuItemObjectWithIdStreetCourse">Wegverlauf</string>
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">Vom Routing ausgeschlossen</string>
@@ -646,7 +655,7 @@
     <!--
          ProfileView
     -->
-    <string name="labelPrefixAddTo">Hinzufügen zu:</string>
+    <string name="labelPrefixAddTo">Hinzufügen zu</string>
     <string name="messageUpdateCollectionsFailed">Die Sammlungsauswahl kann nicht gespeichert werden.</string>
     <string name="messageUpdatePoiCategoriesFailed">Die Punktkategorieauswahl kann nicht gespeichert werden.</string>
     <string name="removeProfileDialogTitle">Möchtest du das Profil %1$s löschen?</string>
@@ -850,6 +859,12 @@
 
     <!-- Collection -->
     <string name="collectionNameFavorites">Favoriten</string>
+
+    <!-- ObjectTypeFilter -->
+    <string name="objectTypeFilterAll">Alle</string>
+    <string name="objectTypeFilterPoints">Punkte</string>
+    <string name="objectTypeFilterRoutes">Routen</string>
+    <string name="objectTypeFilterSegments">Segmente</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Zuletzt besucht, aufsteigend</string>

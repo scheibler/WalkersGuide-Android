@@ -42,6 +42,7 @@ import org.walkersguide.android.ui.UiHelper;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import androidx.annotation.NonNull;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public class PointDetailsFragment extends Fragment implements MenuProvider {
@@ -579,7 +580,8 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
             layoutAttributes.addView(
                     new TextViewBuilder(
                             PointDetailsFragment.this.getContext(),
-                            gps.formatTimestamp())
+                            gps.formatTimestamp(
+                                GlobalInstance.getStringResource(R.string.labelPointGPSTimestamp)))
                         .create()
                     );
 

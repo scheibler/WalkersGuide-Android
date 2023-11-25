@@ -363,8 +363,8 @@ public class ObjectWithIdView extends LinearLayout {
     }
 
     private BroadcastReceiver newLocationReceiver = new BroadcastReceiver() {
-        private AcceptNewPosition acceptNewPosition = AcceptNewPosition.newInstanceForTextViewAndActionButtonUpdate();
-        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForTextViewAndActionButtonUpdate();
+        private AcceptNewPosition acceptNewPosition = new AcceptNewPosition(6, 4, null);
+        private AcceptNewBearing acceptNewBearing = new AcceptNewBearing(30, 2);
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(RenameObjectWithIdDialog.ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL)) {
@@ -406,8 +406,9 @@ public class ObjectWithIdView extends LinearLayout {
     private static final int MENU_ITEM_DETAILS = 1;
     private static final int MENU_ITEM_DEPARTURES = 2;
     private static final int MENU_ITEM_ENTRANCES = 3;
-    private static final int MENU_ITEM_LOAD_ROUTE = 4;
-    private static final int MENU_ITEM_STREET_COURSE = 5;
+    private static final int MENU_ITEM_PEDESTRIAN_CROSSINGS = 4;
+    private static final int MENU_ITEM_LOAD_ROUTE = 5;
+    private static final int MENU_ITEM_STREET_COURSE = 6;
     private static final int MENU_ITEM_EXCLUDE_FROM_ROUTING = 10;
     private static final int MENU_ITEM_SIMULATE_LOCATION = 11;
     private static final int MENU_ITEM_SIMULATE_BEARING = 12;
@@ -452,6 +453,11 @@ public class ObjectWithIdView extends LinearLayout {
             if (((POI) object).hasEntrance()) {
                 contextMenu.getMenu().add(
                         MENU_GROUP_1, MENU_ITEM_ENTRANCES, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdEntrances));
+            }
+        } else if (object instanceof Intersection) {
+            if (((Intersection) object).hasPedestrianCrossing()) {
+                contextMenu.getMenu().add(
+                        MENU_GROUP_1, MENU_ITEM_PEDESTRIAN_CROSSINGS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdPedestrianCrossings));
             }
         } else if (object instanceof IntersectionSegment) {
             contextMenu.getMenu().add(
@@ -690,6 +696,10 @@ public class ObjectWithIdView extends LinearLayout {
         } else if (menuItemId == MENU_ITEM_ENTRANCES) {
             mainActivityController.addFragment(
                     ObjectDetailsTabLayoutFragment.entrances((POI) point));
+
+        } else if (menuItemId == MENU_ITEM_PEDESTRIAN_CROSSINGS) {
+            mainActivityController.addFragment(
+                    ObjectDetailsTabLayoutFragment.pedestrianCrossings((Intersection) point));
 
         } else if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
             boolean enableSimulation = ! item.isChecked();

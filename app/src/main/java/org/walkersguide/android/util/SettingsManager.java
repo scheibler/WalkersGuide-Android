@@ -1,11 +1,10 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.util.service.DistanceTrackingMode.AnnouncementRadius;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.data.profile.MutableProfile;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.tts.TtsSettings;
-import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 
 import org.walkersguide.android.data.angle.Bearing;
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 
 
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
 import org.walkersguide.android.server.wg.status.OSMMap;
@@ -44,7 +42,6 @@ import java.lang.ClassNotFoundException;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.data.object_with_id.Point;
 import java.util.List;
-import android.text.TextUtils;
 import org.walkersguide.android.data.object_with_id.Route;
 import de.schildbach.pte.NetworkId;
 import com.google.gson.GsonBuilder;
@@ -83,6 +80,7 @@ public class SettingsManager {
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
+    private static final String KEY_DISTANCE_TRACKING_MODE_ANNOUNCEMENT_RADIUS = "distanceTrackingModeAnnouncementRadius";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
     // tts
     private static final String KEY_TTS_SETTINGS = "ttsSettings";
@@ -247,6 +245,18 @@ public class SettingsManager {
         Editor editor = settings.edit();
         editor.putString(
                 KEY_SHAKE_INTENSITY, gson.toJson(newShakeIntensity));
+        editor.apply();
+    }
+
+    public AnnouncementRadius getDistanceTrackingModeAnnouncementRadius() {
+        return AnnouncementRadius.create(
+                settings.getInt(KEY_DISTANCE_TRACKING_MODE_ANNOUNCEMENT_RADIUS, 0));
+    }
+
+    public void setDistanceTrackingModeAnnouncementRadius(AnnouncementRadius newRadius) {
+        Editor editor = settings.edit();
+        editor.putInt(
+                KEY_DISTANCE_TRACKING_MODE_ANNOUNCEMENT_RADIUS, newRadius.meter);
         editor.apply();
     }
 

@@ -1,5 +1,6 @@
         package org.walkersguide.android.ui.view;
 
+import timber.log.Timber;
 import org.walkersguide.android.R;
 import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 import android.widget.LinearLayout;
@@ -17,6 +18,7 @@ import android.content.Intent;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.server.address.AddressException;
+import org.walkersguide.android.sensor.position.AcceptNewPosition;
 
 
 public class ResolveCurrentAddressView extends LinearLayout {
@@ -80,6 +82,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
     @Override public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(localIntentReceiver);
+        Timber.d("onDetachedFromWindow");
     }
 
     @Override public void onAttachedToWindow() {
@@ -88,11 +91,13 @@ public class ResolveCurrentAddressView extends LinearLayout {
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+        localIntentFilter.addAction(PositionManager.ACTION_NEW_LOCATION);
         localIntentFilter.addAction(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(localIntentReceiver, localIntentFilter);
 
         // request address
-        requestAddressForCurrentLocation();
+        PositionManager.getInstance().requestCurrentLocation();
+        Timber.d("onAttachedToWindow");
     }
 
     public void requestAddressForCurrentLocation() {
@@ -118,6 +123,8 @@ public class ResolveCurrentAddressView extends LinearLayout {
     // background task results
 
     private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+        private AcceptNewPosition acceptNewPosition = new AcceptNewPosition(50, 60, null);
+
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL)
                     || intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)
@@ -147,10 +154,16 @@ public class ResolveCurrentAddressView extends LinearLayout {
                         layoutCurrentAddress.setEmptyLabelText(
                                 addressException.getMessage());
                     }
+                }
 
-                } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED)) {
+            } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
+                if (acceptNewPosition.updatePoint(currentLocation)) {
                     requestAddressForCurrentLocation();
                 }
+
+            } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED)) {
+                requestAddressForCurrentLocation();
             }
         }
     };

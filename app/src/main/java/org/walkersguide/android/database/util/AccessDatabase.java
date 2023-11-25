@@ -10,6 +10,7 @@ import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.database.profile.Collection.CollectionParams;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.database.DatabaseProfileRequest;
+import org.walkersguide.android.database.ObjectTypeFilter;
 import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.util.GlobalInstance;
 import android.content.ContentValues;
@@ -31,6 +32,9 @@ import java.util.Collections;
 import timber.log.Timber;
 import java.util.Locale;
 import org.walkersguide.android.data.Profile;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.data.object_with_id.Segment;
 
 
 public class AccessDatabase {
@@ -146,7 +150,33 @@ public class AccessDatabase {
                 TextUtils.join(" ", queryList), new String[]{String.valueOf(profile.getId())});
         while (cursor.moveToNext()) {
             try {
-                objectList.add(createObjectWithIdFrom(cursor));
+
+                ObjectWithId objectFromDb = createObjectWithIdFrom(cursor);
+                if (request.hasObjectTypeFilter()) {
+                    switch (request.getObjectTypeFilter()) {
+                        case ALL:
+                            objectList.add(objectFromDb);
+                            break;
+                        case POINTS:
+                            if (objectFromDb instanceof Point) {
+                                objectList.add(objectFromDb);
+                            }
+                            break;
+                        case ROUTES:
+                            if (objectFromDb instanceof Route) {
+                                objectList.add(objectFromDb);
+                            }
+                            break;
+                        case SEGMENTS:
+                            if (objectFromDb instanceof Segment) {
+                                objectList.add(objectFromDb);
+                            }
+                            break;
+                    }
+                } else {
+                    objectList.add(objectFromDb);
+                }
+
             } catch (IllegalArgumentException | JSONException e) {
                 Timber.e("error: %1$s", e.toString());
             }

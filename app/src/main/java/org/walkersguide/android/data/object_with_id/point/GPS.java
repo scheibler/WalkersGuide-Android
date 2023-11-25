@@ -156,7 +156,7 @@ public class GPS extends Point {
      * formatter
      */
 
-    public String formatTimestamp() {
+    public String formatTimestamp(String prefix) {
         String formattedTime = DateFormat
             .getTimeFormat(GlobalInstance.getContext())
             .format(new Date(this.timestamp));
@@ -169,16 +169,9 @@ public class GPS extends Point {
 
         if (formattedDate.equals(formattedDateToday)) {
             // today: only show formatted time
-            return String.format(
-                    "%1$s: %2$s",
-                    GlobalInstance.getStringResource(R.string.labelGPSTime),
-                    formattedTime);
+            return String.format("%1$s: %2$s", prefix, formattedTime);
         }
-        return String.format(
-                "%1$s: %2$s, %3$s",
-                GlobalInstance.getStringResource(R.string.labelGPSTime),
-                formattedDate,
-                formattedTime);
+        return String.format("%1$s: %2$s, %3$s", prefix, formattedDate, formattedTime);
     }
 
     public String formatAltitudeInMeters() {

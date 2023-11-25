@@ -10,9 +10,9 @@ import org.walkersguide.android.util.SettingsManager;
 public class AcceptNewPosition implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    public static AcceptNewPosition newInstanceForPoiListUpdate() {
+    public static AcceptNewPosition newInstanceForObjectListUpdate() {
         return new AcceptNewPosition(
-                30, 30, PositionManager.getInstance().getCurrentLocation());
+                50, 30, PositionManager.getInstance().getCurrentLocation());
     }
 
     public static AcceptNewPosition newInstanceForTtsAnnouncement() {
@@ -20,10 +20,6 @@ public class AcceptNewPosition implements Serializable {
                 SettingsManager.getInstance().getTtsSettings().getDistanceAnnouncementInterval(),
                 10,
                 PositionManager.getInstance().getCurrentLocation());
-    }
-
-    public static AcceptNewPosition newInstanceForTextViewAndActionButtonUpdate() {
-        return new AcceptNewPosition(6, 4, null);
     }
 
     public static AcceptNewPosition newInstanceForDistanceLabelUpdate() {
@@ -36,7 +32,7 @@ public class AcceptNewPosition implements Serializable {
     private Point lastAcceptedPoint;
     private long lastAcceptedPointTimestamp;
 
-    private AcceptNewPosition(int distanceThresholdInMeters, int timeThresholdInSeconds, Point initAcceptedPoint) {
+    public AcceptNewPosition(int distanceThresholdInMeters, int timeThresholdInSeconds, Point initAcceptedPoint) {
         this.distanceThreshold = distanceThresholdInMeters;
         this.timeThreshold = timeThresholdInSeconds;
         this.lastAcceptedPoint = initAcceptedPoint;

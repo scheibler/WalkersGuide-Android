@@ -220,7 +220,9 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                     // fill labels
                     labelGPSCoordinates.setText(gpsLocation.formatCoordinates());
                     labelGPSAccuracy.setText(gpsLocation.formatAccuracyInMeters());
-                    labelGPSTime.setText(gpsLocation.formatTimestamp());
+                    labelGPSTime.setText(
+                            gpsLocation.formatTimestamp(
+                                GlobalInstance.getStringResource(R.string.labelGPSTime)));
                 }
             }
         }

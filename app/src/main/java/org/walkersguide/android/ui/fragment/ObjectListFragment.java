@@ -353,8 +353,8 @@ public abstract class ObjectListFragment extends RootFragment
 
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        private AcceptNewPosition acceptNewPosition = AcceptNewPosition.newInstanceForPoiListUpdate();
-        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForPoiListUpdate();
+        private AcceptNewPosition acceptNewPosition = AcceptNewPosition.newInstanceForObjectListUpdate();
+        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForObjectListUpdate();
 
         @Override public void onReceive(Context context, Intent intent) {
             if (getDialog() == null && ! getActivity().hasWindowFocus()) {

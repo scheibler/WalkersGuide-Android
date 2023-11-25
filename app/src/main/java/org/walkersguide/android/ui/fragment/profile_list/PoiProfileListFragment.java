@@ -7,7 +7,6 @@ import org.walkersguide.android.database.SortMethod;
 
 import org.walkersguide.android.data.ObjectWithId;
 
-import org.walkersguide.android.ui.dialog.select.SelectSortMethodDialog;
 import org.walkersguide.android.R;
 
 import android.view.Menu;

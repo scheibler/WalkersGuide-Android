@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuItem;
 import org.walkersguide.android.data.Profile;
+import java.util.Collections;
 
 
 public abstract class SimpleObjectListFragment extends ObjectListFragment {
@@ -86,6 +87,9 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
         this.prepareRequest();
         if (objectList != null) {
             if (! showObjectList()) {
+                Collections.sort(
+                        objectList,
+                        new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
                 super.populateUiAfterRequestWasSuccessful(null, objectList);
             }
         } else {

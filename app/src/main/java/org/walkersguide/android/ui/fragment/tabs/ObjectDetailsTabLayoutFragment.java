@@ -76,6 +76,10 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         return newInstance(poi, Tab.ENTRANCES);
 	}
 
+	public static ObjectDetailsTabLayoutFragment pedestrianCrossings(Intersection intersection) {
+        return newInstance(intersection, Tab.PEDESTRIAN_CROSSINGS);
+	}
+
 	public static ObjectDetailsTabLayoutFragment streetCourse(IntersectionSegment intersectionSegment) {
         return newInstance(intersectionSegment, Tab.STREET_COURSE);
 	}

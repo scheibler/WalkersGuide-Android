@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.util.service.DistanceTrackingMode;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.ui.activity.MainActivity;
@@ -105,6 +106,9 @@ import org.walkersguide.android.server.wg.poi.PoiProfileResult;
 import org.walkersguide.android.server.wg.WgException;
 import java.util.Collections;
 import org.walkersguide.android.tts.TTSWrapper;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 
 
 public class WalkersGuideService extends Service implements LocationUpdate, DeviceSensorUpdate {
@@ -327,8 +331,8 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             if (newTrackingMode != null
                     && this.trackingMode != newTrackingMode) {
                 switch (newTrackingMode) {
-                    case PASSIVE:
-                    case ACTIVE:
+                    case DISTANCE:
+                    case BEARING:
                         updateTrackedObjectList();
                         break;
                 }
@@ -338,8 +342,11 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             }
 
         } else if (intent.getAction().equals(ACTION_INVALIDATE_TRACKED_OBJECT_LIST)) {
-            if (this.trackingMode != TrackingMode.OFF) {
-                updateTrackedObjectList();
+            switch (this.trackingMode) {
+                case DISTANCE:
+                case BEARING:
+                    updateTrackedObjectList();
+                    break;
             }
 
         } else if (intent.getAction().equals(ACTION_REQUEST_TRACKING_MODE)) {
@@ -696,34 +703,31 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
      */
 
     // location
-    private AcceptNewPosition acceptNewPositionForTrackedObjectListUpdate = AcceptNewPosition.newInstanceForPoiListUpdate();
-    private AcceptNewPosition acceptNewPositionForNearbyObjectAnnouncement = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
+    private AcceptNewPosition acceptNewValueForTrackedObjectListUpdate = AcceptNewPosition.newInstanceForObjectListUpdate();
+    private AcceptNewPosition acceptNewValueForDistanceTrackingMode = new AcceptNewPosition(5, 3, null);
 
     @Override public void newLocation(Point point, boolean isImportant) {
         if (trackingMode != TrackingMode.OFF
                 && (
                        isImportant
-                    || acceptNewPositionForTrackedObjectListUpdate.updatePoint(point))) {
+                    || acceptNewValueForTrackedObjectListUpdate.updatePoint(point))) {
             Helper.vibrateOnce(100, Helper.VIBRATION_INTENSITY_WEAK);
             updateTrackedObjectList();
-            cleanupAnnouncedObjectBlacklistInPassiveTrackingMode();
         }
 
-        if (this.trackedObjectList != null
-                && this.trackingMode == TrackingMode.PASSIVE
-                && acceptNewPositionForNearbyObjectAnnouncement.updatePoint(point)) {
-            announceObjectsNearbyInPassiveTrackingMode();
+        if (this.trackedObjectCache != null
+                && this.trackingMode == TrackingMode.DISTANCE
+                && acceptNewValueForDistanceTrackingMode.updatePoint(point)) {
+            distanceTrackingMode.lookForNearbyObjects(
+                    trackedObjectCache, point, deviceSensorManagerInstance.getCurrentBearing());
         }
     }
 
     @Override public void newGPSLocation(GPS gps) {
-        switch (routeRecordingState) {
-            case RUNNING:
-                if (shouldPointBeAddedToTheRecordedRoute(gps)) {
-                    recordedPointList.add(gps);
-                    sendRouteRecordingChangedBroadcast();
-                }
-                break;
+        if (routeRecordingState == RouteRecordingState.RUNNING
+                && shouldPointBeAddedToTheRecordedRoute(gps)) {
+            recordedPointList.add(gps);
+            sendRouteRecordingChangedBroadcast();
         }
     }
 
@@ -731,12 +735,12 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     }
 
     // device sensor data
-    private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForActiveTrackingMode();
+    private AcceptNewBearing acceptNewValueForBearingTrackingMode = new AcceptNewBearing(6, 0);
 
     @Override public void newBearing(Bearing bearing) {
-        if (this.trackedObjectList != null
-                && this.trackingMode == TrackingMode.ACTIVE
-                && acceptNewBearing.updateBearing(bearing)) {
+        if (this.trackedObjectCache != null
+                && this.trackingMode == TrackingMode.BEARING
+                && acceptNewValueForBearingTrackingMode.updateBearing(bearing)) {
             Helper.vibrateOnce(30, Helper.VIBRATION_INTENSITY_WEAK);
             announceObjectsAheadInActiveTrackingMode();
         }
@@ -750,18 +754,17 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
      * track objects
      */
     private TrackingMode trackingMode = TrackingMode.OFF;
-    private ArrayList<ObjectWithId> trackedObjectList = null;
 
     public enum TrackingMode {
         OFF(
                 GlobalInstance.getStringResource(R.string.wgTrackingModeOff),
                 GlobalInstance.getStringResource(R.string.wgTrackingModeHintOff)),
-        PASSIVE(
-                GlobalInstance.getStringResource(R.string.wgTrackingModePassive),
-                GlobalInstance.getStringResource(R.string.wgTrackingModeHintPassive)),
-        ACTIVE(
-                GlobalInstance.getStringResource(R.string.wgTrackingModeActive),
-                GlobalInstance.getStringResource(R.string.wgTrackingModeHintActive));
+        DISTANCE(
+                GlobalInstance.getStringResource(R.string.wgTrackingModeDistance),
+                GlobalInstance.getStringResource(R.string.wgTrackingModeHintDistance)),
+        BEARING(
+                GlobalInstance.getStringResource(R.string.wgTrackingModeBearing),
+                GlobalInstance.getStringResource(R.string.wgTrackingModeBearing));
 
         public String name, hint;
 
@@ -817,26 +820,30 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
     // rest
     private long trackingProfileRequestTaskId = ServerTaskExecutor.NO_TASK_ID;
-    private ArrayList<ObjectWithId> announcedObjectBlacklistInPassiveTrackingMode = new ArrayList<ObjectWithId>();
+    private TrackedObjectCache trackedObjectCache = null;
+    private DistanceTrackingMode distanceTrackingMode = new DistanceTrackingMode();
 
-    private static ArrayList<ObjectWithId> concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(
-            ArrayList<ObjectWithId> trackedProfileResultList) {
-        ArrayList<ObjectWithId> concatenatedObjectList = new ArrayList<ObjectWithId>();
-        if (trackedProfileResultList != null) {
-            concatenatedObjectList.addAll(trackedProfileResultList);
+    public class TrackedObjectCache {
+        public ArrayList<ObjectWithId> profileList, objectsList, concatenatedList;
+
+        public TrackedObjectCache(ArrayList<ObjectWithId> profileList) {
+            this.profileList = profileList != null ? profileList : new ArrayList<ObjectWithId>();;
+            this.objectsList = AccessDatabase.getInstance().getObjectListFor(
+                    new DatabaseProfileRequest(StaticProfile.trackedPoints()));
+
+            // concatenate both lists
+            this.concatenatedList = new ArrayList<ObjectWithId>();
+            this.concatenatedList.addAll(this.profileList);
+            this.concatenatedList.addAll(this.objectsList);
+            Collections.sort(
+                    this.concatenatedList,
+                    new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
         }
-        concatenatedObjectList.addAll(
-                AccessDatabase.getInstance().getObjectListFor(
-                    new DatabaseProfileRequest(StaticProfile.trackedPoints())));
-        Collections.sort(
-                concatenatedObjectList,
-                new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
-        return concatenatedObjectList;
     }
 
-    private void updateTrackedObjectList() {
+    private synchronized void updateTrackedObjectList() {
         Profile trackedProfile = settingsManagerInstance.getTrackedProfile();
-        this.trackedObjectList = null;
+        this.trackedObjectCache = null;
 
         if (trackedProfile instanceof PoiProfile) {
             if (serverTaskExecutorInstance.taskInProgress(trackingProfileRequestTaskId)) {
@@ -853,13 +860,13 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
         } else if (trackedProfile instanceof DatabaseProfile) {
             Executors.newSingleThreadExecutor().execute(() -> {
-                this.trackedObjectList = concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(
+                this.trackedObjectCache = new TrackedObjectCache(
                         accessDatabaseInstance.getObjectListFor(
                             new DatabaseProfileRequest((DatabaseProfile) trackedProfile)));
             });
 
         } else {
-            this.trackedObjectList = concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(null);
+            this.trackedObjectCache = new TrackedObjectCache(null);
         }
     }
 
@@ -867,14 +874,14 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ServerTaskExecutor.ACTION_POI_PROFILE_TASK_SUCCESSFUL)
                     && trackingProfileRequestTaskId == intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
-                trackedObjectList = concatenateTrackedProfileResultAndLocalTrackedObjectsDatabaseProfile(
+                trackedObjectCache = new TrackedObjectCache(
                         ((PoiProfileResult) intent.getSerializableExtra(
                             ServerTaskExecutor.EXTRA_POI_PROFILE_RESULT))
                         .getAllObjectList());
 
             } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)
                     && trackingProfileRequestTaskId == intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) {
-                trackedObjectList = null;
+                trackedObjectCache = null;
                 WgException wgException = (WgException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
                 if (wgException != null) {
                     Toast.makeText(
@@ -887,43 +894,11 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         }
     };
 
-    private void announceObjectsNearbyInPassiveTrackingMode() {
-        final int DISTANCE_THRESHOLD_IN_METERS = 30;
-        ObjectWithId matchingObjectWithId = null;
-        for (ObjectWithId objectWithId : this.trackedObjectList) {
-            if (objectWithId.isWithinRangeOfCurrentLocation(30)
-                    && objectWithId.isWithinRangeOfCurrentBearing(300, 60)) {
-                matchingObjectWithId = objectWithId;
-                break;
-                    }
-        }
-        if (matchingObjectWithId != null
-                && ! announcedObjectBlacklistInPassiveTrackingMode.contains(matchingObjectWithId)) {
-            TTSWrapper.getInstance().announce(
-                    String.format(
-                        "%1$s %2$s",
-                        matchingObjectWithId.formatNameAndSubType(),
-                        matchingObjectWithId.formatDistanceAndRelativeBearingFromCurrentLocation(
-                            R.plurals.inMeters))
-                    );
-            announcedObjectBlacklistInPassiveTrackingMode.add(matchingObjectWithId);
-        }
-    }
-
-    private synchronized void cleanupAnnouncedObjectBlacklistInPassiveTrackingMode() {
-        ListIterator<ObjectWithId> objectListIterator = this.announcedObjectBlacklistInPassiveTrackingMode.listIterator();
-        while(objectListIterator.hasNext()){
-            ObjectWithId objectWithId = objectListIterator.next();
-            if (! objectWithId.isWithinRangeOfCurrentLocation(100)) {
-                objectListIterator.remove();
-            }
-        }
-    }
 
     private void announceObjectsAheadInActiveTrackingMode() {
         ArrayList<String> messageList = new ArrayList<String>();
         for (ObjectWithId objectWithId :
-                Helper.filterObjectWithIdListByViewingDirection(this.trackedObjectList, 357, 3)) {
+                Helper.filterObjectWithIdListByViewingDirection(this.trackedObjectCache.concatenatedList, 357, 3)) {
             messageList.add(
                     String.format(
                         "%1$s %2$s",

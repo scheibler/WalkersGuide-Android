@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
+import org.walkersguide.android.util.service.DistanceTrackingMode.AnnouncementRadius;
 import android.widget.Spinner;
 import android.content.Intent;
 import org.walkersguide.android.util.WalkersGuideService;
@@ -34,11 +35,9 @@ import org.walkersguide.android.ui.activity.MainActivityController;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentResultListener;
 import android.content.Context;
-import timber.log.Timber;
 import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
-import android.widget.RadioGroup;
 import org.walkersguide.android.ui.view.ProfileView;
 import android.widget.ListView;
 import android.widget.ImageButton;
@@ -47,10 +46,15 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.text.TextUtils;
+import androidx.core.view.MenuProvider;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import androidx.lifecycle.Lifecycle;
 
 
-public class TrackingFragment extends Fragment implements FragmentResultListener {
-    private final static String KEY_LIST_POSITION = "listPosition";
+public class TrackingFragment extends BaseOverviewFragment implements FragmentResultListener, MenuProvider {
 
 	public static TrackingFragment newInstance() {
 		TrackingFragment fragment = new TrackingFragment();
@@ -59,24 +63,19 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
 
 
     private SettingsManager settingsManagerInstance;
-    private MainActivityController mainActivityController;
-    private int listPosition;
 
     private Spinner spinnerTrackingMode;
     private TextView labelTrackingModeHint;
+    // profile
     private ProfileView layoutTrackedProfile;
+    private Spinner spinnerAnnouncementRadius;
+    // trackedPoints()
     private TextView labelTrackedObjectsHeading;
 	private ListView listViewTrackedObjects;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
-
-        if (savedInstanceState != null) {
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            listPosition = 0;
-        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -108,32 +107,15 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
         }
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (context instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) context;
-            if (activity instanceof MainActivity) {
-                mainActivityController = (MainActivityController) ((MainActivity) activity);
-            }
-        }
-    }
-
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_tracking, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         spinnerTrackingMode = (Spinner) view.findViewById(R.id.spinnerTrackingMode);
-        spinnerTrackingMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onNothingSelected(AdapterView parent) {
-            }
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                WalkersGuideService.setTrackingMode(
-                        (TrackingMode) parent.getItemAtPosition(position));
-            }
-        });
         ArrayAdapter<TrackingMode> trackingModeAdapter = new ArrayAdapter<TrackingMode>(
                 TrackingFragment.this.getContext(),
                 // layout for the collapsed state
@@ -142,6 +124,14 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
         // layout for the expanded/opened state
         trackingModeAdapter.setDropDownViewResource(R.layout.layout_single_text_view_checkbox);
         spinnerTrackingMode.setAdapter(trackingModeAdapter);
+        spinnerTrackingMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onNothingSelected(AdapterView parent) {
+            }
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                WalkersGuideService.setTrackingMode(
+                        (TrackingMode) parent.getItemAtPosition(position));
+            }
+        });
 
         labelTrackingModeHint = (TextView) view.findViewById(R.id.labelTrackingModeHint);
         labelTrackingModeHint.setText("");
@@ -152,6 +142,32 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
                 SelectProfileFromMultipleSourcesDialog.newInstance(
                         SelectProfileFromMultipleSourcesDialog.Target.SET_AS_TRACKED_PROFILE)
                     .show(getChildFragmentManager(), "SelectProfileFromMultipleSourcesDialog");
+            }
+        });
+
+        spinnerAnnouncementRadius = (Spinner) view.findViewById(R.id.spinnerAnnouncementRadius);
+        ArrayAdapter<AnnouncementRadius> announcementRadiusAdapter = new ArrayAdapter<AnnouncementRadius>(
+                TrackingFragment.this.getContext(),
+                // layout for the collapsed state
+                android.R.layout.simple_list_item_1,
+                AnnouncementRadius.values());
+        // layout for the expanded/opened state
+        announcementRadiusAdapter.setDropDownViewResource(R.layout.layout_single_text_view_checkbox);
+        spinnerAnnouncementRadius.setAdapter(announcementRadiusAdapter);
+        // select
+        spinnerAnnouncementRadius.setSelection(
+                AnnouncementRadius.values().indexOf(
+                    settingsManagerInstance.getDistanceTrackingModeAnnouncementRadius()));
+        // must come after adapter and selection
+        spinnerAnnouncementRadius.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onNothingSelected(AdapterView parent) {
+            }
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                AnnouncementRadius selectedRadius = (AnnouncementRadius) parent.getItemAtPosition(position);
+                if (selectedRadius != null
+                        && ! selectedRadius.equals(settingsManagerInstance.getDistanceTrackingModeAnnouncementRadius())) {
+                    settingsManagerInstance.setDistanceTrackingModeAnnouncementRadius(selectedRadius);
+                }
             }
         });
 
@@ -175,11 +191,24 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
         listViewTrackedObjects.setEmptyView(labelEmptyListView);
     }
 
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
+
+    /**
+     * menu
+     */
+
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_tracking_fragment, menu);
     }
 
+    @Override public boolean onMenuItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menuItemClearProfile) {
+            AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.trackedPoints());
+            requestUiUpdate();
+        } else {
+            return false;
+        }
+        return true;
+    }
 
     /**
      * pause and resume
@@ -198,7 +227,6 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
 
         WalkersGuideService.requestTrackingMode();
-        requestUiUpdate();
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -227,7 +255,7 @@ public class TrackingFragment extends Fragment implements FragmentResultListener
         }
     };
 
-    private void requestUiUpdate() {
+    public void requestUiUpdate() {
         layoutTrackedProfile.configureAsSingleObject(
                 settingsManagerInstance.getTrackedProfile());
 

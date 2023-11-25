@@ -7,6 +7,7 @@ import org.walkersguide.android.data.profile.ProfileRequest;
 import org.walkersguide.android.util.Helper;
 import java.io.Serializable;
 import android.text.TextUtils;
+import org.walkersguide.android.database.profile.Collection;
 
 
 public class DatabaseProfileRequest extends ProfileRequest implements Serializable {
@@ -14,17 +15,20 @@ public class DatabaseProfileRequest extends ProfileRequest implements Serializab
 
 
     private DatabaseProfile profile;
+    private ObjectTypeFilter objectTypeFilter;
     private SortMethod sortMethod;
 
     public DatabaseProfileRequest(DatabaseProfile profile) {
         super(null);
         this.profile = profile;
+        this.objectTypeFilter = profile instanceof Collection ? ObjectTypeFilter.ALL : null;
         this.sortMethod = profile.getDefaultSortMethod();
     }
 
     public DatabaseProfileRequest(DatabaseProfile profile, String searchTerm, SortMethod sortMethod) {
         super(searchTerm);
         this.profile = profile;
+        this.objectTypeFilter = profile instanceof Collection ? ObjectTypeFilter.ALL : null;
         this.sortMethod = sortMethod;
     }
 
@@ -34,6 +38,18 @@ public class DatabaseProfileRequest extends ProfileRequest implements Serializab
 
     public void setProfile(DatabaseProfile newProfile) {
         this.profile = newProfile;
+    }
+
+    public ObjectTypeFilter getObjectTypeFilter() {
+        return this.objectTypeFilter;
+    }
+
+    public boolean hasObjectTypeFilter() {
+        return this.objectTypeFilter != null;
+    }
+
+    public void setObjectTypeFilter(ObjectTypeFilter newObjectTypeFilter) {
+        this.objectTypeFilter = newObjectTypeFilter;
     }
 
     public SortMethod getSortMethod() {

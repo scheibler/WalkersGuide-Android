@@ -9,20 +9,12 @@ import org.walkersguide.android.sensor.DeviceSensorManager;
 public class AcceptNewBearing implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    public static AcceptNewBearing newInstanceForPoiListUpdate() {
+    public static AcceptNewBearing newInstanceForObjectListUpdate() {
         return new AcceptNewBearing(45, 1);
-    }
-
-    public static AcceptNewBearing newInstanceForTextViewAndActionButtonUpdate() {
-        return new AcceptNewBearing(30, 2);
     }
 
     public static AcceptNewBearing newInstanceForDistanceLabelUpdate() {
         return new AcceptNewBearing(30, 1);
-    }
-
-    public static AcceptNewBearing newInstanceForActiveTrackingMode() {
-        return new AcceptNewBearing(6, 0);
     }
 
 
@@ -31,7 +23,7 @@ public class AcceptNewBearing implements Serializable {
     private Bearing lastAcceptedBearing;
     private long lastAcceptedBearingTimestamp;
 
-    private AcceptNewBearing(int angleeThresholdInDegree, int timeThresholdInSeconds) {
+    public AcceptNewBearing(int angleeThresholdInDegree, int timeThresholdInSeconds) {
         this.angleThreshold = angleeThresholdInDegree;
         this.timeThreshold = timeThresholdInSeconds;
         this.lastAcceptedBearing = DeviceSensorManager.getInstance().getCurrentBearing();

@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
+import org.walkersguide.android.util.Helper;
+import timber.log.Timber;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.data.profile.MutableProfile;
 import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter;
@@ -46,15 +48,13 @@ import android.content.BroadcastReceiver;
 import org.walkersguide.android.data.Profile;
 import android.widget.BaseExpandableListAdapter;
 import android.content.Intent;
-import org.walkersguide.android.util.Helper;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
-public class OverviewFragment extends Fragment
-        implements FragmentResultListener, MenuProvider, OnAddButtonClick, ViewChangedListener {
-    private final static String KEY_LIST_POSITION = "listPosition";
+public class OverviewFragment extends BaseOverviewFragment
+        implements FragmentResultListener, MenuProvider, OnAddButtonClick {
 
 	public static OverviewFragment newInstance() {
 		OverviewFragment fragment = new OverviewFragment();
@@ -62,22 +62,14 @@ public class OverviewFragment extends Fragment
 	}
 
 
-    private MainActivityController mainActivityController;
     private ResolveCurrentAddressView layoutClosestAddress;
 
     // pinned object list
-    private int listPosition;
     private ExpandableListView listViewPinnedObjects;
     private TextView labelNoPinnedObjectsHint;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
-        } else {
-            listPosition = 0;
-        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -109,16 +101,6 @@ public class OverviewFragment extends Fragment
         }
     }
 
-    @Override public void onAttach(Context context){
-        super.onAttach(context);
-        if (context instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) context;
-            if (activity instanceof MainActivity) {
-                mainActivityController = (MainActivityController) ((MainActivity) activity);
-            }
-        }
-    }
-
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_overview, container, false);
 	}
@@ -130,6 +112,14 @@ public class OverviewFragment extends Fragment
         layoutClosestAddress = (ResolveCurrentAddressView) view.findViewById(R.id.layoutClosestAddress);
 
         listViewPinnedObjects = (ExpandableListView) view.findViewById(R.id.expandableListView);
+        listViewPinnedObjects .setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long l) {
+                Helper.vibrateOnce(
+                        Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+                return false;
+            }
+        });
+
         labelNoPinnedObjectsHint = (TextView) view.findViewById(R.id.labelNoPinnedObjectsHint);
 
         Button buttonCollections = (Button) view.findViewById(R.id.buttonCollections);
@@ -159,11 +149,6 @@ public class OverviewFragment extends Fragment
         SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                 SelectObjectWithIdFromMultipleSourcesDialog.Target.ADD_TO_PINNED_POINTS_AND_ROUTES)
             .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt(KEY_LIST_POSITION, listPosition);
     }
 
 
@@ -203,31 +188,17 @@ public class OverviewFragment extends Fragment
 
     @Override public void onPause() {
         super.onPause();
-        unregisterViewChangedBroadcastReceiver(viewChangedBroadcastReceiver);
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
     @Override public void onResume() {
         super.onResume();
-        registerViewChangedBroadcastReceiver(viewChangedBroadcastReceiver);
-
         IntentFilter filter = new IntentFilter();
         filter.addAction(DeviceSensorManager.ACTION_SHAKE_DETECTED);
         LocalBroadcastManager
             .getInstance(getActivity())
             .registerReceiver(mMessageReceiver, filter);
-
-        requestUiUpdate();
     }
-
-    private BroadcastReceiver viewChangedBroadcastReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ViewChangedListener.ACTION_OBJECT_WITH_ID_LIST_CHANGED)
-                    || intent.getAction().equals(ViewChangedListener.ACTION_PROFILE_LIST_CHANGED)) {
-                requestUiUpdate();
-            }
-        }
-    };
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -239,7 +210,7 @@ public class OverviewFragment extends Fragment
     };
 
 
-    private void requestUiUpdate() {
+    public void requestUiUpdate() {
         layoutClosestAddress.requestAddressForCurrentLocation();
 
         listViewPinnedObjects.setAdapter((BaseExpandableListAdapter) null);

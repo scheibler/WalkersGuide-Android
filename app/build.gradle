@@ -54,8 +54,8 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionCode 10
-            versionName '3.0.0-b4'
+            versionCode 12
+            versionName '3.0.0-b5'
             signingConfig signingConfigs.beta
             // internal
             // database
@@ -124,10 +124,10 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2023-09-14@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2023-11-25@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
-    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
 }
 
 configurations.implementation {

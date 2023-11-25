@@ -35,7 +35,9 @@ public class Helper {
             ArrayList<? extends ObjectWithId> objectList, int minAngle, int maxAngle) {
         ArrayList<ObjectWithId> filteredObjectList = new ArrayList<ObjectWithId>();
         for (ObjectWithId object : objectList) {
-            if (object.isWithinRangeOfCurrentBearing(minAngle, maxAngle)) {
+            Bearing bearingFromCurrentLocation = object.bearingFromCurrentLocation();
+            if (bearingFromCurrentLocation != null
+                    && bearingFromCurrentLocation.relativeToCurrentBearing().withinRange(minAngle, maxAngle)) {
                 filteredObjectList.add(object);
             }
         }

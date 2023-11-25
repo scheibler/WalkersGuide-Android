@@ -28,6 +28,7 @@ import android.widget.TextView;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.util.GlobalInstance;
 
 
 public class LocationSensorDetailsDialog extends DialogFragment {
@@ -112,7 +113,9 @@ public class LocationSensorDetailsDialog extends DialogFragment {
                     labelGPSAltitude.setText(gpsLocation.formatAltitudeInMeters());
                     labelGPSBearing.setText(gpsLocation.formatBearingInDegrees());
                     labelGPSSpeed.setText(gpsLocation.formatSpeedInKMH());
-                    labelGPSTime.setText(gpsLocation.formatTimestamp());
+                    labelGPSTime.setText(
+                            gpsLocation.formatTimestamp(
+                                GlobalInstance.getStringResource(R.string.labelGPSTime)));
                 }
             }
         }
