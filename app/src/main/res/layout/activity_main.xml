@@ -31,7 +31,21 @@
                 android:fitsSystemWindows="true" >
 
                 <ImageButton
-                    android:id="@+id/buttonUpperLeftCorner"
+                    android:id="@+id/buttonNavigateUp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:minWidth="@dimen/minWidth"
+                    android:minHeight="@dimen/minHeight"
+                    android:background="@null"
+                    app:tint="@color/image"
+                    android:src="@drawable/image_arrow_up"
+                    android:contentDescription="@string/navigateUp"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/buttonMainMenu"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="2dp"

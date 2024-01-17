@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.util.service.BearingTrackingMode;
 import org.walkersguide.android.util.service.DistanceTrackingMode;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
@@ -109,6 +110,9 @@ import org.walkersguide.android.tts.TTSWrapper;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
+import android.app.ForegroundServiceStartNotAllowedException;
+import android.content.pm.ServiceInfo;
+import androidx.core.app.ServiceCompat;
 
 
 public class WalkersGuideService extends Service implements LocationUpdate, DeviceSensorUpdate {
@@ -291,9 +295,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                         serviceStateChanged = true;
                     }
                     // create or update foreground notification
-                    startForeground(
-                            WALKERS_GUIDE_SERVICE_NOTIFICATION_ID,
-                            getWalkersGuideServiceNotification());
+                    startForegroundService();
                     // send service state changed broadcast only if necessary
                     if (serviceStateChanged) {
                         sendServiceStateChangedBroadcast();
@@ -442,6 +444,23 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         }
 
         return START_STICKY;
+    }
+
+    private void startForegroundService() {
+        int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+            ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST : 0;
+        Timber.d("startForegroundService: type=%1$d", type);
+        try {
+            ServiceCompat.startForeground(
+                    this, WALKERS_GUIDE_SERVICE_NOTIFICATION_ID, getWalkersGuideServiceNotification(), type);
+        } catch (Exception e) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    && e instanceof ForegroundServiceStartNotAllowedException) {
+                // App not in a valid state to start foreground service
+                Timber.e("ForegroundServiceStartNotAllowedException");
+                destroyService();
+            }
+        }
     }
 
     @Override public void onDestroy() {
@@ -735,14 +754,16 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     }
 
     // device sensor data
-    private AcceptNewBearing acceptNewValueForBearingTrackingMode = new AcceptNewBearing(6, 0);
+    private AcceptNewBearing acceptNewValueForBearingTrackingMode = new AcceptNewBearing(10, 0);
 
     @Override public void newBearing(Bearing bearing) {
         if (this.trackedObjectCache != null
                 && this.trackingMode == TrackingMode.BEARING
                 && acceptNewValueForBearingTrackingMode.updateBearing(bearing)) {
-            Helper.vibrateOnce(30, Helper.VIBRATION_INTENSITY_WEAK);
-            announceObjectsAheadInActiveTrackingMode();
+            if (bearingTrackingMode.isRunning()) {
+                bearingTrackingMode.cancel();
+            }
+            bearingTrackingMode.lookForObjectsWithinViewingDirection(trackedObjectCache, bearing);
         }
     }
 
@@ -764,7 +785,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 GlobalInstance.getStringResource(R.string.wgTrackingModeHintDistance)),
         BEARING(
                 GlobalInstance.getStringResource(R.string.wgTrackingModeBearing),
-                GlobalInstance.getStringResource(R.string.wgTrackingModeBearing));
+                GlobalInstance.getStringResource(R.string.wgTrackingModeHintBearing));
 
         public String name, hint;
 
@@ -822,6 +843,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     private long trackingProfileRequestTaskId = ServerTaskExecutor.NO_TASK_ID;
     private TrackedObjectCache trackedObjectCache = null;
     private DistanceTrackingMode distanceTrackingMode = new DistanceTrackingMode();
+    private BearingTrackingMode bearingTrackingMode = new BearingTrackingMode();
 
     public class TrackedObjectCache {
         public ArrayList<ObjectWithId> profileList, objectsList, concatenatedList;
@@ -829,15 +851,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         public TrackedObjectCache(ArrayList<ObjectWithId> profileList) {
             this.profileList = profileList != null ? profileList : new ArrayList<ObjectWithId>();;
             this.objectsList = AccessDatabase.getInstance().getObjectListFor(
-                    new DatabaseProfileRequest(StaticProfile.trackedPoints()));
-
-            // concatenate both lists
-            this.concatenatedList = new ArrayList<ObjectWithId>();
-            this.concatenatedList.addAll(this.profileList);
-            this.concatenatedList.addAll(this.objectsList);
-            Collections.sort(
-                    this.concatenatedList,
-                    new ObjectWithId.SortByDistanceRelativeToCurrentLocation(true));
+                    new DatabaseProfileRequest(StaticProfile.trackedObjectsWithId()));
         }
     }
 
@@ -893,26 +907,6 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             }
         }
     };
-
-
-    private void announceObjectsAheadInActiveTrackingMode() {
-        ArrayList<String> messageList = new ArrayList<String>();
-        for (ObjectWithId objectWithId :
-                Helper.filterObjectWithIdListByViewingDirection(this.trackedObjectCache.concatenatedList, 357, 3)) {
-            messageList.add(
-                    String.format(
-                        "%1$s %2$s",
-                        objectWithId.formatNameAndSubType(),
-                        GlobalInstance.getPluralResource(
-                            R.plurals.inMeters, objectWithId.distanceFromCurrentLocation()))
-                    );
-        }
-
-        if (! messageList.isEmpty()) {
-            TTSWrapper.getInstance().announce(
-                    TextUtils.join(", ", messageList));
-        }
-    }
 
 
     /**

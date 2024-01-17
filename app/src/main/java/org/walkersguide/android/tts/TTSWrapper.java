@@ -91,42 +91,27 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     private void speak(String message) {
         if (isInitialized()) {
-            if (isSpeaking()) {
-                tts.stop();
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                ttsAtLeastApi21(message);
-            } else {
-                ttsUnderApi20(message);
+            stop();
+
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .setUsage(
+                        isScreenReaderEnabled()
+                        ? AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY
+                        : AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                .build();
+            tts.setAudioAttributes(audioAttributes);
+
+            // speak
+            for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
+                tts.speak(chunk, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
             }
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private void ttsUnderApi20(String message) {
-        HashMap<String,String> map = new HashMap<String,String>();
-        map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID_SPEAK);
-        for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
-            tts.speak(chunk, TextToSpeech.QUEUE_ADD, map);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void ttsAtLeastApi21(String message) {
-        Timber.d("isScreenReaderEnabled: %1$s", isScreenReaderEnabled());
-        // set audio attributes
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-            .setUsage(
-                    isScreenReaderEnabled()
-                    ? AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY
-                    : AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
-            .build();
-        tts.setAudioAttributes(audioAttributes);
-
-        // speak
-        for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
-            tts.speak(chunk, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
+    public void stop() {
+        if (isInitialized() && isSpeaking()) {
+            tts.stop();
         }
     }
 

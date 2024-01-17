@@ -171,7 +171,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
                     sourceActionList.add(SourceAction.POI_PROFILES);
                     break;
                 case SAVE_CURRENT_LOCATION:
-                    sourceActionList.add(SourceAction.STATIC_PROFILE_PINNED_POINTS_AND_ROUTES);
+                    sourceActionList.add(SourceAction.STATIC_PROFILE_PINNED_OBJECTS_WITH_ID);
                     sourceActionList.add(SourceAction.COLLECTIONS);
                     break;
                 case GPX_FILE_IMPORT:
@@ -199,7 +199,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
 
     private enum SourceAction {
 
-        STATIC_PROFILE_PINNED_POINTS_AND_ROUTES(StaticProfile.pinnedPointsAndRoutes().getName()),
+        STATIC_PROFILE_PINNED_OBJECTS_WITH_ID(StaticProfile.pinnedObjectsWithId().getName()),
         COLLECTIONS(GlobalInstance.getStringResource(R.string.profileSelectFromCollections)),
         POI_PROFILES(GlobalInstance.getStringResource(R.string.profileSelectFromPoiProfiles)),
         EMPTY_COLLECTION(GlobalInstance.getStringResource(R.string.profileSelectFromEmptyCollection)),
@@ -219,8 +219,8 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
     private void executeAction(SourceAction action) {
         switch (action) {
 
-            case STATIC_PROFILE_PINNED_POINTS_AND_ROUTES:
-                profileSelected(StaticProfile.pinnedPointsAndRoutes());
+            case STATIC_PROFILE_PINNED_OBJECTS_WITH_ID:
+                profileSelected(StaticProfile.pinnedObjectsWithId());
                 break;
 
             case COLLECTIONS:

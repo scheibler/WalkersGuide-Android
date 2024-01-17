@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment;
 
+import android.view.accessibility.AccessibilityEvent;
 import org.walkersguide.android.ui.adapter.ProfileAdapter;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.view.ProfileView;
@@ -143,7 +144,7 @@ public abstract class ProfileListFragment extends RootFragment
     }
 
     public void resetListPosition() {
-        listPosition = 0;
+        listPosition = -1;
     }
 
 
@@ -196,6 +197,7 @@ public abstract class ProfileListFragment extends RootFragment
         labelHeading.setText(
                 GlobalInstance.getPluralResource(
                     getPluralResourceId(), profileList.size()));
+        labelHeading.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
 
         // fill list view
         listViewProfile.setAdapter(

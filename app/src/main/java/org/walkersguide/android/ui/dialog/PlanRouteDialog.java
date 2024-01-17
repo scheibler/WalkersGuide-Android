@@ -2,7 +2,6 @@ package org.walkersguide.android.ui.dialog;
 
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.MainActivityController;
-import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.server.wg.p2p.P2pRouteTask;
 import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
@@ -86,7 +85,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         return dialog;
     }
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         settingsManagerInstance = SettingsManager.getInstance();
@@ -178,7 +177,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         });
 
         // via points
-		layoutViaPointList = (LinearLayout) view.findViewById(R.id.layoutViaPointList);
+        layoutViaPointList = (LinearLayout) view.findViewById(R.id.layoutViaPointList);
 
         switchShowViaPointList = (SwitchCompat) view.findViewById(R.id.switchShowViaPointList);
         switchShowViaPointList.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -381,11 +380,10 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                 }
 
                 if (intent.getAction().equals(ServerTaskExecutor.ACTION_P2P_ROUTE_TASK_SUCCESSFUL)) {
-                    Route newRoute = (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE);
-                    HistoryProfile.plannedRoutes().addObject(newRoute);
-                    Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                     MainActivity.loadRoute(
-                            PlanRouteDialog.this.getContext(), newRoute);
+                            PlanRouteDialog.this.getContext(),
+                            (Route) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_ROUTE));
+                    Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                     dismiss();
 
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {

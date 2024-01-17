@@ -1,6 +1,6 @@
 package org.walkersguide.android.util;
 
-import android.location.LocationManager;
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import timber.log.Timber;
 
 import org.json.JSONObject;
@@ -16,16 +16,10 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.Turn;
-import java.util.List;
-import android.location.Location;
 import org.walkersguide.android.data.Angle;
 import androidx.core.util.Pair;
 import java.text.SimpleDateFormat;
-import java.text.DateFormat;
 import java.util.Date;
-import java.text.FieldPosition;
-import java.lang.UnsupportedOperationException;
-import java.text.ParsePosition;
 import org.walkersguide.android.data.ObjectWithId;
 
 
@@ -128,14 +122,11 @@ public class Helper {
         return Pair.create(scaledX, scaledY);
     }
 
-    public static Location calculateEndLocationForStartLocationAndAngle(Location startLocation, Angle angle) {
+    public static Coordinates calculateEndCoordinatesForStartCoordinatesAndAngle(Coordinates startCoordinates, Angle angle) {
         Pair<Float,Float> scaledEndCoordinates = getScaledEndCoordinatesForLineWithAngle(angle);
-        Location endLocation = new Location(LocationManager.GPS_PROVIDER);
-        endLocation.setLatitude(
-                startLocation.getLatitude() + (scaledEndCoordinates.second / 10000));
-        endLocation.setLongitude(
-                startLocation.getLongitude() + (scaledEndCoordinates.first / 10000));
-        return endLocation;
+        return new Coordinates(
+                startCoordinates.getLatitude() + (scaledEndCoordinates.second / 10000),
+                startCoordinates.getLongitude() + (scaledEndCoordinates.first / 10000));
     }
 
 

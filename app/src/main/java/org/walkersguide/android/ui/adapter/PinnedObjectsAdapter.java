@@ -80,7 +80,7 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
 
             case ID_OBJECTS:
                 quantityString = GlobalInstance.getPluralResource(
-                        StaticProfile.pinnedPointsAndRoutes().getPluralResId(), objectList.size());
+                        StaticProfile.pinnedObjectsWithId().getPluralResId(), objectList.size());
                 holder.buttonAdd.setContentDescription(
                         context.getResources().getString(R.string.buttonAddPinnedPointOrRoute));
                 holder.buttonAdd.setOnClickListener(new View.OnClickListener() {

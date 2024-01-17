@@ -169,7 +169,7 @@
     <string name="labelName">Name</string>
     <string name="messageNameMissing">Please enter a name.</string>
     <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$d meters, %2$s</string>
-    <string name="messageSearchLocationInProgress">Current location is beeing retrieved, please wait…</string>
+    <string name="messageSearchLocationInProgress">Current location is being retrieved, please wait…</string>
     <string name="messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful">The current location was pinned successfully.</string>
     <string name="messageCurrentLocationAddedToCollectionSuccessful">The current location was added to the collection %1$s.</string>
 
@@ -187,9 +187,12 @@
     <string name="mainTabNameRoutes">Routes</string>
     <string name="mainTabNamePoints">Points</string>
 
-    <!-- overview fragment -->
-    <string name="fragmentOverviewName">Overview</string>
-    <!-- pinned object list -->
+    <!-- OverviewTabLayoutFragment -->
+    <string name="buttonCollections">Collections</string>
+    <string name="buttonHistory">History</string>
+
+    <!-- pinning fragment -->
+    <string name="fragmentPinningName">Pinning</string>
     <string name="menuItemClearPinnedObjects">Clear lists</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Only remove profiles</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only remove points and routes</string>
@@ -198,9 +201,6 @@
     <string name="buttonAddPinnedProfile">Pin profile</string>
     <string name="buttonAddPinnedPointOrRoute">Pin point or route</string>
     <string name="labelNoPinnedObjectsHint">Here you can add point profiles and collections as well as points and routes.</string>
-    <!-- bottom layout -->
-    <string name="buttonCollections">Collections</string>
-    <string name="buttonHistory">History</string>
 
     <!-- tracking fragment -->
     <string name="fragmentTrackingName">Tracking</string>
@@ -324,6 +324,10 @@
 
     <!-- history fragment -->
     <string name="fragmentHistoryName">History</string>
+    <!-- groups -->
+    <string name="historyProfileGroupPoints">Points</string>
+    <string name="historyProfileGroupRoutes">Routes</string>
+    <string name="historyProfileGroupOverview">Overview</string>
 
 
     <!--
@@ -384,47 +388,31 @@
     -->
 
     <!-- object details tab layout fragment -->
-    <string name="pointDetailsActivityTitle">Details</string>
     <string name="labelPointDistanceAndBearing">Distance: %1$s</string>
-    <string name="labelUserAnnotation">My annotation</string>
-
-    <!-- segment details activity -->
-    <string name="segmentDetailsActivityTitle">Details</string>
     <string name="labelSegmentDirection">Direction: %1$s</string>
-
-    <!-- HikingTrailDetailsFragment -->
-    <string name="fragmentHikingTrailDetailsName">Hiking trail details</string>
-    <string name="labelTrailName">Name</string>
-    <string name="labelTrailDescription">Description</string>
-    <string name="labelTrailLength">Length</string>
-    <string name="labelTrailSymbol">Symbol</string>
-    <!-- distances -->
-    <string name="labelTrailDistancesHeading">Distances from current position</string>
-    <string name="labelDistanceToTrailStart">Start point</string>
-    <string name="labelDistanceToTrailDestination">Destination point</string>
-    <string name="labelDistanceToTrailClosest">Closest route point</string>
+    <string name="labelUserAnnotation">My annotation</string>
 
     <!-- PointDetailsFragment -->
     <string name="fragmentPointDetailsName">Details</string>
     <string name="menuItemOpenOsmWebsite">Show on OpenStreetMap.org</string>
     <!-- entrance -->
     <string name="labelPointEntranceAttributesHeading">Entrance</string>
-    <string name="labelPointEntranceLabel">Label:</string>
+    <string name="labelPointEntranceLabel">Label</string>
     <!-- poi -->
     <string name="labelPointPOIBuildingHeading">Building</string>
-    <string name="labelPointPOIBuildingIsInside">Inside of:</string>
-    <string name="labelPointPOIBuildingNumberOfEntrances">Number of entrances:</string>
+    <string name="labelPointPOIBuildingIsInside">Inside of</string>
+    <string name="labelPointPOIBuildingNumberOfEntrances">Number of entrances</string>
     <string name="labelPointPOIContactHeading">Contact data</string>
-    <string name="labelPointPOIContactPostAddress">Post address:</string>
-    <string name="labelPointPOIContactEMailAddress">Email address:</string>
-    <string name="labelPointPOIContactPhoneNumber">Phone number:</string>
-    <string name="labelPointPOIContactWebsite">Website:</string>
-    <string name="labelPointPOIContactOpeningHours">Opening hours:</string>
+    <string name="labelPointPOIContactPostAddress">Post address</string>
+    <string name="labelPointPOIContactEMailAddress">Email address</string>
+    <string name="labelPointPOIContactPhoneNumber">Phone number</string>
+    <string name="labelPointPOIContactWebsite">Website</string>
+    <string name="labelPointPOIContactOpeningHours">Opening hours</string>
     <!-- station -->
     <string name="labelPointStationAttributesHeading">Station</string>
     <string name="labelStationNetwork">Network</string>
     <string name="labelStationOperator">Operator</string>
-    <string name="labelPointStationVehicleTypes">Vehicle type:</string>
+    <string name="labelPointStationVehicleTypes">Vehicle type</string>
     <string name="labelPointStationLinesHeading">Lines</string>
     <!-- point with address -->
     <string name="labelPointWithAddressDataHeading">Address components</string>
@@ -444,8 +432,8 @@
     <string name="labelPointIntersectionAttributesHeading">Intersection</string>
     <!-- pedestrian crossing -->
     <string name="labelPointTrafficSignalsAttributesHeading">Traffic light</string>
-    <string name="labelPointTrafficSignalsSound">Sound:</string>
-    <string name="labelPointTrafficSignalsVibration">Vibration:</string>
+    <string name="labelPointTrafficSignalsSound">Sound</string>
+    <string name="labelPointTrafficSignalsVibration">Vibration</string>
     <!-- point: alt names -->
     <string name="labelPointNotesHeading">Notes</string>
     <string name="labelPointAltName">Alternative name</string>
@@ -454,8 +442,8 @@
     <string name="labelPointWikidata">More information at wikidata.org</string>
     <!-- point: accessibility -->
     <string name="labelPointAccessibilityHeading">Accessibility</string>
-    <string name="labelPointTactilePaving">Tactile paving:</string>
-    <string name="labelPointWheelchair">Wheelchair accessibility:</string>
+    <string name="labelPointTactilePaving">Tactile paving</string>
+    <string name="labelPointWheelchair">Wheelchair accessibility</string>
     <!-- point: coordinates and gps -->
     <string name="labelPointCoordinatesHeading">Coordinates</string>
 
@@ -467,10 +455,10 @@
     <string name="fragmentSegmentDetailsName">Details</string>
     <!-- intersection segment -->
     <string name="labelSegmentIntersectionAttributesHeading">Part of intersection</string>
-    <string name="labelSegmentIntersectionName">Name:</string>
+    <string name="labelSegmentIntersectionName">Name</string>
     <!-- route segment -->
     <string name="labelSegmentRouteAttributesHeading">Route</string>
-    <string name="labelSegmentRouteDistance">Distance:</string>
+    <string name="labelSegmentRouteDistance">Distance</string>
     <!-- segment attributes -->
     <string name="labelSegmentFootwayAttributesHeading">Attributes</string>
     <string name="labelSegmentBearing">Bearing</string>
@@ -694,7 +682,7 @@
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
     <string name="contextMenuItemOverview">Overview</string>
-    <string name="contextMenuItemUserAnnotation">Add annotation</string>
+    <string name="contextMenuItemUserAnnotation">Edit annotation</string>
     <string name="contextMenuItemRename">Rename</string>
     <string name="contextMenuItemRemove">Remove</string>
     <!-- overview sub menu -->
@@ -836,27 +824,19 @@
 
     <!-- DatabaseProfile -->
     <string name="databaseProfileExcludedFromRouting">Excluded ways from routing</string>
-    <string name="databaseProfilePinnedPointsAndRoutes">Pinned points and routes</string>
     <string name="databaseProfileRecordedRoutes">Recorded routes</string>
-    <string name="databaseProfileTrackedPoints">Tracked points</string>
-    <!-- for -->
-    <string name="databaseProfileForPoints">Points</string>
-    <string name="databaseProfileForRoutes">Routes</string>
-    <string name="databaseProfileForPointsAndRoutes">Points and routes</string>
-    <string name="databaseProfileForSegments">Way segments</string>
+    <string name="databaseProfilePinnedObjectsWithId">Pinned points and routes</string>
+    <string name="databaseProfileTrackedObjectsWithId">Tracked points and routes</string>
     <!-- point history -->
     <string name="historyDatabaseProfileAddressPoints">Addresses</string>
     <string name="historyDatabaseProfileIntersectionPoints">Intersections</string>
     <string name="historyDatabaseProfileStationPoints">Stations</string>
     <string name="historyDatabaseProfileSimulatedPoints">Simulated points</string>
-    <string name="historyDatabaseProfilePinnedPoints">Pinned points</string>
-    <string name="historyDatabaseProfileTrackedPoints">Tracked points</string>
     <string name="historyDatabaseProfileAllPoints">All points</string>
     <!-- route history -->
     <string name="historyDatabaseProfilePlannedRoutes">Planned routes</string>
-    <string name="historyDatabaseProfilePinnedRoutes">Pinned routes</string>
-    <string name="historyDatabaseProfileRoutesFromGpxFile">GPX file imports</string>
     <string name="historyDatabaseProfileRecordedRoutes">Recorded routes</string>
+    <string name="historyDatabaseProfileRoutesFromGpxFile">GPX file imports</string>
     <string name="historyDatabaseProfileAllRoutes">All routes</string>
 
     <!-- Collection -->

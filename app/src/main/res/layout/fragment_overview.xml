@@ -1,67 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-
-    <!-- bottom -->
-
     <LinearLayout
-        android:id="@+id/layoutBottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_alignParentBottom="true"
         android:gravity="center_vertical"
         android:orientation="horizontal" >
 
-        <Button
-            android:id="@+id/buttonCollections"
+        <org.walkersguide.android.ui.view.ResolveCurrentAddressView
+            android:id="@+id/layoutClosestAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
+            android:layout_weight="1.0" />
+
+        <Button
+            android:id="@+id/buttonCollections"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="@string/buttonCollections"
-            android:textSize="@dimen/bigTextSize" />
+            android:textSize="@dimen/smallTextSize" />
 
         <Button
             android:id="@+id/buttonHistory"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
             android:text="@string/buttonHistory"
-            android:textSize="@dimen/bigTextSize" />
+            android:textSize="@dimen/smallTextSize" />
     </LinearLayout>
 
+    <include
+        layout="@layout/layout_view_pager_and_tab_layout_above" />
 
-    <!-- main -->
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/layoutBottom"
-        android:orientation="vertical" >
-
-        <org.walkersguide.android.ui.view.ResolveCurrentAddressView
-            android:id="@+id/layoutClosestAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <include
-            layout="@layout/layout_single_expandable_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:groupIndicator="@null" />
-
-        <TextView
-            android:id="@+id/labelNoPinnedObjectsHint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/labelNoPinnedObjectsHint"
-            android:visibility="gone" />
-    </LinearLayout>
-
-</RelativeLayout>
+</LinearLayout>

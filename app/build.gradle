@@ -20,12 +20,13 @@ if (keystoreProperties.isEmpty()) {
 }
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
+    namespace "org.walkersguide.android"
 
     defaultConfig {
         resConfigs "en", "de"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         multiDexEnabled true
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
@@ -54,13 +55,13 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionCode 12
-            versionName '3.0.0-b5'
+            versionCode 13
+            versionName '3.0.0-b6'
             signingConfig signingConfigs.beta
             // internal
             // database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
-            buildConfigField 'Integer', 'DATABASE_VERSION', '12'
+            buildConfigField 'Integer', 'DATABASE_VERSION', '13'
             // server
             buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
             buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
@@ -82,6 +83,10 @@ android {
             buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
             buildConfigField 'int[]', 'SUPPORTED_API_VERSION_LIST', '{3, 4}'
         }
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     buildTypes {
@@ -106,14 +111,14 @@ android {
 dependencies {
     // androidX
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.core:core:1.10.1'
+    implementation 'androidx.core:core:1.12.0'
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
-    implementation 'androidx.fragment:fragment:1.6.0'
+    implementation 'androidx.fragment:fragment:1.6.2'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
     // material design
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     // google helpers

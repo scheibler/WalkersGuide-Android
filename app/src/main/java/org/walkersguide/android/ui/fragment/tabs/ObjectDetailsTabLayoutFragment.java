@@ -114,7 +114,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
     private ObjectWithId object;
 
-    private TextView labelDistanceAndBearing, labelUserAnnotation;
+    private TextView labelDistanceAndBearing;
 
     @Override public int getLayoutResourceId() {
         return R.layout.fragment_object_details;
@@ -138,8 +138,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             // details label
     		labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
             labelDistanceAndBearing.setVisibility(View.GONE);
-    		labelUserAnnotation = (TextView) view.findViewById(R.id.labelUserAnnotation);
-            labelUserAnnotation.setVisibility(View.GONE);
 
             // prepare tab list
             ArrayList<Tab> tabList = new ArrayList<Tab>();
@@ -186,7 +184,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         } else if (object instanceof Segment) {
             LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(newDirectionReceiverForSegments);
         }
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(userAnnotationChanged);
     }
 
     @Override public void onResume() {
@@ -222,23 +219,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                 }
             }, 200);
         }
-
-        // user annotation
-        IntentFilter userAnnotationFilter = new IntentFilter();
-        userAnnotationFilter.addAction(ObjectWithIdView.UserAnnotationForObjectWithIdDialog.ACTION_USER_ANNOTATION_FOR_OBJECT_WITH_ID_WAS_SUCCESSFUL);
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(userAnnotationChanged, userAnnotationFilter);
-        updateUserAnnotationLabel();
-    }
-
-    private void updateUserAnnotationLabel() {
-        labelUserAnnotation.setText(
-                String.format(
-                    "%1$s:\n%2$s",
-                    getResources().getString(R.string.labelUserAnnotation),
-                    object.getUserAnnotation())
-                );
-        labelUserAnnotation.setVisibility(
-                object != null && object.hasUserAnnotation() ? View.VISIBLE : View.GONE);
     }
 
 
@@ -326,14 +306,6 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         }
     };
 
-    private BroadcastReceiver userAnnotationChanged = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ObjectWithIdView.UserAnnotationForObjectWithIdDialog.ACTION_USER_ANNOTATION_FOR_OBJECT_WITH_ID_WAS_SUCCESSFUL)) {
-                updateUserAnnotationLabel();
-            }
-        }
-    };
-
 
     /**
      * fragment management
@@ -367,7 +339,9 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                         if (object instanceof Station) {
                             Station station = (Station) object;
                             return DeparturesFragment.embedded(
-                                    station.getId(), station.getLatitude(), station.getLongitude());
+                                    station.getId(),
+                                    station.getCoordinates().getLatitude(),
+                                    station.getCoordinates().getLongitude());
                         }
                         break;
                     case ENTRANCES:

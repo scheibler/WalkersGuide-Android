@@ -138,7 +138,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
         setTargetDatabaseProfile(
                 savedInstanceState != null
                 ? (DatabaseProfile) savedInstanceState.getSerializable(KEY_TARGET_DATABASE_PROFILE)
-                : StaticProfile.pinnedPointsAndRoutes());
+                : StaticProfile.pinnedObjectsWithId());
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -266,7 +266,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
                     && ((DatabaseProfile) selectedProfile).addObject(currentLocation)) {
                 Toast.makeText(
                         getActivity(),
-                        selectedProfile.equals(StaticProfile.pinnedPointsAndRoutes())
+                        selectedProfile.equals(StaticProfile.pinnedObjectsWithId())
                         ? getResources().getString(R.string.messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful)
                         : String.format(
                             getResources().getString(R.string.messageCurrentLocationAddedToCollectionSuccessful),

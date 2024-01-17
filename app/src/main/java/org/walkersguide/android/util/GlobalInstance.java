@@ -150,8 +150,6 @@ public class GlobalInstance extends Application {
     private SoundPool soundPool;
     private int soundSilence;
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    @SuppressWarnings("deprecation")
     public void startPlaybackOfSilenceWavFile() {
 	    soundPoolHandler = new Handler(Looper.getMainLooper());
         soundPoolRunnable = new Runnable() {
@@ -165,17 +163,13 @@ public class GlobalInstance extends Application {
             }
         };
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            AudioAttributes attributes = new AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                .build();
-            soundPool = new SoundPool.Builder()
-                .setAudioAttributes(attributes)
-                .build();
-        } else {
-            soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-        }
+        AudioAttributes attributes = new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .build();
+        soundPool = new SoundPool.Builder()
+            .setAudioAttributes(attributes)
+            .build();
 
         soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             @Override public void onLoadComplete (SoundPool soundPool, int sampleId, int status) {

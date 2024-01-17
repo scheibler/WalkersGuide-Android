@@ -14,41 +14,35 @@ import org.walkersguide.android.database.SortMethod;
 import android.location.Location;
 import java.util.Locale;
 import org.json.JSONObject;
+import org.walkersguide.android.data.object_with_id.Point;
 
 
 public class ResolveCoordinatesTask extends ServerTask {
 
-    private double latitude, longitude;
+    private Point point;
 
-    public ResolveCoordinatesTask(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public ResolveCoordinatesTask(Point point) {
+        this.point = point;
     }
 
     @Override public void execute() throws AddressException {
         final HistoryProfile addressPointProfile = HistoryProfile.addressPoints();
 
         // first look into local database
-        StreetAddress addressFromDatabase = null;
         DatabaseProfileRequest databaseProfileRequest = new DatabaseProfileRequest(
                 addressPointProfile, null, SortMethod.DISTANCE_ASC);
         for (ObjectWithId objectWithId : AccessDatabase.getInstance().getObjectListFor(databaseProfileRequest)) {
             if (objectWithId instanceof StreetAddress) {
                 StreetAddress address = (StreetAddress) objectWithId;
                 // calculate distance
-                float[] results = new float[1];
-                Location.distanceBetween(
-                        this.latitude, this.longitude, address.getLatitude(), address.getLongitude(), results);
-                // select, if within 20m radius
-                if (results[0] < 20) {
-                    addressFromDatabase = address;
+                // and select, if within 20m radius
+                if (this.point.distanceTo(address) < 20) {
+                    ServerTaskExecutor.sendResolveCoordinatesTaskSuccessfulBroadcast(getId(), address);
+                    return;
                 }
+                // closest street address from cache is to far away
                 break;
             }
-        }
-        if (addressFromDatabase != null) {
-            ServerTaskExecutor.sendResolveCoordinatesTaskSuccessfulBroadcast(getId(), addressFromDatabase);
-            return;
         }
 
         StreetAddress newAddress = null;
@@ -57,7 +51,8 @@ public class ResolveCoordinatesTask extends ServerTask {
                     Locale.ROOT,
                     "%1$s/reverse?format=jsonv2&lat=%2$f&lon=%3$f&accept-language=%4$s&addressdetails=1&zoom=18",
                     AddressUtility.ADDRESS_RESOLVER_URL,
-                    this.latitude, this.longitude,
+                    this.point.getCoordinates().getLatitude(),
+                    this.point.getCoordinates().getLongitude(),
                     Locale.getDefault().getLanguage());
             JSONObject jsonStreetAddress = ServerUtility.performRequestAndReturnJsonObject(
                     requestUrl, null, AddressException.class);
@@ -75,10 +70,7 @@ public class ResolveCoordinatesTask extends ServerTask {
 
         if (! isCancelled()) {
             // check for accuracy of address
-            float[] results = new float[1];
-            Location.distanceBetween(
-                    this.latitude, this.longitude, newAddress.getLatitude(), newAddress.getLongitude(), results);
-            if (results[0] > 100) {
+            if (this.point.distanceTo(newAddress) > 100) {
                 // if the address differs for more than 100 meters, don't take it
                 throw new AddressException(
                         AddressException.RC_NO_ADDRESS_FOR_COORDINATES);

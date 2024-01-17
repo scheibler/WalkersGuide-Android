@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
 import org.walkersguide.android.ui.fragment.profile_list.PoiProfileListFragment;
 import android.widget.Toast;
@@ -99,9 +100,26 @@ public class MainActivity extends AppCompatActivity
     public static String EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB = "openLastPointProfileInPointsTab";
 
     public static void loadRoute(Context context, Route route) {
+        if (route == null) {
+            return;
+        }
+
+        switch (route.getType()) {
+            case P2P_ROUTE:
+                HistoryProfile.plannedRoutes().addObject(route);
+                break;
+            case GPX_TRACK:
+                HistoryProfile.routesFromGpxFile().addObject(route);
+                break;
+            case RECORDED_ROUTE:
+                HistoryProfile.recordedRoutes().addObject(route);
+                break;
+        }
+
         SettingsManager settingsManagerInstance = SettingsManager.getInstance();
         settingsManagerInstance.setLastSelectedRoute(route);
         settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.ROUTES);
+
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
         mainActivityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -111,9 +129,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public static void loadPoiProfile(Context context, PoiProfile poiProfile) {
+        if (poiProfile == null) {
+            return;
+        }
+
         SettingsManager settingsManagerInstance = SettingsManager.getInstance();
         settingsManagerInstance.setSelectedPoiProfile(poiProfile);
         settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.POINTS);
+
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
         mainActivityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -136,7 +159,7 @@ public class MainActivity extends AppCompatActivity
 
     private Toolbar toolbar;
     private TextView labelToolbarTitle, labelWalkersGuideServiceNotRunningWarning;
-    private ImageButton buttonUpperLeftCorner, buttonBearingDetails, buttonLocationDetails;
+    private ImageButton buttonNavigateUp, buttonBearingDetails, buttonLocationDetails;
 
 	private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -177,19 +200,23 @@ public class MainActivity extends AppCompatActivity
         labelToolbarTitle = (TextView) findViewById(R.id.labelToolbarTitle);
         labelWalkersGuideServiceNotRunningWarning = (TextView) findViewById(R.id.labelWalkersGuideServiceNotRunningWarning);
 
-        buttonUpperLeftCorner = (ImageButton) findViewById(R.id.buttonUpperLeftCorner);
-        buttonUpperLeftCorner.setOnClickListener(new View.OnClickListener() {
+        buttonNavigateUp = (ImageButton) findViewById(R.id.buttonNavigateUp);
+        buttonNavigateUp.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                Timber.d("buttonUpperLeftCorner getBackStackEntryCount(): %1$d", getSupportFragmentManager().getBackStackEntryCount());
                 if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                     for (int i=1; i<getSupportFragmentManager().getBackStackEntryCount(); i++) {
                         getSupportFragmentManager().popBackStack();
                     }
-                    updateToolbarButtonInTheUpperLeftCorner();
-                } else {
-                    // open main menu
-                    drawerLayout.open();
+                    updateToolbarNavigateUpButtonVisibility();
                 }
+            }
+        });
+
+        ImageButton buttonMainMenu = (ImageButton) findViewById(R.id.buttonMainMenu);
+        buttonMainMenu.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                // open main menu
+                drawerLayout.open();
             }
         });
 
@@ -279,7 +306,7 @@ public class MainActivity extends AppCompatActivity
             drawerLayout.closeDrawers();
         } else if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
             super.onBackPressed();
-            updateToolbarButtonInTheUpperLeftCorner();
+            updateToolbarNavigateUpButtonVisibility();
         } else {
             finish();
         }
@@ -302,6 +329,10 @@ public class MainActivity extends AppCompatActivity
         savedInstanceState.putBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, openLastPointProfileInPointsTab);
     }
 
+    @Override public void recreateActivity() {
+        MainActivity.this.recreate();
+    }
+
 
     /**
      * toolbar
@@ -311,16 +342,11 @@ public class MainActivity extends AppCompatActivity
         labelToolbarTitle.setText(title);
     }
 
-    private void updateToolbarButtonInTheUpperLeftCorner() {
+    private void updateToolbarNavigateUpButtonVisibility() {
         getSupportFragmentManager().executePendingTransactions();
-        buttonUpperLeftCorner.setImageResource(
+        buttonNavigateUp.setVisibility(
                 getSupportFragmentManager().getBackStackEntryCount() > 1
-                ? R.drawable.image_arrow_up
-                : R.drawable.image_main_menu);
-        buttonUpperLeftCorner.setContentDescription(
-                getSupportFragmentManager().getBackStackEntryCount() > 1
-                ? getResources().getString(R.string.navigateUp)
-                : getResources().getString(R.string.mainMenu));
+                ? View.VISIBLE : View.GONE);
     }
 
     private void updateBearingDetailsButton() {
@@ -403,6 +429,7 @@ public class MainActivity extends AppCompatActivity
             broadcastReceiverAlreadyRegistered = false;
         }
         globalInstance.startActivityTransitionTimer();
+        Timber.d("onPause");
     }
 
     @Override public void onResume() {
@@ -567,9 +594,7 @@ public class MainActivity extends AppCompatActivity
         switch (requestCode) {
 
             case PERMISSION_REQUEST_FOREGROUND_LOCATION:
-                if (WalkersGuideService.isForegroundLocationPermissionGranted()) {
-                    WalkersGuideService.startService();
-                } else {
+                if (! WalkersGuideService.isForegroundLocationPermissionGranted()) {
                     skipPositionManagerInitialisationDuringOnResume = true;
                     SimpleMessageDialog.newInstanceWithAppInfoButton(
                             getResources().getString(R.string.messageLocationPermissionDenied))
@@ -578,9 +603,7 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             case PERMISSION_REQUEST_POST_NOTIFICATIONS:
-                if (WalkersGuideService.isPostNotificationsPermissionGranted()) {
-                    WalkersGuideService.startService();
-                } else {
+                if (! WalkersGuideService.isPostNotificationsPermissionGranted()) {
                     skipPositionManagerInitialisationDuringOnResume = true;
                     SimpleMessageDialog.newInstanceWithAppInfoButton(
                             getResources().getString(R.string.messagePostNotificationsPermissionDenied))
@@ -676,7 +699,7 @@ public class MainActivity extends AppCompatActivity
                 .commit();
         }
 
-        updateToolbarButtonInTheUpperLeftCorner();
+        updateToolbarNavigateUpButtonVisibility();
         settingsManagerInstance.setSelectedTabForMainActivity(newTab);
 
         if (openLastPointProfileInPointsTab && newTab == Tab.POINTS) {
@@ -729,7 +752,7 @@ public class MainActivity extends AppCompatActivity
                 .setReorderingAllowed(true)
                 .addToBackStack(getCurrentTab().name())
                 .commit();
-            updateToolbarButtonInTheUpperLeftCorner();
+            updateToolbarNavigateUpButtonVisibility();
         }
     }
 

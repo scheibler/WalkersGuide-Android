@@ -63,7 +63,6 @@ import android.annotation.TargetApi;
 
 public class ShortcutActivity extends AppCompatActivity {
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Timber.d("onCreate action: %1$s", getIntent().getAction());

@@ -22,6 +22,7 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.ui.UiHelper;
 import org.walkersguide.android.ui.view.EditTextAndClearInputButton;
 import org.walkersguide.android.util.GlobalInstance;
+import android.text.InputType;
 
 
 public abstract class EnterStringDialog extends DialogFragment {
@@ -29,6 +30,11 @@ public abstract class EnterStringDialog extends DialogFragment {
     private String initialInput = "";
     public void setInitialInput(String initialInput) {
         this.initialInput = initialInput;
+    }
+
+    private boolean multiLine = false;
+    public void setMultiLine(boolean multiLine) {
+        this.multiLine = multiLine;
     }
 
     private String dialogTitle = "";
@@ -54,6 +60,10 @@ public abstract class EnterStringDialog extends DialogFragment {
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         layoutInput = new EditTextAndClearInputButton(getActivity());
+        if (this.multiLine) {
+            layoutInput.setInputType(
+                    InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_LONG_MESSAGE | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        }
         layoutInput.setInputText(
                 savedInstanceState != null
                 ? savedInstanceState.getString(KEY_INPUT)

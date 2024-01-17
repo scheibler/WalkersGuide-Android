@@ -1,5 +1,12 @@
 package org.walkersguide.android.ui.fragment;
 
+import android.view.accessibility.AccessibilityEvent;
+import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import java.util.concurrent.Executors;
+import android.os.Handler;
+import android.os.Looper;
+
 import timber.log.Timber;
 import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
 import org.walkersguide.android.ui.dialog.select.SelectPublicTransportProviderDialog;
@@ -88,10 +95,13 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.ui.fragment.RootFragment;
 import android.widget.Toast;
 import org.walkersguide.android.data.ObjectWithId;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
+import androidx.fragment.app.DialogFragment;
 
 
 public class SettingsFragment extends RootFragment implements FragmentResultListener {
     private static final String KEY_TASK_ID = "taskId";
+    private static String KEY_SETTINGS_IMPORT_SUCCESSFUL = "settingsImportSuccessful";
 
 	public static SettingsFragment newInstance() {
 		SettingsFragment fragment = new SettingsFragment();
@@ -102,6 +112,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private SettingsManager settingsManagerInstance;
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
+    private boolean settingsImportSuccessful;
 
     private ObjectWithIdView layoutHomeAddress;
     private Button buttonServerURL, buttonServerMap;
@@ -118,8 +129,10 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 
         if (savedInstanceState != null) {
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            settingsImportSuccessful = savedInstanceState.getBoolean(KEY_SETTINGS_IMPORT_SUCCESSFUL);
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
+            settingsImportSuccessful = false;
         }
 
         getChildFragmentManager()
@@ -139,6 +152,9 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                     SelectShakeIntensityDialog.REQUEST_SELECT_SHAKE_INTENSITY, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
+                    ImportSettingsInBackgroundDialog.REQUEST_IMPORT_OF_SETTINGS_IN_BACKGROUND_WAS_SUCCESSFUL, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
                     SimpleMessageDialog.REQUEST_DIALOG_CLOSED, this, this);
     }
 
@@ -150,8 +166,15 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
             if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.USE_AS_HOME_ADDRESS
                     && selectedObjectWithId instanceof Point) {
                 settingsManagerInstance.setHomeAddress((Point) selectedObjectWithId);
+                // history
+                if (selectedObjectWithId instanceof StreetAddress) {
+                    HistoryProfile.addressPoints().addObject((StreetAddress) selectedObjectWithId);
+                } else {
+                    HistoryProfile.allPoints().addObject(selectedObjectWithId);
+                }
                 updateUI();
             }
+
         } else if (requestKey.equals(ChangeServerUrlDialog.REQUEST_SERVER_URL_CHANGED)) {
             // new server url is already updated in settings
             // see WgUtility#getServerInstance for details
@@ -162,20 +185,37 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                     .show(getChildFragmentManager(), "SelectMapDialog");
             }
             updateUI();
+
         } else if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
             settingsManagerInstance.setSelectedMap(
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
             updateUI();
+
         } else if (requestKey.equals(SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER)) {
             settingsManagerInstance.setSelectedNetworkId(
                     (NetworkId) bundle.getSerializable(SelectPublicTransportProviderDialog.EXTRA_NETWORK_ID));
             updateUI();
+
         } else if (requestKey.equals(SelectShakeIntensityDialog.REQUEST_SELECT_SHAKE_INTENSITY)) {
             settingsManagerInstance.setSelectedShakeIntensity(
                     (ShakeIntensity) bundle.getSerializable(SelectShakeIntensityDialog.EXTRA_SHAKE_INTENSITY));
             updateUI();
+
+        } else if (requestKey.equals(ImportSettingsInBackgroundDialog.REQUEST_IMPORT_OF_SETTINGS_IN_BACKGROUND_WAS_SUCCESSFUL)) {
+            settingsImportSuccessful = bundle.getBoolean(ImportSettingsInBackgroundDialog.EXTRA_SETTINGS_IMPORT_SUCCESSFUL);
+            cleanupCache();
+            SimpleMessageDialog.newInstance(
+                    settingsImportSuccessful
+                    ? GlobalInstance.getStringResource(R.string.labelImportSuccessful)
+                    : GlobalInstance.getStringResource(R.string.labelImportFailed))
+                .show(getChildFragmentManager(), "SimpleMessageDialog");
+
         } else if (requestKey.equals(SimpleMessageDialog.REQUEST_DIALOG_CLOSED)) {
             updateUI();
+            if (settingsImportSuccessful) {
+                settingsImportSuccessful = false;
+                mainActivityController.recreateActivity();
+            }
         }
     }
 
@@ -359,6 +399,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putBoolean(KEY_SETTINGS_IMPORT_SUCCESSFUL, settingsImportSuccessful);
     }
 
     @Override public void onDestroy() {
@@ -564,133 +605,184 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         }
 
         final Uri selectedUri = resultData.getData();
-        final File zipFile = getCachedZipFile();
         switch (requestCode) {
 
             case IMPORT_SETTINGS:
-                Dialog proceedWithImportDialog = new AlertDialog.Builder(getActivity())
-                    .setMessage(getResources().getString(R.string.labelProceedWithImport))
-                    .setPositiveButton(
-                            getResources().getString(R.string.dialogYes),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    boolean importSuccessful = finishSettingsImport(selectedUri, zipFile);
-                                    cleanupCache();
-                                    String importResultMessage;
-                                    if (importSuccessful) {
-                                        importResultMessage = getResources().getString(R.string.labelImportSuccessful);
-                                    } else {
-                                        importResultMessage = getResources().getString(R.string.labelImportFailed);
-                                    }
-                                    SimpleMessageDialog.newInstance(importResultMessage)
-                                        .show(getChildFragmentManager(), "SimpleMessageDialog");
-                                    dialog.dismiss();
-                                }
-                            })
-                    .setNegativeButton(
-                            getResources().getString(R.string.dialogNo),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    cleanupCache();
-                                    dialog.dismiss();
-                                }
-                            })
-                    .create();
-                proceedWithImportDialog.show();
+                ImportSettingsInBackgroundDialog.newInstance(selectedUri)
+                    .show(getChildFragmentManager(), "ImportSettingsInBackgroundDialog");
                 break;
 
             case EXPORT_SETTINGS:
-                boolean copySelectedUriSuccessful = FileUtility.copyFile(zipFile, selectedUri);
+                boolean copySelectedUriSuccessful = FileUtility.copyFile(getCachedZipFile(), selectedUri);
                 cleanupCache();
-                String exportResultMessage;
-                if (copySelectedUriSuccessful) {
-                    exportResultMessage = getResources().getString(R.string.labelExportSuccessful);
-                } else {
-                    exportResultMessage = getResources().getString(R.string.labelExportFailed);
-                }
-                SimpleMessageDialog.newInstance(exportResultMessage)
+                SimpleMessageDialog.newInstance(
+                        copySelectedUriSuccessful
+                        ? getResources().getString(R.string.labelExportSuccessful)
+                        : getResources().getString(R.string.labelExportFailed))
                     .show(getChildFragmentManager(), "SimpleMessageDialog");
                 break;
         }
     }
 
-    private boolean finishSettingsImport(Uri selectedUri, File zipFile) {
-        boolean zipFileCreationSuccessful = FileUtility.copyFile(selectedUri, zipFile);
-        Timber.d("import: zipFileCreationSuccessful = %1$s", zipFileCreationSuccessful);
-        if (! zipFileCreationSuccessful || ! zipFile.exists()) {
-            return false;
+
+    public static class ImportSettingsInBackgroundDialog extends DialogFragment {
+    public static final String REQUEST_IMPORT_OF_SETTINGS_IN_BACKGROUND_WAS_SUCCESSFUL = "requestImportOfSettingsInBackgroundWasSuccessful";
+    public static final String EXTRA_SETTINGS_IMPORT_SUCCESSFUL = "settingsImportSuccessful";
+
+        public static ImportSettingsInBackgroundDialog newInstance(Uri selectedUri) {
+            ImportSettingsInBackgroundDialog dialog = new ImportSettingsInBackgroundDialog();
+            Bundle args = new Bundle();
+            args.putParcelable(KEY_SELECTED_URI, selectedUri);
+            dialog.setArguments(args);
+            return dialog;
         }
 
-        // unzip
-        ZipInputStream zin = null;
-        try {
-            zin = new ZipInputStream(new FileInputStream(zipFile));
-            ZipEntry ze = null;
-            while ((ze = zin.getNextEntry()) != null) {
-                if (ze.isDirectory()) {
-                    continue;
-                }
-                FileOutputStream fout = new FileOutputStream(
-                        new File(getCacheDirectory(), ze.getName()));
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int count;
+        private static final String KEY_SELECTED_URI = "selectedUri";
+        private Uri selectedUri;
+        private TextView labelSimpleMessage;
 
-                // reading and writing
-                while ((count = zin.read(buffer)) != -1) {
-                    baos.write(buffer, 0, count);
-                    byte[] bytes = baos.toByteArray();
-                    fout.write(bytes);
-                    baos.reset();
-                }
-                fout.close();
-                zin.closeEntry();
+        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
+            selectedUri = (Uri) getArguments().getParcelable(KEY_SELECTED_URI);
+
+            final ViewGroup nullParent = null;
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
+            labelSimpleMessage = (TextView) view.findViewById(R.id.label);
+            labelSimpleMessage.setText(
+                    getResources().getString(R.string.labelProceedWithImport));
+
+            return new AlertDialog.Builder(getActivity())
+                .setView(view)
+                .setPositiveButton(
+                        getResources().getString(R.string.dialogYes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                .setNegativeButton(
+                        getResources().getString(R.string.dialogNo),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                .create();
+        }
+
+        @Override public void onStart() {
+            super.onStart();
+            final AlertDialog dialog = (AlertDialog)getDialog();
+            if(dialog != null) {
+
+                final Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                buttonNegative.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        cleanupCache();
+                        dismiss();
+                    }
+                });
+
+                final Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                buttonPositive.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        dialog.setCancelable(false);
+                        labelSimpleMessage.setText(
+                                getResources().getString(R.string.messagePleaseWait));
+                        buttonPositive.setVisibility(View.GONE);
+                        buttonNegative.setVisibility(View.GONE);
+                        labelSimpleMessage.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+
+                        Executors.newSingleThreadExecutor().execute(() -> {
+                            final boolean successful = doSettingsImport(selectedUri, getCachedZipFile());
+                            (new Handler(Looper.getMainLooper())).post(() -> {
+                                Bundle result = new Bundle();
+                                result.putBoolean(EXTRA_SETTINGS_IMPORT_SUCCESSFUL, successful);
+                                getParentFragmentManager().setFragmentResult(REQUEST_IMPORT_OF_SETTINGS_IN_BACKGROUND_WAS_SUCCESSFUL, result);
+                                dismiss();
+                            });
+                        });
+                    }
+                });
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (zin != null) {
-                try {
-                    zin.close();
-                } catch (IOException e) {}
+        }
+
+        private static boolean doSettingsImport(Uri uri, File zipFile) {
+            boolean zipFileCreationSuccessful = FileUtility.copyFile(uri, zipFile);
+            Timber.d("import: zipFileCreationSuccessful = %1$s", zipFileCreationSuccessful);
+            if (! zipFileCreationSuccessful || ! zipFile.exists()) {
+                return false;
             }
-        }
 
-        // restore settings
-        File settingsFile = getCachedSettingsFile();
-        if (! settingsFile.exists()) {
-            return false;
-        }
-        boolean settingsImportSuccessful = settingsManagerInstance.importSettings(settingsFile);
-        Timber.d("settings import: %1$s", settingsImportSuccessful);
-        if (! settingsImportSuccessful) {
-            return false;
-        }
+            // unzip
+            ZipInputStream zin = null;
+            try {
+                zin = new ZipInputStream(new FileInputStream(zipFile));
+                ZipEntry ze = null;
+                while ((ze = zin.getNextEntry()) != null) {
+                    if (ze.isDirectory()) {
+                        continue;
+                    }
+                    FileOutputStream fout = new FileOutputStream(
+                            new File(getCacheDirectory(), ze.getName()));
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    int count;
 
-        // restore database
-        File newDatabaseFile = getCachedDatabaseFile();
-        if (! newDatabaseFile.exists()) {
-            return false;
-        }
-        // close database
-        AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
-        accessDatabaseInstance.close();
-        // remove old database
-        File oldDatabaseFile = SQLiteHelper.getDatabaseFile();
-        if (oldDatabaseFile.exists()) {
-            oldDatabaseFile.delete();
-        }
-        // copy from cache
-        boolean databaseImportSuccessful = FileUtility.copyFile(
-                newDatabaseFile, SQLiteHelper.getDatabaseFile());
-        // open again
-        accessDatabaseInstance.open();
+                    // reading and writing
+                    while ((count = zin.read(buffer)) != -1) {
+                        baos.write(buffer, 0, count);
+                        byte[] bytes = baos.toByteArray();
+                        fout.write(bytes);
+                        baos.reset();
+                    }
+                    fout.close();
+                    zin.closeEntry();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (zin != null) {
+                    try {
+                        zin.close();
+                    } catch (IOException e) {}
+                }
+            }
 
-        // reset cache and reload ui
-        cleanupCache();
-        GlobalInstance.getInstance().clearCaches();
-        return databaseImportSuccessful;
+            // restore settings
+            File settingsFile = getCachedSettingsFile();
+            if (! settingsFile.exists()) {
+                return false;
+            }
+            if (! SettingsManager.getInstance().importSettings(settingsFile)) {
+                Timber.e("settings import failed");
+                return false;
+            }
+
+            // restore database
+            File newDatabaseFile = getCachedDatabaseFile();
+            if (! newDatabaseFile.exists()) {
+                return false;
+            }
+            // close database
+            AccessDatabase accessDatabaseInstance = AccessDatabase.getInstance();
+            accessDatabaseInstance.close();
+            // remove old database
+            File oldDatabaseFile = SQLiteHelper.getDatabaseFile();
+            if (oldDatabaseFile.exists()) {
+                oldDatabaseFile.delete();
+            }
+            // copy from cache
+            boolean databaseImportSuccessful = FileUtility.copyFile(
+                    newDatabaseFile, SQLiteHelper.getDatabaseFile());
+            // open again
+            accessDatabaseInstance.open();
+
+            // reset cache and reload ui
+            cleanupCache();
+            GlobalInstance.getInstance().clearCaches();
+            return databaseImportSuccessful;
+        }
     }
+
 
     // static helpers
 

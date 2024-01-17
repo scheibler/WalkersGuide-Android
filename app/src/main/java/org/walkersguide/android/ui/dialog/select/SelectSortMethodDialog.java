@@ -24,6 +24,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import android.app.Activity;
 import java.util.Arrays;
+import java.util.List;
 
 
 public class SelectSortMethodDialog extends DialogFragment {
@@ -33,11 +34,9 @@ public class SelectSortMethodDialog extends DialogFragment {
 
     // instance constructors
 
-    public static SelectSortMethodDialog newInstance(
-            ArrayList<SortMethod> sortMethodList, SortMethod selectedSortMethod) {
+    public static SelectSortMethodDialog newInstance(SortMethod selectedSortMethod) {
         SelectSortMethodDialog dialog= new SelectSortMethodDialog();
         Bundle args = new Bundle();
-        args.putSerializable(KEY_SORT_METHOD_LIST, sortMethodList);
         args.putSerializable(KEY_SELECTED_SORT_METHOD, selectedSortMethod);
         dialog.setArguments(args);
         return dialog;
@@ -45,14 +44,11 @@ public class SelectSortMethodDialog extends DialogFragment {
 
 
     // dialog
-    private static final String KEY_SORT_METHOD_LIST = "sortMethodList";
     private static final String KEY_SELECTED_SORT_METHOD = "selectedSortMethod";
 
-    private ArrayList<SortMethod> sortMethodList;
     private SortMethod selectedSortMethod;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        sortMethodList = (ArrayList<SortMethod>) getArguments().getSerializable(KEY_SORT_METHOD_LIST);
         selectedSortMethod = (SortMethod) getArguments().getSerializable(KEY_SELECTED_SORT_METHOD);
 
         return new AlertDialog.Builder(getActivity())
@@ -79,6 +75,7 @@ public class SelectSortMethodDialog extends DialogFragment {
         super.onStart();
         AlertDialog dialog = (AlertDialog) getDialog();
         if (dialog != null) {
+            List<SortMethod> sortMethodList = Arrays.asList(SortMethod.values());
 
             ListView listViewItems = (ListView) dialog.getListView();
             listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {

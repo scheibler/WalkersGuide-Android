@@ -54,6 +54,7 @@ import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import org.walkersguide.android.data.Profile;
 import android.widget.ImageButton;
+import android.view.accessibility.AccessibilityEvent;
 
 
 public abstract class ObjectListFragment extends RootFragment
@@ -240,6 +241,7 @@ public abstract class ObjectListFragment extends RootFragment
     }
 
     public void resetListPosition() {
+        Timber.d("resetListPosition");
         listPosition = 0;
     }
 
@@ -451,6 +453,7 @@ public abstract class ObjectListFragment extends RootFragment
         labelEmptyListView.setText(getEmptyObjectListMessage());
 
         // list position
+        Timber.d("listPosition1: %1$d", listPosition);
         listViewObject.setSelection(listPosition);
         listViewObject.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override public void onScrollStateChanged(AbsListView view, int scrollState) {}
@@ -467,6 +470,7 @@ public abstract class ObjectListFragment extends RootFragment
         updateHeadingListView();
         ViewCompat.setAccessibilityLiveRegion(
                 labelHeading, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
+        labelHeading.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
     }
 
     public void populateUiAfterRequestWasSuccessful(String headingSecondLine,
@@ -535,10 +539,5 @@ public abstract class ObjectListFragment extends RootFragment
         }
         labelHeading.setText(heading);
     }
-
-
-    /**
-     * ObjectWithId adapter
-     */
 
 }

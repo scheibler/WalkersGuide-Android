@@ -37,9 +37,9 @@ public class RouteSegment extends Segment implements Serializable {
 
         // refresh some entries
         jsonRouteSegment.put(
-                KEY_START, Segment.putLocationToJsonObject(start.getLocationObject()));
+                KEY_START, start.getCoordinates().toJson());
         jsonRouteSegment.put(
-                KEY_END, Segment.putLocationToJsonObject(end.getLocationObject()));
+                KEY_END, end.getCoordinates().toJson());
         jsonRouteSegment.put(
                 KEY_BEARING, start.bearingTo(end).getDegree());
         jsonRouteSegment.put(

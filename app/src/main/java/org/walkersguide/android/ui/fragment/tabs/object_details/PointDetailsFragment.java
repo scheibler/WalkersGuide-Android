@@ -4,6 +4,7 @@ import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import androidx.fragment.app.Fragment;
+import org.walkersguide.android.ui.view.UserAnnotationView;
 import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 
 
@@ -127,6 +128,10 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
         if (point == null) {
             return;
         }
+
+        UserAnnotationView layoutUserAnnotation = new UserAnnotationView(getActivity());
+        layoutUserAnnotation.setObjectWithId(point);
+        layoutAttributes.addView(layoutUserAnnotation);
 
         if (point instanceof PointWithAddressData) {
             PointWithAddressData pointWithAddressData = null;
@@ -787,21 +792,13 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
         layoutAttributes.addView(
                 new TextViewBuilder(
                         PointDetailsFragment.this.getContext(),
-                        String.format(
-                            Locale.getDefault(),
-                            "%1$s: %2$f",
-                            getResources().getString(R.string.labelGPSLatitude),
-                            point.getLatitude()))
+                        point.formatLatitude())
                     .create()
                 );
         layoutAttributes.addView(
                 new TextViewBuilder(
                         PointDetailsFragment.this.getContext(),
-                        String.format(
-                            Locale.getDefault(),
-                            "%1$s: %2$f",
-                            getResources().getString(R.string.labelGPSLongitude),
-                            point.getLongitude()))
+                        point.formatLongitude())
                     .create()
                 );
     }

@@ -35,6 +35,8 @@ import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.object_with_id.Route;
 import org.walkersguide.android.data.object_with_id.Segment;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public class AccessDatabase {
@@ -146,8 +148,13 @@ public class AccessDatabase {
         }
 
         // execute sql query
-        Cursor cursor = database.rawQuery(
-                TextUtils.join(" ", queryList), new String[]{String.valueOf(profile.getId())});
+        Cursor cursor = null;
+        try {
+            cursor = database.rawQuery(
+                    TextUtils.join(" ", queryList), new String[]{String.valueOf(profile.getId())});
+        } catch (Exception e) {
+            return objectList;
+        }
         while (cursor.moveToNext()) {
             try {
 
@@ -219,15 +226,22 @@ public class AccessDatabase {
     }
 
     public ArrayList<DatabaseProfile> getDatabaseProfileListFor(ObjectWithId objectWithId) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_MAPPING, SQLiteHelper.TABLE_MAPPING_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT,
-                    "%1$s = %2$d", 
-                    SQLiteHelper.MAPPING_OBJECT_ID,
-                    objectWithId.getId()),
-                null, null, null, SQLiteHelper.MAPPING_PROFILE_ID + " ASC");
         ArrayList<DatabaseProfile> profileList = new ArrayList<DatabaseProfile>();
+
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_MAPPING, SQLiteHelper.TABLE_MAPPING_ALL_COLUMNS,
+                    String.format(
+                        Locale.ROOT,
+                        "%1$s = %2$d", 
+                        SQLiteHelper.MAPPING_OBJECT_ID,
+                        objectWithId.getId()),
+                    null, null, null, SQLiteHelper.MAPPING_PROFILE_ID + " ASC");
+        } catch (Exception e) {
+            return profileList;
+        }
+
         while (cursor.moveToNext()) {
             // create profile
             DatabaseProfile  profile = null;
@@ -246,29 +260,60 @@ public class AccessDatabase {
     }
 
     public boolean addObjectToDatabaseProfile(ObjectWithId object, DatabaseProfile profile) {
-        // add to objects table first
-        if (! object.saveToDatabase()) {
+        // add dependencies
+        if (! profile.equals(HistoryProfile.allPoints())
+                && profile instanceof HistoryProfile && object instanceof Point) {
+            Timber.d("addObjectToDatabaseProfile: found point and history profile but not all_points, add to latter first");
+            if (! addObjectToDatabaseProfile(object, HistoryProfile.allPoints())) {
+                return false;
+            }
+        } else if (! profile.equals(HistoryProfile.allRoutes())
+                && profile instanceof HistoryProfile && object instanceof Route) {
+            Timber.d("addObjectToDatabaseProfile: found route and history profile but not all_routes, add to latter first");
+            if (! addObjectToDatabaseProfile(object, HistoryProfile.allRoutes())) {
+                return false;
+            }
+        } else if (profile.equals(StaticProfile.pinnedObjectsWithId())) {
+            Timber.d("addObjectToDatabaseProfile: found profile pinnedObjectsWithId, add to history first");
+            if (! addObjectToDatabaseProfile(object, HistoryProfile.pinnedObjectsWithId())) {
+                return false;
+            }
+        } else if (profile.equals(StaticProfile.trackedObjectsWithId())) {
+            Timber.d("addObjectToDatabaseProfile: found profile trackedObjectsWithId, add to history first");
+            if (! addObjectToDatabaseProfile(object, HistoryProfile.trackedObjectsWithId())) {
+                return false;
+            }
+        } else if (object == null || ! object.saveToDatabase()) {
+            Timber.e("addObjectToDatabaseProfile: Could not save object to database");
             return false;
         }
 
         // try to get access value of possibly existing mapping table row
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_MAPPING, SQLiteHelper.TABLE_MAPPING_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT,
-                    "%1$s = %2$d AND %3$s = %4$d",
-                    SQLiteHelper.MAPPING_PROFILE_ID, profile.getId(),
-                    SQLiteHelper.MAPPING_OBJECT_ID, object.getId()),
-                null, null, null, null);
         long created = System.currentTimeMillis();
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            try {
-                created = cursor.getLong(
-                        cursor.getColumnIndexOrThrow(SQLiteHelper.MAPPING_CREATED));
-            } catch (IllegalArgumentException e) {}
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_MAPPING, SQLiteHelper.TABLE_MAPPING_ALL_COLUMNS,
+                    String.format(
+                        Locale.ROOT,
+                        "%1$s = %2$d AND %3$s = %4$d",
+                        SQLiteHelper.MAPPING_PROFILE_ID, profile.getId(),
+                        SQLiteHelper.MAPPING_OBJECT_ID, object.getId()),
+                    null, null, null, null);
+        } catch (Exception e) {
+            cursor = null;
+        } finally {
+            if (cursor != null) {
+                if (cursor.getCount() > 0) {
+                    cursor.moveToFirst();
+                    try {
+                        created = cursor.getLong(
+                                cursor.getColumnIndexOrThrow(SQLiteHelper.MAPPING_CREATED));
+                    } catch (IllegalArgumentException e) {}
+                }
+                cursor.close();
+            }
         }
-        cursor.close();
 
         // add object to mapping table or update accessed column
         ContentValues mappingValues = new ContentValues();
@@ -320,12 +365,17 @@ public class AccessDatabase {
      */
 
     public ObjectWithId getObjectWithId(long id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
-                null, null, null, null);
         ObjectWithId objectWithId = null;
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
+                    String.format(
+                        Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
+                    null, null, null, null);
+        } catch (Exception e) {
+            return objectWithId;
+        }
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             try {
@@ -337,12 +387,17 @@ public class AccessDatabase {
     }
 
     public ObjectWithIdParams getObjectWithIdParams(long id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
-                null, null, null, null);
         ObjectWithIdParams params = null;
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
+                    String.format(
+                        Locale.ROOT, "%1$s = %2$d", SQLiteHelper.OBJECTS_ID, id),
+                    null, null, null, null);
+        } catch (Exception e) {
+            return params;
+        }
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             params = new ObjectWithIdParams();
@@ -405,23 +460,28 @@ public class AccessDatabase {
                         "%1$s >= %2$d AND %1$s <= %3$d",
                         SQLiteHelper.COLLECTION_ID,
                         SQLiteHelper.TABLE_COLLECTION_FIRST_ID,
-                        SQLiteHelper.TABLE_COLLECTION_LAST_ID),
-                    SQLiteHelper.COLLECTION_NAME + " ASC")) {
+                        SQLiteHelper.TABLE_COLLECTION_LAST_ID))) {
             Collection profile = Collection.load(profileId);
             if (profile != null) {
                 profileList.add(profile);
             }
         }
+        Collections.sort(profileList);
         return profileList;
     }
 
     public CollectionParams getCollectionParams(long id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_COLLECTION, SQLiteHelper.TABLE_COLLECTION_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.COLLECTION_ID, id),
-                null, null, null, null);
         CollectionParams params = null;
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_COLLECTION, SQLiteHelper.TABLE_COLLECTION_ALL_COLUMNS,
+                    String.format(
+                        Locale.ROOT, "%1$s = %2$d", SQLiteHelper.COLLECTION_ID, id),
+                    null, null, null, null);
+        } catch (Exception e) {
+            return params;
+        }
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             params = new CollectionParams();
@@ -493,23 +553,28 @@ public class AccessDatabase {
                         "%1$s >= %2$d AND %1$s <= %3$d",
                         SQLiteHelper.POI_PROFILE_ID,
                         SQLiteHelper.TABLE_POI_PROFILE_FIRST_ID,
-                        SQLiteHelper.TABLE_POI_PROFILE_LAST_ID),
-                    SQLiteHelper.POI_PROFILE_NAME + " ASC")) {
+                        SQLiteHelper.TABLE_POI_PROFILE_LAST_ID))) {
             PoiProfile profile = PoiProfile.load(profileId);
             if (profile != null) {
                 profileList.add(profile);
             }
         }
+        Collections.sort(profileList);
         return profileList;
     }
 
     public PoiProfileParams getPoiProfileParams(long id) {
-        Cursor cursor = database.query(
-                SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
-                String.format(
-                    Locale.ROOT, "%1$s = %2$d", SQLiteHelper.POI_PROFILE_ID, id),
-                null, null, null, null);
         PoiProfileParams poiProfileParams = null;
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_POI_PROFILE, SQLiteHelper.TABLE_POI_PROFILE_ALL_COLUMNS,
+                    String.format(
+                        Locale.ROOT, "%1$s = %2$d", SQLiteHelper.POI_PROFILE_ID, id),
+                    null, null, null, null);
+        } catch (Exception e) {
+            return poiProfileParams;
+        }
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             poiProfileParams = new PoiProfileParams();
@@ -622,11 +687,17 @@ public class AccessDatabase {
                         cursor.getColumnIndexOrThrow(SQLiteHelper.OBJECTS_DATA))));
     }
 
-    public ArrayList<Long> getIdList(String tableName, String tableColumnId, String whereClause, String orderBy) {
-        Cursor cursor = database.query(
-                tableName, new String[]{tableColumnId}, whereClause, null, null, null, orderBy);
-
+    public ArrayList<Long> getIdList(String tableName, String tableColumnId, String whereClause) {
         ArrayList<Long> idList = new ArrayList<Long>();
+
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    tableName, new String[]{tableColumnId}, whereClause, null, null, null, null);
+        } catch (Exception e) {
+            return idList;
+        }
+
         while (cursor.moveToNext()) {
             Long id = null;
             try {

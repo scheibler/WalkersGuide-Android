@@ -7,6 +7,8 @@ import org.walkersguide.android.database.util.SQLiteHelper;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.database.profile.StaticProfile;
+import java.util.Locale;
+import java.text.Collator;
 
 
 public abstract class Profile implements Comparable<Profile>, Serializable {
@@ -74,7 +76,7 @@ public abstract class Profile implements Comparable<Profile>, Serializable {
     }
 
 	@Override public int hashCode() {
-        return new Long(this.id).hashCode();
+        return Long.valueOf(this.id).hashCode();
 	}
 
 	@Override public boolean equals(Object obj) {
@@ -90,7 +92,9 @@ public abstract class Profile implements Comparable<Profile>, Serializable {
     }
 
     @Override public int compareTo(Profile other) {
-        return this.getName().compareTo(other.getName());
+        Collator collator = Collator.getInstance();
+        collator.setStrength(Collator.PRIMARY);
+        return collator.compare(this.getName(), other.getName());
     }
 
 }

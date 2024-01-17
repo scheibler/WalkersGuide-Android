@@ -115,8 +115,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
                 getResources().getString(R.string.messagePleaseWait));
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
             taskId = serverTaskExecutorInstance.executeTask(
-                    new ResolveCoordinatesTask(
-                        currentLocation.getLatitude(), currentLocation.getLongitude()));
+                    new ResolveCoordinatesTask(currentLocation));
         }
     }
 

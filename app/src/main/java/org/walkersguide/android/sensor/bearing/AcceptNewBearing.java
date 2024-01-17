@@ -14,7 +14,7 @@ public class AcceptNewBearing implements Serializable {
     }
 
     public static AcceptNewBearing newInstanceForDistanceLabelUpdate() {
-        return new AcceptNewBearing(30, 1);
+        return new AcceptNewBearing(23, 1);
     }
 
 
@@ -44,7 +44,7 @@ public class AcceptNewBearing implements Serializable {
             return false;
         } else if (this.lastAcceptedBearing == null) {
             return true;
-        } else if (this.lastAcceptedBearing.relativeTo(newBearing).getDegree() < angleThreshold) {
+        } else if (this.lastAcceptedBearing.differenceTo(newBearing) < angleThreshold) {
             return false;
         } else if (System.currentTimeMillis() - this.lastAcceptedBearingTimestamp < this.timeThreshold * 1000l) {
             return false;

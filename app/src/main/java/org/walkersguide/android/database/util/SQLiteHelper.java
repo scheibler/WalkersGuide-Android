@@ -187,6 +187,27 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         if (oldVersion < 12) {
             configureDbVersion12(database);
         }
+
+        if (oldVersion < 13) {
+            // update id of profile HISTORY_PINNED_OBJECTS_WITH_ID from  72 to 53
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = 53 WHERE profile_id = 72;");
+            // update id of profile HISTORY_TRACKED_OBJECTS_WITH_ID from  75 to 56
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = 56 WHERE profile_id = 75;");
+            // update id of profile HISTORY_ALL_POINTS from  52 to 79
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = 79 WHERE profile_id = 52;");
+            // delete id of HISTORY_PINNED_ROUTES database profile 83
+            database.execSQL(
+                    "DELETE FROM mapping WHERE profile_id = 83;");
+            // update id of HISTORY_RECORDED_ROUTES database profile from  89 to 83
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = 83 WHERE profile_id = 89;");
+            // update id of HISTORY_ALL_ROUTES database profile from  57 to 89
+            database.execSQL(
+                    "UPDATE mapping SET profile_id = 89 WHERE profile_id = 57;");
+        }
     }
 
 

@@ -1,5 +1,6 @@
-        package org.walkersguide.android.ui.view;
+package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.dialog.edit.UserAnnotationForObjectWithIdDialog;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import org.walkersguide.android.ui.UiHelper;
@@ -67,6 +68,8 @@ import org.walkersguide.android.ui.dialog.select.SelectCollectionsDialog;
 import java.util.ArrayList;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.database.util.AccessDatabase;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 public class ObjectWithIdView extends LinearLayout {
@@ -149,14 +152,11 @@ public class ObjectWithIdView extends LinearLayout {
         }
         label.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                if (objectWithId != null) {
-                    if (onDefaultObjectActionListener != null) {
-                        onDefaultObjectActionListener.onDefaultObjectActionClicked(objectWithId);
-                    } else {
-                        // open details
-                        mainActivityController.addFragment(
-                                ObjectDetailsTabLayoutFragment.details(objectWithId));
-                    }
+                if (onDefaultObjectActionListener != null) {
+                    onDefaultObjectActionListener.onDefaultObjectActionClicked(objectWithId);
+                } else if (objectWithId != null) {
+                    // open details
+                    executeAccessibilityMenuAction(MENU_ITEM_DETAILS);
                 }
             }
         });
@@ -324,6 +324,17 @@ public class ObjectWithIdView extends LinearLayout {
                 }
             }
 
+            // accessibility actions
+            for (final Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
+                ViewCompat.addAccessibilityAction(
+                        this.label,
+                        entry.getValue(),
+                        (actionView, arguments) -> {
+                            executeAccessibilityMenuAction(entry.getKey());
+                            return true;
+                        });
+            }
+
             // action button
             if (settingsManagerInstance.getShowActionButton()) {
                 this.buttonActionFor.setContentDescription(
@@ -338,6 +349,55 @@ public class ObjectWithIdView extends LinearLayout {
 
         this.label.setText(labelText);
         this.label.setContentDescription(labelContentDescription);
+    }
+
+    private LinkedHashMap<Integer,String> getAccessibilityActionMenuItemMap() {
+        LinkedHashMap<Integer,String> actionMap = new LinkedHashMap<Integer,String>();
+        if (objectDetailsActionEnabled) {
+            actionMap.put(
+                    MENU_ITEM_DETAILS, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
+        }
+        if (objectWithId instanceof POI) {
+            if (objectWithId instanceof Station) {
+                actionMap.put(
+                        MENU_ITEM_DEPARTURES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdDepartures));
+            }
+            if (((POI) objectWithId).hasEntrance()) {
+                actionMap.put(
+                        MENU_ITEM_ENTRANCES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdEntrances));
+            }
+        } else if (objectWithId instanceof Intersection) {
+            if (((Intersection) objectWithId).hasPedestrianCrossing()) {
+                actionMap.put(
+                        MENU_ITEM_PEDESTRIAN_CROSSINGS, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdPedestrianCrossings));
+            }
+        } else if (objectWithId instanceof IntersectionSegment) {
+            actionMap.put(
+                    MENU_ITEM_STREET_COURSE, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdStreetCourse));
+        }
+        return actionMap;
+    }
+
+    private boolean executeAccessibilityMenuAction(int menuItemId) {
+        if (menuItemId == MENU_ITEM_DETAILS) {
+            mainActivityController.addFragment(
+                        ObjectDetailsTabLayoutFragment.details(this.objectWithId));
+        } else if (menuItemId == MENU_ITEM_DEPARTURES) {
+            mainActivityController.addFragment(
+                    ObjectDetailsTabLayoutFragment.departures((Station) this.objectWithId));
+        } else if (menuItemId == MENU_ITEM_ENTRANCES) {
+            mainActivityController.addFragment(
+                    ObjectDetailsTabLayoutFragment.entrances((POI) this.objectWithId));
+        } else if (menuItemId == MENU_ITEM_PEDESTRIAN_CROSSINGS) {
+            mainActivityController.addFragment(
+                    ObjectDetailsTabLayoutFragment.pedestrianCrossings((Intersection) this.objectWithId));
+        } else if (menuItemId == MENU_ITEM_STREET_COURSE) {
+            mainActivityController.addFragment(
+                    ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) this.objectWithId));
+        } else {
+            return false;
+        }
+        return true;
     }
 
 
@@ -441,27 +501,9 @@ public class ObjectWithIdView extends LinearLayout {
         int orderId = 0;
 
         // top items
-        if (objectDetailsActionEnabled) {
+        for (Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
             contextMenu.getMenu().add(
-                    MENU_GROUP_1, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
-        }
-        if (object instanceof POI) {
-            if (object instanceof Station) {
-                contextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_DEPARTURES, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdDepartures));
-            }
-            if (((POI) object).hasEntrance()) {
-                contextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_ENTRANCES, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdEntrances));
-            }
-        } else if (object instanceof Intersection) {
-            if (((Intersection) object).hasPedestrianCrossing()) {
-                contextMenu.getMenu().add(
-                        MENU_GROUP_1, MENU_ITEM_PEDESTRIAN_CROSSINGS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdPedestrianCrossings));
-            }
-        } else if (object instanceof IntersectionSegment) {
-            contextMenu.getMenu().add(
-                    MENU_GROUP_1, MENU_ITEM_STREET_COURSE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdStreetCourse));
+                    MENU_GROUP_1, entry.getKey(), orderId++, entry.getValue());
         }
 
         // load route
@@ -513,8 +555,8 @@ public class ObjectWithIdView extends LinearLayout {
 
         SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
                 MENU_GROUP_2, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverview));
-        boolean objectIsPinned = StaticProfile.pinnedPointsAndRoutes().containsObject(object);
-        boolean objectIsTracked = StaticProfile.trackedPoints().containsObject(object);
+        boolean objectIsPinned = StaticProfile.pinnedObjectsWithId().containsObject(object);
+        boolean objectIsTracked = StaticProfile.trackedObjectsWithId().containsObject(object);
 
         // pin (everything)
         MenuItem menuItemOverviewPin = overviewSubMenu.add(
@@ -599,8 +641,9 @@ public class ObjectWithIdView extends LinearLayout {
 
         contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
             @Override public boolean onMenuItemClick(MenuItem item) {
-                Timber.d("onMenuItemClick: %1$d", item.getItemId());
-                if (executeObjectMenuAction(view.getContext(), object, item)) {
+                if (executeAccessibilityMenuAction(item.getItemId())) {
+                    return true;
+                } else if (executeObjectMenuAction(view.getContext(), object, item)) {
                     return true;
                 } else if (object instanceof Point) {
                     return executePointMenuAction(view.getContext(), (Point) object, item);
@@ -621,41 +664,37 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executeObjectMenuAction(Context context, ObjectWithId object, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_DETAILS) {
-            mainActivityController.addFragment(
-                        ObjectDetailsTabLayoutFragment.details(object));
-
-        } else if (menuItemId >= MENU_ITEM_OVERVIEW_PIN
+        if (menuItemId >= MENU_ITEM_OVERVIEW_PIN
                 && menuItemId <= MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-            boolean objectIsPinned = StaticProfile.pinnedPointsAndRoutes().containsObject(object);
-            boolean objectIsTracked = StaticProfile.trackedPoints().containsObject(object);
+            boolean objectIsPinned = StaticProfile.pinnedObjectsWithId().containsObject(object);
+            boolean objectIsTracked = StaticProfile.trackedObjectsWithId().containsObject(object);
 
             // pin
             if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
                 // toggle
                 if (objectIsPinned) {
-                    StaticProfile.pinnedPointsAndRoutes().removeObject(object);
+                    StaticProfile.pinnedObjectsWithId().removeObject(object);
                 } else {
-                    StaticProfile.pinnedPointsAndRoutes().addObject(object);
+                    StaticProfile.pinnedObjectsWithId().addObject(object);
                 }
             } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                StaticProfile.pinnedPointsAndRoutes().addObject(object);
+                StaticProfile.pinnedObjectsWithId().addObject(object);
             } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                StaticProfile.pinnedPointsAndRoutes().removeObject(object);
+                StaticProfile.pinnedObjectsWithId().removeObject(object);
             }
 
             // track
             if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
                 // toggle
                 if (objectIsTracked) {
-                    StaticProfile.trackedPoints().removeObject(object);
+                    StaticProfile.trackedObjectsWithId().removeObject(object);
                 } else {
-                    StaticProfile.trackedPoints().addObject(object);
+                    StaticProfile.trackedObjectsWithId().addObject(object);
                 }
             } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                StaticProfile.trackedPoints().addObject(object);
+                StaticProfile.trackedObjectsWithId().addObject(object);
             } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                StaticProfile.trackedPoints().removeObject(object);
+                StaticProfile.trackedObjectsWithId().removeObject(object);
             }
 
             // update parent view
@@ -689,19 +728,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executePointMenuAction(Context context, Point point, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_DEPARTURES) {
-            mainActivityController.addFragment(
-                    ObjectDetailsTabLayoutFragment.departures((Station) point));
-
-        } else if (menuItemId == MENU_ITEM_ENTRANCES) {
-            mainActivityController.addFragment(
-                    ObjectDetailsTabLayoutFragment.entrances((POI) point));
-
-        } else if (menuItemId == MENU_ITEM_PEDESTRIAN_CROSSINGS) {
-            mainActivityController.addFragment(
-                    ObjectDetailsTabLayoutFragment.pedestrianCrossings((Intersection) point));
-
-        } else if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
+        if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
             boolean enableSimulation = ! item.isChecked();
             if (enableSimulation) {
                 positionManagerInstance.setSimulatedLocation(point);
@@ -773,11 +800,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executeSegmentMenuAction(Context context, Segment segment, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_STREET_COURSE) {
-            mainActivityController.addFragment(
-                    ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) segment));
-
-        } else if (menuItemId == MENU_ITEM_SIMULATE_BEARING) {
+        if (menuItemId == MENU_ITEM_SIMULATE_BEARING) {
             boolean enableSimulation = ! item.isChecked();
             if (enableSimulation) {
                 deviceSensorManagerInstance.setSimulatedBearing(segment.getBearing());
@@ -803,53 +826,6 @@ public class ObjectWithIdView extends LinearLayout {
     /**
      * dialogs
      */
-
-    public static class UserAnnotationForObjectWithIdDialog extends EnterStringDialog {
-        public static final String ACTION_USER_ANNOTATION_FOR_OBJECT_WITH_ID_WAS_SUCCESSFUL = "action.userAnnotationForObjectWithIdWasSuccessful";
-
-        public static UserAnnotationForObjectWithIdDialog newInstance(ObjectWithId objectWithId) {
-            UserAnnotationForObjectWithIdDialog dialog = new UserAnnotationForObjectWithIdDialog();
-            Bundle args = new Bundle();
-            args.putSerializable(KEY_OBJECT_WITH_ID, objectWithId);
-            dialog.setArguments(args);
-            return dialog;
-        }
-
-        // dialog
-        private static final String KEY_OBJECT_WITH_ID = "objectWithId";
-
-        private ObjectWithId objectWithId;
-
-        @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-            objectWithId = (ObjectWithId) getArguments().getSerializable(KEY_OBJECT_WITH_ID);
-            if (objectWithId != null) {
-                setInitialInput(
-                        objectWithId.getUserAnnotation());
-                setDialogTitle(
-                        String.format(
-                            getResources().getString(R.string.userAnnotationForObjectWithIdDialogTitle),
-                            objectWithId.getName())
-                        );
-
-                return super.onCreateDialog(savedInstanceState);
-            }
-            return null;
-        }
-
-        @Override public void execute(String input) {
-            if (objectWithId.setUserAnnotation(input)) {
-                Intent intent = new Intent(ACTION_USER_ANNOTATION_FOR_OBJECT_WITH_ID_WAS_SUCCESSFUL);
-                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
-                dismiss();
-            } else {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getString(R.string.messageSetUserAnnotationFailed),
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
 
     public static class RenameObjectWithIdDialog extends EnterStringDialog {
         public static final String ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL = "action.renameObjectWithIdWasSuccessful";

@@ -1,9 +1,9 @@
 package org.walkersguide.android.data.object_with_id;
 
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import org.walkersguide.android.data.ObjectWithId.Icon;
 
 import org.walkersguide.android.data.angle.Turn;
-import android.content.Context;
 
 import java.util.ArrayList;
 
@@ -15,7 +15,6 @@ import org.walkersguide.android.R;
 import java.io.Serializable;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.data.object_with_id.Point;
-import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Segment;
@@ -28,8 +27,6 @@ import android.text.TextUtils;
 import java.util.Collections;
 import timber.log.Timber;
 import androidx.core.util.Pair;
-import android.location.Location;
-import android.location.LocationManager;
 
 
 public class Route extends ObjectWithId implements Serializable {
@@ -371,19 +368,13 @@ public class Route extends ObjectWithId implements Serializable {
         return Icon.ROUTE;
     }
 
-    @Override public Location getLocationObject() {
+    @Override public Coordinates getCoordinates() {
         Integer distanceFromStartPoint = this.startPoint.distanceFromCurrentLocation();
         Integer distanceFromDestinationPoint = this.destinationPoint.distanceFromCurrentLocation();
         if (distanceFromStartPoint != null && distanceFromDestinationPoint != null) {
-            Location location = new Location(LocationManager.GPS_PROVIDER);
-            if (distanceFromStartPoint < distanceFromDestinationPoint) {
-                location.setLatitude(startPoint.getLatitude());
-                location.setLongitude(startPoint.getLongitude());
-            } else {
-                location.setLatitude(destinationPoint.getLatitude());
-                location.setLongitude(destinationPoint.getLongitude());
-            }
-            return location;
+            return distanceFromStartPoint < distanceFromDestinationPoint
+                ? this.startPoint.getCoordinates()
+                : this.destinationPoint.getCoordinates();
         }
         return null;
     }
@@ -515,37 +506,30 @@ public class Route extends ObjectWithId implements Serializable {
             JSONObject jsonPreviousRouteObject = jsonRouteObjectList.getJSONObject(j-1);
             JSONObject jsonCurrentRouteObject = jsonRouteObjectList.getJSONObject(j);
 
-            // check if the route segment is missing its coordinates
             JSONObject jsonCurrentRouteSegment = jsonCurrentRouteObject.getJSONObject(RouteObject.KEY_SEGMENT);
-            Location startLocation = null, endLocation = null;
+            Coordinates startCoordinates = null, endCoordinates = null;
             try {
-                startLocation = Segment.getLocationFromJsonObject(
-                        jsonCurrentRouteSegment, Segment.KEY_START);
-                endLocation = Segment.getLocationFromJsonObject(
-                        jsonCurrentRouteSegment, Segment.KEY_END);
+
+                // check if the route segment is missing its coordinates
+                startCoordinates = new Coordinates(
+                        jsonCurrentRouteSegment.getJSONObject(Segment.KEY_START));
+                endCoordinates = new Coordinates(
+                        jsonCurrentRouteSegment.getJSONObject(Segment.KEY_END));
+
             } catch (JSONException e) {
                 Timber.d("coordinates missing");
-            }
 
-            // add "start" and "end" coordinates to route segments, if not already done so
-            if (startLocation == null || endLocation == null) {
-                startLocation = Point.fromJson(
+                startCoordinates = Point.fromJson(
                         jsonPreviousRouteObject.getJSONObject(RouteObject.KEY_POINT))
-                    .getLocationObject();
-                if (startLocation == null) {
-                    throw new JSONException("Could not extract start coordinates for route segment");
-                }
+                    .getCoordinates();
                 jsonCurrentRouteSegment.put(
-                        Segment.KEY_START, Segment.putLocationToJsonObject(startLocation));
+                        Segment.KEY_START, startCoordinates.toJson());
 
-                endLocation = Point.fromJson(
+                endCoordinates = Point.fromJson(
                         jsonCurrentRouteObject.getJSONObject(RouteObject.KEY_POINT))
-                    .getLocationObject();
-                if (endLocation == null) {
-                    throw new JSONException("Could not extract end coordinates for route segment");
-                }
+                    .getCoordinates();
                 jsonCurrentRouteSegment.put(
-                        Segment.KEY_END, Segment.putLocationToJsonObject(endLocation));
+                        Segment.KEY_END, endCoordinates.toJson());
 
                 jsonCurrentRouteObject.put(
                         RouteObject.KEY_SEGMENT, jsonCurrentRouteSegment);

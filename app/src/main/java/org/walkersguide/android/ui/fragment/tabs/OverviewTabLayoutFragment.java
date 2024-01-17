@@ -1,54 +1,30 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
-import org.walkersguide.android.ui.fragment.tabs.overview.OverviewFragment;
+import org.walkersguide.android.ui.fragment.tabs.overview.PinningFragment;
 import org.walkersguide.android.ui.fragment.tabs.overview.TrackingFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
-import android.text.format.DateFormat;
-import android.widget.TextView;
-import java.util.Date;
-import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.server.wg.status.OSMMap;
-import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.R;
-import android.content.Context;
 
 
 import android.os.Bundle;
 
 
 
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
-import android.widget.TextView;
 
 
 import androidx.fragment.app.Fragment;
-import org.walkersguide.android.util.SettingsManager;
 
 
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 
-import org.walkersguide.android.server.ServerTaskExecutor;
-import org.walkersguide.android.server.wg.status.ServerStatusTask;
-import org.walkersguide.android.server.wg.status.ServerInstance;
-import org.walkersguide.android.server.wg.WgException;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import android.content.Intent;
-import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.tabs.TabLayout;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.fragment.app.FragmentActivity;
-import timber.log.Timber;
-import org.walkersguide.android.database.SortMethod;
-import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
+import android.widget.Button;
+import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
+import org.walkersguide.android.ui.fragment.HistoryFragment;
 
 
 public class OverviewTabLayoutFragment extends TabLayoutFragment {
@@ -59,10 +35,36 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
 	}
 
 
+    private ResolveCurrentAddressView layoutClosestAddress;
+
+    @Override public int getLayoutResourceId() {
+        return R.layout.fragment_overview;
+    }
+
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+
+        layoutClosestAddress = (ResolveCurrentAddressView) view.findViewById(R.id.layoutClosestAddress);
+        layoutClosestAddress.requestAddressForCurrentLocation();
+
+        Button buttonCollections = (Button) view.findViewById(R.id.buttonCollections);
+        buttonCollections.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                mainActivityController.addFragment(
+                        CollectionListFragment.newInstance());
+            }
+        });
+
+        Button buttonHistory = (Button) view.findViewById(R.id.buttonHistory);
+        buttonHistory.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                mainActivityController.addFragment(
+                        HistoryFragment.newInstance());
+            }
+        });
+
         initializeViewPagerAndTabLayout(
-                new OverviewTabAdapter(OverviewTabLayoutFragment.this), Tab.OVERVIEW);
+                new OverviewTabAdapter(OverviewTabLayoutFragment.this), Tab.PINNING);
     }
 
 
@@ -71,7 +73,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
      */
 
     private enum Tab {
-        OVERVIEW, TRACKING
+        PINNING, TRACKING
     }
 
 
@@ -85,8 +87,8 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case OVERVIEW:
-                        return OverviewFragment.newInstance();
+                    case PINNING:
+                        return PinningFragment.newInstance();
                     case TRACKING:
                         return TrackingFragment.newInstance();
                 }
@@ -98,8 +100,8 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case OVERVIEW:
-                        return getResources().getString(R.string.fragmentOverviewName);
+                    case PINNING:
+                        return getResources().getString(R.string.fragmentPinningName);
                     case TRACKING:
                         return getResources().getString(R.string.fragmentTrackingName);
                 }

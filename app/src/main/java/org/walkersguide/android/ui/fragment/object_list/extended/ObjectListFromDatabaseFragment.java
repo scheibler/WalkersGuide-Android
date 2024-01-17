@@ -62,23 +62,23 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         }
     }
 
-	public static ObjectListFromDatabaseFragment selectObjectWithId(DatabaseProfile profile) {
-		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
+    public static ObjectListFromDatabaseFragment selectObjectWithId(DatabaseProfile profile) {
+        ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new DatabaseProfileRequest(profile))
                 .setSelectObjectWithId(true)
                 .build());
-		return fragment;
+        return fragment;
     }
 
-	public static ObjectListFromDatabaseFragment newInstance(DatabaseProfile profile) {
-		ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
+    public static ObjectListFromDatabaseFragment newInstance(DatabaseProfile profile) {
+        ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new DatabaseProfileRequest(profile))
                 .build());
-		return fragment;
+        return fragment;
     }
 
 
@@ -87,7 +87,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
     private DatabaseProfileRequest request;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
@@ -142,7 +142,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
      * create view
      */
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
         super.updateSearchTerm(request.getSearchTerm());
         return view;
@@ -222,9 +222,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                 .show(getChildFragmentManager(), "SelectObjectTypeFilterDialog");
 
         } else if (item.getItemId() == R.id.menuItemSortMethod) {
-            SelectSortMethodDialog.newInstance(
-                    request.getProfile().getSortMethodList(),
-                    request.getSortMethod())
+            SelectSortMethodDialog.newInstance(request.getSortMethod())
                 .show(getChildFragmentManager(), "SelectSortMethodDialog");
 
         } else if (item.getItemId() == R.id.menuItemClearProfile) {
@@ -284,9 +282,7 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
                     request != null && request.hasProfile() ? View.VISIBLE : View.GONE);
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    SelectSortMethodDialog.newInstance(
-                            request.getProfile().getSortMethodList(),
-                            request.getSortMethod())
+                    SelectSortMethodDialog.newInstance(request.getSortMethod())
                         .show(getChildFragmentManager(), "SelectSortMethodDialog");
                 }
             });

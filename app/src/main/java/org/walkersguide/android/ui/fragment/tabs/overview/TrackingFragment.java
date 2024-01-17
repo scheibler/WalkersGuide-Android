@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
-import org.walkersguide.android.util.service.DistanceTrackingMode.AnnouncementRadius;
+import org.walkersguide.android.data.profile.AnnouncementRadius;
 import android.widget.Spinner;
 import android.content.Intent;
 import org.walkersguide.android.util.WalkersGuideService;
@@ -69,7 +69,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
     // profile
     private ProfileView layoutTrackedProfile;
     private Spinner spinnerAnnouncementRadius;
-    // trackedPoints()
+    // tracked objects
     private TextView labelTrackedObjectsHeading;
 	private ListView listViewTrackedObjects;
 
@@ -101,7 +101,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
                 bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
             ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
             if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.ADD_TO_TRACKED_OBJECTS
-                    && StaticProfile.trackedPoints().addObject(selectedObjectWithId)) {
+                    && StaticProfile.trackedObjectsWithId().addObject(selectedObjectWithId)) {
                 requestUiUpdate();
             }
         }
@@ -157,7 +157,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
         // select
         spinnerAnnouncementRadius.setSelection(
                 AnnouncementRadius.values().indexOf(
-                    settingsManagerInstance.getDistanceTrackingModeAnnouncementRadius()));
+                    settingsManagerInstance.getTrackingModeAnnouncementRadius()));
         // must come after adapter and selection
         spinnerAnnouncementRadius.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onNothingSelected(AdapterView parent) {
@@ -165,8 +165,8 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
             @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 AnnouncementRadius selectedRadius = (AnnouncementRadius) parent.getItemAtPosition(position);
                 if (selectedRadius != null
-                        && ! selectedRadius.equals(settingsManagerInstance.getDistanceTrackingModeAnnouncementRadius())) {
-                    settingsManagerInstance.setDistanceTrackingModeAnnouncementRadius(selectedRadius);
+                        && ! selectedRadius.equals(settingsManagerInstance.getTrackingModeAnnouncementRadius())) {
+                    settingsManagerInstance.setTrackingModeAnnouncementRadius(selectedRadius);
                 }
             }
         });
@@ -202,7 +202,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
 
     @Override public boolean onMenuItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemClearProfile) {
-            AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.trackedPoints());
+            AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.trackedObjectsWithId());
             requestUiUpdate();
         } else {
             return false;
@@ -268,7 +268,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
             final ArrayList<ObjectWithId> objectList = AccessDatabase
                 .getInstance()
                 .getObjectListFor(
-                        new DatabaseProfileRequest(StaticProfile.trackedPoints()));
+                        new DatabaseProfileRequest(StaticProfile.trackedObjectsWithId()));
             (new Handler(Looper.getMainLooper())).post(() -> {
                 if (isAdded()) {
                     if (! objectList.isEmpty()) {
@@ -286,7 +286,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
 
         listViewTrackedObjects.setAdapter(
                 new ObjectWithIdAdapter(
-                    TrackingFragment.this.getContext(), objectList, null, StaticProfile.trackedPoints(), true, false));
+                    TrackingFragment.this.getContext(), objectList, null, StaticProfile.trackedObjectsWithId(), true, false));
 
         // list position
         listViewTrackedObjects.setSelection(listPosition);

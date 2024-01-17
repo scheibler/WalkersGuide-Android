@@ -50,7 +50,7 @@ public abstract class Angle implements Comparable<Angle>, Serializable {
 
         private Quadrant(int min, int max) {
             this.min = min;
-            this.mean = min + ((max - min) / 2);
+            this.mean = (min + max) / 2;
             this.max = max;
         }
     }

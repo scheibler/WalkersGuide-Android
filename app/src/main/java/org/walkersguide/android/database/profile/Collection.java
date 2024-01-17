@@ -12,7 +12,6 @@ import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.util.AccessDatabase;
 import java.util.Arrays;
 import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.database.DatabaseProfile.ForObjects;
 import org.walkersguide.android.data.profile.MutableProfile;
 import org.walkersguide.android.data.profile.MutableProfile.MutableProfileParams;
 import android.text.TextUtils;
@@ -73,7 +72,7 @@ public class Collection extends DatabaseProfile implements MutableProfile, Seria
      */
 
     private Collection(long id) {
-        super(id, ForObjects.POINTS_AND_ROUTES, SortMethod.DISTANCE_ASC);
+        super(id, R.plurals.pointAndRoute, SortMethod.DISTANCE_ASC);
     }
 
 

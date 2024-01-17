@@ -186,9 +186,12 @@
     <string name="mainTabNameRoutes">Routen</string>
     <string name="mainTabNamePoints">Punkte</string>
 
-    <!-- overview fragment -->
-    <string name="fragmentOverviewName">Überblick</string>
-    <!-- pinned object list -->
+    <!-- OverviewTabLayoutFragment -->
+    <string name="buttonCollections">Sammlungen</string>
+    <string name="buttonHistory">Verlauf</string>
+
+    <!-- pinning fragment -->
+    <string name="fragmentPinningName">Anheften</string>
     <string name="menuItemClearPinnedObjects">Listen leeren</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Nur Profile entfernen</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Nur Punkte und Routen entfernen</string>
@@ -197,9 +200,6 @@
     <string name="buttonAddPinnedProfile">Profil anheften</string>
     <string name="buttonAddPinnedPointOrRoute">Punkt oder Route anheften</string>
     <string name="labelNoPinnedObjectsHint">Hier kannst du vorübergehend benötigte Punktprofile und Sammlungen, sowie Punkte und Routen anheften.</string>
-    <!-- bottom layout -->
-    <string name="buttonCollections">Sammlungen</string>
-    <string name="buttonHistory">Verlauf</string>
 
     <!-- tracking fragment -->
     <string name="fragmentTrackingName">Verfolgen</string>
@@ -323,6 +323,10 @@
 
     <!-- history fragment -->
     <string name="fragmentHistoryName">Verlauf</string>
+    <!-- groups -->
+    <string name="historyProfileGroupPoints">Punkte</string>
+    <string name="historyProfileGroupRoutes">Routen</string>
+    <string name="historyProfileGroupOverview">Übersicht</string>
 
 
     <!--
@@ -383,47 +387,31 @@
     -->
 
     <!-- object details tab layout fragment -->
-    <string name="pointDetailsActivityTitle">Details</string>
     <string name="labelPointDistanceAndBearing">Entfernung: %1$s</string>
-    <string name="labelUserAnnotation">Meine Notiz</string>
-
-    <!-- segment details activity -->
-    <string name="segmentDetailsActivityTitle">Details</string>
     <string name="labelSegmentDirection">Richtung: %1$s</string>
-
-    <!-- HikingTrailDetailsFragment -->
-    <string name="fragmentHikingTrailDetailsName">Wanderwegdetails</string>
-    <string name="labelTrailName">Name</string>
-    <string name="labelTrailDescription">Beschreibung</string>
-    <string name="labelTrailLength">Länge</string>
-    <string name="labelTrailSymbol">Symbol</string>
-    <!-- distances -->
-    <string name="labelTrailDistancesHeading">Entfernungen von aktueller Position</string>
-    <string name="labelDistanceToTrailStart">Startpunkt</string>
-    <string name="labelDistanceToTrailDestination">Zielpunkt</string>
-    <string name="labelDistanceToTrailClosest">Nächstgelegener Routenpunkt</string>
+    <string name="labelUserAnnotation">Meine Notiz</string>
 
     <!-- PointDetailsFragment -->
     <string name="fragmentPointDetailsName">Details</string>
     <string name="menuItemOpenOsmWebsite">Auf OpenStreetMap.org anzeigen</string>
     <!-- entrance -->
     <string name="labelPointEntranceAttributesHeading">Eingang</string>
-    <string name="labelPointEntranceLabel">Label:</string>
+    <string name="labelPointEntranceLabel">Label</string>
     <!-- poi -->
     <string name="labelPointPOIBuildingHeading">Gebäude</string>
-    <string name="labelPointPOIBuildingIsInside">Innerhalb von:</string>
-    <string name="labelPointPOIBuildingNumberOfEntrances">Anzahl Eingänge:</string>
+    <string name="labelPointPOIBuildingIsInside">Innerhalb von</string>
+    <string name="labelPointPOIBuildingNumberOfEntrances">Anzahl Eingänge</string>
     <string name="labelPointPOIContactHeading">Kontaktdaten</string>
-    <string name="labelPointPOIContactPostAddress">Postadresse:</string>
-    <string name="labelPointPOIContactEMailAddress">E-Mail adresse:</string>
-    <string name="labelPointPOIContactPhoneNumber">Telefonnummer:</string>
-    <string name="labelPointPOIContactWebsite">Webseite:</string>
-    <string name="labelPointPOIContactOpeningHours">Öffnungszeiten:</string>
+    <string name="labelPointPOIContactPostAddress">Postadresse</string>
+    <string name="labelPointPOIContactEMailAddress">E-Mail adresse</string>
+    <string name="labelPointPOIContactPhoneNumber">Telefonnummer</string>
+    <string name="labelPointPOIContactWebsite">Webseite</string>
+    <string name="labelPointPOIContactOpeningHours">Öffnungszeiten</string>
     <!-- station -->
     <string name="labelPointStationAttributesHeading">Haltestelle</string>
     <string name="labelStationNetwork">Verkehrsverbund</string>
     <string name="labelStationOperator">Betreiber</string>
-    <string name="labelPointStationVehicleTypes">Fahrzeugtypen:</string>
+    <string name="labelPointStationVehicleTypes">Fahrzeugtypen</string>
     <string name="labelPointStationLinesHeading">Linien</string>
     <!-- point with address -->
     <string name="labelPointWithAddressDataHeading">Adresskomponenten</string>
@@ -443,8 +431,8 @@
     <string name="labelPointIntersectionAttributesHeading">Kreuzung</string>
     <!-- pedestrian crossing -->
     <string name="labelPointTrafficSignalsAttributesHeading">Ampel</string>
-    <string name="labelPointTrafficSignalsSound">Tonsignal:</string>
-    <string name="labelPointTrafficSignalsVibration">Vibrationssignal:</string>
+    <string name="labelPointTrafficSignalsSound">Tonsignal</string>
+    <string name="labelPointTrafficSignalsVibration">Vibrationssignal</string>
     <!-- point: alt names -->
     <string name="labelPointNotesHeading">Anmerkungen</string>
     <string name="labelPointAltName">Alternativname</string>
@@ -453,8 +441,8 @@
     <string name="labelPointWikidata">Weitere Informationen unter wikidata.org</string>
     <!-- point: accessibility -->
     <string name="labelPointAccessibilityHeading">Barrierefreiheit</string>
-    <string name="labelPointTactilePaving">Leitlinie:</string>
-    <string name="labelPointWheelchair">Zugänglichkeit für Rollstuhlfahrer:</string>
+    <string name="labelPointTactilePaving">Leitlinie</string>
+    <string name="labelPointWheelchair">Zugänglichkeit für Rollstuhlfahrer</string>
     <!-- point: coordinates and gps -->
     <string name="labelPointCoordinatesHeading">Koordinaten</string>
 
@@ -465,22 +453,22 @@
     <string name="fragmentSegmentDetailsName">Details</string>
     <!-- intersection segment -->
     <string name="labelSegmentIntersectionAttributesHeading">Teil der Kreuzung</string>
-    <string name="labelSegmentIntersectionName">Name:</string>
+    <string name="labelSegmentIntersectionName">Name</string>
     <!-- route segment -->
     <string name="labelSegmentRouteAttributesHeading">Route</string>
-    <string name="labelSegmentRouteDistance">Länge:</string>
+    <string name="labelSegmentRouteDistance">Länge</string>
     <!-- segment attributes -->
     <string name="labelSegmentFootwayAttributesHeading">Attribute</string>
     <string name="labelSegmentBearing">Kurs</string>
     <string name="labelSegmentFootwayDescription">Beschreibung</string>
     <string name="labelSegmentFootwaySidewalk">Fußweg</string>
-    <string name="labelSegmentFootwaySurface">Oberfläche:</string>
+    <string name="labelSegmentFootwaySurface">Oberfläche</string>
     <string name="labelSegmentFootwaySmoothness">Oberflächenbeschaffenheit</string>
-    <string name="labelSegmentFootwayWidth">Breite:</string>
-    <string name="labelSegmentFootwayNumberOfLanes">Anzahl der Spuren:</string>
+    <string name="labelSegmentFootwayWidth">Breite</string>
+    <string name="labelSegmentFootwayNumberOfLanes">Anzahl der Spuren</string>
     <string name="labelSegmentFootwayMaxSpeed">Max. Geschwindigkeit (standard=km/h)</string>
-    <string name="labelSegmentFootwaySegregated">Getrennter Rad- und Fußweg:</string>
-    <string name="labelSegmentFootwayTram">Straßenbahnschienen:</string>
+    <string name="labelSegmentFootwaySegregated">Getrennter Rad- und Fußweg</string>
+    <string name="labelSegmentFootwayTram">Straßenbahnschienen</string>
 
     <!-- StreetCourseFragment -->
     <string name="fragmentStreetCourseName">Wegverlauf</string>
@@ -692,7 +680,7 @@
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
     <string name="contextMenuItemOverview">Übersicht</string>
-    <string name="contextMenuItemUserAnnotation">Notiz hinzufügen</string>
+    <string name="contextMenuItemUserAnnotation">Notiz bearbeiten</string>
     <string name="contextMenuItemRename">Umbenennen</string>
     <string name="contextMenuItemRemove">Entfernen</string>
     <!-- overview sub menu -->
@@ -834,27 +822,19 @@
 
     <!-- DatabaseProfile -->
     <string name="databaseProfileExcludedFromRouting">Vom Routing ausgeschlossene Wege</string>
-    <string name="databaseProfilePinnedPointsAndRoutes">Angeheftete Punkte und Routen</string>
     <string name="databaseProfileRecordedRoutes">Aufgezeichnete Routen</string>
-    <string name="databaseProfileTrackedPoints">Verfolgte Punkte</string>
-    <!-- for -->
-    <string name="databaseProfileForPoints">Punkte</string>
-    <string name="databaseProfileForRoutes">Routen</string>
-    <string name="databaseProfileForPointsAndRoutes">Punkte und Routen</string>
-    <string name="databaseProfileForSegments">Wegsegmente</string>
+    <string name="databaseProfilePinnedObjectsWithId">Angeheftete Punkte und Routen</string>
+    <string name="databaseProfileTrackedObjectsWithId">Verfolgte Punkte und Routen</string>
     <!-- point history -->
     <string name="historyDatabaseProfileAddressPoints">Adressen</string>
     <string name="historyDatabaseProfileIntersectionPoints">Kreuzungen</string>
     <string name="historyDatabaseProfileStationPoints">Haltestellen</string>
     <string name="historyDatabaseProfileSimulatedPoints">Simulierte Punkte</string>
-    <string name="historyDatabaseProfilePinnedPoints">Angeheftete Punkte</string>
-    <string name="historyDatabaseProfileTrackedPoints">Verfolgte Punkte</string>
     <string name="historyDatabaseProfileAllPoints">Alle Punkte</string>
     <!-- route history -->
     <string name="historyDatabaseProfilePlannedRoutes">Geplante Routen</string>
-    <string name="historyDatabaseProfilePinnedRoutes">Angeheftete Routen</string>
-    <string name="historyDatabaseProfileRoutesFromGpxFile">GPX Dateiimporte</string>
     <string name="historyDatabaseProfileRecordedRoutes">Aufgezeichnete Routen</string>
+    <string name="historyDatabaseProfileRoutesFromGpxFile">GPX Dateiimporte</string>
     <string name="historyDatabaseProfileAllRoutes">Alle Routen</string>
 
     <!-- Collection -->

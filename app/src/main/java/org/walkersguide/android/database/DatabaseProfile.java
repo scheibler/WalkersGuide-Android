@@ -17,47 +17,6 @@ import java.util.Arrays;
 public abstract class DatabaseProfile extends Profile implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    public enum ForObjects {
-
-        POINTS(
-                GlobalInstance.getStringResource(R.string.databaseProfileForPoints),
-                R.plurals.point),
-        ROUTES(
-                GlobalInstance.getStringResource(R.string.databaseProfileForRoutes),
-                R.plurals.route),
-        POINTS_AND_ROUTES(
-                GlobalInstance.getStringResource(R.string.databaseProfileForPointsAndRoutes),
-                R.plurals.pointAndRoute),
-        SEGMENTS(
-                GlobalInstance.getStringResource(R.string.databaseProfileForSegments),
-                R.plurals.way);
-
-        public static ArrayList<SortMethod> getSortMethodList(ForObjects forObjects) {
-            ArrayList<SortMethod> sortMethodList = new ArrayList<SortMethod>();
-            switch (forObjects) {
-                case POINTS:
-                case POINTS_AND_ROUTES:
-                    sortMethodList.add(SortMethod.DISTANCE_ASC);
-                    sortMethodList.add(SortMethod.DISTANCE_DESC);
-                    break;
-            }
-            sortMethodList.add(SortMethod.NAME_ASC);
-            sortMethodList.add(SortMethod.NAME_DESC);
-            sortMethodList.add(SortMethod.ACCESSED_ASC);
-            sortMethodList.add(SortMethod.ACCESSED_DESC);
-            sortMethodList.add(SortMethod.CREATED_ASC);
-            sortMethodList.add(SortMethod.CREATED_DESC);
-            return sortMethodList;
-        }
-
-        public String name;
-        public int pluralResId;
-
-        private ForObjects(String name, int pluralResId) {
-            this.name = name;
-            this.pluralResId =pluralResId;
-        }
-    }
 
     public static DatabaseProfile load(long id) {
         Profile profile = Profile.load(id);
@@ -69,41 +28,21 @@ public abstract class DatabaseProfile extends Profile implements Serializable {
      * constructor
      */
 
-    private ForObjects forObjects;
+    private int pluralResId;
     private SortMethod defaultSortMethod;
 
-    protected DatabaseProfile(long id, ForObjects forObjects, SortMethod defaultSortMethod) {
+    protected DatabaseProfile(long id, int pluralResId, SortMethod defaultSortMethod) {
         super(id);
-        this.forObjects = forObjects;
-        this.defaultSortMethod =
-            getSortMethodList().contains(defaultSortMethod)
-            ? defaultSortMethod
-            : getSortMethodList().get(0);
-    }
-
-    public ForObjects getForObjects() {
-        return this.forObjects;
+        this.pluralResId = pluralResId;
+        this.defaultSortMethod = defaultSortMethod;
     }
 
     public int getPluralResId() {
-        return this.forObjects.pluralResId;
-    }
-
-    public ArrayList<SortMethod> getSortMethodList() {
-        return ForObjects.getSortMethodList(this.forObjects);
+        return this.pluralResId;
     }
 
     public SortMethod getDefaultSortMethod() {
         return this.defaultSortMethod;
-    }
-
-    public boolean isForPoints() {
-        switch (forObjects) {
-            case POINTS:
-            case POINTS_AND_ROUTES:
-                return true;
-        }
-        return false;
     }
 
 

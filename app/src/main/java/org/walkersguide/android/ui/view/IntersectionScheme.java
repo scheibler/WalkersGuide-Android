@@ -79,8 +79,8 @@ public class IntersectionScheme extends View {
                     center.first, center.second,
                     boundaryCoordinates.first, boundaryCoordinates.second,
                     paint);
-            Timber.d("Segment: name=%1$s   degree=%2$d   stopX=%3$.2f   stopY=%4$.2f",
-                    segment.getName(), entry.getKey().getDegree(), boundaryCoordinates.first, boundaryCoordinates.second);
+            //Timber.d("Segment: name=%1$s   degree=%2$d   stopX=%3$.2f   stopY=%4$.2f",
+            //        segment.getName(), entry.getKey().getDegree(), boundaryCoordinates.first, boundaryCoordinates.second);
         }
 
         // center

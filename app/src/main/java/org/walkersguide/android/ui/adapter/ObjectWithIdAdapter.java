@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.adapter;
 
-import org.walkersguide.android.database.DatabaseProfile.ForObjects;
+import org.walkersguide.android.R;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 
 import android.widget.LinearLayout;
@@ -79,7 +79,7 @@ public class ObjectWithIdAdapter extends BaseAdapter {
         ObjectWithId objectWithId = getItem(position);
         boolean showIcon = false;
         if (this.profile != null && this.profile instanceof DatabaseProfile) {
-            if (((DatabaseProfile) this.profile).getForObjects() == ForObjects.POINTS_AND_ROUTES) {
+            if (((DatabaseProfile) this.profile).getPluralResId() == R.plurals.pointAndRoute) {
                 showIcon = true;
             }
         } else if (this.profile != null && this.profile instanceof PoiProfile) {

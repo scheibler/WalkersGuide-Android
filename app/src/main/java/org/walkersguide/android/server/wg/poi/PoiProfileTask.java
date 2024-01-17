@@ -122,8 +122,8 @@ public class PoiProfileTask extends ServerTask {
             JSONObject jsonServerParams = null;
             try {
                 jsonServerParams = WgUtility.createServerParamList();
-                jsonServerParams.put("lat", newLocation.getLatitude());
-                jsonServerParams.put("lon", newLocation.getLongitude());
+                jsonServerParams.put("lat", newLocation.getCoordinates().getLatitude());
+                jsonServerParams.put("lon", newLocation.getCoordinates().getLongitude());
                 jsonServerParams.put("radius", newRadius);
                 jsonServerParams.put("number_of_results", newNumberOfResults);
                 jsonServerParams.put("tags", PoiCategory.listToJson(this.request.getProfile().getPoiCategoryList()));

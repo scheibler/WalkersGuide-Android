@@ -1,7 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
 import org.walkersguide.android.tts.TTSWrapper;
-import org.walkersguide.android.server.address.AddressException;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import androidx.appcompat.app.AlertDialog;
@@ -21,9 +20,7 @@ import android.widget.Button;
 
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
-import org.walkersguide.android.data.object_with_id.Point;
 
 
 import android.content.IntentFilter;
@@ -32,8 +29,6 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.Context;
 import org.walkersguide.android.server.ServerTaskExecutor;
-import org.walkersguide.android.server.address.ResolveCoordinatesTask;
-import org.walkersguide.android.server.address.AddressException;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
 import org.walkersguide.android.ui.view.ResolveCurrentAddressView.OnCurrentAddressResolvedListener;

@@ -64,23 +64,23 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         }
     }
 
-	public static PoiListFromServerFragment selectObjectWithId(PoiProfile profile) {
-		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
+    public static PoiListFromServerFragment selectObjectWithId(PoiProfile profile) {
+        PoiListFromServerFragment fragment = new PoiListFromServerFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new PoiProfileRequest(profile))
                 .setSelectObjectWithId(true)
                 .build());
-		return fragment;
+        return fragment;
     }
 
-	public static PoiListFromServerFragment newInstance(PoiProfile profile) {
-		PoiListFromServerFragment fragment = new PoiListFromServerFragment();
+    public static PoiListFromServerFragment newInstance(PoiProfile profile) {
+        PoiListFromServerFragment fragment = new PoiListFromServerFragment();
         fragment.setArguments(
                 new BundleBuilder(
                     new PoiProfileRequest(profile))
                 .build());
-		return fragment;
+        return fragment;
     }
 
 
@@ -89,12 +89,12 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
     private static final String KEY_REQUEST = "request";
 
     private ServerTaskExecutor serverTaskExecutorInstance;
-	private Handler progressHandler = new Handler(Looper.getMainLooper());
+    private Handler progressHandler = new Handler(Looper.getMainLooper());
 
     private long taskId;
     private PoiProfileRequest request;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
@@ -141,7 +141,7 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
      */
     private Button buttonSelectPoiCategories, buttonSelectCollections;
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
         super.updateSearchTerm(request.getSearchTerm());
 

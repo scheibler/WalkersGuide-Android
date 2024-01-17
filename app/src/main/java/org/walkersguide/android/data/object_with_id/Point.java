@@ -1,15 +1,12 @@
 package org.walkersguide.android.data.object_with_id;
 
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 
-import org.walkersguide.android.data.angle.Bearing;
-import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.data.ObjectWithId.Icon;
 import org.walkersguide.android.data.object_with_id.common.TactilePaving;
 import org.walkersguide.android.data.object_with_id.common.Wheelchair;
 
-import android.location.Location;
-import android.location.LocationManager;
 
 
 import org.json.JSONException;
@@ -20,7 +17,6 @@ import org.walkersguide.android.util.GlobalInstance;
 import java.io.Serializable;
 import org.walkersguide.android.util.Helper;
 import android.text.TextUtils;
-import org.walkersguide.android.sensor.PositionManager;
 import androidx.annotation.NonNull;
 import java.util.Locale;
 import android.content.Intent;
@@ -79,7 +75,7 @@ public class Point extends ObjectWithId implements Serializable {
 
     // mandatory params
     private String subType;
-    private double latitude, longitude;
+    private Coordinates coordinates;
     // optional params
     private String altName, oldName, note, wikidataId;
     private TactilePaving tactilePaving;
@@ -91,8 +87,9 @@ public class Point extends ObjectWithId implements Serializable {
                 Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
                 inputData);
         this.subType = inputData.getString(KEY_SUB_TYPE);
-        this.latitude = inputData.getDouble(KEY_LATITUDE);
-        this.longitude = inputData.getDouble(KEY_LONGITUDE);
+        this.coordinates = new Coordinates(
+                inputData.getDouble(KEY_LATITUDE),
+                inputData.getDouble(KEY_LONGITUDE));
 
         // optional parameters
         this.altName = Helper.getNullableStringFromJsonObject(inputData, KEY_ALT_NAME);
@@ -112,14 +109,6 @@ public class Point extends ObjectWithId implements Serializable {
 
     public String getSubType() {
         return this.subType;
-    }
-
-    public double getLatitude() {
-        return this.latitude;
-    }
-
-    public double getLongitude() {
-        return this.longitude;
     }
 
 
@@ -172,11 +161,9 @@ public class Point extends ObjectWithId implements Serializable {
 
     public String formatCoordinates() {
         return String.format(
-                Locale.getDefault(),
-                "%1$s: %2$f, %3$f",
+                "%1$s: %2$s",
                 GlobalInstance.getStringResource(R.string.labelGPSCoordinates),
-                this.latitude,
-                this.longitude);
+                this.coordinates.toString());
     }
 
     public String formatLatitude() {
@@ -184,7 +171,7 @@ public class Point extends ObjectWithId implements Serializable {
                 Locale.getDefault(),
                 "%1$s: %2$f",
                 GlobalInstance.getStringResource(R.string.labelGPSLatitude),
-                this.latitude);
+                this.coordinates.getLatitude());
     }
 
     public String formatLongitude() {
@@ -192,7 +179,7 @@ public class Point extends ObjectWithId implements Serializable {
                 Locale.getDefault(),
                 "%1$s: %2$f",
                 GlobalInstance.getStringResource(R.string.labelGPSLongitude),
-                this.longitude);
+                this.coordinates.getLongitude());
     }
 
 
@@ -225,18 +212,21 @@ public class Point extends ObjectWithId implements Serializable {
 
     public void startShareCoordinatesChooserActivity(@NonNull Context context, @NonNull SharingService service) {
         String shareLink = null;
+        double latitude = this.coordinates.getLatitude();
+        double longitude = this.coordinates.getLongitude();
+
         switch (service) {
             case APPLE_MAPS:
                 shareLink = String.format(
-                        Locale.ROOT, APPLE_MAPS_COORDINATES_URL, this.latitude, this.longitude);
+                        Locale.ROOT, APPLE_MAPS_COORDINATES_URL, latitude, longitude);
                 break;
             case GOOGLE_MAPS:
                 shareLink = String.format(
-                        Locale.ROOT, GOOGLE_MAPS_COORDINATES_URL, this.latitude, this.longitude);
+                        Locale.ROOT, GOOGLE_MAPS_COORDINATES_URL, latitude, longitude);
                 break;
             case OSM_ORG:
                 shareLink = String.format(
-                        Locale.ROOT, OSM_ORG_COORDINATES_URL, this.latitude, this.longitude);
+                        Locale.ROOT, OSM_ORG_COORDINATES_URL, latitude, longitude);
                 break;
         }
 
@@ -262,11 +252,8 @@ public class Point extends ObjectWithId implements Serializable {
         return Icon.POINT;
     }
 
-    @Override public Location getLocationObject() {
-        Location location = new Location(LocationManager.GPS_PROVIDER);
-        location.setLatitude(this.latitude);
-        location.setLongitude(this.longitude);
-        return location;
+    @Override public Coordinates getCoordinates() {
+        return this.coordinates;
     }
 
     @Override public String toString() {
@@ -297,8 +284,8 @@ public class Point extends ObjectWithId implements Serializable {
 
         // mandatory params
         jsonObject.put(KEY_SUB_TYPE, this.subType);
-        jsonObject.put(KEY_LATITUDE, this.latitude);
-        jsonObject.put(KEY_LONGITUDE, this.longitude);
+        jsonObject.put(KEY_LATITUDE, this.coordinates.getLatitude());
+        jsonObject.put(KEY_LONGITUDE, this.coordinates.getLongitude());
 
         // optional parameters
         if (this.altName != null) {

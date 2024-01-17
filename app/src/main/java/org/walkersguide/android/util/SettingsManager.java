@@ -1,9 +1,8 @@
 package org.walkersguide.android.util;
 
-import org.walkersguide.android.util.service.DistanceTrackingMode.AnnouncementRadius;
+import org.walkersguide.android.data.profile.AnnouncementRadius;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.tts.TtsSettings;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 
@@ -80,7 +79,7 @@ public class SettingsManager {
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
-    private static final String KEY_DISTANCE_TRACKING_MODE_ANNOUNCEMENT_RADIUS = "distanceTrackingModeAnnouncementRadius";
+    private static final String KEY_TRACKING_MODE_ANNOUNCEMENT_RADIUS = "trackingModeAnnouncementRadius";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
     // tts
     private static final String KEY_TTS_SETTINGS = "ttsSettings";
@@ -194,7 +193,7 @@ public class SettingsManager {
     public void setHomeAddress(Point newPoint) {
         Editor editor = settings.edit();
         if (newPoint != null
-                && HistoryProfile.allPoints().addObject(newPoint)) {
+                && newPoint.saveToDatabase()) {
             editor.putLong(KEY_HOME_ADDRESS_ID, newPoint.getId());
         } else if (settings.contains(KEY_HOME_ADDRESS_ID)) {
             editor.remove(KEY_HOME_ADDRESS_ID);
@@ -248,15 +247,15 @@ public class SettingsManager {
         editor.apply();
     }
 
-    public AnnouncementRadius getDistanceTrackingModeAnnouncementRadius() {
+    public AnnouncementRadius getTrackingModeAnnouncementRadius() {
         return AnnouncementRadius.create(
-                settings.getInt(KEY_DISTANCE_TRACKING_MODE_ANNOUNCEMENT_RADIUS, 0));
+                settings.getInt(KEY_TRACKING_MODE_ANNOUNCEMENT_RADIUS, 0));
     }
 
-    public void setDistanceTrackingModeAnnouncementRadius(AnnouncementRadius newRadius) {
+    public void setTrackingModeAnnouncementRadius(AnnouncementRadius newRadius) {
         Editor editor = settings.edit();
         editor.putInt(
-                KEY_DISTANCE_TRACKING_MODE_ANNOUNCEMENT_RADIUS, newRadius.meter);
+                KEY_TRACKING_MODE_ANNOUNCEMENT_RADIUS, newRadius.meter);
         editor.apply();
     }
 
@@ -521,7 +520,7 @@ public class SettingsManager {
     public void setSimulatedPoint(Point newPoint) {
         Editor editor = settings.edit();
         if (newPoint != null
-                && HistoryProfile.allPoints().addObject(newPoint)) {
+                && newPoint.saveToDatabase()) {
             editor.putLong(KEY_SIMULATED_POINT_ID, newPoint.getId());
         } else if (settings.contains(KEY_SIMULATED_POINT_ID)) {
             editor.remove(KEY_SIMULATED_POINT_ID);
@@ -632,7 +631,7 @@ public class SettingsManager {
     public void setLastSelectedRoute(Route newRoute) {
         Editor editor = settings.edit();
         if (newRoute != null
-                && HistoryProfile.allRoutes().addObject(newRoute)) {
+                && newRoute.saveToDatabase()) {
             editor.putLong(KEY_SELECTED_ROUTE_ID, newRoute.getId());
         } else {
             editor.putLong(KEY_SELECTED_ROUTE_ID, DEFAULT_SELECTED_ROUTE_ID);

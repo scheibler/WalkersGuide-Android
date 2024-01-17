@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.object_details;
 
+import org.walkersguide.android.ui.view.UserAnnotationView;
 import org.walkersguide.android.database.DatabaseProfile;
 import org.walkersguide.android.ui.view.RouteObjectView;
 import org.walkersguide.android.server.wg.street_course.StreetCourseRequest;
@@ -74,6 +75,7 @@ public class RouteDetailsFragment extends Fragment {
     private int listPosition;
 
     private TextView labelDescription, labelHeading;
+    private UserAnnotationView layoutUserAnnotation;
     private ListView listViewRouteObjects;
 
 	@Override public void onCreate(Bundle savedInstanceState) {
@@ -94,8 +96,14 @@ public class RouteDetailsFragment extends Fragment {
 		super.onViewCreated(view, savedInstanceState);
 
         labelDescription = (TextView) view.findViewById(R.id.labelDescription);
+        layoutUserAnnotation = (UserAnnotationView) view.findViewById(R.id.layoutUserAnnotation);
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         listViewRouteObjects = (ListView) view.findViewById(R.id.listViewRouteObjects);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putInt(KEY_LIST_POSITION,  listPosition);
     }
 
 
@@ -110,20 +118,12 @@ public class RouteDetailsFragment extends Fragment {
 
     @Override public void onResume() {
         super.onResume();
-        showRoute();
-    }
-
-    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putInt(KEY_LIST_POSITION,  listPosition);
-    }
-
-    private void showRoute() {
         if (route == null) {
             return;
         }
 
         labelDescription.setText(route.getDescription());
+        layoutUserAnnotation.setObjectWithId(route);
         labelHeading.setText(
                 GlobalInstance.getPluralResource(
                     R.plurals.point, route.getRouteObjectList().size()));

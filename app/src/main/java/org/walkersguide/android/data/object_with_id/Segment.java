@@ -1,7 +1,6 @@
 package org.walkersguide.android.data.object_with_id;
 
 import timber.log.Timber;
-import android.location.LocationManager;
 import org.walkersguide.android.data.ObjectWithId.Icon;
 import org.walkersguide.android.util.GlobalInstance;
 
@@ -11,6 +10,7 @@ import org.json.JSONObject;
 import java.io.Serializable;
 
 import org.walkersguide.android.R;
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import org.walkersguide.android.data.object_with_id.common.TactilePaving;
 import org.walkersguide.android.data.object_with_id.common.Wheelchair;
 import org.walkersguide.android.util.Helper;
@@ -20,7 +20,6 @@ import java.util.Map;
 import org.walkersguide.android.data.ObjectWithId;
 import android.text.TextUtils;
 import java.util.Locale;
-import android.location.Location;
 import org.walkersguide.android.sensor.PositionManager;
 import java.util.Comparator;
 import org.walkersguide.android.data.angle.RelativeBearing;
@@ -59,7 +58,7 @@ public class Segment extends ObjectWithId implements Serializable {
     // mandatory params
     private String subType;
     private Bearing bearing;
-    private Location startLocation, endLocation;
+    private Coordinates startCoordinates, endCoordinates;
 
     // optional params
     private Integer lanes, maxSpeed;
@@ -78,22 +77,20 @@ public class Segment extends ObjectWithId implements Serializable {
         this.subType = inputData.getString(KEY_SUB_TYPE);
         this.bearing = new Bearing(inputData.getInt(KEY_BEARING));
 
-        // start and end location
+        // start and end coordinates
         try {
-            this.startLocation = getLocationFromJsonObject(inputData, KEY_START);
+            this.startCoordinates = new Coordinates(inputData.getJSONObject(KEY_START));
         } catch (JSONException e) {
-            Timber.d("no start location, using 0.0, 0.0");
-            this.startLocation = new Location(LocationManager.GPS_PROVIDER);
-            this.startLocation.setLatitude(0.0);
-            this.startLocation.setLongitude(0.0);
+            Timber.d("no start coordinates, using 0.0, 0.0");
+            this.startCoordinates = new Coordinates(0.0, 0.0);
         }
         try {
-            this.endLocation = getLocationFromJsonObject(inputData, KEY_END);
+            this.endCoordinates = new Coordinates(inputData.getJSONObject(KEY_END));
         } catch (JSONException e) {
-            Timber.d("no end location, using startLocation=%1$s and angle=%2$s", this.startLocation, this.bearing);
-            this.endLocation = Helper.calculateEndLocationForStartLocationAndAngle(this.startLocation, this.bearing);
+            Timber.d("no end Coordinates, using startCoordinates=%1$s and angle=%2$s", this.startCoordinates, this.bearing);
+            this.endCoordinates = Helper.calculateEndCoordinatesForStartCoordinatesAndAngle(this.startCoordinates, this.bearing);
         }
-        //Timber.d("Segment: bearing=%1$d/%2$f, start=%3$s, end=%4$s", this.bearing.getDegree(), this.startLocation.bearingTo(this.endLocation), this.startLocation, this.endLocation);
+        //Timber.d("Segment: bearing=%1$d/%2$f, start=%3$s, end=%4$s", this.bearing.getDegree(), this.startCoordinates.bearingTo(this.endCoordinates), this.startCoordinates, this.endCoordinates);
 
         // optional parameters
         this.lanes = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_LANES);
@@ -248,12 +245,14 @@ public class Segment extends ObjectWithId implements Serializable {
         return Icon.SEGMENT;
     }
 
-    @Override public Location getLocationObject() {
+    @Override public Coordinates getCoordinates() {
         Point currentLocation = PositionManager.getInstance().getCurrentLocation();
         if (currentLocation != null) {
-            float distanceFromStartLocation = currentLocation.getLocationObject().distanceTo(this.startLocation);
-            float distanceFromEndLocation = currentLocation.getLocationObject().distanceTo(this.endLocation);
-            return distanceFromStartLocation < distanceFromEndLocation ? this.startLocation : this.endLocation;
+            int distanceToStartCoordinates = currentLocation.getCoordinates().distanceTo(this.startCoordinates);
+            int distanceToEndCoordinates = currentLocation.getCoordinates().distanceTo(this.endCoordinates);
+            return distanceToStartCoordinates < distanceToEndCoordinates
+                ? this.startCoordinates
+                : this.endCoordinates;
         }
         return null;
     }
@@ -330,8 +329,8 @@ public class Segment extends ObjectWithId implements Serializable {
         // mandatory params
         jsonObject.put(KEY_SUB_TYPE, this.subType);
         jsonObject.put(KEY_BEARING, this.bearing.getDegree());
-        jsonObject.put(KEY_START, putLocationToJsonObject(this.startLocation));
-        jsonObject.put(KEY_END, putLocationToJsonObject(this.endLocation));
+        jsonObject.put(KEY_START, this.startCoordinates.toJson());
+        jsonObject.put(KEY_END, this.endCoordinates.toJson());
 
         if (this.lanes != null) {
             jsonObject.put(KEY_LANES, this.lanes);
@@ -372,25 +371,6 @@ public class Segment extends ObjectWithId implements Serializable {
         }
 
         return jsonObject;
-    }
-
-    // helpers
-
-    public static Location getLocationFromJsonObject(JSONObject jsonObject, String key) throws JSONException {
-        JSONObject jsonLocation = jsonObject.getJSONObject(key);
-        Location location = new Location(LocationManager.GPS_PROVIDER);
-        location.setLatitude(
-                jsonLocation.getDouble("lat"));
-        location.setLongitude(
-                jsonLocation.getDouble("lon"));
-        return location;
-    }
-
-    public static JSONObject putLocationToJsonObject(Location location) throws JSONException {
-        JSONObject jsonLocation = new JSONObject();
-        jsonLocation.put("lat", location.getLatitude());
-        jsonLocation.put("lon", location.getLongitude());
-        return jsonLocation;
     }
 
 }

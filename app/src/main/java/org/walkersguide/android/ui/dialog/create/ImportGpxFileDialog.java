@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog.create;
 
+import java.util.Locale;
 import androidx.core.view.ViewCompat;
 import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
 import org.walkersguide.android.database.profile.Collection;
@@ -691,7 +692,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 Route.Type.GPX_TRACK,
                 TextUtils.isEmpty(routeName)
                 ? String.format(
-                    "%1$s %2$d", ObjectWithId.Icon.ROUTE, routeIndex+1)
+                    Locale.getDefault(), "%1$s %2$d", ObjectWithId.Icon.ROUTE, routeIndex+1)
                 : routeName,
                 routeDescription,
                 false,

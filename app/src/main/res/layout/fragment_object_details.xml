@@ -21,14 +21,6 @@
         android:paddingBottom="3dp"
         android:focusable="true" />
 
-    <TextView
-        android:id="@+id/labelUserAnnotation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="3dp"
-        android:paddingBottom="3dp"
-        android:focusable="true" />
-
     <include
         layout="@layout/layout_view_pager_and_tab_layout_above" />
 

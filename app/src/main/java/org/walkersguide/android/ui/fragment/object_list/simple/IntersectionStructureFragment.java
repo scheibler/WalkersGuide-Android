@@ -47,8 +47,8 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
     private static final String KEY_INTERSECTION = "intersection";
     private static final String KEY_ANNOUNCE_WAY_AHEAD = "announceWayAhead";
 
-	public static IntersectionStructureFragment embedded(Intersection intersection) {
-		IntersectionStructureFragment fragment = new IntersectionStructureFragment();
+    public static IntersectionStructureFragment embedded(Intersection intersection) {
+        IntersectionStructureFragment fragment = new IntersectionStructureFragment();
         Bundle bundle = new SimpleObjectListFragment.BundleBuilder(
                 intersection.getSegmentList())
             .setIsEmbedded(true)
@@ -56,14 +56,14 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
         bundle.putSerializable(KEY_INTERSECTION, intersection);
         bundle.putBoolean(KEY_ANNOUNCE_WAY_AHEAD, true);
         fragment.setArguments(bundle);
-		return fragment;
-	}
+        return fragment;
+    }
 
     private Intersection intersection;
     private boolean announceWayAhead;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         intersection = (Intersection) getArguments().getSerializable(KEY_INTERSECTION);
         if (savedInstanceState != null) {
             announceWayAhead = savedInstanceState.getBoolean(KEY_ANNOUNCE_WAY_AHEAD);
@@ -75,7 +75,7 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
     @Override public String getTitle() {
         return getSelectObjectWithId()
             ? getResources().getString(R.string.labelPleaseSelect)
-    	    : getResources().getString(R.string.fragmentIntersectionStructureName);
+            : getResources().getString(R.string.fragmentIntersectionStructureName);
     }
 
     @Override public int getPluralResourceId() {

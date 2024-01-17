@@ -1,5 +1,7 @@
 package org.walkersguide.android.data;
 
+import java.text.Collator;
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.Entrance;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
@@ -25,13 +27,10 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Locale;
 import org.walkersguide.android.data.angle.Bearing;
-import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Route;
 import java.util.ArrayList;
 import org.walkersguide.android.sensor.PositionManager;
-import java.lang.Math;
-import android.location.Location;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.database.DatabaseProfile;
 
@@ -331,7 +330,7 @@ public abstract class ObjectWithId implements Serializable {
 
     // distance and bearing
 
-    public abstract Location getLocationObject();
+    public abstract Coordinates getCoordinates();
 
     public String formatDistanceAndRelativeBearingFromCurrentLocation(int distancePluralResourceId) {
         return formatDistanceAndRelativeBearingFromCurrentLocation(distancePluralResourceId, false);
@@ -372,9 +371,7 @@ public abstract class ObjectWithId implements Serializable {
 
     public Integer distanceTo(ObjectWithId other) {
         if (other != null) {
-            return Integer.valueOf(
-                    (int) Math.round(
-                        this.getLocationObject().distanceTo(other.getLocationObject())));
+            return this.getCoordinates().distanceTo(other.getCoordinates());
         }
         return null;
     }
@@ -389,9 +386,7 @@ public abstract class ObjectWithId implements Serializable {
 
     public Bearing bearingTo(ObjectWithId other) {
         if (other != null) {
-            return new Bearing(
-                    (int) Math.round(
-                        this.getLocationObject().bearingTo(other.getLocationObject())));
+            return this.getCoordinates().bearingTo(other.getCoordinates());
         }
         return null;
     }
@@ -508,13 +503,11 @@ public abstract class ObjectWithId implements Serializable {
         }
 
         @Override public int compare(ObjectWithId object1, ObjectWithId object2) {
-            if (this.ascending) {
-                return object1.getName().toLowerCase(Locale.ROOT).compareTo(
-                        object2.getName().toLowerCase(Locale.ROOT));
-            } else {
-                return object2.getName().toLowerCase(Locale.ROOT).compareTo(
-                        object1.getName().toLowerCase(Locale.ROOT));
-            }
+            Collator collator = Collator.getInstance();
+            collator.setStrength(Collator.PRIMARY);
+            return this.ascending
+                ? collator.compare(object1.getName(), object2.getName())
+                : collator.compare(object2.getName(), object1.getName());
         }
     }
 

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.object_details;
 
+import org.walkersguide.android.ui.view.UserAnnotationView;
 import android.os.Bundle;
 
 import android.text.TextUtils;
@@ -112,6 +113,10 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
         if (segment == null) {
             return;
         }
+
+        UserAnnotationView layoutUserAnnotation = new UserAnnotationView(getActivity());
+        layoutUserAnnotation.setObjectWithId(segment);
+        layoutAttributes.addView(layoutUserAnnotation);
 
         if (segment instanceof IntersectionSegment) {
             IntersectionSegment intersectionSegment = (IntersectionSegment) segment;

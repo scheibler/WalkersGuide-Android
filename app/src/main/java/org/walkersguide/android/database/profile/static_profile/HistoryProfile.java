@@ -18,43 +18,49 @@ public class HistoryProfile extends StaticProfile implements Serializable {
     private static final long serialVersionUID = 1l;
 
 
-    public static ArrayList<HistoryProfile> getHistoryProfileList() {
+    public static ArrayList<HistoryProfile> getPointsHistoryProfileList() {
         ArrayList<HistoryProfile> historyProfileList = new ArrayList<HistoryProfile>();
-        // point profiles
         historyProfileList.add(allPoints());
         historyProfileList.add(addressPoints());
         historyProfileList.add(intersectionPoints());
         historyProfileList.add(stationPoints());
         historyProfileList.add(simulatedPoints());
-        historyProfileList.add(pinnedPoints());
-        historyProfileList.add(trackedPoints());
-        // route profiles
+        return historyProfileList;
+    }
+
+    public static ArrayList<HistoryProfile> getRoutesHistoryProfileList() {
+        ArrayList<HistoryProfile> historyProfileList = new ArrayList<HistoryProfile>();
         historyProfileList.add(allRoutes());
         historyProfileList.add(plannedRoutes());
-        historyProfileList.add(pinnedRoutes());
-        historyProfileList.add(routesFromGpxFile());
         historyProfileList.add(recordedRoutes());
+        historyProfileList.add(routesFromGpxFile());
+        return historyProfileList;
+    }
+
+    public static ArrayList<HistoryProfile> getOverviewHistoryProfileList() {
+        ArrayList<HistoryProfile> historyProfileList = new ArrayList<HistoryProfile>();
+        historyProfileList.add(pinnedObjectsWithId());
+        historyProfileList.add(trackedObjectsWithId());
         return historyProfileList;
     }
 
 
     // meta profiles
+    private static final long ID_HISTORY_PINNED_OBJECTS_WITH_ID = 53;
+    private static final long ID_HISTORY_TRACKED_OBJECTS_WITH_ID = 56;
 
-    private static final long ID_HISTORY_ALL_POINTS = 52;
-    private static final long ID_HISTORY_ALL_ROUTES = 57;
-
-    public static HistoryProfile allPoints() {
+    public static HistoryProfile pinnedObjectsWithId() {
         return new HistoryProfile(
-                ID_HISTORY_ALL_POINTS,
-                GlobalInstance.getStringResource(R.string.historyDatabaseProfileAllPoints),
-                ForObjects.POINTS);
+                ID_HISTORY_PINNED_OBJECTS_WITH_ID,
+                GlobalInstance.getStringResource(R.string.databaseProfilePinnedObjectsWithId),
+                R.plurals.pointAndRoute);
     }
 
-    public static HistoryProfile allRoutes() {
+    public static HistoryProfile trackedObjectsWithId() {
         return new HistoryProfile(
-                ID_HISTORY_ALL_ROUTES,
-                GlobalInstance.getStringResource(R.string.historyDatabaseProfileAllRoutes),
-                ForObjects.ROUTES);
+                ID_HISTORY_TRACKED_OBJECTS_WITH_ID,
+                GlobalInstance.getStringResource(R.string.databaseProfileTrackedObjectsWithId),
+                R.plurals.pointAndRoute);
     }
 
 
@@ -63,91 +69,83 @@ public class HistoryProfile extends StaticProfile implements Serializable {
     private static final long ID_HISTORY_INTERSECTION_POINTS = 63;
     private static final long ID_HISTORY_STATION_POINTS = 66;
     private static final long ID_HISTORY_SIMULATED_POINTS = 69;
-    private static final long ID_HISTORY_PINNED_POINTS = 72;
-    private static final long ID_HISTORY_TRACKED_POINTS = 75;
+    private static final long ID_HISTORY_ALL_POINTS = 79;
 
     public static HistoryProfile addressPoints() {
         return new HistoryProfile(
                 ID_HISTORY_ADDRESS_POINTS,
                 GlobalInstance.getStringResource(R.string.historyDatabaseProfileAddressPoints),
-                ForObjects.POINTS);
+                R.plurals.point);
     }
 
     public static HistoryProfile intersectionPoints() {
         return new HistoryProfile(
                 ID_HISTORY_INTERSECTION_POINTS,
                 GlobalInstance.getStringResource(R.string.historyDatabaseProfileIntersectionPoints),
-                ForObjects.POINTS);
+                R.plurals.point);
     }
 
     public static HistoryProfile stationPoints() {
         return new HistoryProfile(
                 ID_HISTORY_STATION_POINTS,
                 GlobalInstance.getStringResource(R.string.historyDatabaseProfileStationPoints),
-                ForObjects.POINTS);
+                R.plurals.point);
     }
 
     public static HistoryProfile simulatedPoints() {
         return new HistoryProfile(
                 ID_HISTORY_SIMULATED_POINTS,
                 GlobalInstance.getStringResource(R.string.historyDatabaseProfileSimulatedPoints),
-                ForObjects.POINTS);
+                R.plurals.point);
     }
 
-    public static HistoryProfile pinnedPoints() {
+    public static HistoryProfile allPoints() {
         return new HistoryProfile(
-                ID_HISTORY_PINNED_POINTS,
-                GlobalInstance.getStringResource(R.string.historyDatabaseProfilePinnedPoints),
-                ForObjects.POINTS);
-    }
-
-    public static HistoryProfile trackedPoints() {
-        return new HistoryProfile(
-                ID_HISTORY_TRACKED_POINTS,
-                GlobalInstance.getStringResource(R.string.historyDatabaseProfileTrackedPoints),
-                ForObjects.POINTS);
+                ID_HISTORY_ALL_POINTS,
+                GlobalInstance.getStringResource(R.string.historyDatabaseProfileAllPoints),
+                R.plurals.point);
     }
 
 
     // route history
     private static final long ID_HISTORY_PLANNED_ROUTES = 80;
-    private static final long ID_HISTORY_PINNED_ROUTES = 83;
+    private static final long ID_HISTORY_RECORDED_ROUTES = 83;
     private static final long ID_HISTORY_ROUTES_FROM_GPX_FILE = 86;
-    private static final long ID_HISTORY_RECORDED_ROUTES = 89;
+    private static final long ID_HISTORY_ALL_ROUTES = 89;
 
     public static HistoryProfile plannedRoutes() {
         return new HistoryProfile(
                 ID_HISTORY_PLANNED_ROUTES,
                 GlobalInstance.getStringResource(R.string.historyDatabaseProfilePlannedRoutes),
-                ForObjects.ROUTES);
-    }
-
-    public static HistoryProfile pinnedRoutes() {
-        return new HistoryProfile(
-                ID_HISTORY_PINNED_ROUTES,
-                GlobalInstance.getStringResource(R.string.historyDatabaseProfilePinnedRoutes),
-                ForObjects.ROUTES);
-    }
-
-    public static HistoryProfile routesFromGpxFile() {
-        return new HistoryProfile(
-                ID_HISTORY_ROUTES_FROM_GPX_FILE,
-                GlobalInstance.getStringResource(R.string.historyDatabaseProfileRoutesFromGpxFile),
-                ForObjects.ROUTES);
+                R.plurals.route);
     }
 
     public static HistoryProfile recordedRoutes() {
         return new HistoryProfile(
                 ID_HISTORY_RECORDED_ROUTES,
                 GlobalInstance.getStringResource(R.string.historyDatabaseProfileRecordedRoutes),
-                ForObjects.ROUTES);
+                R.plurals.route);
+    }
+
+    public static HistoryProfile routesFromGpxFile() {
+        return new HistoryProfile(
+                ID_HISTORY_ROUTES_FROM_GPX_FILE,
+                GlobalInstance.getStringResource(R.string.historyDatabaseProfileRoutesFromGpxFile),
+                R.plurals.route);
+    }
+
+    public static HistoryProfile allRoutes() {
+        return new HistoryProfile(
+                ID_HISTORY_ALL_ROUTES,
+                GlobalInstance.getStringResource(R.string.historyDatabaseProfileAllRoutes),
+                R.plurals.route);
     }
 
 
     // constructor
 
-    protected HistoryProfile(long id, String name, ForObjects forObjects) {
-        super(id, name, forObjects, SortMethod.ACCESSED_DESC);
+    protected HistoryProfile(long id, String name, int pluralResId) {
+        super(id, name, pluralResId, SortMethod.ACCESSED_DESC);
     }
 
 
@@ -155,29 +153,6 @@ public class HistoryProfile extends StaticProfile implements Serializable {
 
     @Override public Icon getIcon() {
         return Icon.HISTORY;
-    }
-
-
-    // add / remove object from / to profile
-
-    @Override public boolean addObject(ObjectWithId object) {
-        HistoryProfile allObjectsProfile = null;
-        if (object instanceof Point
-                && this.getId() != ID_HISTORY_ALL_POINTS) {
-            allObjectsProfile = allPoints();
-        } else if (object instanceof Route
-                && this.getId() != ID_HISTORY_ALL_ROUTES) {
-            allObjectsProfile = allRoutes();
-        }
-
-        if (allObjectsProfile != null) {
-            if (! AccessDatabase
-                    .getInstance()
-                    .addObjectToDatabaseProfile(object, allObjectsProfile)) {
-                return false;
-            }
-        }
-        return super.addObject(object);
     }
 
 }

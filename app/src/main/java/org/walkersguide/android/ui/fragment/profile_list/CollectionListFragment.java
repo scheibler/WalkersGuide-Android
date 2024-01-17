@@ -30,26 +30,26 @@ import android.view.View;
 
 public class CollectionListFragment extends ProfileListFragment implements FragmentResultListener {
 
-	public static CollectionListFragment selectProfile() {
-		CollectionListFragment fragment = new CollectionListFragment();
+    public static CollectionListFragment selectProfile() {
+        CollectionListFragment fragment = new CollectionListFragment();
         fragment.setArguments(
                 new BundleBuilder()
                 .setSelectProfile(true)
                 .build());
-		return fragment;
+        return fragment;
     }
 
-	public static CollectionListFragment newInstance() {
-		CollectionListFragment fragment = new CollectionListFragment();
+    public static CollectionListFragment newInstance() {
+        CollectionListFragment fragment = new CollectionListFragment();
         fragment.setArguments(
                 new BundleBuilder()
                     .build());
-		return fragment;
+        return fragment;
     }
 
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         getChildFragmentManager()
             .setFragmentResultListener(

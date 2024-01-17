@@ -1,5 +1,7 @@
 package org.walkersguide.android.sensor;
 
+import org.walkersguide.android.util.Helper;
+import timber.log.Timber;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import android.hardware.GeomagneticField;
@@ -24,7 +26,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.util.SettingsManager;
-
+import android.view.Display;
+import android.view.WindowManager;
+import android.view.Surface;
 
 
 public class DeviceSensorManager implements SensorEventListener {
@@ -47,6 +51,7 @@ public class DeviceSensorManager implements SensorEventListener {
 
     private static DeviceSensorManager deviceSensorManagerInstance;
     private SettingsManager settingsManagerInstance;
+    private Display display;
 
     public static DeviceSensorManager getInstance() {
         if (deviceSensorManagerInstance == null){
@@ -64,6 +69,7 @@ public class DeviceSensorManager implements SensorEventListener {
 
     private DeviceSensorManager() {
         this.settingsManagerInstance = SettingsManager.getInstance();
+        this.display = ((WindowManager) GlobalInstance.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
     }
 
 
@@ -245,7 +251,6 @@ public class DeviceSensorManager implements SensorEventListener {
                     SensorManager.getOrientation(matrixRotation, orientationValues);
                     // swap x and z axis if the smartphone stands upright
                     if (isPhoneUpright(orientationValues)) {
-                        //Timber.d("vertical");
                         SensorManager.remapCoordinateSystem(
                                 matrixRotation, SensorManager.AXIS_X, SensorManager.AXIS_Z, matrixRotation);
                         SensorManager.getOrientation(matrixRotation, orientationValues);
@@ -275,10 +280,20 @@ public class DeviceSensorManager implements SensorEventListener {
                     sum += D;
                 }
 
+                int newBearingValueFromCompassInDegree = (int) sum / bearingValueFromCompassArray.length;
+                if (display.getRotation() == Surface.ROTATION_90) {
+                    // device turned left
+                    newBearingValueFromCompassInDegree += 90;
+                } else if (display.getRotation() == Surface.ROTATION_270) {
+                    // device turned right
+                    newBearingValueFromCompassInDegree -= 90;
+                }
+                newBearingValueFromCompassInDegree = (newBearingValueFromCompassInDegree + 360) % 360;
+
                 // decide, if we accept the compass value as new device wide bearing value
                 BearingSensorValue currentBearingValueFromCompass = getBearingValueFromCompass();
                 BearingSensorValue newBearingValueFromCompass = new BearingSensorValue(
-                        (((int) sum / bearingValueFromCompassArray.length) + 360) % 360,
+                        newBearingValueFromCompassInDegree,
                         System.currentTimeMillis(),
                         bearingSensorAccuracyRating);
                 if (! newBearingValueFromCompass.equals(currentBearingValueFromCompass)
@@ -324,12 +339,8 @@ public class DeviceSensorManager implements SensorEventListener {
     }
 
     private boolean isPhoneUpright(float[] orientationValues) {
-        int pitch = radianToDegree(orientationValues[1]);
-        int roll = radianToDegree(orientationValues[2]);
-        //Timber.d("%1$d", roll);
-        //Timber.d("%1$d; %2$d; %3$d", radianToDegree(orientationValues[0]), pitch, roll);
-        return (pitch >= 65 && pitch <= 115)
-            || (pitch >= 245 && pitch <= 295);
+        //Timber.d("%1$.1f; %2$.1f; %3$.1f", orientationValues[0], orientationValues[1], orientationValues[2]);
+        return orientationValues[1] < -1.2;         // pitch
     }
 
     private int radianToDegree(float radian) {
@@ -380,9 +391,15 @@ public class DeviceSensorManager implements SensorEventListener {
                     if (differenceToTrueNorth == 0.0f
                             && gps.getAltitude() != null) {
                         GeomagneticField geoField = new GeomagneticField(
-                                Double.valueOf(gps.getLatitude()).floatValue(),
-                                Double.valueOf(gps.getLongitude()).floatValue(),
-                                Double.valueOf(gps.getAltitude()).floatValue(),
+                                Double.valueOf(
+                                        gps.getCoordinates().getLatitude())
+                                    .floatValue(),
+                                Double.valueOf(
+                                        gps.getCoordinates().getLongitude())
+                                    .floatValue(),
+                                Double.valueOf(
+                                        gps.getAltitude())
+                                    .floatValue(),
                                 System.currentTimeMillis());
                         differenceToTrueNorth = geoField.getDeclination();
                     }

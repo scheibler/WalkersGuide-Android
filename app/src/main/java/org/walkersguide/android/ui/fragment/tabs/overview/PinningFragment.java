@@ -1,15 +1,11 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
 import org.walkersguide.android.util.Helper;
-import timber.log.Timber;
-import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.data.profile.MutableProfile;
 import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter;
 import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter.OnAddButtonClick;
 import org.walkersguide.android.database.profile.StaticProfile;
 import androidx.core.view.MenuProvider;
-import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
-import org.walkersguide.android.ui.fragment.HistoryFragment;
 import org.walkersguide.android.R;
 
 import android.os.Bundle;
@@ -18,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.fragment.app.Fragment;
 import android.widget.TextView;
 import android.widget.AbsListView;
 import java.util.concurrent.Executors;
@@ -35,14 +30,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import org.walkersguide.android.ui.activity.MainActivity;
-import org.walkersguide.android.ui.activity.MainActivityController;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentResultListener;
 import android.content.Context;
-import android.widget.Button;
 import androidx.lifecycle.Lifecycle;
-import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
 import android.widget.ExpandableListView;
 import android.content.BroadcastReceiver;
 import org.walkersguide.android.data.Profile;
@@ -53,16 +43,14 @@ import android.content.IntentFilter;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
-public class OverviewFragment extends BaseOverviewFragment
+public class PinningFragment extends BaseOverviewFragment
         implements FragmentResultListener, MenuProvider, OnAddButtonClick {
 
-	public static OverviewFragment newInstance() {
-		OverviewFragment fragment = new OverviewFragment();
+	public static PinningFragment newInstance() {
+		PinningFragment fragment = new PinningFragment();
 		return fragment;
 	}
 
-
-    private ResolveCurrentAddressView layoutClosestAddress;
 
     // pinned object list
     private ExpandableListView listViewPinnedObjects;
@@ -95,21 +83,19 @@ public class OverviewFragment extends BaseOverviewFragment
                 bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_TARGET);
             ObjectWithId selectedObjectWithId = (ObjectWithId) bundle.getSerializable(SelectObjectWithIdFromMultipleSourcesDialog.EXTRA_OBJECT_WITH_ID);
             if (objectWithIdTarget == SelectObjectWithIdFromMultipleSourcesDialog.Target.ADD_TO_PINNED_POINTS_AND_ROUTES
-                    && StaticProfile.pinnedPointsAndRoutes().addObject(selectedObjectWithId)) {
+                    && StaticProfile.pinnedObjectsWithId().addObject(selectedObjectWithId)) {
                 requestUiUpdate();
             }
         }
     }
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_overview, container, false);
+		return inflater.inflate(R.layout.fragment_pinning, container, false);
 	}
 
 	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
-
-        layoutClosestAddress = (ResolveCurrentAddressView) view.findViewById(R.id.layoutClosestAddress);
 
         listViewPinnedObjects = (ExpandableListView) view.findViewById(R.id.expandableListView);
         listViewPinnedObjects .setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
@@ -121,22 +107,6 @@ public class OverviewFragment extends BaseOverviewFragment
         });
 
         labelNoPinnedObjectsHint = (TextView) view.findViewById(R.id.labelNoPinnedObjectsHint);
-
-        Button buttonCollections = (Button) view.findViewById(R.id.buttonCollections);
-        buttonCollections.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                mainActivityController.addFragment(
-                        CollectionListFragment.newInstance());
-            }
-        });
-
-        Button buttonHistory = (Button) view.findViewById(R.id.buttonHistory);
-        buttonHistory.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                mainActivityController.addFragment(
-                        HistoryFragment.newInstance());
-            }
-        });
     }
 
     @Override public void onAddPinnedProfileButtonClicked(View view) {
@@ -157,7 +127,7 @@ public class OverviewFragment extends BaseOverviewFragment
      */
 
     @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.menu_toolbar_overview_fragment, menu);
+        menuInflater.inflate(R.menu.menu_toolbar_pinning_fragment, menu);
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
@@ -172,7 +142,7 @@ public class OverviewFragment extends BaseOverviewFragment
 
         } else if (item.getItemId() == R.id.menuItemClearPinnedObjectsOnlyPointsAndRoutes
                 || item.getItemId() == R.id.menuItemClearPinnedObjectsBoth) {
-            AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.pinnedPointsAndRoutes());
+            AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.pinnedObjectsWithId());
             requestUiUpdate();
 
         } else {
@@ -211,8 +181,6 @@ public class OverviewFragment extends BaseOverviewFragment
 
 
     public void requestUiUpdate() {
-        layoutClosestAddress.requestAddressForCurrentLocation();
-
         listViewPinnedObjects.setAdapter((BaseExpandableListAdapter) null);
         listViewPinnedObjects.setOnScrollListener(null);
         labelNoPinnedObjectsHint.setVisibility(View.GONE);
@@ -224,7 +192,7 @@ public class OverviewFragment extends BaseOverviewFragment
             final ArrayList<ObjectWithId> objectList = AccessDatabase
                 .getInstance()
                 .getObjectListFor(
-                        new DatabaseProfileRequest(StaticProfile.pinnedPointsAndRoutes()));
+                        new DatabaseProfileRequest(StaticProfile.pinnedObjectsWithId()));
             (new Handler(Looper.getMainLooper())).post(() -> {
                 if (isAdded()) {
                     loadPinnedObjectsSuccessful(profileList, objectList);
@@ -238,7 +206,7 @@ public class OverviewFragment extends BaseOverviewFragment
 
     private void loadPinnedObjectsSuccessful(ArrayList<Profile> profileList, ArrayList<ObjectWithId> objectList) {
         PinnedObjectsAdapter adapter = new PinnedObjectsAdapter(
-                OverviewFragment.this.getContext(), this, profileList, objectList);
+                PinningFragment.this.getContext(), this, profileList, objectList);
         listViewPinnedObjects.setAdapter(adapter);
 
         // expand groups

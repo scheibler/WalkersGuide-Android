@@ -337,6 +337,7 @@ public class RouterFragment extends Fragment implements MenuProvider {
         if (route != null) {
             LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(routeBroadcastReceiver);
         }
+        Timber.d("onPause");
     }
 
     @Override public void onResume() {
@@ -410,7 +411,7 @@ public class RouterFragment extends Fragment implements MenuProvider {
                     route.getRouteObjectList().size(),
                     route.getElapsedLength(),
                     GlobalInstance.getPluralResource(
-                        R.plurals.meters, route.getTotalLength()),
+                        R.plurals.meter, route.getTotalLength()),
                     progress)
                 );
 

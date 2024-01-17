@@ -6,12 +6,12 @@ import org.walkersguide.android.R;
 
 public enum SortMethod {
 
-    ACCESSED_ASC(1, GlobalInstance.getStringResource(R.string.sortAccessedAsc)),
-    ACCESSED_DESC(2, GlobalInstance.getStringResource(R.string.sortAccessedDesc)),
+    DISTANCE_ASC(1, GlobalInstance.getStringResource(R.string.sortDistanceAsc)),
+    DISTANCE_DESC(2, GlobalInstance.getStringResource(R.string.sortDistanceDesc)),
     NAME_ASC(3, GlobalInstance.getStringResource(R.string.sortNameAsc)),
     NAME_DESC(4, GlobalInstance.getStringResource(R.string.sortNameDesc)),
-    DISTANCE_ASC(5, GlobalInstance.getStringResource(R.string.sortDistanceAsc)),
-    DISTANCE_DESC(6, GlobalInstance.getStringResource(R.string.sortDistanceDesc)),
+    ACCESSED_ASC(5, GlobalInstance.getStringResource(R.string.sortAccessedAsc)),
+    ACCESSED_DESC(6, GlobalInstance.getStringResource(R.string.sortAccessedDesc)),
     CREATED_ASC(7, GlobalInstance.getStringResource(R.string.sortCreatedAsc)),
     CREATED_DESC(8, GlobalInstance.getStringResource(R.string.sortCreatedDesc));
 

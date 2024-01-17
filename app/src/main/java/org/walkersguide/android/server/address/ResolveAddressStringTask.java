@@ -1,5 +1,6 @@
 package org.walkersguide.android.server.address;
 
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import org.walkersguide.android.server.ServerUtility;
 import org.walkersguide.android.server.ServerTask;
 import org.walkersguide.android.server.ServerTaskExecutor;
@@ -37,13 +38,14 @@ public class ResolveAddressStringTask extends ServerTask {
         }
         // add current location if required
         if (nearbyCurrentLocation != null) {
+            Coordinates coordinates = nearbyCurrentLocation.getCoordinates();
             requestUrl += String.format(
                     Locale.ROOT,
                     "&viewboxlbrt=%1$f,%2$f,%3$f,%4$f&bounded=1",
-                    nearbyCurrentLocation.getLongitude() - 0.1,
-                    nearbyCurrentLocation.getLatitude() - 0.1,
-                    nearbyCurrentLocation.getLongitude() + 0.1,
-                    nearbyCurrentLocation.getLatitude() + 0.1);
+                    coordinates.getLongitude() - 0.1,
+                    coordinates.getLatitude() - 0.1,
+                    coordinates.getLongitude() + 0.1,
+                    coordinates.getLatitude() + 0.1);
         }
 
         JSONArray jsonAddressList = ServerUtility.performRequestAndReturnJsonArray(
