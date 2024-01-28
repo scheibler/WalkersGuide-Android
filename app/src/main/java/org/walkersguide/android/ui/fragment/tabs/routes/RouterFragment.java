@@ -94,20 +94,20 @@ import androidx.lifecycle.Lifecycle;
 public class RouterFragment extends Fragment implements MenuProvider {
 
 
-	// instance constructor
+    // instance constructor
 
-	public static RouterFragment newInstance(Route route, boolean showObjectWithIdView) {
+    public static RouterFragment newInstance(Route route, boolean showObjectWithIdView) {
         if (route != null) {
             route.jumpToRouteObjectAt(0);
         }
 
-		RouterFragment fragment = new RouterFragment();
+        RouterFragment fragment = new RouterFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ROUTE, route);
         args.putBoolean(KEY_SHOW_OBJECT_WITH_ID_VIEW, showObjectWithIdView);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     // fragment
@@ -118,7 +118,7 @@ public class RouterFragment extends Fragment implements MenuProvider {
     private boolean showObjectWithIdView;
 
     private RouteBroadcastReceiver routeBroadcastReceiver;
-	private SettingsManager settingsManagerInstance;
+    private SettingsManager settingsManagerInstance;
     private TTSWrapper ttsWrapperInstance;
 
     private ObjectWithIdView layoutRoute;
@@ -132,10 +132,10 @@ public class RouterFragment extends Fragment implements MenuProvider {
     private TextView labelDistanceAndBearing;
     private ImageButton buttonPreviousRouteObject, buttonNextRouteObject;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         routeBroadcastReceiver = new RouteBroadcastReceiver();
-		settingsManagerInstance = SettingsManager.getInstance();
+        settingsManagerInstance = SettingsManager.getInstance();
         ttsWrapperInstance = TTSWrapper.getInstance();
 
         route = getArguments() != null
@@ -284,12 +284,12 @@ public class RouterFragment extends Fragment implements MenuProvider {
         }
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_router, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_router, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // content layout
@@ -401,7 +401,9 @@ public class RouterFragment extends Fragment implements MenuProvider {
                     route.getCurrentPosition() + 1,
                     route.getRouteObjectList().size(),
                     route.getElapsedLength(),
-                    route.getTotalLength(),
+                    GlobalInstance.getPluralResource(
+                        R.plurals.meters,
+                        route.getTotalLength()),
                     progress)
                 );
         labelHeading.setContentDescription(

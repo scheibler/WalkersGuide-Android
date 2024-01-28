@@ -224,7 +224,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
     private ServerTaskExecutor serverTaskExecutorInstance;
-	private SettingsManager settingsManagerInstance;
+    private SettingsManager settingsManagerInstance;
 
     public enum ServiceState {
         OFF, STOPPED, FOREGROUND
@@ -239,7 +239,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
         positionManagerInstance = PositionManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
-		settingsManagerInstance = SettingsManager.getInstance();
+        settingsManagerInstance = SettingsManager.getInstance();
         // off state
         this.serviceState = ServiceState.OFF;
         // create notification channel
@@ -332,6 +332,10 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             TrackingMode newTrackingMode = (TrackingMode) intent.getSerializableExtra(EXTRA_NEW_TRACKING_MODE);
             if (newTrackingMode != null
                     && this.trackingMode != newTrackingMode) {
+                if (this.trackingMode != TrackingMode.OFF
+                        && intent.getBooleanExtra(EXTRA_ONLY_IF_TRACKING_WAS_DISABLED, false)) {
+                    return START_STICKY;
+                }
                 switch (newTrackingMode) {
                     case DISTANCE:
                     case BEARING:
@@ -557,41 +561,6 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         }
     }
 
-    /*
-    public String getStatusMessage() {
-        String message;
-        switch (serviceState) {
-            case FOREGROUND:
-                message = getResources().getString(R.string.walkersGuideServiceStateForeground);
-                break;
-            case PAUSED:
-                String reason = null;
-                if (! isLocationProviderAvailable()) {
-                    reason = getResources().getString(R.string.messageNoLocationProviderAvailableShort);
-                } else if (! isForegroundLocationPermissionGranted()) {
-                    reason = getResources().getString(R.string.messageLocationPermissionDeniedShort);
-                } else if (! isPostNotificationsPermissionGranted()) {
-                    reason = getResources().getString(R.string.messagePostNotificationsPermissionDeniedShort);
-                } else if (! isLocationModuleEnabled()) {
-                    reason = getResources().getString(R.string.messageLocationProviderDisabledShort);
-                }
-                //
-                message = reason != null
-                    ? String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.walkersGuideServiceStatePaused),
-                            reason)
-                    : getResources().getString(R.string.walkersGuideServiceStatePaused);
-                break;
-            default:
-                message = getResources().getString(R.string.walkersGuideServiceStateOff);
-        }
-        return String.format(
-                "%1$s %2$s",
-                getResources().getString(R.string.walkersGuideServiceNotificationChannelName),
-                message);
-    }*/
-
     public class LocalBinder extends Binder {
         public WalkersGuideService getService() {
             return WalkersGuideService.this;
@@ -804,10 +773,12 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     private static final String ACTION_SET_TRACKING_MODE = String.format(
             "%1$s.action.setTrackingMode", BuildConfig.APPLICATION_ID);
     private static final String EXTRA_NEW_TRACKING_MODE = "newTrackingMode";
+    private static final String EXTRA_ONLY_IF_TRACKING_WAS_DISABLED = "onlyIfTrackingWasDisabled";
 
-    public static void setTrackingMode(TrackingMode newMode) {
+    public static void setTrackingMode(TrackingMode newMode, boolean onlyIfTrackingWasDisabled) {
         Intent intent = createServiceRequestIntent(ACTION_SET_TRACKING_MODE);
         intent.putExtra(EXTRA_NEW_TRACKING_MODE, newMode);
+        intent.putExtra(EXTRA_ONLY_IF_TRACKING_WAS_DISABLED, onlyIfTrackingWasDisabled);
         GlobalInstance.getContext().startService(intent);
     }
 
@@ -820,7 +791,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     }
 
     private static final String ACTION_INVALIDATE_TRACKED_OBJECT_LIST = String.format(
-            "%1$s.invalidateTrackedObjectList.requestTrackingMode", BuildConfig.APPLICATION_ID);
+            "%1$s.action.invalidateTrackedObjectList", BuildConfig.APPLICATION_ID);
 
     public static void invalidateTrackedObjectList() {
         GlobalInstance.getContext().startService(
@@ -835,7 +806,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
     private void sendTrackingModeChangedBroadcast() {
         Intent intent = new Intent(ACTION_TRACKING_MODE_CHANGED);
-        intent.putExtra(EXTRA_TRACKING_MODE, trackingMode);
+        intent.putExtra(EXTRA_TRACKING_MODE, this.trackingMode);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 

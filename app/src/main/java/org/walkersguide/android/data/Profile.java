@@ -75,19 +75,19 @@ public abstract class Profile implements Comparable<Profile>, Serializable {
         return this.getName();
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         return Long.valueOf(this.id).hashCode();
-	}
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof Profile)) {
-			return false;
+            return false;
         }
-		Profile other = (Profile) obj;
+        Profile other = (Profile) obj;
         return this.id == other.getId();
     }
 

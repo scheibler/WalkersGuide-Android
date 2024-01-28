@@ -1,5 +1,6 @@
 package org.walkersguide.android.database.util;
 
+import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.ObjectWithId;
 import android.content.Context;
@@ -96,6 +97,12 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
 
     @Override public void onCreate(SQLiteDatabase database) {
+        // this should only be executed once - when the app is started for the first time
+        //
+        // don't show the ChangelogDialog, that's just for app updates
+        SettingsManager.getInstance().setChangelogDialogVersionCode();
+
+        // create tables
         database.execSQL(V12_CREATE_TABLE_OBJECTS);
         database.execSQL(V10_CREATE_TABLE_MAPPING);
         createV12CollectionsTable(database);

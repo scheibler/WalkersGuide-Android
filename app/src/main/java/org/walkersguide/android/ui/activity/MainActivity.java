@@ -9,6 +9,7 @@ import org.walkersguide.android.util.WalkersGuideService.ServiceState;
 import org.walkersguide.android.util.WalkersGuideService.StartServiceFailure;
 import org.walkersguide.android.ui.fragment.SettingsFragment;
 import androidx.fragment.app.DialogFragment;
+import org.walkersguide.android.ui.dialog.ChangelogDialog;
 import org.walkersguide.android.ui.dialog.InfoDialog;
 import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
@@ -91,6 +92,7 @@ import android.os.IBinder;
 import androidx.fragment.app.FragmentManager;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 import org.walkersguide.android.ui.fragment.HistoryFragment;
+import org.walkersguide.android.database.util.AccessDatabase;
 
 
 public class MainActivity extends AppCompatActivity
@@ -154,28 +156,29 @@ public class MainActivity extends AppCompatActivity
     private GlobalInstance globalInstance;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
-	private SettingsManager settingsManagerInstance;
+    private SettingsManager settingsManagerInstance;
     private boolean broadcastReceiverAlreadyRegistered, skipPositionManagerInitialisationDuringOnResume;
 
     private Toolbar toolbar;
     private TextView labelToolbarTitle, labelWalkersGuideServiceNotRunningWarning;
     private ImageButton buttonNavigateUp, buttonBearingDetails, buttonLocationDetails;
 
-	private DrawerLayout drawerLayout;
+    private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private TabLayout tabLayout;
 
     private boolean openLastPointProfileInPointsTab;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         registerFlingGestureDetector();
+        AccessDatabase.getInstance();   // important for app-started-for-the-first-time detection
 
         globalInstance = (GlobalInstance) getApplicationContext();
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
         positionManagerInstance = PositionManager.getInstance();
-		settingsManagerInstance = SettingsManager.getInstance();
+        settingsManagerInstance = SettingsManager.getInstance();
         broadcastReceiverAlreadyRegistered = false;
         skipPositionManagerInitialisationDuringOnResume =
             savedInstanceState != null
@@ -274,7 +277,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         // tab layout
-		tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         tabLayout.selectTab(null);
         tabLayout.addOnTabSelectedListener(this);
         openTab(getIntent());
@@ -445,8 +448,13 @@ public class MainActivity extends AppCompatActivity
         if (globalInstance.applicationWasInBackground()) {
             globalInstance.setApplicationInBackground(false);
 
+            if (settingsManagerInstance.showChangelogDialog()) {
+                ChangelogDialog.newInstance()
+                    .show(getSupportFragmentManager(), "ChangelogDialog");
+                settingsManagerInstance.setChangelogDialogVersionCode();
+
             // activate sensors
-            if (skipPositionManagerInitialisationDuringOnResume) {
+            } else if (skipPositionManagerInitialisationDuringOnResume) {
                 // skip once
                 skipPositionManagerInitialisationDuringOnResume = false;
             } else {

@@ -10,105 +10,74 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- client information -->
+
+        <!-- new features -->
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:text="@string/labelAppInformationHeader"
+            android:text="@string/labelNewFeaturesHeading"
             android:theme="@style/HeadingTextView" />
 
         <TextView
-            android:id="@+id/labelProgramVersion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:text="@string/labelInfoProgramVersion" />
-
-        <TextView
-            android:id="@+id/labelInfoLastChangelog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true" />
-
-
-        <!-- contact data -->
+            android:text="@string/labelNewFeatures1" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelNewFeatures2" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelNewFeatures3" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelNewFeatures4" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/labelNewFeatures5" />
+
+
+        <!-- additional changes -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
             android:layout_marginTop="20dp"
-            android:focusable="true"
-            android:text="@string/labelContactDataHeader"
+            android:text="@string/labelAdditionalChangesHeading"
             android:theme="@style/HeadingTextView" />
 
         <TextView
-            android:id="@+id/labelInfoEMail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:text="@string/labelInfoEMail"
-            android:autoLink="email" />
+            android:text="@string/labelAdditionalChanges1" />
 
         <TextView
-            android:id="@+id/labelInfoURL"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:text="@string/labelInfoURL"
-            android:autoLink="web" />
+            android:text="@string/labelAdditionalChanges2" />
 
         <TextView
-            android:id="@+id/labelInfoUserManual"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true" />
-
-        <TextView
-            android:id="@+id/labelInfoPrivacyPolicy"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true" />
-
-
-        <!-- selected server -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:focusable="true"
-            android:text="@string/labelServerHeader"
-            android:theme="@style/HeadingTextView" />
-
-        <TextView
-            android:id="@+id/labelServerName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            android:text="@string/labelServerName" />
-
-        <TextView
-            android:id="@+id/labelServerVersion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:text="@string/labelServerVersion" />
-
-        <TextView
-            android:id="@+id/labelSelectedMapName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:text="@string/labelSelectedMapName" />
-
-        <TextView
-            android:id="@+id/labelSelectedMapCreated"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true"
-            android:text="@string/labelSelectedMapCreated" />
+            android:text="@string/labelAdditionalChanges3" />
 
     </LinearLayout>
 </ScrollView>

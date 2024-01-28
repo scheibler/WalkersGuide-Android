@@ -58,13 +58,13 @@ import androidx.lifecycle.Lifecycle;
 public class RouteDetailsFragment extends Fragment {
 
 
-	public static RouteDetailsFragment newInstance(Route route) {
-		RouteDetailsFragment fragment = new RouteDetailsFragment();
+    public static RouteDetailsFragment newInstance(Route route) {
+        RouteDetailsFragment fragment = new RouteDetailsFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ROUTE, route);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     // fragment
@@ -78,7 +78,7 @@ public class RouteDetailsFragment extends Fragment {
     private UserAnnotationView layoutUserAnnotation;
     private ListView listViewRouteObjects;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         route = (Route) getArguments().getSerializable(KEY_ROUTE);
         if (savedInstanceState != null) {
@@ -88,12 +88,12 @@ public class RouteDetailsFragment extends Fragment {
         }
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_route_details, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_route_details, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         labelDescription = (TextView) view.findViewById(R.id.labelDescription);
         layoutUserAnnotation = (UserAnnotationView) view.findViewById(R.id.layoutUserAnnotation);

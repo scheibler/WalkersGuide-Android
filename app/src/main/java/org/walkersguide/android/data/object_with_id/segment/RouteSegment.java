@@ -70,21 +70,21 @@ public class RouteSegment extends Segment implements Serializable {
                 super.toString());
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         int hash = super.hashCode();
-		hash = hash * 31 + this.distance;
-		return hash;
-	}
+        hash = hash * 31 + this.distance;
+        return hash;
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof RouteSegment)) {
-			return false;
+            return false;
         }
-		RouteSegment other = (RouteSegment) obj;
+        RouteSegment other = (RouteSegment) obj;
         return (super.equals(((Segment) other))
             && this.distance == other.getDistance());
     }

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.ui.dialog.ChangelogDialog;
 import androidx.fragment.app.DialogFragment;
 import android.text.format.DateFormat;
 import android.widget.TextView;
@@ -42,15 +43,18 @@ import android.app.Dialog;
 import android.widget.Button;
 import android.content.DialogInterface;
 import android.widget.Toast;
+import androidx.core.view.ViewCompat;
+import org.walkersguide.android.ui.UiHelper;
+import android.text.method.LinkMovementMethod;
 
 
 public class InfoDialog extends DialogFragment {
     private static final String KEY_TASK_ID = "taskId";
 
-	public static InfoDialog newInstance() {
-		InfoDialog dialog = new InfoDialog();
-		return dialog;
-	}
+    public static InfoDialog newInstance() {
+        InfoDialog dialog = new InfoDialog();
+        return dialog;
+    }
 
 
     private ServerTaskExecutor serverTaskExecutorInstance;
@@ -58,8 +62,8 @@ public class InfoDialog extends DialogFragment {
 
     private TextView labelServerName, labelServerVersion, labelSelectedMapName, labelSelectedMapCreated;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
     }
 
@@ -82,6 +86,20 @@ public class InfoDialog extends DialogFragment {
                     BuildConfig.VERSION_NAME)
                 );
 
+        TextView labelInfoLastChangelog = (TextView) view.findViewById(R.id.labelInfoLastChangelog);
+        labelInfoLastChangelog.setText(
+                UiHelper.urlStyle(
+                    getResources().getString(R.string.labelInfoLastChangelog))
+                );
+        ViewCompat.setAccessibilityDelegate(
+                labelInfoLastChangelog, UiHelper.getAccessibilityDelegateViewClassButton());
+        labelInfoLastChangelog.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                ChangelogDialog.newInstance()
+                    .show(getChildFragmentManager(), "ChangelogDialog");
+            }
+        });
+
         TextView labelInfoEMail = (TextView) view.findViewById(R.id.labelInfoEMail);
         labelInfoEMail.setText(
                 String.format(
@@ -98,13 +116,37 @@ public class InfoDialog extends DialogFragment {
                     BuildConfig.CONTACT_WEBSITE)
                 );
 
+        TextView labelInfoUserManual = (TextView) view.findViewById(R.id.labelInfoUserManual);
+        labelInfoUserManual.setMovementMethod(LinkMovementMethod.getInstance());
+        labelInfoUserManual.setText(
+                UiHelper.fromHtml(
+                    String.format(
+                        getResources().getString(R.string.labelInfoUserManual),
+                        getResources().getString(R.string.variableUserManualUrl))
+                    )
+                );
+        ViewCompat.setAccessibilityDelegate(
+                labelInfoUserManual, UiHelper.getAccessibilityDelegateViewClassButton());
+
+        TextView labelInfoPrivacyPolicy = (TextView) view.findViewById(R.id.labelInfoPrivacyPolicy);
+        labelInfoPrivacyPolicy.setMovementMethod(LinkMovementMethod.getInstance());
+        labelInfoPrivacyPolicy.setText(
+                UiHelper.fromHtml(
+                    String.format(
+                        getResources().getString(R.string.labelInfoPrivacyPolicy),
+                        getResources().getString(R.string.variablePrivacyPolicyUrl))
+                    )
+                );
+        ViewCompat.setAccessibilityDelegate(
+                labelInfoPrivacyPolicy, UiHelper.getAccessibilityDelegateViewClassButton());
+
         labelServerName = (TextView) view.findViewById(R.id.labelServerName);
         labelServerVersion = (TextView) view.findViewById(R.id.labelServerVersion);
         labelSelectedMapName = (TextView) view.findViewById(R.id.labelSelectedMapName);
         labelSelectedMapCreated= (TextView) view.findViewById(R.id.labelSelectedMapCreated);
 
         return new AlertDialog.Builder(getActivity())
-            .setTitle(GlobalInstance.getStringResource(R.string.fragmentInfoName))
+            .setTitle(GlobalInstance.getStringResource(R.string.infoDialogTitle))
             .setView(view)
             .setPositiveButton(
                     getResources().getString(R.string.dialogClose),
@@ -128,14 +170,10 @@ public class InfoDialog extends DialogFragment {
             });
         }
 
-        labelServerName.setText(
-                GlobalInstance.getStringResource(R.string.labelServerName));
-        labelServerVersion.setText(
-                GlobalInstance.getStringResource(R.string.labelServerVersion));
-        labelSelectedMapName.setText(
-                GlobalInstance.getStringResource(R.string.labelSelectedMapName));
-        labelSelectedMapCreated.setText(
-                GlobalInstance.getStringResource(R.string.labelSelectedMapCreated));
+        labelServerName.setVisibility(View.GONE);
+        labelServerVersion.setVisibility(View.GONE);
+        labelSelectedMapName.setVisibility(View.GONE);
+        labelSelectedMapCreated.setVisibility(View.GONE);
 
         IntentFilter localIntentFilter = new IntentFilter();
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_STATUS_TASK_SUCCESSFUL);
@@ -180,6 +218,7 @@ public class InfoDialog extends DialogFragment {
                 if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_STATUS_TASK_SUCCESSFUL)) {
                     ServerInstance serverInstance = (ServerInstance) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_SERVER_INSTANCE);
                     if (serverInstance != null) {
+
                         // server name and version
                         labelServerName.setText(
                                 String.format(
@@ -187,33 +226,38 @@ public class InfoDialog extends DialogFragment {
                                     GlobalInstance.getStringResource(R.string.labelServerName),
                                     serverInstance.getServerName())
                                 );
+                        labelServerName.setVisibility(View.VISIBLE);
                         labelServerVersion.setText(
                                 String.format(
                                     "%1$s: %2$s",
                                     GlobalInstance.getStringResource(R.string.labelServerVersion),
                                     serverInstance.getServerVersion())
                                 );
+                        labelServerVersion.setVisibility(View.VISIBLE);
 
                         // selected map data
                         OSMMap selectedMap = SettingsManager.getInstance().getSelectedMap();
+                        // map name
+                        labelSelectedMapName.setText(
+                                String.format(
+                                    "%1$s: %2$s",
+                                    GlobalInstance.getStringResource(R.string.labelSelectedMapName),
+                                    selectedMap != null ? selectedMap.getName() : "")
+                                );
+                        labelSelectedMapName.setVisibility(View.VISIBLE);
+                        // map creation date
+                        String formattedDate = "";
                         if (selectedMap != null) {
-                            // map name
-                            labelSelectedMapName.setText(
-                                    String.format(
-                                        "%1$s: %2$s",
-                                        GlobalInstance.getStringResource(R.string.labelSelectedMapName),
-                                        selectedMap.getName())
-                                    );
-                            // map creation date
-                            String formattedDate = DateFormat.getMediumDateFormat(GlobalInstance.getContext()).format(
+                            formattedDate = DateFormat.getMediumDateFormat(GlobalInstance.getContext()).format(
                                     new Date(selectedMap.getCreated()));
-                            labelSelectedMapCreated.setText(
-                                    String.format(
-                                        "%1$s: %2$s",
-                                        GlobalInstance.getStringResource(R.string.labelSelectedMapCreated),
-                                        formattedDate)
-                                    );
                         }
+                        labelSelectedMapCreated.setText(
+                                String.format(
+                                    "%1$s: %2$s",
+                                    GlobalInstance.getStringResource(R.string.labelSelectedMapCreated),
+                                    formattedDate)
+                                );
+                        labelSelectedMapCreated.setVisibility(View.VISIBLE);
                     }
 
                 } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {

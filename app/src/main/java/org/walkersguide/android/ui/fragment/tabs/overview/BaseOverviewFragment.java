@@ -60,8 +60,8 @@ public abstract class BaseOverviewFragment extends Fragment implements ViewChang
     protected MainActivityController mainActivityController;
     protected int listPosition;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             listPosition = savedInstanceState.getInt(KEY_LIST_POSITION);
         } else {

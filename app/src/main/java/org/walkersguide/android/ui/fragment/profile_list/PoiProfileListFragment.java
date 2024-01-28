@@ -45,27 +45,27 @@ import org.walkersguide.android.server.wg.poi.PoiProfile;
 
 public class PoiProfileListFragment extends ProfileListFragment implements FragmentResultListener {
 
-	public static PoiProfileListFragment selectProfile() {
-		PoiProfileListFragment fragment = new PoiProfileListFragment();
+    public static PoiProfileListFragment selectProfile() {
+        PoiProfileListFragment fragment = new PoiProfileListFragment();
         fragment.setArguments(
                 new BundleBuilder()
                     .setSelectProfile(true)
                     .build());
-		return fragment;
+        return fragment;
     }
 
-	public static PoiProfileListFragment embedded() {
-		PoiProfileListFragment fragment = new PoiProfileListFragment();
+    public static PoiProfileListFragment embedded() {
+        PoiProfileListFragment fragment = new PoiProfileListFragment();
         fragment.setArguments(
                 new BundleBuilder()
                     .setIsEmbedded(true)
                     .build());
-		return fragment;
+        return fragment;
     }
 
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         getChildFragmentManager()
             .setFragmentResultListener(
                     CreatePoiProfileDialog.REQUEST_CREATE_POI_PROFILE_WAS_SUCCESSFUL, this, this);

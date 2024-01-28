@@ -65,7 +65,7 @@ public class ChangeServerUrlDialog extends DialogFragment {
 
     private EditTextAndClearInputButton layoutServerUrl;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
     }

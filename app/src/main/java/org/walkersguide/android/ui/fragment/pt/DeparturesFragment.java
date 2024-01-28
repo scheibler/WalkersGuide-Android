@@ -92,16 +92,16 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
     private Long osmId;
     private Point coordinatesForStationRequest;
 
-	public static DeparturesFragment embedded(Long osmId, double latitude, double longitude) {
-		DeparturesFragment fragment = new DeparturesFragment();
+    public static DeparturesFragment embedded(Long osmId, double latitude, double longitude) {
+        DeparturesFragment fragment = new DeparturesFragment();
         Bundle args = new RootFragment.BundleBuilder()
             .setIsEmbedded(true)
             .build();
         args.putSerializable(KEY_OSM_ID, osmId);
         args.putSerializable(KEY_COORDINATES_FOR_STATION_REQUEST, Point.fromDouble(latitude, longitude));
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
     // used by TripDetailsFragment
     private static final String KEY_STATION = "station";
@@ -110,14 +110,14 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
     private Location station;
     private Date departureTime;
 
-	public static DeparturesFragment newInstance(Location station, Date departureTime) {
-		DeparturesFragment fragment = new DeparturesFragment();
+    public static DeparturesFragment newInstance(Location station, Date departureTime) {
+        DeparturesFragment fragment = new DeparturesFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_STATION, station);
         args.putSerializable(KEY_DEPARTURE_TIME, departureTime);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     // fragment
@@ -133,13 +133,13 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
     private ArrayList<Location> cachedNearbyStationList;
     private ArrayList<Departure> cachedDepartureList;
     private int listPosition;
-	private Handler nextDeparturesHandler;
+    private Handler nextDeparturesHandler;
 
-	// ui components
+    // ui components
     private ListView listViewDepartures;
     private TextView labelHeading, labelEmptyListView;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
@@ -172,7 +172,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectDepartureDateAndTimeDialog.REQUEST_SELECT_DATE_AND_TIME, this, this);
-	}
+    }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: %1$s", requestKey);
@@ -276,7 +276,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         return R.layout.fragment_departures;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         LinearLayout layoutTop = (LinearLayout) view.findViewById(R.id.layoutTop);
         layoutTop.setVisibility(View.GONE);
 
@@ -330,8 +330,8 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
         return view;
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 

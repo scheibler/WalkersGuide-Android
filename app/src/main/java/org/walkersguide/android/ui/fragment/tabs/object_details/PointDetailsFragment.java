@@ -51,37 +51,37 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
 
     private static final String OSM_NODE_URL = "https://www.openstreetmap.org/node/%1$d/";
 
-	// Store instance variables
+    // Store instance variables
     private Point point;
 
-	// ui components
+    // ui components
     private LinearLayout layoutAttributes;
 
-	// newInstance constructor for creating fragment with arguments
-	public static PointDetailsFragment newInstance(Point point) {
-		PointDetailsFragment fragment = new PointDetailsFragment();
+    // newInstance constructor for creating fragment with arguments
+    public static PointDetailsFragment newInstance(Point point) {
+        PointDetailsFragment fragment = new PointDetailsFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_POINT, point);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     /**
      * create view
      */
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         point = (Point) getArguments().getSerializable(KEY_POINT);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // attributes layout
-		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
+        layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
     }
 
 

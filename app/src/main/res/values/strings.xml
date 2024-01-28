@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--
+         language specific string variables
+    -->
+
+    <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual/</string>
+    <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
 
 
     <!--
@@ -16,21 +22,20 @@
     <string name="walkersGuideServiceStateStopped">WalkersGuide stopped</string>
 
     <!-- missing location provider -->
-    <string name="messageNoLocationProviderAvailable">No location sensor hardware available.
-        The app won\'t receive any location updates</string>
     <string name="messageNoLocationProviderAvailableShort">Location provider missing</string>
 
     <!-- denied permissions -->
     <string name="messageLocationPermissionDenied">Location permission denied.
         The app won\'t receive any location updates</string>
     <string name="messageLocationPermissionDeniedShort">Location permission denied</string>
-    <string name="messagePostNotificationsPermissionDenied">Send notifications permission denied.
-        The app won\'t receive any location updates</string>
+    <string name="messagePostNotificationsPermissionDenied">The app won\'t receive any location updates
+        because it is not allowed to send you notifications. Many of the WalkersGuide features,
+        such as location tracking and recording a route, run in a service. Android requires such a service
+        to display a notification if it wants to be executed permanently.
+        Therefore, the app asks for this permission.</string>
     <string name="messagePostNotificationsPermissionDeniedShort">Send notifications permission denied.</string>
 
-
     <!-- location provider disabled -->
-    <string name="messageLocationProviderDisabled">Location service disabled. The app won\'t receive any location updates</string>
     <string name="messageLocationProviderDisabledShort">Location service disabled</string>
 
     <!-- RouteRecordingState -->
@@ -47,7 +52,7 @@
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Tracking disabled</string>
     <string name="wgTrackingModeHintDistance">Points and routes are announced when you pass close by them.</string>
-    <string name="wgTrackingModeHintBearing">Turn your smartphone and listen, which points and routes are in front of you.</string>
+    <string name="wgTrackingModeHintBearing">Turn around slowly and listen, which points and routes are in front of you.</string>
 
 
     <!--
@@ -168,9 +173,10 @@
     <string name="saveCurrentLocationDialogTitleTrack">Track the current location:</string>
     <string name="labelName">Name</string>
     <string name="messageNameMissing">Please enter a name.</string>
-    <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$d meters, %2$s</string>
+    <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$s, %2$s</string>
     <string name="messageSearchLocationInProgress">Current location is being retrieved, please wait…</string>
-    <string name="messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful">The current location was pinned successfully.</string>
+    <string name="messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful">The current location was pinned successfully.</string>
+    <string name="messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful">Tracking started for the current location.</string>
     <string name="messageCurrentLocationAddedToCollectionSuccessful">The current location was added to the collection %1$s.</string>
 
 
@@ -192,7 +198,7 @@
     <string name="buttonHistory">History</string>
 
     <!-- pinning fragment -->
-    <string name="fragmentPinningName">Pinning</string>
+    <string name="fragmentPinningName">Pin</string>
     <string name="menuItemClearPinnedObjects">Clear lists</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Only remove profiles</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only remove points and routes</string>
@@ -200,21 +206,22 @@
     <string name="labelSomethingPinned">%1$s pinned</string>
     <string name="buttonAddPinnedProfile">Pin profile</string>
     <string name="buttonAddPinnedPointOrRoute">Pin point or route</string>
-    <string name="labelNoPinnedObjectsHint">Here you can add point profiles and collections as well as points and routes.</string>
+    <string name="labelNoPinnedObjectsHint">Here you can add point profiles and collections as well as points and routes for quick access.</string>
 
     <!-- tracking fragment -->
-    <string name="fragmentTrackingName">Tracking</string>
+    <string name="fragmentTrackingName">Track</string>
     <string name="spinnerTrackingModeCD">Tracking mode</string>
     <string name="spinnerTrackingModePrompt">Select tracking mode:</string>
     <string name="layoutTrackedProfile">Tracked profile</string>
     <string name="labelAnnouncementRadius">Within radius of:</string>
     <string name="spinnerAnnouncementRadiusPrompt">Announcements within radius of:</string>
     <string name="buttonAddTrackedPoint">Add point</string>
-    <string name="labelNoTrackedObjectsHint">Add points which you want to follow.</string>
+    <string name="labelNoTrackedObjectsHint">Add points which you want to track. They will be announced via speech output periodically,
+        depending on the tracking mode you have selected above.</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
-    <string name="labelRoutePosition">%1$d of %2$d\t(%3$d of %4$d meters, %5$d%%)</string>
+    <string name="labelRoutePosition">%1$d of %2$d\t(%3$d of %4$s, %5$d%%)</string>
     <string name="labelRoutePositionCD">Instruction %1$d of %2$d, %3$d of %4$s completed, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Intersection structure</string>
     <string name="buttonPreviousRouteObject">Previous route point</string>
@@ -235,23 +242,23 @@
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Record</string>
     <string name="menuItemCancelRouteRecording">Cancel recording</string>
-    <string name="cancelRouteRecordingDialogTitle">Do you really want to cancel the route recording?</string>
+    <string name="cancelRouteRecordingDialogTitle">Do you really want to cancel this recording? The already recorded route will be lost.</string>
     <string name="labelRecordedRouteStatus">Recorded</string>
-    <string name="buttonStartRouteRecording">Start route recording</string>
+    <string name="buttonStartRouteRecording">Start recording</string>
     <string name="buttonPauseRecording">Pause</string>
-    <string name="buttonPauseRecordingCD">Pause route recording</string>
+    <string name="buttonPauseRecordingCD">Pause recording</string>
     <string name="buttonResumeRecording">Resume</string>
-    <string name="buttonResumeRecordingCD">Resume route recording</string>
+    <string name="buttonResumeRecordingCD">Resume recording</string>
     <string name="buttonAddPointManually">Add point</string>
     <string name="buttonAddPointManuallyCD">Add current location</string>
     <string name="buttonFinishRecording">Finish</string>
-    <string name="buttonFinishRecordingCD">Finish recording and save route</string>
+    <string name="buttonFinishRecordingCD">Finish recording</string>
     <string name="labelRecordedPointName">Point %1$d</string>
     <string name="labelNoRecordedRoutes">No routes have been recorded yet.</string>
     <string name="messageRecordedRouteTooFewPoints">Can\'t save the recorded route. It still contains too few points.</string>
     <string name="messageRecordedRouteNameIsMissing">Please enter a name for the recorded route.</string>
     <string name="messageSaveRecordedRouteFailed">Error: Can\'t save the recorded route.</string>
-    <string name="messageSaveRecordedRouteSuccessful">Route was saved successfully.</string>
+    <string name="messageSaveRecordedRouteSuccessful">The route was saved successfully.</string>
 
     <!-- EnterRouteNameDialog -->
     <string name="enterRouteNameDialogTitle">Route name:</string>
@@ -279,7 +286,7 @@
     <string name="fragmentCollectionListName">Collections</string>
     <string name="fragmentCollectionListNameSelect">Select collection:</string>
     <string name="buttonAddCollection">New collection</string>
-    <string name="labelEmptyCollectionList">Add collections to assist in managing your collected points and routes.</string>
+    <string name="labelEmptyCollectionList">Add collections to assist you in managing your collected points and routes.</string>
 
     <!-- create collections -->
     <string name="layoutCollectionName">Collection name:</string>
@@ -289,7 +296,6 @@
     <!-- ImportGpxFileDialog -->
     <string name="importGpxFileDialogTitle">Import GPX file</string>
     <string name="importGpxFileDialogTitlePinned">Pin GPX file</string>
-    <string name="labelSelectGpxFile">Select GPX file</string>
     <string name="labelImportResult">%1$s:\n%2$s found.</string>
     <string name="radioButtonNewCollection">Create new collection</string>
     <string name="radioButtonExistingDatabaseProfile">Add to existing collection</string>
@@ -297,10 +303,6 @@
     <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
     <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
     <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
-    <string name="messageNoGpxTracksFound">The selected GPX file contains no route points.</string>
-    <string name="messageMultipleGpxTracksFound">The selected GPX file contains multiple routes. That\'s not supported at the moment.</string>
-    <string name="messageGpxRoutePointParsingFailed">Failed to parse at least one route point.</string>
-    <string name="messageGpxRouteParsingFailed">Failed to create the route from the extracted points.</string>
     <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s was added to %2$s.</string>
 
     <!-- PoiProfileListFragment -->
@@ -357,10 +359,6 @@
     <string name="hintSearch">Search</string>
     <string name="buttonClearSearch">Clear search</string>
     <string name="labelPleaseSelectFrom">Please select from %1$s:</string>
-
-    <!-- HikingTrailListFromServerFragment -->
-    <string name="fragmentHikingTrailListName">Hiking trails</string>
-    <string name="labelNoHikingTrailsNearby">No hiking trails found.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
     <string name="labelHeadingSecondLineObjectTypeFilter">Filter%1$s</string>
@@ -561,18 +559,21 @@
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
 
-    <!-- info fragment -->
-    <string name="fragmentInfoName">Info</string>
-    <string name="labelAppInformationHeader">WalkersGuide:</string>
+    <!-- InfoDialog -->
+    <string name="infoDialogTitle">Info</string>
+    <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Version</string>
-    <string name="labelContactDataHeader">Contact data:</string>
+    <string name="labelInfoLastChangelog">Last changes</string>
+    <string name="labelContactDataHeader">Contact data</string>
     <string name="labelInfoEMail">Email</string>
     <string name="labelInfoURL">Website</string>
-    <string name="labelServerHeader">Map server:</string>
-    <string name="labelServerName">Name:</string>
-    <string name="labelServerVersion">Version:</string>
-    <string name="labelSelectedMapName">Map:</string>
-    <string name="labelSelectedMapCreated">Created:</string>
+    <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;User manual&lt;/a&gt;</string>
+    <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Privacy policy&lt;/a&gt;</string>
+    <string name="labelServerHeader">Map server</string>
+    <string name="labelServerName">Name</string>
+    <string name="labelServerVersion">Version</string>
+    <string name="labelSelectedMapName">Map</string>
+    <string name="labelSelectedMapCreated">Created</string>
 
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Send feedback:</string>
@@ -585,6 +586,27 @@
     <string name="messageSendFeedbackSuccessful">Message sent successfully.</string>
     <string name="messageFeedbackMessageIsEmpty">Please enter a message.</string>
 
+    <!-- ChangelogDialog -->
+    <string name="changelogDialogTitle">Changes in version 3.0.0:</string>
+    <string name="buttonOpenUserManual">User manual</string>
+    <!-- new features -->
+    <string name="labelNewFeaturesHeading">New features</string>
+    <string name="labelNewFeatures1">- Pin and track points and routes</string>
+    <string name="labelNewFeatures2">- Record your own routes</string>
+    <string name="labelNewFeatures3">- Collections to group and manage your points and routes</string>
+    <string name="labelNewFeatures4">- Improved GPX file import</string>
+    <string name="labelNewFeatures5">- The app now supports Android 14</string>
+    <!-- additional changes -->
+    <string name="labelAdditionalChangesHeading">Additional changes</string>
+    <string name="labelAdditionalChanges1">The structure of the app has also changed. The "Favorites" tab has been
+        replaced by the "Overview" tab. Your existing favorites were transferred to a collection
+        and can now be found in the overview tab under the pinned profiles section.</string>
+    <string name="labelAdditionalChanges2">The tab bar at the bottom of the screen is now permanently visible,
+        allowing for easier switching between the main views of the app.</string>
+    <string name="labelAdditionalChanges3">Some tabs now have their own tab bar. If available, this is located
+        in the top area of the screen. For example, the "Overview" tab has two subtabs called "Pin" and "Track".
+        The newly named "Routes" tab, next to it, is divided into the subtabs "Router" and "Record".</string>
+
 
     <!--
          main views
@@ -595,7 +617,6 @@
     <!--
          ObjectWithIdView
     -->
-    <string name="labelIsFavorite">Favorite</string>
     <string name="messageCantReverseRoute">Could not reverse the selected route.</string>
 
     <!-- label prefix -->
@@ -615,7 +636,7 @@
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">From route planning excluded</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Location simulated</string>
     <string name="contextMenuItemObjectWithIdSimulateBearing">Bearing simulated</string>
-    <string name="contextMenuItemObjectWithIdCollections">Collections</string>
+    <string name="contextMenuItemObjectWithIdCollections">Add to collections</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Route planner</string>
     <string name="contextMenuItemObjectWithIdShareCoordinates">Share</string>
     <!-- load route sub menu -->
@@ -704,8 +725,6 @@
     <string name="dialogClear">Clear</string>
     <string name="dialogCalculate">Calculate</string>
     <string name="dialogDefault">Default</string>
-    <string name="dialogImport">Import</string>
-    <string name="dialogNew">New</string>
     <string name="dialogNow">Now</string>
     <string name="dialogOptions">Options</string>
     <string name="dialogRefresh">Refresh</string>
@@ -826,7 +845,7 @@
     <string name="databaseProfileExcludedFromRouting">Excluded ways from routing</string>
     <string name="databaseProfileRecordedRoutes">Recorded routes</string>
     <string name="databaseProfilePinnedObjectsWithId">Pinned points and routes</string>
-    <string name="databaseProfileTrackedObjectsWithId">Tracked points and routes</string>
+    <string name="databaseProfileTrackedObjectsWithId">Tracked points</string>
     <!-- point history -->
     <string name="historyDatabaseProfileAddressPoints">Addresses</string>
     <string name="historyDatabaseProfileIntersectionPoints">Intersections</string>
@@ -846,15 +865,13 @@
     <string name="objectTypeFilterAll">All</string>
     <string name="objectTypeFilterPoints">Points</string>
     <string name="objectTypeFilterRoutes">Routes</string>
-    <string name="objectTypeFilterSegments">Segments</string>
+    <string name="objectTypeFilterSegments">Ways</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Last visited, ascending</string>
     <string name="sortAccessedDesc">Last visited, descending</string>
     <string name="sortNameAsc">Name, ascending</string>
     <string name="sortNameDesc">Name, descending</string>
-    <string name="sortBearingAsc">Bearing, ascending</string>
-    <string name="sortBearingDesc">Bearing, descending</string>
     <string name="sortDistanceAsc">Distance, ascending</string>
     <string name="sortDistanceDesc">Distance, descending</string>
     <string name="sortCreatedAsc">Added, ascending</string>
@@ -1085,12 +1102,6 @@
     </plurals>
 
     <plurals
-        name="kiloMeter">
-        <item quantity="one">1 km</item>
-        <item quantity="other">%d km</item>
-    </plurals>
-
-    <plurals
         name="meter">
         <item quantity="one">1 meter</item>
         <item quantity="other">%d meters</item>
@@ -1136,12 +1147,6 @@
         name="trackedObject">
         <item quantity="one">1 tracked object</item>
         <item quantity="other">%d tracked objects</item>
-    </plurals>
-
-    <plurals
-        name="hikingTrail">
-        <item quantity="one">1 hiking trail</item>
-        <item quantity="other">%d hiking trails</item>
     </plurals>
 
     <plurals

@@ -82,7 +82,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
 
     private Target target;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getChildFragmentManager()
@@ -172,6 +172,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
                     break;
                 case SAVE_CURRENT_LOCATION:
                     sourceActionList.add(SourceAction.STATIC_PROFILE_PINNED_OBJECTS_WITH_ID);
+                    sourceActionList.add(SourceAction.STATIC_PROFILE_TRACKED_OBJECTS_WITH_ID);
                     sourceActionList.add(SourceAction.COLLECTIONS);
                     break;
                 case GPX_FILE_IMPORT:
@@ -200,6 +201,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
     private enum SourceAction {
 
         STATIC_PROFILE_PINNED_OBJECTS_WITH_ID(StaticProfile.pinnedObjectsWithId().getName()),
+        STATIC_PROFILE_TRACKED_OBJECTS_WITH_ID(StaticProfile.trackedObjectsWithId().getName()),
         COLLECTIONS(GlobalInstance.getStringResource(R.string.profileSelectFromCollections)),
         POI_PROFILES(GlobalInstance.getStringResource(R.string.profileSelectFromPoiProfiles)),
         EMPTY_COLLECTION(GlobalInstance.getStringResource(R.string.profileSelectFromEmptyCollection)),
@@ -223,6 +225,10 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
                 profileSelected(StaticProfile.pinnedObjectsWithId());
                 break;
 
+            case STATIC_PROFILE_TRACKED_OBJECTS_WITH_ID:
+                profileSelected(StaticProfile.trackedObjectsWithId());
+                break;
+
             case COLLECTIONS:
                 CollectionListFragment.selectProfile()
                     .show(getChildFragmentManager(), "CollectionListFragment");
@@ -239,7 +245,8 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
                 break;
 
             case FROM_GPX_FILE:
-                ImportGpxFileDialog.newInstance(true)
+                ImportGpxFileDialog.newInstance(
+                        target == Target.ADD_TO_PINNED_PROFILES ? true : false)
                     .show(getChildFragmentManager(), "ImportGpxFileDialog");
                 break;
         }

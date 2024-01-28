@@ -54,7 +54,7 @@ public abstract class ExtendedObjectListFragment extends ObjectListFragment impl
     private AutoCompleteTextView editSearch;
     private ImageButton buttonClearSearch;
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
 
         // show search field

@@ -39,8 +39,8 @@ public abstract class RootFragment extends DialogFragment {
     // dialog
     private static final String KEY_IS_EMBEDDED = "isEmbedded";
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         boolean isEmbedded = getArguments() != null
             ? getArguments().getBoolean(KEY_IS_EMBEDDED) : false;
         if (isEmbedded) {
@@ -55,7 +55,7 @@ public abstract class RootFragment extends DialogFragment {
 
     public abstract String getTitle();
     public abstract int getLayoutResourceId();
-	public abstract View configureView(View view, Bundle savedInstanceState);
+    public abstract View configureView(View view, Bundle savedInstanceState);
 
     public String getDialogTitle() {
         return getTitle();
@@ -69,7 +69,7 @@ public abstract class RootFragment extends DialogFragment {
         return R.style.FullScreenDialog;
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getDialog() != null) {
             Timber.d("im a dialog");
             // fragment is a dialog
@@ -77,11 +77,11 @@ public abstract class RootFragment extends DialogFragment {
         } else {
             Timber.d("im embedded");
             // fragment is embetted
-		    return configureView(
+            return configureView(
                    inflater.inflate(getLayoutResourceId(), container, false),
                    savedInstanceState);
         }
-	}
+    }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         // custom view
@@ -120,8 +120,8 @@ public abstract class RootFragment extends DialogFragment {
         }
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         if (getDialog() == null) {
             updateToolbarTitle();
         }

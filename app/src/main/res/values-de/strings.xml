@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--
+         language specific string variables
+    -->
+
+    <string name="variableUserManualUrl">https://www.walkersguide.org/de/user_manual/</string>
+    <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/de/privacy/</string>
+
 
     <!--
          service and permissions
@@ -15,21 +22,21 @@
     <string name="walkersGuideServiceStateStopped">WalkersGuide angehalten</string>
 
     <!-- missing location provider -->
-    <string name="messageNoLocationProviderAvailable">Die App erhält keine Positionsupdates, da
-        Ihrem Smartphone die Sensoren zur Positionsbestimmung fehlen.</string>
     <string name="messageNoLocationProviderAvailableShort">Fehlende Standortprovider</string>
 
     <!-- denied permissions -->
-    <string name="messageLocationPermissionDenied">Die App erhält keine Positionsupdates, da Sie ihr
-        nicht erlaubt haben, Ihren aktuellen Standort zu bestimmen.</string>
+    <string name="messageLocationPermissionDenied">Die App erhält keine Positionsupdates, da du ihr
+        nicht erlaubt hast, deinen aktuellen Standort zu bestimmen.</string>
     <string name="messageLocationPermissionDeniedShort">Standortfreigabe nicht erteilt</string>
-    <string name="messagePostNotificationsPermissionDenied">Die App erhält keine Positionsupdates, da Sie ihr
-        nicht erlaubt haben, Ihnen Benachrichtigungen zu schicken.</string>
+    <string name="messagePostNotificationsPermissionDenied">
+        Die App erhält keine Positionsupdates, da sie dir keine Benachrichtigungen schicken
+        darf.\n\nViele der WalkersGuide Funktionen wie beispielsweise die Positionsbestimmung
+        und das Aufzeichnen einer Route laufen in einem sog. Service. Android verlangt,
+        dass so ein Service eine Benachrichtigung einblenden muss, wenn er dauerhaft
+        ausgeführt werden möchte. Daher fragt die App nach dieser Berechtigung.</string>
     <string name="messagePostNotificationsPermissionDeniedShort">Anzeigen von Benachrichtigungen verweigert</string>
 
     <!-- location provider disabled -->
-    <string name="messageLocationProviderDisabled">Die App erhält keine Positionsupdates, da der
-        Standortdienst Ihres Smartphones abgeschaltet ist.</string>
     <string name="messageLocationProviderDisabledShort">Standortdienst ausgeschaltet</string>
 
     <!-- RouteRecordingState -->
@@ -45,8 +52,8 @@
 
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Keine Verfolgung</string>
-    <string name="wgTrackingModeHintDistance">Punkte und Routen werden angesagt, wenn du nahe an ihnen vorbeikommst.</string>
-    <string name="wgTrackingModeHintBearing">Lass dir ansagen, welche Punkte und Routen sich in Blickrichtung befinden.</string>
+    <string name="wgTrackingModeHintDistance">Punkte und Routen werden angesagt, wenn du dich ihnen näherst..</string>
+    <string name="wgTrackingModeHintBearing">Lass dir ansagen, welche Punkte und Routen sich in Blickrichtung befinden. Drehe dich dazu einmal um 360°.</string>
 
 
     <!--
@@ -167,9 +174,10 @@
     <string name="saveCurrentLocationDialogTitleTrack">Aktuelle Position verfolgen:</string>
     <string name="labelName">Name</string>
     <string name="messageNameMissing">Bitte gib einen Namen ein.</string>
-    <string name="labelGPSSignal">Satellitensignal:\nAuf %1$d Meter genau, %2$s</string>
+    <string name="labelGPSSignal">Satellitensignal:\nAuf %1$s genau, %2$s</string>
     <string name="messageSearchLocationInProgress">Aktuelle Position wird abgerufen, bitte warten…</string>
-    <string name="messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful">Die aktuelle Position wurde angeheftet.</string>
+    <string name="messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful">Die aktuelle Position wurde angeheftet.</string>
+    <string name="messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful">Verfolgung für die aktuelle Position gestartet.</string>
     <string name="messageCurrentLocationAddedToCollectionSuccessful">Die aktuelle Position wurde zur Sammlung %1$s hinzugefügt.</string>
 
 
@@ -182,7 +190,7 @@
     <string name="mainMenu">Hauptmenü</string>
     <string name="navigateUp">Nach oben</string>
     <!-- main tab names -->
-    <string name="mainTabNameOverview">Überblick</string>
+    <string name="mainTabNameOverview">Übersicht</string>
     <string name="mainTabNameRoutes">Routen</string>
     <string name="mainTabNamePoints">Punkte</string>
 
@@ -199,7 +207,7 @@
     <string name="labelSomethingPinned">%1$s angeheftet</string>
     <string name="buttonAddPinnedProfile">Profil anheften</string>
     <string name="buttonAddPinnedPointOrRoute">Punkt oder Route anheften</string>
-    <string name="labelNoPinnedObjectsHint">Hier kannst du vorübergehend benötigte Punktprofile und Sammlungen, sowie Punkte und Routen anheften.</string>
+    <string name="labelNoPinnedObjectsHint">Hier kannst du vorübergehend benötigte Punktprofile und Sammlungen, sowie Punkte und Routen anheften, um darauf schnell zugreifen zu können.</string>
 
     <!-- tracking fragment -->
     <string name="fragmentTrackingName">Verfolgen</string>
@@ -209,11 +217,12 @@
     <string name="labelAnnouncementRadius">Im Umkreis von:</string>
     <string name="spinnerAnnouncementRadiusPrompt">Ansagen im Umkreis von:</string>
     <string name="buttonAddTrackedPoint">Punkt hinzufügen</string>
-    <string name="labelNoTrackedObjectsHint">Hier kannst du Punkte hinterlegen, die du verfolgen möchtest.</string>
+    <string name="labelNoTrackedObjectsHint">Hier kannst du Punkte hinterlegen, die du verfolgen möchtest.
+        Sie werden dann von Zeit zu Zeit von der Sprachausgabe angesagt, je nachdem, welchen Verfolgungsmodus du ausgewählt hast.</string>
 
     <!-- router fragment -->
     <string name="fragmentRouterName">Router</string>
-    <string name="labelRoutePosition">%1$d von %2$d\t(%3$d von %4$d meter, %5$d%%)</string>
+    <string name="labelRoutePosition">%1$d von %2$d\t(%3$d von %4$s, %5$d%%)</string>
     <string name="labelRoutePositionCD">Anweisung %1$d von %2$d, %3$d von %4$s zurückgelegt, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Kreuzungsaufbau</string>
     <string name="buttonPreviousRouteObject">Vorheriger Routenpunkt</string>
@@ -234,23 +243,23 @@
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Aufzeichnen</string>
     <string name="menuItemCancelRouteRecording">Aufzeichnung abbrechen</string>
-    <string name="cancelRouteRecordingDialogTitle">Soll die Routenaufzeichnung wirklich abgebrochen werden?</string>
+    <string name="cancelRouteRecordingDialogTitle">Soll die Routenaufzeichnung wirklich abgebrochen werden? Die bereits aufgezeichnete Route wird dann verworfen.</string>
     <string name="labelRecordedRouteStatus">Aufgezeichnet</string>
-    <string name="buttonStartRouteRecording">Routenaufzeichnung starten</string>
+    <string name="buttonStartRouteRecording">Aufzeichnung starten</string>
     <string name="buttonPauseRecording">Pausieren</string>
-    <string name="buttonPauseRecordingCD">Routenaufzeichnung pausieren</string>
+    <string name="buttonPauseRecordingCD">Aufzeichnung pausieren</string>
     <string name="buttonResumeRecording">Fortsetzen</string>
-    <string name="buttonResumeRecordingCD">Routenaufzeichnung fortsetzen</string>
+    <string name="buttonResumeRecordingCD">Aufzeichnung fortsetzen</string>
     <string name="buttonAddPointManually">Hinzufügen</string>
     <string name="buttonAddPointManuallyCD">Aktuelle Position hinzufügen</string>
     <string name="buttonFinishRecording">Fertig</string>
-    <string name="buttonFinishRecordingCD">Aufzeichnung beenden und Route abspeichern</string>
+    <string name="buttonFinishRecordingCD">Aufzeichnung beenden</string>
     <string name="labelRecordedPointName">Punkt %1$d</string>
     <string name="labelNoRecordedRoutes">Es wurden noch keine Routen aufgezeichnet.</string>
     <string name="messageRecordedRouteTooFewPoints">Die aufgezeichnete Route enthält noch zu wenige Punkte, um abgespeichert werden zu können.</string>
     <string name="messageRecordedRouteNameIsMissing">Bitte gib einen Namen für die aufgezeichnete Route ein.</string>
     <string name="messageSaveRecordedRouteFailed">Beim Abspeichern der aufgezeichneten Route ist ein Fehler aufgetreten.</string>
-    <string name="messageSaveRecordedRouteSuccessful">Route erfolgreich gespeichert.</string>
+    <string name="messageSaveRecordedRouteSuccessful">Die Route wurde erfolgreich gespeichert.</string>
 
     <!-- EnterRouteNameDialog -->
     <string name="enterRouteNameDialogTitle">Name der Route:</string>
@@ -288,7 +297,6 @@
     <!-- ImportGpxFileDialog -->
     <string name="importGpxFileDialogTitle">GPX Datei importieren</string>
     <string name="importGpxFileDialogTitlePinned">GPX Datei anheften</string>
-    <string name="labelSelectGpxFile">GPX Datei auswählen</string>
     <string name="labelImportResult">%1$s:\n%2$s gefunden.</string>
     <string name="radioButtonNewCollection">Neue Sammlung anlegen</string>
     <string name="radioButtonExistingDatabaseProfile">Zu bestehender Sammlung hinzufügen</string>
@@ -296,10 +304,6 @@
     <string name="messageExtractGpxFileNameFailed">Konnte den Namen der ausgewählten GPX Datei nicht ermitteln.</string>
     <string name="messageOpenGpxFileFailed">Die ausgewählte GPX Datei konnte nicht geöffnet werden.</string>
     <string name="messageInvalidGpxFileContents">Die ausgewählte Datei ist nicht im GPX Format.</string>
-    <string name="messageNoGpxTracksFound">Die ausgewählte GPX Datei enthält keine Routenpunkte.</string>
-    <string name="messageMultipleGpxTracksFound">Die ausgewählte GPX Datei enthält mehr als eine Route. Dies wird momentan noch nicht unterstützt.</string>
-    <string name="messageGpxRoutePointParsingFailed">Einer oder mehrere Routenpunkte konnten nicht extrahiert werden.</string>
-    <string name="messageGpxRouteParsingFailed">Die Route aus den extrahierten GPX Punkten konnte nicht erstellt werden.</string>
     <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s wurde zu %2$s hinzugefügt.</string>
 
     <!-- PoiProfileListFragment -->
@@ -356,10 +360,6 @@
     <string name="hintSearch">Suche</string>
     <string name="buttonClearSearch">Suche zurücksetzen</string>
     <string name="labelPleaseSelectFrom">Bitte aus %1$s wählen:</string>
-
-    <!-- HikingTrailListFromServerFragment -->
-    <string name="fragmentHikingTrailListName">Wanderwege</string>
-    <string name="labelNoHikingTrailsNearby">Keine Wanderwege gefunden.</string>
 
     <!-- ObjectListFromDatabaseFragment -->
     <string name="labelHeadingSecondLineObjectTypeFilter">Filter%1$s</string>
@@ -559,18 +559,21 @@
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Schüttelintensität auswählen:</string>
 
-    <!-- info fragment -->
-    <string name="fragmentInfoName">Info</string>
-    <string name="labelAppInformationHeader">WalkersGuide:</string>
+    <!-- InfoDialog -->
+    <string name="infoDialogTitle">Info</string>
+    <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Version</string>
-    <string name="labelContactDataHeader">Kontaktdaten:</string>
+    <string name="labelInfoLastChangelog">Letzte Änderungen</string>
+    <string name="labelContactDataHeader">Kontaktdaten</string>
     <string name="labelInfoEMail">E-Mail</string>
     <string name="labelInfoURL">Webseite</string>
-    <string name="labelServerHeader">Kartenserver:</string>
-    <string name="labelServerName">Name:</string>
-    <string name="labelServerVersion">Version:</string>
-    <string name="labelSelectedMapName">Karte:</string>
-    <string name="labelSelectedMapCreated">Erstellt am:</string>
+    <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;Bedienungsanleitung&lt;/a&gt;</string>
+    <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Datenschutzerklärung&lt;/a&gt;</string>
+    <string name="labelServerHeader">Kartenserver</string>
+    <string name="labelServerName">Name</string>
+    <string name="labelServerVersion">Version</string>
+    <string name="labelSelectedMapName">Karte</string>
+    <string name="labelSelectedMapCreated">Erstellt am</string>
 
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Feedback senden:</string>
@@ -583,6 +586,27 @@
     <string name="messageSendFeedbackSuccessful">Nachricht erfolgreich versendet.</string>
     <string name="messageFeedbackMessageIsEmpty">Bitte gib eine Nachricht ein.</string>
 
+    <!-- ChangelogDialog -->
+    <string name="changelogDialogTitle">Änderungen in der Version 3.0.0:</string>
+    <string name="buttonOpenUserManual">Bedienungsanleitung</string>
+    <!-- new features -->
+    <string name="labelNewFeaturesHeading">Neue Funktionen</string>
+    <string name="labelNewFeatures1">- Punkte und Routen anheften und verfolgen</string>
+    <string name="labelNewFeatures2">- Eigene Routen aufzeichnen</string>
+    <string name="labelNewFeatures3">- Sammlungen, um Punkte und Routen gruppieren und verwalten zu können</string>
+    <string name="labelNewFeatures4">- Verbesserter GPX Dateiimport</string>
+    <string name="labelNewFeatures5">- Die App unterstützt nun Android 14</string>
+    <!-- additional changes -->
+    <string name="labelAdditionalChangesHeading">Weitere Änderungen</string>
+    <string name="labelAdditionalChanges1">Der Aufbau der App hat sich ebenfalls geändert. Der Tab "Favoriten" wurde durch den Tab "Übersicht"
+        ersetzt. Deine bisherigen Favoriten wurden in eine Sammlung überführt und sind nun in der Übersicht
+        unter den angehefteten Profilen zu finden.</string>
+    <string name="labelAdditionalChanges2">Die Tableiste am unteren Bildschirmrand ist nun dauerhaft sichtbar,
+        um flexibler zwischen den Hauptansichten der App wechseln zu können.</string>
+    <string name="labelAdditionalChanges3">Manche Tabs besitzen nun selbst noch eine Tableiste. Diese befindet sich, wenn verfügbar, im oberen
+        Bereich des Bildschirms. So hat der Tab "Übersicht" zwei Subtabs namens "Anheften" und "Verfolgen".
+        Der ebenfalls neu benannte Tab "Routen", rechts daneben, teilt sich in die Subtabs "Router" und "Aufzeichnen" auf.</string>
+
 
     <!--
          main views
@@ -593,7 +617,6 @@
     <!--
          ObjectWithIdView
     -->
-    <string name="labelIsFavorite">Favorit</string>
     <string name="messageCantReverseRoute">Die Gegenrichtung der Route konnte nicht geladen werden.</string>
 
     <!-- label prefix -->
@@ -613,7 +636,7 @@
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">Vom Routing ausgeschlossen</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Position simuliert</string>
     <string name="contextMenuItemObjectWithIdSimulateBearing">Richtung simuliert</string>
-    <string name="contextMenuItemObjectWithIdCollections">Sammlungen</string>
+    <string name="contextMenuItemObjectWithIdCollections">Zu Sammlungen hinzufügen</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Routenplaner</string>
     <string name="contextMenuItemObjectWithIdShareCoordinates">Koordinaten teilen</string>
     <!-- load route sub menu -->
@@ -702,8 +725,6 @@
     <string name="dialogClear">Auswahl aufheben</string>
     <string name="dialogCalculate">Berechnen</string>
     <string name="dialogDefault">Standard</string>
-    <string name="dialogImport">Importieren</string>
-    <string name="dialogNew">Neu</string>
     <string name="dialogNow">Jetzt</string>
     <string name="dialogOptions">Optionen</string>
     <string name="dialogRefresh">Aktualisieren</string>
@@ -824,7 +845,7 @@
     <string name="databaseProfileExcludedFromRouting">Vom Routing ausgeschlossene Wege</string>
     <string name="databaseProfileRecordedRoutes">Aufgezeichnete Routen</string>
     <string name="databaseProfilePinnedObjectsWithId">Angeheftete Punkte und Routen</string>
-    <string name="databaseProfileTrackedObjectsWithId">Verfolgte Punkte und Routen</string>
+    <string name="databaseProfileTrackedObjectsWithId">Verfolgte Punkte</string>
     <!-- point history -->
     <string name="historyDatabaseProfileAddressPoints">Adressen</string>
     <string name="historyDatabaseProfileIntersectionPoints">Kreuzungen</string>
@@ -844,15 +865,13 @@
     <string name="objectTypeFilterAll">Alle</string>
     <string name="objectTypeFilterPoints">Punkte</string>
     <string name="objectTypeFilterRoutes">Routen</string>
-    <string name="objectTypeFilterSegments">Segmente</string>
+    <string name="objectTypeFilterSegments">Wege</string>
 
     <!-- SortMethod -->
     <string name="sortAccessedAsc">Zuletzt besucht, aufsteigend</string>
     <string name="sortAccessedDesc">Zuletzt besucht, absteigend</string>
     <string name="sortNameAsc">Name, aufsteigend</string>
     <string name="sortNameDesc">Name, absteigend</string>
-    <string name="sortBearingAsc">Richtung, aufsteigend</string>
-    <string name="sortBearingDesc">Richtung, absteigend</string>
     <string name="sortDistanceAsc">Entfernung, aufsteigend</string>
     <string name="sortDistanceDesc">Entfernung, absteigend</string>
     <string name="sortCreatedAsc">Hinzugefügt, aufsteigend</string>
@@ -971,7 +990,7 @@
     <string name="bearingSensorAccuracyHigh">Hoch</string>
     <string name="bearingSensorAccuracyUnknown">Unbekannt</string>
 
-    <!-- : ShakeIntensity -->
+    <!-- ShakeIntensity -->
     <string name="shakeIntensityDisabled">Abgeschaltet</string>
     <string name="shakeIntensityVeryWeak">Sehr schwach</string>
     <string name="shakeIntensityWeak">Schwach</string>
@@ -1087,12 +1106,6 @@
     </plurals>
 
     <plurals
-        name="kiloMeter">
-        <item quantity="one">1 km</item>
-        <item quantity="other">%d km</item>
-    </plurals>
-
-    <plurals
         name="meter">
         <item quantity="one">1 Meter</item>
         <item quantity="other">%d Meter</item>
@@ -1107,7 +1120,7 @@
     <plurals
         name="meters">
         <item quantity="one">1 Meter</item>
-        <item quantity="other">%d Metern</item>
+        <item quantity="other">%d Meter</item>
     </plurals>
 
     <plurals
@@ -1138,12 +1151,6 @@
         name="trackedObject">
         <item quantity="one">1 verfolgtes Objekt</item>
         <item quantity="other">%d verfolgte Objekte</item>
-    </plurals>
-
-    <plurals
-        name="hikingTrail">
-        <item quantity="one">1 Wanderweg</item>
-        <item quantity="other">%d Wanderwege</item>
     </plurals>
 
     <plurals

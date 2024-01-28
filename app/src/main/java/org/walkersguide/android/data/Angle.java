@@ -88,19 +88,19 @@ public abstract class Angle implements Comparable<Angle>, Serializable {
                 Locale.getDefault(), "%1$d°", this.degree);
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         return this.degree;
-	}
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof Angle)) {
-			return false;
+            return false;
         }
-		Angle other = (Angle) obj;
+        Angle other = (Angle) obj;
         return this.degree == other.getDegree();
     }
 

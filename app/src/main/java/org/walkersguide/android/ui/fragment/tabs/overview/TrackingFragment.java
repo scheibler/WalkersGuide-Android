@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
+import timber.log.Timber;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
 import android.widget.Spinner;
 import android.content.Intent;
@@ -56,10 +57,10 @@ import androidx.lifecycle.Lifecycle;
 
 public class TrackingFragment extends BaseOverviewFragment implements FragmentResultListener, MenuProvider {
 
-	public static TrackingFragment newInstance() {
-		TrackingFragment fragment = new TrackingFragment();
-		return fragment;
-	}
+    public static TrackingFragment newInstance() {
+        TrackingFragment fragment = new TrackingFragment();
+        return fragment;
+    }
 
 
     private SettingsManager settingsManagerInstance;
@@ -71,10 +72,10 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
     private Spinner spinnerAnnouncementRadius;
     // tracked objects
     private TextView labelTrackedObjectsHeading;
-	private ListView listViewTrackedObjects;
+    private ListView listViewTrackedObjects;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
 
         getChildFragmentManager()
@@ -107,12 +108,12 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
         }
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_tracking, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_tracking, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         spinnerTrackingMode = (Spinner) view.findViewById(R.id.spinnerTrackingMode);
@@ -124,14 +125,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
         // layout for the expanded/opened state
         trackingModeAdapter.setDropDownViewResource(R.layout.layout_single_text_view_checkbox);
         spinnerTrackingMode.setAdapter(trackingModeAdapter);
-        spinnerTrackingMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onNothingSelected(AdapterView parent) {
-            }
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                WalkersGuideService.setTrackingMode(
-                        (TrackingMode) parent.getItemAtPosition(position));
-            }
-        });
+        spinnerTrackingMode.setOnItemSelectedListener(null);
 
         labelTrackingModeHint = (TextView) view.findViewById(R.id.labelTrackingModeHint);
         labelTrackingModeHint.setText("");
@@ -233,7 +227,17 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(WalkersGuideService.ACTION_TRACKING_MODE_CHANGED)) {
                 TrackingMode selectedTrackingMode = (TrackingMode) intent.getSerializableExtra(WalkersGuideService.EXTRA_TRACKING_MODE);
+                Timber.d("onReceive action=ACTION_TRACKING_MODE_CHANGED, selected=%1$s", selectedTrackingMode);
                 if (selectedTrackingMode != null) {
+                    spinnerTrackingMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override public void onNothingSelected(AdapterView parent) {
+                        }
+                        @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            Timber.d("onItemSelected: %1$s", (TrackingMode) parent.getItemAtPosition(position));
+                            WalkersGuideService.setTrackingMode(
+                                    (TrackingMode) parent.getItemAtPosition(position), false);
+                        }
+                    });
                     spinnerTrackingMode.setContentDescription(
                             String.format(
                                 "%1$s: %2$s",

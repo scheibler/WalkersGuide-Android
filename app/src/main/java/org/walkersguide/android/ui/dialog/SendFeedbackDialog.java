@@ -65,7 +65,7 @@ public class SendFeedbackDialog extends DialogFragment implements FragmentResult
     }
 
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         getChildFragmentManager()

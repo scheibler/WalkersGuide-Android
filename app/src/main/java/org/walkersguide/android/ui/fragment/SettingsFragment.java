@@ -103,10 +103,10 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private static final String KEY_TASK_ID = "taskId";
     private static String KEY_SETTINGS_IMPORT_SUCCESSFUL = "settingsImportSuccessful";
 
-	public static SettingsFragment newInstance() {
-		SettingsFragment fragment = new SettingsFragment();
-		return fragment;
-	}
+    public static SettingsFragment newInstance() {
+        SettingsFragment fragment = new SettingsFragment();
+        return fragment;
+    }
 
 
     private SettingsManager settingsManagerInstance;
@@ -122,8 +122,8 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private SwitchCompat switchAnnouncementsEnabled, switchKeepBluetoothHeadsetConnectionAlive;
     private EditText editDistanceAnnouncementInterval;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         settingsManagerInstance = SettingsManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
@@ -232,7 +232,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         return R.layout.fragment_settings;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         layoutHomeAddress = (ObjectWithIdView) view.findViewById(R.id.layoutHomeAddress);
         layoutHomeAddress.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
             @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
@@ -250,27 +250,27 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 
         // server settings
 
-		buttonServerURL = (Button) view.findViewById(R.id.buttonServerURL);
-		buttonServerURL.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
+        buttonServerURL = (Button) view.findViewById(R.id.buttonServerURL);
+        buttonServerURL.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
                 ChangeServerUrlDialog.newInstance(
                         settingsManagerInstance.getServerURL())
                     .show(getChildFragmentManager(), "ChangeServerUrlDialog");
             }
         });
 
-		buttonServerMap = (Button) view.findViewById(R.id.buttonServerMap);
-		buttonServerMap.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
+        buttonServerMap = (Button) view.findViewById(R.id.buttonServerMap);
+        buttonServerMap.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
                 SelectMapDialog.newInstance(
                         settingsManagerInstance.getSelectedMap())
                     .show(getChildFragmentManager(), "SelectMapDialog");
             }
         });
 
-		buttonPublicTransportProvider = (Button) view.findViewById(R.id.buttonPublicTransportProvider);
-		buttonPublicTransportProvider.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
+        buttonPublicTransportProvider = (Button) view.findViewById(R.id.buttonPublicTransportProvider);
+        buttonPublicTransportProvider.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
                 SelectPublicTransportProviderDialog.newInstance(
                         settingsManagerInstance.getSelectedNetworkId())
                     .show(getChildFragmentManager(), "SelectPublicTransportProviderDialog");
@@ -357,16 +357,16 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         });
 
         // import and export settings
-		Button buttonImportSettings = (Button) view.findViewById(R.id.buttonImportSettings);
-		buttonImportSettings.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
+        Button buttonImportSettings = (Button) view.findViewById(R.id.buttonImportSettings);
+        buttonImportSettings.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
                 startSettingsImport();
             }
         });
 
-		Button buttonExportSettings = (Button) view.findViewById(R.id.buttonExportSettings);
-		buttonExportSettings.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
+        Button buttonExportSettings = (Button) view.findViewById(R.id.buttonExportSettings);
+        buttonExportSettings.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
                 if (! startSettingsExport()) {
                     cleanupCache();
                     SimpleMessageDialog.newInstance(

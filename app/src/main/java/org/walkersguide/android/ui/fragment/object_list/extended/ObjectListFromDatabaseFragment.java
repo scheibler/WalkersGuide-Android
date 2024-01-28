@@ -183,6 +183,13 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
             .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
     }
 
+    @Override public String getEmptyObjectListMessage() {
+        if (StaticProfile.recordedRoutes().equals(getProfile())) {
+            return getResources().getString(R.string.labelNoRecordedRoutes);
+        }
+        return super.getEmptyObjectListMessage();
+    }
+
 
     /**
      * menu

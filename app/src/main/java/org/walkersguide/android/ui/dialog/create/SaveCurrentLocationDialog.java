@@ -83,7 +83,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
     private ProfileView layoutTargetDatabaseProfile;
 
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -219,7 +219,9 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
                     labelGPSSignal.setText(
                             String.format(
                                 context.getResources().getString(R.string.labelGPSSignal),
-                                Math.round(gpsLocation.getAccuracy()),
+                                GlobalInstance.getPluralResource(
+                                    R.plurals.meters,
+                                    Math.round(gpsLocation.getAccuracy())),
                                 gpsLocation.formatTimestamp(
                                     GlobalInstance.getStringResource(R.string.labelGPSTime)))
                             );
@@ -262,18 +264,24 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
 
         } else {
             Profile selectedProfile = layoutTargetDatabaseProfile.getProfile();
+
             if (selectedProfile instanceof DatabaseProfile
                     && ((DatabaseProfile) selectedProfile).addObject(currentLocation)) {
-                Toast.makeText(
-                        getActivity(),
-                        selectedProfile.equals(StaticProfile.pinnedObjectsWithId())
-                        ? getResources().getString(R.string.messageCurrentLocationAddedToPinnedPointsAndRoutesSuccessful)
-                        : String.format(
+                String message;
+                if (selectedProfile.equals(StaticProfile.pinnedObjectsWithId())) {
+                    message = getResources().getString(R.string.messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful);
+                } else if (selectedProfile.equals(StaticProfile.trackedObjectsWithId())) {
+                    message = getResources().getString(R.string.messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful);
+                } else {
+                    message = String.format(
                             getResources().getString(R.string.messageCurrentLocationAddedToCollectionSuccessful),
-                            selectedProfile.getName()),
-                        Toast.LENGTH_LONG).show();
+                            selectedProfile.getName());
+                }
+                Toast.makeText(
+                        getActivity(), message, Toast.LENGTH_LONG).show();
                 ViewChangedListener.sendObjectWithIdListChangedBroadcast();
                 dismiss();
+
             } else {
                 Toast.makeText(
                         getActivity(),

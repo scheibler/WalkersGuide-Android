@@ -58,8 +58,8 @@ public class SelectPoiCategoriesDialog extends SelectMultipleObjectsFromListDial
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         taskId = savedInstanceState != null
             ? savedInstanceState.getLong(KEY_TASK_ID)

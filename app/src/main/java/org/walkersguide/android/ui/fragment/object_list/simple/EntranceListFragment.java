@@ -10,20 +10,20 @@ import org.walkersguide.android.data.ObjectWithId;
 public class EntranceListFragment extends SimpleObjectListFragment {
 
 
-	public static EntranceListFragment embedded(ArrayList<Entrance> entranceList) {
-		EntranceListFragment fragment = new EntranceListFragment();
+    public static EntranceListFragment embedded(ArrayList<Entrance> entranceList) {
+        EntranceListFragment fragment = new EntranceListFragment();
         fragment.setArguments(
                 new SimpleObjectListFragment.BundleBuilder(entranceList)
                     .setIsEmbedded(true)
                     .build());
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     @Override public String getTitle() {
         return getSelectObjectWithId()
             ? getResources().getString(R.string.labelPleaseSelect)
-    	    : getResources().getString(R.string.fragmentEntrancesName);
+            : getResources().getString(R.string.fragmentEntrancesName);
     }
 
     @Override public int getPluralResourceId() {

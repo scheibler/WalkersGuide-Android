@@ -105,7 +105,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
     private RadioButton radioButtonExistingDatabaseProfile;
     private ProfileView layoutExistingDatabaseProfile;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getChildFragmentManager()

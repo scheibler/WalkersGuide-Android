@@ -5,8 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content" >
 
-    <include
-        layout="@layout/layout_single_text_view_heading" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/minHeight"
+        android:theme="@style/HeadingTextView"
+        android:text="@string/labelUserAnnotation" />
 
     <TextView
         android:id="@+id/labelUserAnnotation"

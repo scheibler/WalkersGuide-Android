@@ -9,20 +9,20 @@ import org.walkersguide.android.data.ObjectWithId;
 
 public class PedestrianCrossingListFragment extends SimpleObjectListFragment {
 
-	public static PedestrianCrossingListFragment embedded(ArrayList<PedestrianCrossing> pedestrianCrossingList) {
-		PedestrianCrossingListFragment fragment = new PedestrianCrossingListFragment();
+    public static PedestrianCrossingListFragment embedded(ArrayList<PedestrianCrossing> pedestrianCrossingList) {
+        PedestrianCrossingListFragment fragment = new PedestrianCrossingListFragment();
         fragment.setArguments(
                 new SimpleObjectListFragment.BundleBuilder(pedestrianCrossingList)
                     .setIsEmbedded(true)
                     .build());
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     @Override public String getTitle() {
         return getSelectObjectWithId()
             ? getResources().getString(R.string.labelPleaseSelect)
-    	    : getResources().getString(R.string.fragmentPedestrianCrossingsName);
+            : getResources().getString(R.string.fragmentPedestrianCrossingsName);
     }
 
     @Override public int getPluralResourceId() {

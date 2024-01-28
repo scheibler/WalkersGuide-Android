@@ -45,13 +45,13 @@ import org.walkersguide.android.ui.fragment.tabs.routes.RouterFragment;
 public class StreetCourseFragment extends Fragment implements FragmentResultListener, MenuProvider {
 
 
-	public static StreetCourseFragment newInstance(StreetCourseRequest request) {
-		StreetCourseFragment fragment = new StreetCourseFragment();
+    public static StreetCourseFragment newInstance(StreetCourseRequest request) {
+        StreetCourseFragment fragment = new StreetCourseFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_REQUEST, request);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     // fragment
@@ -69,7 +69,7 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
 
     private TextView labelStreetCourseRequestStatus;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
@@ -143,12 +143,12 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
      * create view
      */
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_street_course, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_street_course, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
         labelStreetCourseRequestStatus = (TextView) view.findViewById(R.id.labelStreetCourseRequestStatus);
     }

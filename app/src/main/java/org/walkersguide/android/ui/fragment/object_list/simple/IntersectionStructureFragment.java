@@ -41,6 +41,7 @@ import java.util.Collections;
 import android.view.View;
 import android.view.ViewGroup;
 import org.walkersguide.android.util.Helper;
+import org.walkersguide.android.ui.view.UserAnnotationView;
 
 
 public class IntersectionStructureFragment extends SimpleObjectListFragment implements MenuProvider {
@@ -70,6 +71,18 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
         } else {
             announceWayAhead = getArguments().getBoolean(KEY_ANNOUNCE_WAY_AHEAD);
         }
+    }
+
+    @Override public View configureView(View view, Bundle savedInstanceState) {
+        view = super.configureView(view, savedInstanceState);
+        LinearLayout layoutRuntimeSubViews = (LinearLayout) view.findViewById(R.id.layoutRuntimeSubViews);
+
+        UserAnnotationView layoutUserAnnotation = new UserAnnotationView(getActivity());
+        layoutUserAnnotation.setObjectWithId(intersection);
+        layoutRuntimeSubViews.addView(layoutUserAnnotation);
+        layoutRuntimeSubViews.setVisibility(View.VISIBLE);
+
+        return view;
     }
 
     @Override public String getTitle() {

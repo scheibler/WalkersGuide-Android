@@ -64,8 +64,8 @@ public abstract class ProfileListFragment extends RootFragment
     private boolean selectProfile;
     private int listPosition;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         selectProfile = getArguments().getBoolean(KEY_SELECT_PROFILE);
 
         if (savedInstanceState != null) {
@@ -88,7 +88,7 @@ public abstract class ProfileListFragment extends RootFragment
      */
 
     private TextView labelHeading, labelEmptyListView;
-	private ListView listViewProfile;
+    private ListView listViewProfile;
 
     @Override public String getDialogButtonText() {
         return getResources().getString(
@@ -99,7 +99,7 @@ public abstract class ProfileListFragment extends RootFragment
         return R.layout.layout_heading_and_list_view;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         ImageButton buttonAddProfile = (ImageButton) view.findViewById(R.id.buttonAdd);
         buttonAddProfile.setContentDescription(
@@ -119,8 +119,8 @@ public abstract class ProfileListFragment extends RootFragment
         return view;
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {

@@ -55,10 +55,6 @@ public class UserAnnotationView extends LinearLayout {
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         View rootView = inflate(context, R.layout.layout_user_annotation, this);
-        TextView labelHeading = (TextView) rootView.findViewById(R.id.labelHeading);
-        labelHeading.setText(
-                getResources().getString(R.string.labelUserAnnotation));
-
         labelUserAnnotation = (TextView) rootView.findViewById(R.id.labelUserAnnotation);
         labelUserAnnotation.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {

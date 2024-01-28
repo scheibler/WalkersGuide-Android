@@ -64,27 +64,27 @@ import android.text.TextUtils;
 public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
     private static final String KEY_OBJECT = "object";
 
-	public static ObjectDetailsTabLayoutFragment details(ObjectWithId object) {
+    public static ObjectDetailsTabLayoutFragment details(ObjectWithId object) {
         return newInstance(object, null);
-	}
+    }
 
-	public static ObjectDetailsTabLayoutFragment departures(Station station) {
+    public static ObjectDetailsTabLayoutFragment departures(Station station) {
         return newInstance(station, Tab.DEPARTURES);
-	}
+    }
 
-	public static ObjectDetailsTabLayoutFragment entrances(POI poi) {
+    public static ObjectDetailsTabLayoutFragment entrances(POI poi) {
         return newInstance(poi, Tab.ENTRANCES);
-	}
+    }
 
-	public static ObjectDetailsTabLayoutFragment pedestrianCrossings(Intersection intersection) {
+    public static ObjectDetailsTabLayoutFragment pedestrianCrossings(Intersection intersection) {
         return newInstance(intersection, Tab.PEDESTRIAN_CROSSINGS);
-	}
+    }
 
-	public static ObjectDetailsTabLayoutFragment streetCourse(IntersectionSegment intersectionSegment) {
+    public static ObjectDetailsTabLayoutFragment streetCourse(IntersectionSegment intersectionSegment) {
         return newInstance(intersectionSegment, Tab.STREET_COURSE);
-	}
+    }
 
-	private static ObjectDetailsTabLayoutFragment newInstance(ObjectWithId object, Tab selectedTab) {
+    private static ObjectDetailsTabLayoutFragment newInstance(ObjectWithId object, Tab selectedTab) {
         // add object to history
         if (object instanceof Intersection) {
             HistoryProfile.intersectionPoints().addObject((Intersection) object);
@@ -99,12 +99,12 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         }
 
         // create fragment
-		ObjectDetailsTabLayoutFragment fragment = new ObjectDetailsTabLayoutFragment();
+        ObjectDetailsTabLayoutFragment fragment = new ObjectDetailsTabLayoutFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_OBJECT, object);
         args.putSerializable(KEY_SELECTED_TAB, selectedTab);
         fragment.setArguments(args);
-		return fragment;
+        return fragment;
     }
 
 
@@ -120,7 +120,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         return R.layout.fragment_object_details;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
 
         // load object
@@ -136,7 +136,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             layoutObject.configureAsSingleObject(object);
 
             // details label
-    		labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
+            labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
             labelDistanceAndBearing.setVisibility(View.GONE);
 
             // prepare tab list
@@ -316,7 +316,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
     }
 
 
-	private class TabAdapter extends AbstractTabAdapter {
+    private class TabAdapter extends AbstractTabAdapter {
 
         public TabAdapter(Fragment fragment, ArrayList<Tab> tabList) {
             super(fragment, tabList);

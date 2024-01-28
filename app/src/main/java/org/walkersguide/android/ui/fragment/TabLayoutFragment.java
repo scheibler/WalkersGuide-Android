@@ -52,12 +52,12 @@ import org.walkersguide.android.ui.fragment.RootFragment;
 public abstract class TabLayoutFragment extends RootFragment {
     protected static String KEY_SELECTED_TAB = "selectedTab";
 
-	private ViewPager2 viewPager;
+    private ViewPager2 viewPager;
     private TabLayout tabLayout;
     private Enum<?> selectedTab;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             selectedTab = (Enum<?>) savedInstanceState.getSerializable(KEY_SELECTED_TAB);
         } else if (getArguments() != null) {
@@ -78,8 +78,8 @@ public abstract class TabLayoutFragment extends RootFragment {
         return R.layout.layout_view_pager_and_tab_layout_above;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
-		viewPager = (ViewPager2) view.findViewById(R.id.pager);
+    @Override public View configureView(View view, Bundle savedInstanceState) {
+        viewPager = (ViewPager2) view.findViewById(R.id.pager);
         viewPager.setUserInputEnabled(false);
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override public void onPageSelected(int position) {
@@ -91,7 +91,7 @@ public abstract class TabLayoutFragment extends RootFragment {
             }
         });
 
-		tabLayout = (TabLayout) view.findViewById(R.id.tabLayout);
+        tabLayout = (TabLayout) view.findViewById(R.id.tabLayout);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
@@ -105,7 +105,7 @@ public abstract class TabLayoutFragment extends RootFragment {
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-    	savedInstanceState.putSerializable(KEY_SELECTED_TAB, selectedTab);
+        savedInstanceState.putSerializable(KEY_SELECTED_TAB, selectedTab);
     }
 
 

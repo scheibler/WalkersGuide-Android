@@ -87,22 +87,22 @@ public class IntersectionSegment extends Segment implements Serializable {
         return stringBuilder.toString();
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         int hash = super.hashCode();
-		hash = hash * 31 + Long.valueOf(this.intersectionNodeId).hashCode();
-		hash = hash * 31 + Long.valueOf(this.nextNodeId).hashCode();
-		return hash;
-	}
+        hash = hash * 31 + Long.valueOf(this.intersectionNodeId).hashCode();
+        hash = hash * 31 + Long.valueOf(this.nextNodeId).hashCode();
+        return hash;
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof IntersectionSegment)) {
-			return false;
+            return false;
         }
-		IntersectionSegment other = (IntersectionSegment) obj;
+        IntersectionSegment other = (IntersectionSegment) obj;
         return super.equals(((Segment) other))
             && this.intersectionNodeId == other.getIntersectionNodeId()
             && this.nextNodeId == other.getNextNodeId();

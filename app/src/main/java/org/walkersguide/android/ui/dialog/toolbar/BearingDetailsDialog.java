@@ -71,7 +71,7 @@ public class BearingDetailsDialog extends DialogFragment {
     private EditText editDegree;
 
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
     }

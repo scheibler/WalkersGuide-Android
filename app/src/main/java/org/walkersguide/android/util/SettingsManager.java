@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.ui.dialog.ChangelogDialog;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,7 +55,7 @@ public class SettingsManager {
     private static final String SETTINGS_FILE_NAME = "WalkersGuide-Android-Settings";
     private static final int MAX_NUMBER_OF_SEARCH_TERM_HISTORY_ENTRIES = 100;
 
-	// defaults
+    // defaults
     public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.OVERVIEW;
     // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
@@ -75,6 +76,7 @@ public class SettingsManager {
     // keys
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
     private static final String KEY_HOME_ADDRESS_ID = "homeAddressId";
+    private static final String KEY_CHANGELOG_VERSION_CODE = "changelogVersionCode";
     // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
@@ -130,7 +132,7 @@ public class SettingsManager {
     }
 
     private SettingsManager() {
-		this.settings = GlobalInstance.getContext().getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE);
+        this.settings = GlobalInstance.getContext().getSharedPreferences(SETTINGS_FILE_NAME, Context.MODE_PRIVATE);
         this.gson = new GsonBuilder()
             .enableComplexMapKeySerialization()
             .create();
@@ -166,7 +168,7 @@ public class SettingsManager {
             editor.remove("serverSettings");
             editor.apply();
         }
-	}
+    }
 
     public MainActivity.Tab getSelectedTabForMainActivity() {
         MainActivity.Tab selectedTab = null;
@@ -198,6 +200,17 @@ public class SettingsManager {
         } else if (settings.contains(KEY_HOME_ADDRESS_ID)) {
             editor.remove(KEY_HOME_ADDRESS_ID);
         }
+        editor.apply();
+    }
+
+    public boolean showChangelogDialog() {
+        int changelogVersionCode = settings.getInt(KEY_CHANGELOG_VERSION_CODE, 1);
+        return changelogVersionCode < ChangelogDialog.VERSION_CODE;
+    }
+
+    public void setChangelogDialogVersionCode() {
+        Editor editor = settings.edit();
+        editor.putInt(KEY_CHANGELOG_VERSION_CODE, BuildConfig.VERSION_CODE);
         editor.apply();
     }
 
@@ -722,9 +735,11 @@ public class SettingsManager {
                 Timber.e("Settings type %1$s is unknown", e.getValue().getClass().getName());
             }
         }
-        success = editor.commit();
 
-        return success;
+        // prevent, that the changelog dialog appears after every import of an older settings bundle
+        editor.putInt(KEY_CHANGELOG_VERSION_CODE, BuildConfig.VERSION_CODE);
+
+        return editor.commit();
     }
 
     public boolean exportSettings(File destinationFile) {

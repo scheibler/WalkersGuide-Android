@@ -42,8 +42,8 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
 
     private ArrayList<? extends ObjectWithId> objectList;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         objectList = (ArrayList<? extends ObjectWithId>) getArguments().getSerializable(KEY_OBJECT_LIST);
     }
 

@@ -31,6 +31,7 @@ import android.text.style.LeadingMarginSpan;
 import android.text.Spanned;
 import android.os.Build;
 import android.text.Html;
+import android.text.style.URLSpan;
 
 
 public class UiHelper {
@@ -143,6 +144,12 @@ public class UiHelper {
                     new LeadingMarginSpan.Standard(2),
                     begin, end, 0);
         }
+        return spanString;
+    }
+
+    public static SpannableString urlStyle(String text) {
+        SpannableString spanString = new SpannableString(text);
+        spanString.setSpan(new URLSpan(""), 0, spanString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return spanString;
     }
 

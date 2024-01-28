@@ -65,7 +65,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
         return dialog;
     }
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         positionManagerInstance = PositionManager.getInstance();
         getChildFragmentManager()

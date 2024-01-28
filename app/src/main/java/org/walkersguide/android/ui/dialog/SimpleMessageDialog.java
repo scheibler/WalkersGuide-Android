@@ -55,7 +55,7 @@ public class SimpleMessageDialog extends DialogFragment {
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
-		TextView labelSimpleMessage = (TextView) view.findViewById(R.id.label);
+        TextView labelSimpleMessage = (TextView) view.findViewById(R.id.label);
         labelSimpleMessage.setText(
                 getArguments().getString(KEY_MESSAGE));
 

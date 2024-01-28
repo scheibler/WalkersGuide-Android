@@ -81,8 +81,8 @@ public class PtUtility {
         }
         // vgn
         germanyProviderList.add(new VgnProvider());
-    	// vvo
-	    germanyProviderList.add(new VvoProvider());
+        // vvo
+        germanyProviderList.add(new VvoProvider());
 
         // create country, provider_list map
         Map<Country,ArrayList<AbstractNetworkProvider>> staticMap = new LinkedHashMap<Country,ArrayList<AbstractNetworkProvider>>();
@@ -116,7 +116,7 @@ public class PtUtility {
                 // germany
                 case DB:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderDB);
-		case VGN:
+        case VGN:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderVGN);
                 case VVO:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderVVO);

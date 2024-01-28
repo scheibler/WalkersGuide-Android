@@ -451,19 +451,19 @@ public abstract class ObjectWithId implements Serializable {
 
     // super class methods
 
-	@Override public int hashCode() {
-        return new Long(this.id).hashCode();
-	}
+    @Override public int hashCode() {
+        return Long.valueOf(this.id).hashCode();
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof ObjectWithId)) {
-			return false;
+            return false;
         }
-		ObjectWithId other = (ObjectWithId) obj;
+        ObjectWithId other = (ObjectWithId) obj;
         return this.id == other.getId();
     }
 

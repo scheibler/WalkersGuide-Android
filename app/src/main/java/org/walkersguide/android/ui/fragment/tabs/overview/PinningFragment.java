@@ -46,18 +46,18 @@ import org.walkersguide.android.sensor.DeviceSensorManager;
 public class PinningFragment extends BaseOverviewFragment
         implements FragmentResultListener, MenuProvider, OnAddButtonClick {
 
-	public static PinningFragment newInstance() {
-		PinningFragment fragment = new PinningFragment();
-		return fragment;
-	}
+    public static PinningFragment newInstance() {
+        PinningFragment fragment = new PinningFragment();
+        return fragment;
+    }
 
 
     // pinned object list
     private ExpandableListView listViewPinnedObjects;
     private TextView labelNoPinnedObjectsHint;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -89,12 +89,12 @@ public class PinningFragment extends BaseOverviewFragment
         }
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_pinning, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_pinning, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         listViewPinnedObjects = (ExpandableListView) view.findViewById(R.id.expandableListView);

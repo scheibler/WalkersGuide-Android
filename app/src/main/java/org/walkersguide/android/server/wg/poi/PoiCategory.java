@@ -125,19 +125,19 @@ public class PoiCategory implements Serializable {
         return this.getName();
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         return this.id.hashCode();
-	}
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof PoiCategory)) {
-			return false;
+            return false;
         }
-		PoiCategory other = (PoiCategory) obj;
+        PoiCategory other = (PoiCategory) obj;
         return this.id.equals(other.getId());
     }
 

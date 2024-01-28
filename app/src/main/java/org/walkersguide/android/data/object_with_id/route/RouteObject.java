@@ -112,19 +112,19 @@ public class RouteObject implements Serializable {
         }
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         return this.point.hashCode();
-	}
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof RouteObject)) {
-			return false;
+            return false;
         }
-		RouteObject other = (RouteObject) obj;
+        RouteObject other = (RouteObject) obj;
         return this.point.equals(other.getPoint());
     }
 

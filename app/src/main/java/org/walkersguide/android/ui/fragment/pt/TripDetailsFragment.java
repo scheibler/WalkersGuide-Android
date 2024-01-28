@@ -56,14 +56,14 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
 
     // instance constructors
 
-	public static TripDetailsFragment newInstance(Location station, Departure departure) {
-		TripDetailsFragment fragment = new TripDetailsFragment();
+    public static TripDetailsFragment newInstance(Location station, Departure departure) {
+        TripDetailsFragment fragment = new TripDetailsFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_STATION, station);
         args.putSerializable(KEY_DEPARTURE, departure);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     // fragment
@@ -75,18 +75,18 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
 
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
-	private Handler nextDeparturesHandler = new Handler(Looper.getMainLooper());
+    private Handler nextDeparturesHandler = new Handler(Looper.getMainLooper());
 
     private ArrayList<Stop> cachedStopList;
     private Location station;
     private Departure departure;
     private int listPosition;
 
-	// ui components
+    // ui components
     private ListView listViewTrip;
     private TextView labelHeading, labelEmptyListView;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
 
@@ -158,7 +158,7 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
         return R.layout.layout_heading_and_list_view;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         labelHeading.setVisibility(View.GONE);
 
@@ -189,8 +189,8 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
         return view;
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 

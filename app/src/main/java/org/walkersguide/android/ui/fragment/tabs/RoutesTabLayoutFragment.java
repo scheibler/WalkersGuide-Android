@@ -53,14 +53,14 @@ import java.util.Arrays;
 
 public class RoutesTabLayoutFragment extends TabLayoutFragment {
 
-	public static RoutesTabLayoutFragment newInstance() {
-		RoutesTabLayoutFragment fragment = new RoutesTabLayoutFragment();
-		return fragment;
-	}
+    public static RoutesTabLayoutFragment newInstance() {
+        RoutesTabLayoutFragment fragment = new RoutesTabLayoutFragment();
+        return fragment;
+    }
 
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         initializeViewPagerAndTabLayout(
                 new RoutesTabAdapter(RoutesTabLayoutFragment.this), Tab.ROUTER);
     }
@@ -75,7 +75,7 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
     }
 
 
-	private class RoutesTabAdapter extends AbstractTabAdapter {
+    private class RoutesTabAdapter extends AbstractTabAdapter {
 
         public RoutesTabAdapter(Fragment fragment) {
             super(fragment, new ArrayList<Tab>(Arrays.asList(Tab.values())));
@@ -107,6 +107,6 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
             }
             return null;
         }
-	}
+    }
 
 }

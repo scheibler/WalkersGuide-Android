@@ -1,5 +1,6 @@
 package org.walkersguide.android.database.profile;
 
+import timber.log.Timber;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import java.io.Serializable;
 import org.walkersguide.android.R;
@@ -64,7 +65,7 @@ public class StaticProfile extends DatabaseProfile implements Serializable {
         return new StaticProfile(
                 ID_RECORDED_ROUTES,
                 GlobalInstance.getStringResource(R.string.databaseProfileRecordedRoutes),
-                R.plurals.route,
+                R.plurals.recordedRoute,
                 SortMethod.CREATED_DESC);
     }
 
@@ -106,7 +107,7 @@ public class StaticProfile extends DatabaseProfile implements Serializable {
     @Override public boolean addObject(ObjectWithId object) {
         if (this.getId() == ID_TRACKED_OBJECTS_WITH_ID) {
             WalkersGuideService.invalidateTrackedObjectList();
-            WalkersGuideService.setTrackingMode(TrackingMode.DISTANCE);
+            WalkersGuideService.setTrackingMode(TrackingMode.DISTANCE, true);
         }
         return super.addObject(object);
     }

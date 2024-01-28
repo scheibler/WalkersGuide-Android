@@ -72,17 +72,17 @@ import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragme
 
 public class RecordRouteFragment extends Fragment implements FragmentResultListener, MenuProvider {
 
-	public static RecordRouteFragment newInstance() {
-		RecordRouteFragment fragment = new RecordRouteFragment();
-		return fragment;
-	}
+    public static RecordRouteFragment newInstance() {
+        RecordRouteFragment fragment = new RecordRouteFragment();
+        return fragment;
+    }
 
     private TextView labelRecordedRouteStatus;
     private Button buttonStartRouteRecording, buttonPauseOrResumeRecording, buttonFinishRecording;
     private LinearLayout layoutRouteRecordingInProgress;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -102,12 +102,12 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
         }
     }
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_record_route, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_record_route, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // recorded routes

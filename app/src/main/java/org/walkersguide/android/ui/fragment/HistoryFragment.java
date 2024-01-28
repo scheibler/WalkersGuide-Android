@@ -20,14 +20,14 @@ import android.widget.ExpandableListView;
 
 public class HistoryFragment extends RootFragment {
 
-	public static HistoryFragment newInstance() {
-		HistoryFragment fragment = new HistoryFragment();
-		return fragment;
-	}
+    public static HistoryFragment newInstance() {
+        HistoryFragment fragment = new HistoryFragment();
+        return fragment;
+    }
 
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
 
@@ -44,7 +44,7 @@ public class HistoryFragment extends RootFragment {
         return R.layout.layout_single_expandable_list_view;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         HistoryProfileAdapter adapter = new HistoryProfileAdapter(getActivity());
         listViewHistoryProfile = (ExpandableListView) view.findViewById(R.id.expandableListView);
         listViewHistoryProfile.setAdapter(adapter);

@@ -145,13 +145,13 @@ public class GlobalInstance extends Application {
     /**
      * sound pool
      */
-	private Handler soundPoolHandler;
+    private Handler soundPoolHandler;
     private Runnable soundPoolRunnable;
     private SoundPool soundPool;
     private int soundSilence;
 
     public void startPlaybackOfSilenceWavFile() {
-	    soundPoolHandler = new Handler(Looper.getMainLooper());
+        soundPoolHandler = new Handler(Looper.getMainLooper());
         soundPoolRunnable = new Runnable() {
             @Override public void run() {
                 if (soundPool != null) {

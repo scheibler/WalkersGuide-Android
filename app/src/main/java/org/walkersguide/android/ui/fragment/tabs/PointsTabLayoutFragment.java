@@ -24,14 +24,14 @@ import java.util.Arrays;
 
 public class PointsTabLayoutFragment extends TabLayoutFragment {
 
-	public static PointsTabLayoutFragment newInstance() {
-		PointsTabLayoutFragment fragment = new PointsTabLayoutFragment();
-		return fragment;
-	}
+    public static PointsTabLayoutFragment newInstance() {
+        PointsTabLayoutFragment fragment = new PointsTabLayoutFragment();
+        return fragment;
+    }
 
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         initializeViewPagerAndTabLayout(
                 new PointsTabAdapter(PointsTabLayoutFragment.this), Tab.NEARBY);
     }
@@ -46,7 +46,7 @@ public class PointsTabLayoutFragment extends TabLayoutFragment {
     }
 
 
-	private class PointsTabAdapter extends AbstractTabAdapter {
+    private class PointsTabAdapter extends AbstractTabAdapter {
 
         public PointsTabAdapter(Fragment fragment) {
             super(fragment, new ArrayList<Tab>(Arrays.asList(Tab.values())));
@@ -73,6 +73,6 @@ public class PointsTabLayoutFragment extends TabLayoutFragment {
             }
             return null;
         }
-	}
+    }
 
 }

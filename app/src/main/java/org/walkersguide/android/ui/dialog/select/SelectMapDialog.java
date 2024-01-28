@@ -61,8 +61,8 @@ public class SelectMapDialog extends DialogFragment {
     private long taskId;
     private OSMMap selectedMap;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
     }
 

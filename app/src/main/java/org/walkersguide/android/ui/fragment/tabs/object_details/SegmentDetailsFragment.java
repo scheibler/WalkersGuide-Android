@@ -36,20 +36,20 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
 
     private static final String OSM_WAY_URL = "https://www.openstreetmap.org/way/%1$d/";
 
-	// Store instance variables
+    // Store instance variables
     private Segment segment;
 
-	// ui components
+    // ui components
     private LinearLayout layoutAttributes;
 
-	// newInstance constructor for creating fragment with arguments
-	public static SegmentDetailsFragment newInstance(Segment segment) {
-		SegmentDetailsFragment fragment = new SegmentDetailsFragment();
+    // newInstance constructor for creating fragment with arguments
+    public static SegmentDetailsFragment newInstance(Segment segment) {
+        SegmentDetailsFragment fragment = new SegmentDetailsFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_SEGMENT, segment);
         fragment.setArguments(args);
-		return fragment;
-	}
+        return fragment;
+    }
 
 
     /**
@@ -57,17 +57,17 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
      */
 
 
-	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
-	}
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
+    }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         segment = (Segment) getArguments().getSerializable(KEY_SEGMENT);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // attributes layout
-		layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
+        layoutAttributes = (LinearLayout) view.findViewById(R.id.linearLayout);
     }
 
 
@@ -317,7 +317,7 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
             layoutAttributes.addView(
                     new TextViewBuilder(
                             SegmentDetailsFragment.this.getContext(),
-                			getResources().getString(R.string.labelPointAccessibilityHeading))
+                            getResources().getString(R.string.labelPointAccessibilityHeading))
                         .isHeading()
                         .addTopMargin()
                         .create()

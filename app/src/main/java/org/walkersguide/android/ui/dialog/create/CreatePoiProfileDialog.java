@@ -62,7 +62,7 @@ public class CreatePoiProfileDialog extends DialogFragment implements FragmentRe
     private EditTextAndClearInputButton layoutProfileName;
     private Button buttonSelectPoiCategories, buttonSelectCollections;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getChildFragmentManager()
             .setFragmentResultListener(

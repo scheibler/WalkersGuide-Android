@@ -106,8 +106,8 @@ public abstract class ObjectListFragment extends RootFragment
     private boolean selectObjectWithId, autoUpdate, viewingDirectionFilter;
     private int listPosition;
 
-	@Override public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         selectObjectWithId = getArguments().getBoolean(KEY_SELECT_OBJECT_WITH_ID);
 
         if (savedInstanceState != null) {
@@ -149,7 +149,7 @@ public abstract class ObjectListFragment extends RootFragment
 
     private TextView labelHeading, labelEmptyListView, labelMoreResultsFooter;
     private SwipeRefreshLayout swipeRefreshListView, swipeRefreshEmptyTextView;
-	private ListView listViewObject;
+    private ListView listViewObject;
 
     @Override public String getDialogButtonText() {
         return getResources().getString(
@@ -160,7 +160,7 @@ public abstract class ObjectListFragment extends RootFragment
         return R.layout.fragment_object_list;
     }
 
-	@Override public View configureView(View view, Bundle savedInstanceState) {
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         labelHeading = (TextView) view.findViewById(R.id.labelHeading);
         ImageButton buttonAddObjectWithId = (ImageButton) view.findViewById(R.id.buttonAdd);
         buttonAddObjectWithId.setVisibility(
@@ -199,8 +199,8 @@ public abstract class ObjectListFragment extends RootFragment
         return view;
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 

@@ -43,19 +43,19 @@ public class OSMMap implements Serializable {
         return this.name;
     }
 
-	@Override public int hashCode() {
+    @Override public int hashCode() {
         return this.id.hashCode();
-	}
+    }
 
-	@Override public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+    @Override public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         } else if (obj == null) {
-			return false;
+            return false;
         } else if (! (obj instanceof OSMMap)) {
-			return false;
+            return false;
         }
-		OSMMap other = (OSMMap) obj;
+        OSMMap other = (OSMMap) obj;
         return this.id.equals(other.getId());
     }
 

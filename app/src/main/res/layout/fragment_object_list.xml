@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
+        android:baselineAligned="false"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:visibility="gone" >
@@ -67,6 +68,14 @@
                 android:layout_weight="1.0" />
         </LinearLayout>
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutRuntimeSubViews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="vertical"
+        android:visibility="gone" />
 
     <include
         layout="@layout/layout_heading_and_add_button" />

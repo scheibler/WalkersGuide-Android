@@ -29,10 +29,10 @@ import org.walkersguide.android.ui.fragment.HistoryFragment;
 
 public class OverviewTabLayoutFragment extends TabLayoutFragment {
 
-	public static OverviewTabLayoutFragment newInstance() {
-		OverviewTabLayoutFragment fragment = new OverviewTabLayoutFragment();
-		return fragment;
-	}
+    public static OverviewTabLayoutFragment newInstance() {
+        OverviewTabLayoutFragment fragment = new OverviewTabLayoutFragment();
+        return fragment;
+    }
 
 
     private ResolveCurrentAddressView layoutClosestAddress;
@@ -41,8 +41,8 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
         return R.layout.fragment_overview;
     }
 
-	@Override public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         layoutClosestAddress = (ResolveCurrentAddressView) view.findViewById(R.id.layoutClosestAddress);
         layoutClosestAddress.requestAddressForCurrentLocation();
@@ -77,7 +77,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
     }
 
 
-	private class OverviewTabAdapter extends AbstractTabAdapter {
+    private class OverviewTabAdapter extends AbstractTabAdapter {
 
         public OverviewTabAdapter(Fragment fragment) {
             super(fragment, new ArrayList<Tab>(Arrays.asList(Tab.values())));
@@ -108,6 +108,6 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
             }
             return null;
         }
-	}
+    }
 
 }
