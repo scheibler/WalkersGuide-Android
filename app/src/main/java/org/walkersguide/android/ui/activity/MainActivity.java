@@ -1,5 +1,8 @@
 package org.walkersguide.android.ui.activity;
 
+import androidx.core.util.Pair;
+import android.view.Gravity;
+import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
 import org.walkersguide.android.ui.fragment.profile_list.PoiProfileListFragment;
@@ -93,18 +96,29 @@ import androidx.fragment.app.FragmentManager;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
 import org.walkersguide.android.ui.fragment.HistoryFragment;
 import org.walkersguide.android.database.util.AccessDatabase;
+import com.google.android.material.tabs.TabItem;
+import androidx.core.view.ViewCompat;
+import org.walkersguide.android.ui.view.builder.TextViewBuilder;
+import org.walkersguide.android.ui.UiHelper;
+import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.ui.fragment.TabLayoutFragment;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
+import android.view.Menu;
 
 
 public class MainActivity extends AppCompatActivity
         implements FragmentResultListener, MainActivityController, OnTabSelectedListener {
     public static String EXTRA_NEW_TAB = "newTab";
-    public static String EXTRA_CLEAR_BACK_STACK = "clearBackStack";
+    public static String EXTRA_NEW_SUB_TAB = "newSubTab";
     public static String EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB = "openLastPointProfileInPointsTab";
 
     public static void loadRoute(Context context, Route route) {
         if (route == null) {
             return;
         }
+        route.jumpToRouteObjectAt(0);
+        SettingsManager.getInstance().setLastSelectedRoute(route);
 
         switch (route.getType()) {
             case P2P_ROUTE:
@@ -118,15 +132,9 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
 
-        SettingsManager settingsManagerInstance = SettingsManager.getInstance();
-        settingsManagerInstance.setLastSelectedRoute(route);
-        settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.ROUTES);
-
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
-        mainActivityIntent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mainActivityIntent.putExtra(
-                EXTRA_CLEAR_BACK_STACK, true);
+        mainActivityIntent.putExtra(EXTRA_NEW_TAB, Tab.ROUTES);
+        mainActivityIntent.putExtra(EXTRA_NEW_SUB_TAB, RoutesTabLayoutFragment.Tab.NAVIGATE);
         context.startActivity(mainActivityIntent);
     }
 
@@ -134,18 +142,12 @@ public class MainActivity extends AppCompatActivity
         if (poiProfile == null) {
             return;
         }
-
-        SettingsManager settingsManagerInstance = SettingsManager.getInstance();
-        settingsManagerInstance.setSelectedPoiProfile(poiProfile);
-        settingsManagerInstance.setSelectedTabForMainActivity(MainActivity.Tab.POINTS);
+        SettingsManager.getInstance().setSelectedPoiProfile(poiProfile);
 
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
-        mainActivityIntent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mainActivityIntent.putExtra(
-                EXTRA_CLEAR_BACK_STACK, true);
-        mainActivityIntent.putExtra(
-                EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, true);
+        mainActivityIntent.putExtra(EXTRA_NEW_TAB, Tab.POINTS);
+        mainActivityIntent.putExtra(EXTRA_NEW_SUB_TAB, PointsTabLayoutFragment.Tab.NEARBY);
+        mainActivityIntent.putExtra(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, true);
         context.startActivity(mainActivityIntent);
     }
 
@@ -167,8 +169,6 @@ public class MainActivity extends AppCompatActivity
     private NavigationView navigationView;
     private TabLayout tabLayout;
 
-    private boolean openLastPointProfileInPointsTab;
-
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -184,12 +184,6 @@ public class MainActivity extends AppCompatActivity
             savedInstanceState != null
             ? savedInstanceState.getBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME)
             : false;
-        openLastPointProfileInPointsTab = false;
-        if (savedInstanceState != null) {
-            openLastPointProfileInPointsTab = savedInstanceState.getBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB);
-        } else if (getIntent() != null && getIntent().getExtras() != null) {
-            openLastPointProfileInPointsTab = getIntent().getExtras().getBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, false);
-        }
 
         getSupportFragmentManager()
             .setFragmentResultListener(
@@ -206,12 +200,7 @@ public class MainActivity extends AppCompatActivity
         buttonNavigateUp = (ImageButton) findViewById(R.id.buttonNavigateUp);
         buttonNavigateUp.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-                    for (int i=1; i<getSupportFragmentManager().getBackStackEntryCount(); i++) {
-                        getSupportFragmentManager().popBackStack();
-                    }
-                    updateToolbarNavigateUpButtonVisibility();
-                }
+                popEverythingButTheTabLayoutFragmentFromBackStack();
             }
         });
 
@@ -278,6 +267,25 @@ public class MainActivity extends AppCompatActivity
 
         // tab layout
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+
+        TabLayout.Tab tabOverview = tabLayout.newTab();
+        tabOverview.setCustomView(
+                createTabLayoutTabCustomView(
+                Tab.OVERVIEW, OverviewTabLayoutFragment.Tab.values()));
+        tabLayout.addTab(tabOverview);
+
+        TabLayout.Tab tabRoutes = tabLayout.newTab();
+        tabRoutes.setCustomView(
+                createTabLayoutTabCustomView(
+                Tab.ROUTES, RoutesTabLayoutFragment.Tab.values()));
+        tabLayout.addTab(tabRoutes);
+
+        TabLayout.Tab tabPoints = tabLayout.newTab();
+        tabPoints.setCustomView(
+                createTabLayoutTabCustomView(
+                Tab.POINTS, PointsTabLayoutFragment.Tab.values()));
+        tabLayout.addTab(tabPoints);
+
         tabLayout.selectTab(null);
         tabLayout.addOnTabSelectedListener(this);
         openTab(getIntent());
@@ -289,19 +297,74 @@ public class MainActivity extends AppCompatActivity
         openTab(intent);
     }
 
+    private TextView createTabLayoutTabCustomView(final Tab tab, final Enum<?>[] subTabs) {
+        final LayoutParams lpMatchParent = new LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+
+        TextView customView = new TextViewBuilder(
+                    MainActivity.this, tab.toString(), lpMatchParent)
+            .setContentDescription(
+                    String.format(
+                        "%1$s, %2$s", tab.toString(), getResources().getString(R.string.viewClassNameTab)))
+            .centerTextVerticallyAndHorizontally()
+            .create();
+
+        customView.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                loadFragment(tab);
+            }
+        });
+
+        customView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override public boolean onLongClick(View view) {
+                PopupMenu contextMenu = new PopupMenu(view.getContext(), view);
+                for (int i=0; i<subTabs.length; i++) {
+                    contextMenu.getMenu().add(
+                            Menu.NONE, i, i+1, subTabs[i].toString());
+                }
+                contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                    @Override public boolean onMenuItemClick(MenuItem item) {
+                        int i = item.getItemId();
+                        if (i >= 0 && i < subTabs.length) {
+                            loadFragment(tab, subTabs[i], false);
+                        } else {
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                contextMenu.show();
+                return true;
+            }
+        });
+
+        for (int i=0; i<subTabs.length; i++) {
+            final Enum<?> subTab = subTabs[i];
+            ViewCompat.addAccessibilityAction(
+                    customView,
+                    subTab.toString(),
+                    (actionView, arguments) -> {
+                        loadFragment(tab, subTab, false);
+                        return true;
+                    });
+        }
+
+        return customView;
+    }
+
     private void openTab(Intent intent) {
         Tab tabToOpen = null;
+        Enum<?> subTabToOpen = null;
+        boolean openLastPointProfileInPointsTab = false;
         if (intent != null && intent.getExtras() != null) {
             tabToOpen = (Tab) intent.getExtras().getSerializable(EXTRA_NEW_TAB);
-            // clear back stack is optional
-            if (tabToOpen != null
-                    && intent.getExtras().getBoolean(EXTRA_CLEAR_BACK_STACK, false)) {
-                clearBackStackForTab(tabToOpen);
-            }
-            Timber.d("new tab from intent: %1$s, openLastPointProfileInPointsTab=%2$s", tabToOpen, openLastPointProfileInPointsTab);
+            subTabToOpen = (Enum<?>) intent.getExtras().getSerializable(EXTRA_NEW_SUB_TAB);
+            openLastPointProfileInPointsTab = intent.getExtras().getBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, false);
         }
-        Timber.d("openTab");
-        loadFragment(tabToOpen != null ? tabToOpen : getCurrentTab());
+        loadFragment(
+                tabToOpen != null ? tabToOpen : getCurrentTab(),
+                subTabToOpen,
+                openLastPointProfileInPointsTab);
     }
 
     @Override public void onBackPressed() {
@@ -329,7 +392,6 @@ public class MainActivity extends AppCompatActivity
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME, skipPositionManagerInitialisationDuringOnResume);
-        savedInstanceState.putBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, openLastPointProfileInPointsTab);
     }
 
     @Override public void recreateActivity() {
@@ -628,9 +690,9 @@ public class MainActivity extends AppCompatActivity
 
     public enum Tab {
 
-        OVERVIEW(0),
-        ROUTES(1),
-        POINTS(2);
+        OVERVIEW(0, GlobalInstance.getStringResource(R.string.mainTabNameOverview)),
+        ROUTES(1, GlobalInstance.getStringResource(R.string.mainTabNameRoutes)),
+        POINTS(2, GlobalInstance.getStringResource(R.string.mainTabNamePoints));
 
         public static Tab getTabAtPosition(int position) {
             for (Tab tab : Tab.values()) {
@@ -642,9 +704,15 @@ public class MainActivity extends AppCompatActivity
         }
 
         public int position;
+        public String label;
 
-        private Tab(int position) {
+        private Tab(int position, String label) {
             this.position = position;
+            this.label = label;
+        }
+
+        @Override public String toString() {
+            return this.label;
         }
     }
 
@@ -652,13 +720,22 @@ public class MainActivity extends AppCompatActivity
         return settingsManagerInstance.getSelectedTabForMainActivity();
     }
 
-    private void clearBackStackForTab(Tab tab) {
-        getSupportFragmentManager().clearBackStack(tab.name());
-        getSupportFragmentManager().executePendingTransactions();
+    private void popEverythingButTheTabLayoutFragmentFromBackStack() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+            for (int i=1; i<getSupportFragmentManager().getBackStackEntryCount(); i++) {
+                getSupportFragmentManager().popBackStack();
+            }
+            updateToolbarNavigateUpButtonVisibility();
+        }
     }
 
     private void loadFragment(Tab newTab) {
-        Timber.d("loadFragment: %1$s", newTab);
+        loadFragment(newTab, null, false);
+    }
+
+    private void loadFragment(Tab newTab, Enum<?> newSubTab, boolean openLastPointProfileInPointsTab) {
+        Timber.d("loadFragment: %1$s, subTab=%2$s, openLastPointProfileInPointsTab=%3$s", newTab, newSubTab, openLastPointProfileInPointsTab);
+        tabLayout.setTag(Pair.create(newSubTab, openLastPointProfileInPointsTab));
         tabLayout.selectTab(
                 tabLayout.getTabAt(newTab.position));
     }
@@ -667,12 +744,16 @@ public class MainActivity extends AppCompatActivity
 
     @Override public void onTabSelected(TabLayout.Tab tabLayoutTab) {
         Tab newTab = Tab.getTabAtPosition(tabLayoutTab.getPosition());
-        Timber.d("onTabSelected: %1$s", newTab);
         if (newTab == null) {
             // just a precaution
             newTab = SettingsManager.DEFAULT_SELECTED_TAB_MAIN_ACTIVITY;
         }
         String tag = newTab.name();
+
+        Pair<Enum<?>,Boolean> options = unpackAndClearTabLayoutTag();
+        Enum<?> newSubTab = options.first;
+        boolean openLastPointProfileInPointsTab = options.second;
+        Timber.d("onTabSelected: %1$s / %2$s openLastPointProfileInPointsTab=%3$s", newTab, newSubTab, openLastPointProfileInPointsTab);
 
         Timber.d("loadFragment before restore, getBackStackEntryCount(): %1$d", getSupportFragmentManager().getBackStackEntryCount());
         getSupportFragmentManager().saveBackStack(getCurrentTab().name());
@@ -680,20 +761,20 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().executePendingTransactions();
         Timber.d("loadFragment after restore, getBackStackEntryCount(): %1$d", getSupportFragmentManager().getBackStackEntryCount());
 
-        // only replace, if the fragment is not already attached
-        Timber.d("fragment %1$s for tag %2$s", getSupportFragmentManager().findFragmentByTag(tag), tag);
-        if (getSupportFragmentManager().findFragmentByTag(tag) == null) {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tag);
+        Timber.d("fragment %1$s for tag %2$s", (fragment != null), tag);
+        if (fragment == null) {
 
-            Fragment fragment = null;
+            // only replace, if the fragment is not already attached
             switch (newTab) {
                 case OVERVIEW:
-                    fragment = OverviewTabLayoutFragment.newInstance();
+                    fragment = OverviewTabLayoutFragment.newInstance(newSubTab);
                     break;
                 case ROUTES:
-                    fragment = RoutesTabLayoutFragment.newInstance();
+                    fragment = RoutesTabLayoutFragment.newInstance(newSubTab);
                     break;
                 case POINTS:
-                    fragment = PointsTabLayoutFragment.newInstance();
+                    fragment = PointsTabLayoutFragment.newInstance(newSubTab);
                     break;
                 default:
                     return;
@@ -705,26 +786,59 @@ public class MainActivity extends AppCompatActivity
                 .setReorderingAllowed(true)
                 .addToBackStack(tag)
                 .commit();
+
+        } else if (fragment instanceof TabLayoutFragment) {
+            if (newSubTab != null) {
+                popEverythingButTheTabLayoutFragmentFromBackStack();
+                ((TabLayoutFragment) fragment).changeTab(newSubTab);
+            }
         }
 
         updateToolbarNavigateUpButtonVisibility();
         settingsManagerInstance.setSelectedTabForMainActivity(newTab);
 
         if (openLastPointProfileInPointsTab && newTab == Tab.POINTS) {
-            openLastPointProfileInPointsTab = false;
             addFragment(
                     PoiListFromServerFragment.newInstance(
                         settingsManagerInstance.getSelectedPoiProfile()));
         }
     }
 
-    @Override public void onTabUnselected(TabLayout.Tab tab) {
+    @Override public void onTabUnselected(TabLayout.Tab tabLayoutTab) {
         Timber.d("onTabUnselected");
     }
 
-    @Override public void onTabReselected(TabLayout.Tab tab) {
-        Timber.d("onTabReselected");
+    @Override public void onTabReselected(TabLayout.Tab tabLayoutTab) {
+        Tab sameTab = Tab.getTabAtPosition(tabLayoutTab.getPosition());
+        Pair<Enum<?>,Boolean> options = unpackAndClearTabLayoutTag();
+        Enum<?> newSubTab = options.first;
+        boolean openLastPointProfileInPointsTab = options.second;
+        Timber.d("onTabReselected: %1$s / %2$s", sameTab, newSubTab);
+
+        Fragment currentFragment = getSupportFragmentManager().findFragmentByTag(sameTab.name());
+        if (currentFragment instanceof TabLayoutFragment) {
+            if (newSubTab != null) {
+                popEverythingButTheTabLayoutFragmentFromBackStack();
+                ((TabLayoutFragment) currentFragment).changeTab(newSubTab);
+                updateToolbarNavigateUpButtonVisibility();
+            }
+        }
+
+        if (openLastPointProfileInPointsTab && sameTab == Tab.POINTS) {
+            addFragment(
+                    PoiListFromServerFragment.newInstance(
+                        settingsManagerInstance.getSelectedPoiProfile()));
+        }
     }
+
+    private Pair<Enum<?>,Boolean> unpackAndClearTabLayoutTag() {
+        Pair<Enum<?>,Boolean> options = tabLayout.getTag() != null
+            ? (Pair<Enum<?>,Boolean>) tabLayout.getTag()
+            : Pair.create(null, false);
+        tabLayout.setTag(null);
+        return options;
+    }
+
 
     // MainActivityController
 

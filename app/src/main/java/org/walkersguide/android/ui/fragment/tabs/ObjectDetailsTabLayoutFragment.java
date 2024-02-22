@@ -65,7 +65,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
     private static final String KEY_OBJECT = "object";
 
     public static ObjectDetailsTabLayoutFragment details(ObjectWithId object) {
-        return newInstance(object, null);
+        return newInstance(object, Tab.DETAILS);
     }
 
     public static ObjectDetailsTabLayoutFragment departures(Station station) {
@@ -164,8 +164,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                 tabList.add(Tab.STREET_COURSE);
             }
 
-            initializeViewPagerAndTabLayout(
-                    new TabAdapter(ObjectDetailsTabLayoutFragment.this, tabList));
+            initializeViewPagerAndTabLayout(new TabAdapter(tabList));
         }
 
         return view;
@@ -318,11 +317,15 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
     private class TabAdapter extends AbstractTabAdapter {
 
-        public TabAdapter(Fragment fragment, ArrayList<Tab> tabList) {
-            super(fragment, tabList);
+        public TabAdapter(ArrayList<Tab> tabList) {
+            super(tabList);
         }
 
-        @Override public Fragment createFragment(int position) {
+        @Override public Enum<?> getDefaultTab() {
+            return Tab.DETAILS;
+        }
+
+        @Override public Fragment getFragment(int position) {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
@@ -402,7 +405,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
                             : getResources().getString(R.string.fragmentStreetCourseName);
                 }
             }
-            return "";
+            return null;
         }
     }
 

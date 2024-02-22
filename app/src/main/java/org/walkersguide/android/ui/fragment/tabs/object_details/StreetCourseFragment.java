@@ -39,7 +39,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
-import org.walkersguide.android.ui.fragment.tabs.routes.RouterFragment;
+import org.walkersguide.android.ui.fragment.tabs.routes.NavigateFragment;
 
 
 public class StreetCourseFragment extends Fragment implements FragmentResultListener, MenuProvider {
@@ -58,14 +58,14 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
     private static final String KEY_REQUEST = "request";
     private static final String KEY_TASK_ID = "taskId";
     private static final String KEY_STREET_COURSE = "streetCourse";
-    private static final String KEY_SHOW_ROUTER = "showRouter";
+    private static final String KEY_SHOW_NAVIGATION = "showNavigation";
 
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
     private StreetCourseRequest request;
 
     private Route streetCourse;
-    private boolean showRouter;
+    private boolean showNavigation;
 
     private TextView labelStreetCourseRequestStatus;
 
@@ -77,11 +77,11 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
         if (savedInstanceState != null) {
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
             streetCourse = (Route) savedInstanceState.getSerializable(KEY_STREET_COURSE);
-            showRouter = savedInstanceState.getBoolean(KEY_SHOW_ROUTER);
+            showNavigation = savedInstanceState.getBoolean(KEY_SHOW_NAVIGATION);
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
             streetCourse = null;
-            showRouter = false;
+            showNavigation = false;
         }
 
         // fragment result listener
@@ -118,7 +118,7 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
         menuItemRefresh.setVisible(! streetCourseLoadedSuccessfully);
 
         MenuItem menuItemWalkStreetCourse = menu.findItem(R.id.menuItemWalkStreetCourse);
-        menuItemWalkStreetCourse.setChecked(showRouter);
+        menuItemWalkStreetCourse.setChecked(showNavigation);
         menuItemWalkStreetCourse.setVisible(streetCourseLoadedSuccessfully);
     }
 
@@ -130,7 +130,7 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
                 requestStreetCourse();
             }
         } else if (item.getItemId() == R.id.menuItemWalkStreetCourse) {
-            showRouter = ! showRouter;
+            showNavigation = ! showNavigation;
             updateUi();
         } else {
             return false;
@@ -183,7 +183,7 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putSerializable(KEY_STREET_COURSE,  streetCourse);
-        savedInstanceState.putBoolean(KEY_SHOW_ROUTER, showRouter);
+        savedInstanceState.putBoolean(KEY_SHOW_NAVIGATION, showNavigation);
     }
 
     @Override public void onDestroy() {
@@ -254,9 +254,9 @@ public class StreetCourseFragment extends Fragment implements FragmentResultList
 
 
     private void updateUi() {
-        String tag = showRouter ? "Router" : "RouteDetails";
-        Fragment fragment = showRouter
-            ? RouterFragment.newInstance(streetCourse, false)
+        String tag = showNavigation ? "Navigate" : "RouteDetails";
+        Fragment fragment = showNavigation
+            ? NavigateFragment.newInstance(streetCourse, false)
             : RouteDetailsFragment.newInstance(streetCourse);
 
         // only replace, if the fragment is not already attached

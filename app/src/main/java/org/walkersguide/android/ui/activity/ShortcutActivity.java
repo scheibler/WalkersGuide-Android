@@ -90,8 +90,6 @@ public class ShortcutActivity extends AppCompatActivity {
         }
 
         Intent intent = new Intent(ShortcutActivity.this, MainActivity.class);
-        intent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finishAndRemoveTask();
     }

@@ -91,17 +91,13 @@ import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 
 
-public class RouterFragment extends Fragment implements MenuProvider {
+public class NavigateFragment extends Fragment implements MenuProvider {
 
 
     // instance constructor
 
-    public static RouterFragment newInstance(Route route, boolean showObjectWithIdView) {
-        if (route != null) {
-            route.jumpToRouteObjectAt(0);
-        }
-
-        RouterFragment fragment = new RouterFragment();
+    public static NavigateFragment newInstance(Route route, boolean showObjectWithIdView) {
+        NavigateFragment fragment = new NavigateFragment();
         Bundle args = new Bundle();
         args.putSerializable(KEY_ROUTE, route);
         args.putBoolean(KEY_SHOW_OBJECT_WITH_ID_VIEW, showObjectWithIdView);
@@ -150,7 +146,7 @@ public class RouterFragment extends Fragment implements MenuProvider {
      */
 
     @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.menu_toolbar_router_fragment, menu);
+        menuInflater.inflate(R.menu.menu_toolbar_navigate_fragment, menu);
     }
 
     @Override public void onPrepareMenu(@NonNull Menu menu) {
@@ -285,7 +281,7 @@ public class RouterFragment extends Fragment implements MenuProvider {
     }
 
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_router, container, false);
+        return inflater.inflate(R.layout.fragment_navigate, container, false);
     }
 
     @Override public void onViewCreated(View view, Bundle savedInstanceState) {

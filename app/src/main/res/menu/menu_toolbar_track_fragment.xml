@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menuItemClearTrackedObjects"
+        android:title="@string/menuItemClearTrackedObjects" >
+        <menu>
+            <item
+                android:id="@+id/menuItemClearTrackedObjectsOnlyProfile"
+                android:title="@string/menuItemClearTrackedObjectsOnlyProfile" />
+            <item
+                android:id="@+id/menuItemClearTrackedObjectsOnlyPointsAndRoutes"
+                android:title="@string/menuItemClearTrackedObjectsOnlyPointsAndRoutes" />
+            <item
+                android:id="@+id/menuItemClearTrackedObjectsBoth"
+                android:title="@string/menuItemClearTrackedObjectsBoth" />
+        </menu>
+    </item>
+</menu>

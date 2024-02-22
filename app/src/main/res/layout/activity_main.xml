@@ -120,18 +120,7 @@
             app:tabTextAppearance="@style/SmallTabText"
             app:tabIndicatorColor="@color/heading"
             app:tabMode="fixed"
-            app:tabGravity="fill" >
-
-            <com.google.android.material.tabs.TabItem
-                android:text="@string/mainTabNameOverview" />
-
-            <com.google.android.material.tabs.TabItem
-                android:text="@string/mainTabNameRoutes" />
-
-            <com.google.android.material.tabs.TabItem
-                android:text="@string/mainTabNamePoints" />
-        </com.google.android.material.tabs.TabLayout>
-
+            app:tabGravity="fill" />
 
         <!-- main -->
 

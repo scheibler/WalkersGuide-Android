@@ -55,10 +55,10 @@ import android.view.MenuItem;
 import androidx.lifecycle.Lifecycle;
 
 
-public class TrackingFragment extends BaseOverviewFragment implements FragmentResultListener, MenuProvider {
+public class TrackFragment extends BaseOverviewFragment implements FragmentResultListener, MenuProvider {
 
-    public static TrackingFragment newInstance() {
-        TrackingFragment fragment = new TrackingFragment();
+    public static TrackFragment newInstance() {
+        TrackFragment fragment = new TrackFragment();
         return fragment;
     }
 
@@ -109,7 +109,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
     }
 
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_tracking, container, false);
+        return inflater.inflate(R.layout.fragment_track, container, false);
     }
 
     @Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -118,7 +118,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
 
         spinnerTrackingMode = (Spinner) view.findViewById(R.id.spinnerTrackingMode);
         ArrayAdapter<TrackingMode> trackingModeAdapter = new ArrayAdapter<TrackingMode>(
-                TrackingFragment.this.getContext(),
+                TrackFragment.this.getContext(),
                 // layout for the collapsed state
                 android.R.layout.simple_list_item_1,
                 TrackingMode.values());
@@ -141,7 +141,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
 
         spinnerAnnouncementRadius = (Spinner) view.findViewById(R.id.spinnerAnnouncementRadius);
         ArrayAdapter<AnnouncementRadius> announcementRadiusAdapter = new ArrayAdapter<AnnouncementRadius>(
-                TrackingFragment.this.getContext(),
+                TrackFragment.this.getContext(),
                 // layout for the collapsed state
                 android.R.layout.simple_list_item_1,
                 AnnouncementRadius.values());
@@ -191,18 +191,31 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
      */
 
     @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.menu_toolbar_tracking_fragment, menu);
+        menuInflater.inflate(R.menu.menu_toolbar_track_fragment, menu);
     }
 
-    @Override public boolean onMenuItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menuItemClearProfile) {
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
+        boolean consumed = false;
+
+        if (item.getItemId() == R.id.menuItemClearTrackedObjectsOnlyProfile
+                || item.getItemId() == R.id.menuItemClearTrackedObjectsBoth) {
+            settingsManagerInstance.setTrackedProfileId(null);
+            consumed = true;
+        }
+        if (item.getItemId() == R.id.menuItemClearTrackedObjectsOnlyPointsAndRoutes
+                || item.getItemId() == R.id.menuItemClearTrackedObjectsBoth) {
             AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.trackedObjectsWithId());
+            consumed = true;
+        }
+
+        if (consumed) {
             requestUiUpdate();
+            return true;
         } else {
             return false;
         }
-        return true;
     }
+
 
     /**
      * pause and resume
@@ -290,7 +303,7 @@ public class TrackingFragment extends BaseOverviewFragment implements FragmentRe
 
         listViewTrackedObjects.setAdapter(
                 new ObjectWithIdAdapter(
-                    TrackingFragment.this.getContext(), objectList, null, StaticProfile.trackedObjectsWithId(), true, false));
+                    TrackFragment.this.getContext(), objectList, null, StaticProfile.trackedObjectsWithId(), true, false));
 
         // list position
         listViewTrackedObjects.setSelection(listPosition);

@@ -23,8 +23,19 @@ import java.util.LinkedHashMap;
 
 public class HistoryProfileAdapter extends BaseExpandableListAdapter {
 
-    private enum Group {
-        POINTS, ROUTES, OVERVIEW
+    public enum Group {
+        POINTS(GlobalInstance.getStringResource(R.string.historyProfileGroupPoints)),
+        ROUTES(GlobalInstance.getStringResource(R.string.historyProfileGroupRoutes)),
+            OVERVIEW(GlobalInstance.getStringResource(R.string.historyProfileGroupOverview));
+
+        public String label;
+        private Group(String label) {
+            this.label = label;
+        }
+
+        @Override public String toString() {
+            return this.label;
+        }
     }
 
     private Context context;
@@ -52,21 +63,7 @@ public class HistoryProfileAdapter extends BaseExpandableListAdapter {
         } else {
             holder = (EntryHolderParent) convertView.getTag();
         }
-
-        String text = null;
-        switch (getGroup(groupPosition)) {
-            case POINTS:
-                text = GlobalInstance.getStringResource(R.string.historyProfileGroupPoints);
-                break;
-            case ROUTES:
-                text = GlobalInstance.getStringResource(R.string.historyProfileGroupRoutes);
-                break;
-            case OVERVIEW:
-                text = GlobalInstance.getStringResource(R.string.historyProfileGroupOverview);
-                break;
-        }
-        holder.label.setText(text);
-
+        holder.label.setText(getGroup(groupPosition).toString());
         return convertView;
     }
 

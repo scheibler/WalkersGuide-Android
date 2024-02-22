@@ -18,22 +18,32 @@
             android:layout_height="wrap_content"
             android:layout_weight="1.0" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonCollections"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/buttonCollections"
-            android:textSize="@dimen/smallTextSize" />
+            android:minWidth="@dimen/minWidth"
+            android:minHeight="@dimen/minHeight"
+            android:padding="5dp"
+            android:background="@null"
+            app:tint="@color/image"
+            android:src="@drawable/image_collections"
+            android:contentDescription="@string/buttonCollections" />
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonHistory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/buttonHistory"
-            android:textSize="@dimen/smallTextSize" />
+            android:minWidth="@dimen/minWidth"
+            android:minHeight="@dimen/minHeight"
+            android:padding="5dp"
+            android:background="@null"
+            app:tint="@color/image"
+            android:src="@drawable/image_history"
+            android:contentDescription="@string/buttonHistory" />
     </LinearLayout>
 
     <include
-        layout="@layout/layout_view_pager_and_tab_layout_above" />
+        layout="@layout/layout_fragment_container_view_and_tab_layout_above" />
 
 </LinearLayout>

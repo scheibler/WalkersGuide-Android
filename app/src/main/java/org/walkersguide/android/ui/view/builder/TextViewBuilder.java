@@ -54,6 +54,11 @@ public class TextViewBuilder {
         return this;
     }
 
+    public TextViewBuilder setContentDescription(String description) {
+        this.label.setContentDescription(description);
+        return this;
+    }
+
     public TextViewBuilder addTopMargin() {
         MarginLayoutParams lp = (MarginLayoutParams) this.label.getLayoutParams();
         lp.topMargin = (int) (MARGIN_TOP * GlobalInstance.getContext().getResources().getDisplayMetrics().density);
@@ -68,6 +73,11 @@ public class TextViewBuilder {
 
     public TextViewBuilder centerTextVertically() {
         this.label.setGravity(Gravity.CENTER_VERTICAL);
+        return this;
+    }
+
+    public TextViewBuilder centerTextVerticallyAndHorizontally() {
+        this.label.setGravity(Gravity.CENTER);
         return this;
     }
 
@@ -108,14 +118,14 @@ public class TextViewBuilder {
         return this;
     }
 
-        public TextViewBuilder styleAsButton() {
-            this.label.setText(
-                    UiHelper.bold(
-                        this.label.getText().toString()));
-            ViewCompat.setAccessibilityDelegate(
-                    this.label, UiHelper.getAccessibilityDelegateViewClassButton());
-            return this;
-        }
+    public TextViewBuilder styleAsButton() {
+        this.label.setText(
+                UiHelper.bold(
+                    this.label.getText().toString()));
+        ViewCompat.setAccessibilityDelegate(
+                this.label, UiHelper.getAccessibilityDelegateViewClassButton());
+        return this;
+    }
 
 
     // create TextView

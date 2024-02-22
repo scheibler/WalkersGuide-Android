@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
-import org.walkersguide.android.ui.fragment.tabs.routes.RouterFragment;
+import org.walkersguide.android.ui.fragment.tabs.routes.NavigateFragment;
 import org.walkersguide.android.ui.fragment.tabs.routes.RecordRouteFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
@@ -53,16 +53,18 @@ import java.util.Arrays;
 
 public class RoutesTabLayoutFragment extends TabLayoutFragment {
 
-    public static RoutesTabLayoutFragment newInstance() {
+    public static RoutesTabLayoutFragment newInstance(Enum<?> selectedTab) {
         RoutesTabLayoutFragment fragment = new RoutesTabLayoutFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_SELECTED_TAB, selectedTab);
+        fragment.setArguments(args);
         return fragment;
     }
 
 
     @Override public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initializeViewPagerAndTabLayout(
-                new RoutesTabAdapter(RoutesTabLayoutFragment.this), Tab.ROUTER);
+        initializeViewPagerAndTabLayout(new RoutesTabAdapter());
     }
 
 
@@ -70,39 +72,40 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
      * tabs
      */
 
-    private enum Tab {
-        ROUTER, RECORD
+    public enum Tab {
+        NAVIGATE(GlobalInstance.getStringResource(R.string.fragmentNavigateName)),
+        RECORD(GlobalInstance.getStringResource(R.string.fragmentRecordRouteName));
+
+        public String label;
+        private Tab(String label) {
+            this.label = label;
+        }
+
+        @Override public String toString() {
+            return this.label;
+        }
     }
 
 
     private class RoutesTabAdapter extends AbstractTabAdapter {
 
-        public RoutesTabAdapter(Fragment fragment) {
-            super(fragment, new ArrayList<Tab>(Arrays.asList(Tab.values())));
+        public RoutesTabAdapter() {
+            super(new ArrayList<Tab>(Arrays.asList(Tab.values())));
         }
 
-        @Override public Fragment createFragment(int position) {
+        @Override public Enum<?> getDefaultTab() {
+            return Tab.NAVIGATE;
+        }
+
+        @Override public Fragment getFragment(int position) {
             Tab tab = getTab(position);
             if (tab != null) {
                 switch (tab) {
-                    case ROUTER:
-                        return RouterFragment.newInstance(
+                    case NAVIGATE:
+                        return NavigateFragment.newInstance(
                                 SettingsManager.getInstance().getLastSelectedRoute(), true);
                     case RECORD:
                         return RecordRouteFragment.newInstance();
-                }
-            }
-            return null;
-        }
-
-        @Override public String getFragmentName(int position) {
-            Tab tab = getTab(position);
-            if (tab != null) {
-                switch (tab) {
-                    case ROUTER:
-                        return getResources().getString(R.string.fragmentRouterName);
-                    case RECORD:
-                        return getResources().getString(R.string.fragmentRecordRouteName);
                 }
             }
             return null;

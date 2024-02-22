@@ -1,5 +1,6 @@
 package org.walkersguide.android.data.profile;
 
+import org.walkersguide.android.util.WalkersGuideService.TrackingMode;
 import org.walkersguide.android.data.Profile;
 import java.io.Serializable;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
@@ -41,6 +42,7 @@ public interface MutableProfile extends Serializable {
     public default boolean setTracked(boolean tracked) {
         SettingsManager.getInstance().setTrackedProfileId(tracked ? getId() : null);
         WalkersGuideService.invalidateTrackedObjectList();
+        WalkersGuideService.setTrackingMode(TrackingMode.DISTANCE, true);
         return tracked == isTracked();
     }
 

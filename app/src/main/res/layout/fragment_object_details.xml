@@ -22,6 +22,6 @@
         android:focusable="true" />
 
     <include
-        layout="@layout/layout_view_pager_and_tab_layout_above" />
+        layout="@layout/layout_fragment_container_view_and_tab_layout_above" />
 
 </LinearLayout>

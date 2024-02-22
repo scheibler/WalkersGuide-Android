@@ -19,6 +19,7 @@
 
     <style name="HeadingTextView" parent="Widget.AppCompat.TextView">
         <item name="android:minHeight">@dimen/minHeight</item>
+        <item name="android:gravity">center_vertical</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/heading</item>
     </style>

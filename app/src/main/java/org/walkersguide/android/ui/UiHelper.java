@@ -32,6 +32,9 @@ import android.text.Spanned;
 import android.os.Build;
 import android.text.Html;
 import android.text.style.URLSpan;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabItem;
+import android.widget.Spinner;
 
 
 public class UiHelper {

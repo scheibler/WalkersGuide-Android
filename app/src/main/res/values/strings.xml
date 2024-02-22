@@ -5,7 +5,7 @@
          language specific string variables
     -->
 
-    <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual/</string>
+    <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
 
 
@@ -51,8 +51,8 @@
 
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Tracking disabled</string>
-    <string name="wgTrackingModeHintDistance">Points and routes are announced when you pass close by them.</string>
-    <string name="wgTrackingModeHintBearing">Turn around slowly and listen, which points and routes are in front of you.</string>
+    <string name="wgTrackingModeHintDistance">Points and routes are announced as you pass close by them.</string>
+    <string name="wgTrackingModeHintBearing">Turn around slowly and listen to the points and routes in front of you.</string>
 
 
     <!--
@@ -197,19 +197,25 @@
     <string name="buttonCollections">Collections</string>
     <string name="buttonHistory">History</string>
 
-    <!-- pinning fragment -->
-    <string name="fragmentPinningName">Pin</string>
-    <string name="menuItemClearPinnedObjects">Clear lists</string>
-    <string name="menuItemClearPinnedObjectsOnlyProfiles">Only remove profiles</string>
-    <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only remove points and routes</string>
-    <string name="menuItemClearPinnedObjectsBoth">Clear both lists</string>
+    <!-- pin fragment -->
+    <string name="fragmentPinName">Pin</string>
+    <string name="menuItemClearPinnedObjects">Reset</string>
+    <string name="menuItemClearPinnedObjectsOnlyProfiles">Only profiles</string>
+    <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only points and routes</string>
+    <string name="menuItemClearPinnedObjectsBoth">Clear both</string>
     <string name="labelSomethingPinned">%1$s pinned</string>
+    <string name="groupNameProfiles">Profiles</string>
     <string name="buttonAddPinnedProfile">Pin profile</string>
+    <string name="groupNamePointsAndRoutes">Points and routes</string>
     <string name="buttonAddPinnedPointOrRoute">Pin point or route</string>
     <string name="labelNoPinnedObjectsHint">Here you can add point profiles and collections as well as points and routes for quick access.</string>
 
-    <!-- tracking fragment -->
-    <string name="fragmentTrackingName">Track</string>
+    <!-- track fragment -->
+    <string name="fragmentTrackName">Track</string>
+    <string name="menuItemClearTrackedObjects">Reset to defaults</string>
+    <string name="menuItemClearTrackedObjectsOnlyProfile">Only the profile</string>
+    <string name="menuItemClearTrackedObjectsOnlyPointsAndRoutes">Only points and routes</string>
+    <string name="menuItemClearTrackedObjectsBoth">Clear both</string>
     <string name="spinnerTrackingModeCD">Tracking mode</string>
     <string name="spinnerTrackingModePrompt">Select tracking mode:</string>
     <string name="layoutTrackedProfile">Tracked profile</string>
@@ -219,8 +225,8 @@
     <string name="labelNoTrackedObjectsHint">Add points which you want to track. They will be announced via speech output periodically,
         depending on the tracking mode you have selected above.</string>
 
-    <!-- router fragment -->
-    <string name="fragmentRouterName">Router</string>
+    <!-- navigate fragment -->
+    <string name="fragmentNavigateName">Navigate</string>
     <string name="labelRoutePosition">%1$d of %2$d\t(%3$d of %4$s, %5$d%%)</string>
     <string name="labelRoutePositionCD">Instruction %1$d of %2$d, %3$d of %4$s completed, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Intersection structure</string>
@@ -276,7 +282,7 @@
     <string name="profileSelectFromCollections">Collection</string>
     <string name="profileSelectFromPoiProfiles">Point profile</string>
     <string name="profileSelectFromEmptyCollection">Empty collection</string>
-    <string name="profileSelectFromGpxFile">From GPX file</string>
+    <string name="profileSelectFromGpxFile">GPX file</string>
     <string name="messageNoProfileSelected">No profile selected.</string>
     <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Only collections and point profiles are pinnable.</string>
     <string name="messageProfileIncompatibleTargetSaveCurrentLocation">The current location may only be pinned or added to a collection.</string>
@@ -605,7 +611,9 @@
         allowing for easier switching between the main views of the app.</string>
     <string name="labelAdditionalChanges3">Some tabs now have their own tab bar. If available, this is located
         in the top area of the screen. For example, the "Overview" tab has two subtabs called "Pin" and "Track".
-        The newly named "Routes" tab, next to it, is divided into the subtabs "Router" and "Record".</string>
+        The newly named "Routes" tab, next to it, is divided into the subtabs "Navigate" and "Record".</string>
+    <string name="labelAdditionalChanges4">You can also quickly access all sub-tabs from other parts of the app. To do this, focus on the corresponding
+        tab at the bottom of the screen and perform a long click or swipe through the Talkback actions.</string>
 
 
     <!--
@@ -733,6 +741,9 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">and</string>
+    <string name="stateCollapsed">collapsed</string>
+    <string name="stateExpanded">expanded</string>
+    <string name="viewClassNameTab">Tab</string>
     <string name="messagePleaseWait">Please wait…</string>
     <string name="messageNameIsMissing">Please enter a name.</string>
     <string name="messageRenameFailed">Rename failed.</string>

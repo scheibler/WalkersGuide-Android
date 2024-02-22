@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
+import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.data.profile.MutableProfile;
 import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter;
@@ -43,21 +44,33 @@ import android.content.IntentFilter;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
-public class PinningFragment extends BaseOverviewFragment
+public class PinFragment extends BaseOverviewFragment
         implements FragmentResultListener, MenuProvider, OnAddButtonClick {
+    private final static String KEY_GROUP_PROFILES_EXPANDED = "groupProfilesExpanded";
+    private final static String KEY_GROUP_OBJECTS_WITH_ID_EXPANDED = "groupObjectsWithIdExpanded";
 
-    public static PinningFragment newInstance() {
-        PinningFragment fragment = new PinningFragment();
+    public static PinFragment newInstance() {
+        PinFragment fragment = new PinFragment();
         return fragment;
     }
 
 
     // pinned object list
+    private boolean groupProfilesExpanded, groupObjectsWithIdExpanded;
+
     private ExpandableListView listViewPinnedObjects;
     private TextView labelNoPinnedObjectsHint;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            groupProfilesExpanded = savedInstanceState.getBoolean(KEY_GROUP_PROFILES_EXPANDED);
+            groupObjectsWithIdExpanded = savedInstanceState.getBoolean(KEY_GROUP_OBJECTS_WITH_ID_EXPANDED);
+        } else {
+            groupProfilesExpanded = true;
+            groupObjectsWithIdExpanded = true;
+        }
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -90,7 +103,7 @@ public class PinningFragment extends BaseOverviewFragment
     }
 
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_pinning, container, false);
+        return inflater.inflate(R.layout.fragment_pin, container, false);
     }
 
     @Override public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -100,13 +113,44 @@ public class PinningFragment extends BaseOverviewFragment
         listViewPinnedObjects = (ExpandableListView) view.findViewById(R.id.expandableListView);
         listViewPinnedObjects .setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long l) {
-                Helper.vibrateOnce(
-                        Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+                // negate that boolean, cause the isGroupExpanded function returns the state before click / toggle
+                boolean expanded = ! expandableListView.isGroupExpanded(groupPosition);
+
+                String groupName = null;
+                switch (groupPosition) {
+                    case PinnedObjectsAdapter.ID_PROFILES:
+                        groupProfilesExpanded = expanded;
+                        groupName = getResources().getString(R.string.groupNameProfiles);
+                        break;
+                    case PinnedObjectsAdapter.ID_OBJECTS:
+                        groupObjectsWithIdExpanded = expanded;
+                        groupName = getResources().getString(R.string.groupNamePointsAndRoutes);
+                        break;
+                }
+
+                if (groupName != null) {
+                    TTSWrapper.getInstance().screenReader(
+                            String.format(
+                                "%1$s %2$s",
+                                groupName,
+                                expanded
+                                ? getResources().getString(R.string.stateExpanded)
+                                : getResources().getString(R.string.stateCollapsed))
+                            );
+                    Helper.vibrateOnce(
+                            Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+                }
                 return false;
             }
         });
 
         labelNoPinnedObjectsHint = (TextView) view.findViewById(R.id.labelNoPinnedObjectsHint);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(KEY_GROUP_PROFILES_EXPANDED, groupProfilesExpanded);
+        savedInstanceState.putBoolean(KEY_GROUP_OBJECTS_WITH_ID_EXPANDED, groupObjectsWithIdExpanded);
     }
 
     @Override public void onAddPinnedProfileButtonClicked(View view) {
@@ -127,28 +171,29 @@ public class PinningFragment extends BaseOverviewFragment
      */
 
     @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.menu_toolbar_pinning_fragment, menu);
+        menuInflater.inflate(R.menu.menu_toolbar_pin_fragment, menu);
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menuItemRefresh) {
-            listPosition = 0;
-            requestUiUpdate();
+        boolean consumed = false;
 
-        } else if (item.getItemId() == R.id.menuItemClearPinnedObjectsOnlyProfiles
+        if (item.getItemId() == R.id.menuItemClearPinnedObjectsOnlyProfiles
                 || item.getItemId() == R.id.menuItemClearPinnedObjectsBoth) {
             AccessDatabase.getInstance().clearPinnedProfileList();
-            requestUiUpdate();
-
-        } else if (item.getItemId() == R.id.menuItemClearPinnedObjectsOnlyPointsAndRoutes
+            consumed = true;
+        }
+        if (item.getItemId() == R.id.menuItemClearPinnedObjectsOnlyPointsAndRoutes
                 || item.getItemId() == R.id.menuItemClearPinnedObjectsBoth) {
             AccessDatabase.getInstance().clearDatabaseProfile(StaticProfile.pinnedObjectsWithId());
-            requestUiUpdate();
+            consumed = true;
+        }
 
+        if (consumed) {
+            requestUiUpdate();
+            return true;
         } else {
             return false;
         }
-        return true;
     }
 
 
@@ -206,12 +251,19 @@ public class PinningFragment extends BaseOverviewFragment
 
     private void loadPinnedObjectsSuccessful(ArrayList<Profile> profileList, ArrayList<ObjectWithId> objectList) {
         PinnedObjectsAdapter adapter = new PinnedObjectsAdapter(
-                PinningFragment.this.getContext(), this, profileList, objectList);
+                PinFragment.this.getContext(), this, profileList, objectList);
         listViewPinnedObjects.setAdapter(adapter);
 
         // expand groups
-        for (int i=0; i<adapter.getGroupCount(); i++) {
-            listViewPinnedObjects.expandGroup(i);
+        if (groupProfilesExpanded) {
+            listViewPinnedObjects.expandGroup(PinnedObjectsAdapter.ID_PROFILES);
+        } else {
+            listViewPinnedObjects.collapseGroup(PinnedObjectsAdapter.ID_PROFILES);
+        }
+        if (groupObjectsWithIdExpanded) {
+            listViewPinnedObjects.expandGroup(PinnedObjectsAdapter.ID_OBJECTS);
+        } else {
+            listViewPinnedObjects.collapseGroup(PinnedObjectsAdapter.ID_OBJECTS);
         }
 
         // list position

@@ -56,7 +56,7 @@ android {
 
         beta {
             applicationId "org.walkersguide.android.beta"
-            versionName '3.0.0-b7'
+            versionName '3.0.0-b8'
             signingConfig signingConfigs.beta
             // internal
             // database
@@ -114,7 +114,6 @@ dependencies {
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
     implementation 'androidx.fragment:fragment:1.6.2'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
-    implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
     // material design
     implementation 'com.google.android.material:material:1.11.0'

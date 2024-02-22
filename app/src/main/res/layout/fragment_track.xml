@@ -26,6 +26,9 @@
             android:layout_weight="1.0" />
     </LinearLayout>
 
+    <include
+        layout="@layout/layout_default_divider" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -61,6 +64,9 @@
                 android:prompt="@string/spinnerAnnouncementRadiusPrompt" />
         </LinearLayout>
     </LinearLayout>
+
+    <include
+        layout="@layout/layout_default_divider" />
 
     <include
         layout="@layout/layout_heading_and_list_view" />

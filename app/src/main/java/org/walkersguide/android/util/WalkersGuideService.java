@@ -218,13 +218,15 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
      * constructor
      */
 
-    private NotificationManager notificationManagerInstance = null;
-
     private AccessDatabase accessDatabaseInstance;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
     private ServerTaskExecutor serverTaskExecutorInstance;
     private SettingsManager settingsManagerInstance;
+
+    private NotificationManager notificationManagerInstance = null;
+    private Handler disableTrackingHandler;
+    private Runnable disableTrackingRunnable;
 
     public enum ServiceState {
         OFF, STOPPED, FOREGROUND
@@ -233,17 +235,25 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
     @Override public void onCreate() {
         super.onCreate();
-        this.notificationManagerInstance = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
         //
-    accessDatabaseInstance = AccessDatabase.getInstance();
+        accessDatabaseInstance = AccessDatabase.getInstance();
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
         positionManagerInstance = PositionManager.getInstance();
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         settingsManagerInstance = SettingsManager.getInstance();
+
         // off state
         this.serviceState = ServiceState.OFF;
-        // create notification channel
+        this.notificationManagerInstance = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         this.createNotificationChannel();
+
+        disableTrackingHandler= new Handler(Looper.getMainLooper());
+        disableTrackingRunnable = new Runnable() {
+            @Override public void run() {
+                destroyService();
+            }
+        };
     }
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
@@ -284,6 +294,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                     // break statement is missing intentionally
 
                 case STOPPED:
+                    disableTrackingHandler.removeCallbacks(disableTrackingRunnable);
                     // enable sensors
                     if (isLocationModuleEnabled()) {
                         positionManagerInstance.startGPS();
@@ -320,7 +331,11 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                     switchFromForegroundIntoStoppedState();
                     // break statement is missing intentionally
                 case STOPPED:
-                    if (routeRecordingState == RouteRecordingState.OFF) {
+                    if (this.trackingMode != TrackingMode.OFF) {
+                        disableTrackingHandler.postDelayed(disableTrackingRunnable, 10*60*1000l);
+                    } else if (routeRecordingState != RouteRecordingState.OFF) {
+                        return START_STICKY;
+                    } else {
                         destroyService();
                     }
                     break;
@@ -487,6 +502,8 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 switchFromForegroundIntoStoppedState();
                 // break statement is missing intentionally
             case STOPPED:
+                trackingMode = TrackingMode.OFF;
+                disableTrackingHandler.removeCallbacks(disableTrackingRunnable);
                 routeRecordingState = RouteRecordingState.OFF;
                 recordedPointList.clear();
                 unregisterReceiver(sensorIntentReceiver);
@@ -600,8 +617,6 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     private Notification getWalkersGuideServiceNotification() {
         Intent launchWalkersGuideActivityIntent = new Intent(
                 WalkersGuideService.this, MainActivity.class);
-        launchWalkersGuideActivityIntent.setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         String message;
         switch (serviceState) {
@@ -611,7 +626,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 if (trackingMode != TrackingMode.OFF) {
                     message += String.format(
                             "\n- %1$s: %2$s",
-                            getResources().getString(R.string.fragmentTrackingName),
+                            getResources().getString(R.string.fragmentTrackName),
                             trackingMode);
                 }
                 if (routeRecordingState != RouteRecordingState.OFF) {

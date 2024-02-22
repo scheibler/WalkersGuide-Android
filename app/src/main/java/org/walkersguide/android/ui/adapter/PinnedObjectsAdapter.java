@@ -25,8 +25,8 @@ import org.walkersguide.android.ui.UiHelper;
 
 
 public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
-    private static final int ID_PROFILES = 0;
-    private static final int ID_OBJECTS = 1;
+    public static final int ID_PROFILES = 0;
+    public static final int ID_OBJECTS = 1;
 
     public interface OnAddButtonClick {
         public void onAddPinnedProfileButtonClicked(View view);

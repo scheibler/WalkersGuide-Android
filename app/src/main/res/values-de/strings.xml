@@ -5,7 +5,7 @@
          language specific string variables
     -->
 
-    <string name="variableUserManualUrl">https://www.walkersguide.org/de/user_manual/</string>
+    <string name="variableUserManualUrl">https://www.walkersguide.org/de/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/de/privacy/</string>
 
 
@@ -198,19 +198,25 @@
     <string name="buttonCollections">Sammlungen</string>
     <string name="buttonHistory">Verlauf</string>
 
-    <!-- pinning fragment -->
-    <string name="fragmentPinningName">Anheften</string>
-    <string name="menuItemClearPinnedObjects">Listen leeren</string>
-    <string name="menuItemClearPinnedObjectsOnlyProfiles">Nur Profile entfernen</string>
-    <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Nur Punkte und Routen entfernen</string>
-    <string name="menuItemClearPinnedObjectsBoth">Beide Listen leeren</string>
+    <!-- pin fragment -->
+    <string name="fragmentPinName">Anheften</string>
+    <string name="menuItemClearPinnedObjects">Zurücksetzen</string>
+    <string name="menuItemClearPinnedObjectsOnlyProfiles">Nur Profile</string>
+    <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Nur Punkte und Routen</string>
+    <string name="menuItemClearPinnedObjectsBoth">Alles zurücksetzen</string>
     <string name="labelSomethingPinned">%1$s angeheftet</string>
+    <string name="groupNameProfiles">Profile</string>
     <string name="buttonAddPinnedProfile">Profil anheften</string>
+    <string name="groupNamePointsAndRoutes">Punkte und Routen</string>
     <string name="buttonAddPinnedPointOrRoute">Punkt oder Route anheften</string>
     <string name="labelNoPinnedObjectsHint">Hier kannst du vorübergehend benötigte Punktprofile und Sammlungen, sowie Punkte und Routen anheften, um darauf schnell zugreifen zu können.</string>
 
-    <!-- tracking fragment -->
-    <string name="fragmentTrackingName">Verfolgen</string>
+    <!-- track fragment -->
+    <string name="fragmentTrackName">Verfolgen</string>
+    <string name="menuItemClearTrackedObjects">Zurücksetzen</string>
+    <string name="menuItemClearTrackedObjectsOnlyProfile">Nur das Profil</string>
+    <string name="menuItemClearTrackedObjectsOnlyPointsAndRoutes">Nur Punkte und Routen</string>
+    <string name="menuItemClearTrackedObjectsBoth">Alles zurücksetzen</string>
     <string name="spinnerTrackingModeCD">Verfolgungsmodus</string>
     <string name="spinnerTrackingModePrompt">Verfolgungsmodus auswählen:</string>
     <string name="layoutTrackedProfile">Verfolgtes Profil</string>
@@ -220,10 +226,10 @@
     <string name="labelNoTrackedObjectsHint">Hier kannst du Punkte hinterlegen, die du verfolgen möchtest.
         Sie werden dann von Zeit zu Zeit von der Sprachausgabe angesagt, je nachdem, welchen Verfolgungsmodus du ausgewählt hast.</string>
 
-    <!-- router fragment -->
-    <string name="fragmentRouterName">Router</string>
+    <!-- navigate fragment -->
+    <string name="fragmentNavigateName">Navigieren</string>
     <string name="labelRoutePosition">%1$d von %2$d\t(%3$d von %4$s, %5$d%%)</string>
-    <string name="labelRoutePositionCD">Anweisung %1$d von %2$d, %3$d von %4$s zurückgelegt, %5$d%%</string>
+    <string name="labelRoutePositionCD">Anweisung %1$d von %2$d, bereits %3$d von %4$s zurückgelegt, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Kreuzungsaufbau</string>
     <string name="buttonPreviousRouteObject">Vorheriger Routenpunkt</string>
     <string name="buttonNextRouteObject">Nächster Routenpunkt</string>
@@ -277,7 +283,7 @@
     <string name="profileSelectFromCollections">Sammlung</string>
     <string name="profileSelectFromPoiProfiles">Punktprofil</string>
     <string name="profileSelectFromEmptyCollection">Leere Sammlung</string>
-    <string name="profileSelectFromGpxFile">Aus GPX Datei</string>
+    <string name="profileSelectFromGpxFile">GPX Datei</string>
     <string name="messageNoProfileSelected">Kein Profil ausgewählt.</string>
     <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Es können nur Sammlungen und Punktprofile angeheftet werden.</string>
     <string name="messageProfileIncompatibleTargetSaveCurrentLocation">Die aktuelle Position kann nur angeheftet oder zu einer Sammlung hinzugefügt werden.</string>
@@ -605,7 +611,9 @@
         um flexibler zwischen den Hauptansichten der App wechseln zu können.</string>
     <string name="labelAdditionalChanges3">Manche Tabs besitzen nun selbst noch eine Tableiste. Diese befindet sich, wenn verfügbar, im oberen
         Bereich des Bildschirms. So hat der Tab "Übersicht" zwei Subtabs namens "Anheften" und "Verfolgen".
-        Der ebenfalls neu benannte Tab "Routen", rechts daneben, teilt sich in die Subtabs "Router" und "Aufzeichnen" auf.</string>
+        Der ebenfalls neu benannte Tab "Routen", rechts daneben, teilt sich in die Subtabs "Navigieren" und "Aufzeichnen" auf.</string>
+    <string name="labelAdditionalChanges4">Du kannst auch aus anderen Teilen der App heraus schnell auf alle Subtabs zugreifen. Setze dazu den
+        Fokus auf den entsprechenden Tab am unteren Bildschirmrand und führe einen langen Klick aus oder wische durch die Talkback Aktionen.</string>
 
 
     <!--
@@ -733,6 +741,9 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">und</string>
+    <string name="stateCollapsed">minimiert</string>
+    <string name="stateExpanded">maximiert</string>
+    <string name="viewClassNameTab">Tab</string>
     <string name="messagePleaseWait">Bitte warten…</string>
     <string name="messageNameIsMissing">Bitte gib einen Namen ein.</string>
     <string name="messageRenameFailed">Umbenennen ist fehlgeschlagen.</string>
