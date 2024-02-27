@@ -413,12 +413,12 @@ public class ObjectWithIdView extends LinearLayout {
     @Override public void onAttachedToWindow() {
         super.onAttachedToWindow();
         IntentFilter filter = new IntentFilter();
+        // inner dialog results
         filter.addAction(RenameObjectWithIdDialog.ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL);
         filter.addAction(UpdateObjectWithIdSelectedCollectionsDialog.ACTION_UPDATE_OBJECT_WITH_ID_SELECTED_COLLECTIONS_WAS_SUCCESSFUL);
-        if (this.autoUpdate && this.includeDistanceOrBearingInformation) {
-            filter.addAction(PositionManager.ACTION_NEW_LOCATION);
-            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
-        }
+        // new location and bearing values
+        filter.addAction(PositionManager.ACTION_NEW_LOCATION);
+        filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(newLocationReceiver, filter);
     }
 
@@ -436,18 +436,20 @@ public class ObjectWithIdView extends LinearLayout {
                 ViewChangedListener.sendObjectWithIdListChangedBroadcast();
 
             } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (currentLocation != null
-                        && (
-                               intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)
-                            || acceptNewPosition.updatePoint(currentLocation))) {
+                if (acceptNewPosition.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
+                            false,      // se onAttachedToWindow
+                            intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false),
+                            autoUpdate)) {
                     updateLabelAndButtonText();
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (currentBearing != null
-                        && acceptNewBearing.updateBearing(currentBearing)) {
+                if (acceptNewBearing.updateBearing(
+                            (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
+                            false,      // se onAttachedToWindow
+                            intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false),
+                            autoUpdate && includeDistanceOrBearingInformation)) {
                     updateLabelAndButtonText();
                 }
             }

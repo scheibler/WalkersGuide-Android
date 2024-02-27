@@ -212,6 +212,10 @@ public class GlobalInstance extends Application {
         this.routeCurrentPositionMap.put(route.getId(), newPosition);
     }
 
+    public void clearRouteCurrentPosition(Route route) {
+        this.routeCurrentPositionMap.remove(route.getId());
+    }
+
 
     /**
      * static shortcuts

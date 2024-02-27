@@ -55,6 +55,7 @@ import androidx.lifecycle.Lifecycle;
 import org.walkersguide.android.data.Profile;
 import android.widget.ImageButton;
 import android.view.accessibility.AccessibilityEvent;
+import org.walkersguide.android.ui.UiHelper;
 
 
 public abstract class ObjectListFragment extends RootFragment
@@ -359,47 +360,34 @@ public abstract class ObjectListFragment extends RootFragment
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForObjectListUpdate();
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (getDialog() == null && ! getActivity().hasWindowFocus()) {
-                if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
-                        && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
-                        && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
-                    requestUiUpdate();
-                }
-                return;
-            }
 
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (currentLocation == null) {
-                    return;
-                }
-                if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
-                    Timber.d("update cause of important");
-                    requestUiUpdate();
-                } else if (autoUpdate
-                        && acceptNewPosition.updatePoint(currentLocation)) {
-                    Timber.d("update cause of new position");
+                if (acceptNewPosition.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
+                            UiHelper.isInBackground(ObjectListFragment.this),
+                            intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false),
+                            autoUpdate)) {
                     requestUiUpdate();
                     Helper.vibrateOnce(
                             Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                ObjectWithIdAdapter listAdapter = getListAdapter();
-                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (listAdapter == null || currentBearing == null) {
-                    return;
-                }
-                if (autoUpdate && viewingDirectionFilter
-                        && acceptNewBearing.updateBearing(currentBearing)) {
-                    Timber.d("notifyDataSetChanged viewingDirectionFilter");
-                    listAdapter.notifyDataSetChanged();
-                    updateHeadingListView();
+                if (acceptNewBearing.updateBearing(
+                            (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
+                            UiHelper.isInBackground(ObjectListFragment.this),
+                            intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false),
+                            autoUpdate && viewingDirectionFilter)) {
+                    ObjectWithIdAdapter listAdapter = getListAdapter();
+                    if (listAdapter != null) {
+                        listAdapter.notifyDataSetChanged();
+                        updateHeadingListView();
+                    }
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SHAKE_DETECTED)) {
-                Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
                 requestUiUpdate();
+                Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
 
             } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
                 ServerException serverException = (ServerException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);

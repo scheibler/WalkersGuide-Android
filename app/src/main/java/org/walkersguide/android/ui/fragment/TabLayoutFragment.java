@@ -142,7 +142,7 @@ public abstract class TabLayoutFragment extends RootFragment implements OnTabSel
         Timber.d("fragment %1$s for tag %2$s", (fragment != null), tag);
         getChildFragmentManager()
             .beginTransaction()
-            .replace(R.id.fragmentContainerView, fragment, tag)
+            .replace(R.id.fragmentContainerViewSubTabs, fragment, tag)
             .addToBackStack(null)
             .commit();
         updateToolbarTitle();

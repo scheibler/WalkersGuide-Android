@@ -92,7 +92,6 @@ public class ResolveCurrentAddressView extends LinearLayout {
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
         localIntentFilter.addAction(PositionManager.ACTION_NEW_LOCATION);
-        localIntentFilter.addAction(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(localIntentReceiver, localIntentFilter);
 
         // request address
@@ -156,13 +155,12 @@ public class ResolveCurrentAddressView extends LinearLayout {
                 }
 
             } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (acceptNewPosition.updatePoint(currentLocation)) {
+                if (acceptNewPosition.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
+                            false,
+                            intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
                     requestAddressForCurrentLocation();
                 }
-
-            } else if (intent.getAction().equals(PositionManager.ACTION_LOCATION_SIMULATION_STATE_CHANGED)) {
-                requestAddressForCurrentLocation();
             }
         }
     };

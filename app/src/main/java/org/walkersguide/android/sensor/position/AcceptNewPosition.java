@@ -39,8 +39,24 @@ public class AcceptNewPosition implements Serializable {
         this.lastAcceptedPointTimestamp = 0l;
     }
 
-    public boolean updatePoint(Point newPoint) {
-        if (checkPoint(newPoint)) {
+    public boolean updatePoint(Point newPoint, boolean parentViewInBackground, boolean newPointIsImportant) {
+        return updatePoint(newPoint, parentViewInBackground, newPointIsImportant, true);
+    }
+
+    public boolean updatePoint(Point newPoint, boolean parentViewInBackground,
+            boolean newPointIsImportant, boolean allowOrdinaryPoints) {
+        if (newPoint == null) { return false; }
+
+        boolean mustUpdate = false;
+        if (parentViewInBackground) {
+            mustUpdate = newPointIsImportant;
+        } else if (newPointIsImportant) {
+            mustUpdate = true;
+        } else if (allowOrdinaryPoints) {
+            mustUpdate = checkPoint(newPoint);
+        }
+
+        if (mustUpdate) {
             this.lastAcceptedPoint = newPoint;
             this.lastAcceptedPointTimestamp = System.currentTimeMillis();
             return true;

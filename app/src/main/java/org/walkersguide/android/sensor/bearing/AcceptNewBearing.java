@@ -30,8 +30,24 @@ public class AcceptNewBearing implements Serializable {
         this.lastAcceptedBearingTimestamp = 0l;
     }
 
-    public boolean updateBearing(Bearing newBearing) {
-        if (checkBearing(newBearing)) {
+    public boolean updateBearing(Bearing newBearing, boolean parentViewInBackground, boolean newBearingIsImportant) {
+        return updateBearing(newBearing, parentViewInBackground, newBearingIsImportant, true);
+    }
+
+    public boolean updateBearing(Bearing newBearing, boolean parentViewInBackground,
+            boolean newBearingIsImportant, boolean allowOrdinaryBearings) {
+        if (newBearing == null) { return false; }
+
+        boolean mustUpdate = false;
+        if (parentViewInBackground) {
+            mustUpdate = newBearingIsImportant;
+        } else if (newBearingIsImportant) {
+            mustUpdate = true;
+        } else if (allowOrdinaryBearings) {
+            mustUpdate = checkBearing(newBearing);
+        }
+
+        if (mustUpdate) {
             this.lastAcceptedBearing = newBearing;
             this.lastAcceptedBearingTimestamp = System.currentTimeMillis();
             return true;
@@ -39,7 +55,7 @@ public class AcceptNewBearing implements Serializable {
         return false;
     }
 
-    public  boolean checkBearing(Bearing newBearing) {
+    private boolean checkBearing(Bearing newBearing) {
         if (newBearing == null) {
             return false;
         } else if (this.lastAcceptedBearing == null) {

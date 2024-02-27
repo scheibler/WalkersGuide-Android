@@ -64,7 +64,7 @@
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">outdated</string>
     <string name="toolbarSensorCalibrationRequired">calibrate</string>
-    <string name="labelWalkersGuideServiceNotRunningWarning">Beware</string>
+    <string name="labelWalkersGuideServiceNotRunningWarning">Attention</string>
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Bearing details</string>
@@ -103,6 +103,7 @@
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
+    <string name="menuItemUserManual">User manual</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
@@ -137,7 +138,7 @@
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromCollections">Collections</string>
     <string name="pointSelectFromPOI">Select from nearby points</string>
-    <string name="pointSelectFromCoordinatesLink">Import from shared url</string>
+    <string name="pointSelectFromCoordinatesLink">Import from shared link</string>
 
     <!-- enter address dialog -->
     <string name="enterAddressDialogName">Enter Address:</string>
@@ -384,7 +385,7 @@
 
     <!-- PoiListFromServerFragment -->
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
-    <string name="labelMoreResults">Get more points</string>
+    <string name="labelMoreResults">Load more points</string>
 
 
     <!--
@@ -646,7 +647,7 @@
     <string name="contextMenuItemObjectWithIdSimulateBearing">Bearing simulated</string>
     <string name="contextMenuItemObjectWithIdCollections">Add to collections</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Route planner</string>
-    <string name="contextMenuItemObjectWithIdShareCoordinates">Share</string>
+    <string name="contextMenuItemObjectWithIdShareCoordinates">Share coordinates</string>
     <!-- load route sub menu -->
     <string name="contextMenuItemObjectWithIdLoadRouteCurrentDirection">This direction</string>
     <string name="contextMenuItemObjectWithIdLoadRouteOppositeDirection">Opposite direction</string>

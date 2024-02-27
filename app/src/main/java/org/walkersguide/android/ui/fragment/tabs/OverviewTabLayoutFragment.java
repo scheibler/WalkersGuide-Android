@@ -68,7 +68,10 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
                         HistoryFragment.newInstance());
             }
         });
+    }
 
+    @Override public void onStart() {
+        super.onStart();
         initializeViewPagerAndTabLayout(new OverviewTabAdapter());
     }
 

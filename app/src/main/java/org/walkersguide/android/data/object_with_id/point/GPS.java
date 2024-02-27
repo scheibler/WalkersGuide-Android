@@ -119,8 +119,8 @@ public class GPS extends Point {
      * getters and setters
      */
 
-    public boolean isOutdated() {
-        return (System.currentTimeMillis() - this.timestamp) > OUTDATED_AFTER_MS;
+    public long getMillisecondsElapsedSinceCreation() {
+        return System.currentTimeMillis() - this.timestamp;
     }
 
     public Long getTimestamp() {

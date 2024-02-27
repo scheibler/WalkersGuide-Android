@@ -34,7 +34,7 @@ import android.view.Surface;
 public class DeviceSensorManager implements SensorEventListener {
 
     public interface DeviceSensorUpdate {
-        public void newBearing(Bearing bearing);
+        public void newBearing(Bearing bearing, boolean isImportant);
         public void shakeDetected();
     }
 
@@ -138,7 +138,7 @@ public class DeviceSensorManager implements SensorEventListener {
     public void setSelectedBearingSensor(BearingSensor newBearingSensor) {
         if (newBearingSensor != null) {
             settingsManagerInstance.setSelectedBearingSensor(newBearingSensor);
-            broadcastCurrentBearing();
+            broadcastCurrentBearing(true);
         }
     }
 
@@ -148,6 +148,7 @@ public class DeviceSensorManager implements SensorEventListener {
      */
     public static final String ACTION_NEW_BEARING = "new_bearing";
     public static final String EXTRA_BEARING = "bearing";
+    public static final String EXTRA_IS_IMPORTANT = "isImportant";
 
     public Bearing getCurrentBearing() {
         if (this.simulationEnabled) {
@@ -169,17 +170,18 @@ public class DeviceSensorManager implements SensorEventListener {
     }
 
     public void requestCurrentBearing() {
-        broadcastCurrentBearing();
+        broadcastCurrentBearing(true);
     }
 
-    private void broadcastCurrentBearing() {
+    private void broadcastCurrentBearing(boolean isImportant) {
         Bearing currentBearing = getCurrentBearing();
         if (deviceSensorUpdateListener != null) {
-            deviceSensorUpdateListener.newBearing(currentBearing);
+            deviceSensorUpdateListener.newBearing(currentBearing, isImportant);
         }
 
         Intent intent = new Intent(ACTION_NEW_BEARING);
         intent.putExtra(EXTRA_BEARING, currentBearing);
+        intent.putExtra(EXTRA_IS_IMPORTANT, isImportant);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
@@ -308,7 +310,7 @@ public class DeviceSensorManager implements SensorEventListener {
                     // new bearing broadcast
                     if (! this.simulationEnabled
                             && getSelectedBearingSensor() == BearingSensor.COMPASS) {
-                        broadcastCurrentBearing();
+                        broadcastCurrentBearing(false);
                     }
                 }
                 break;
@@ -376,7 +378,10 @@ public class DeviceSensorManager implements SensorEventListener {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PositionManager.ACTION_NEW_GPS_LOCATION)) {
                 GPS gps = (GPS) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (gps != null && gps.getBearing() != null) {
+                if (gps != null
+                        && gps.getBearing() != null
+                        && gps.getSpeed() != null
+                        && gps.getSpeed() > 0.66) {     // in km/h
                     settingsManagerInstance.setBearingSensorValue(
                             BearingSensor.SATELLITE, gps.getBearing());
 
@@ -384,7 +389,7 @@ public class DeviceSensorManager implements SensorEventListener {
                     broadcastBearingValueFromSatellite();
                     if (! simulationEnabled
                             && getSelectedBearingSensor() == BearingSensor.SATELLITE) {
-                        broadcastCurrentBearing();
+                        broadcastCurrentBearing(false);
                     }
 
                     // obtain the diff to true north
@@ -421,7 +426,7 @@ public class DeviceSensorManager implements SensorEventListener {
 
     public void setSimulationEnabled(boolean enabled) {
         this.simulationEnabled = enabled;
-        broadcastCurrentBearing();
+        broadcastCurrentBearing(true);
     }
 
     // change simulated bearing
@@ -448,7 +453,7 @@ public class DeviceSensorManager implements SensorEventListener {
             broadcastSimulatedBearing();
             // broadcast new bearing action
             if (this.simulationEnabled) {
-                broadcastCurrentBearing();
+                broadcastCurrentBearing(true);
             }
         }
     }

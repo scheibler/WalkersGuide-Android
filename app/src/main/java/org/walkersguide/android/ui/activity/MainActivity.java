@@ -1,110 +1,97 @@
 package org.walkersguide.android.ui.activity;
 
-import androidx.core.util.Pair;
-import android.view.Gravity;
-import android.widget.LinearLayout.LayoutParams;
-import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
-import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
-import org.walkersguide.android.ui.fragment.profile_list.PoiProfileListFragment;
-import android.widget.Toast;
-import org.walkersguide.android.util.WalkersGuideService;
-import org.walkersguide.android.util.WalkersGuideService.ServiceState;
-import org.walkersguide.android.util.WalkersGuideService.StartServiceFailure;
-import org.walkersguide.android.ui.fragment.SettingsFragment;
-import androidx.fragment.app.DialogFragment;
-import org.walkersguide.android.ui.dialog.ChangelogDialog;
-import org.walkersguide.android.ui.dialog.InfoDialog;
-import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
-import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
-import org.walkersguide.android.ui.fragment.tabs.RoutesTabLayoutFragment;
-import org.walkersguide.android.shortcut.StaticShortcutAction;
-import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
-import org.walkersguide.android.sensor.bearing.BearingSensor;
-import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
-import android.net.Uri;
-import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
-import org.walkersguide.android.ui.dialog.toolbar.LocationDetailsDialog;
+import java.util.List;
 
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout.OnTabSelectedListener;
+import com.google.android.material.tabs.TabLayout;
 
 import android.Manifest;
 
-import android.provider.Settings;
+import android.annotation.SuppressLint;
 
-import androidx.core.app.ActivityCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 
-import android.view.View;
-
-import android.widget.ImageButton;
-import android.widget.TextView;
-
-import org.walkersguide.android.sensor.DeviceSensorManager;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.util.GlobalInstance;
-import androidx.appcompat.widget.Toolbar;
-import android.app.Dialog;
-import android.content.DialogInterface;
-import androidx.appcompat.app.AlertDialog;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.view.WindowManager;
-
-import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
+import android.net.Uri;
 
 import android.os.Bundle;
 
-import com.google.android.material.navigation.NavigationView;
-import androidx.fragment.app.Fragment;
+import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
+
+import android.widget.ImageButton;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.util.Pair;
+import androidx.core.view.ViewCompat;
+
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.view.MenuItem;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentResultListener;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import timber.log.Timber;
 
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.dialog.PlanRouteDialog;
-import org.walkersguide.android.ui.dialog.WhereAmIDialog;
-import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
-import org.walkersguide.android.util.SettingsManager;
-import android.content.Context;
-import android.content.Intent;
-import org.walkersguide.android.data.object_with_id.Route;
-import timber.log.Timber;
-import org.walkersguide.android.server.wg.poi.PoiProfile;
-import org.walkersguide.android.data.object_with_id.Point;
-import org.walkersguide.android.data.object_with_id.point.GPS;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
-
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayout.OnTabSelectedListener;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import org.walkersguide.android.data.angle.Bearing;
-import java.util.List;
-import android.annotation.SuppressLint;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.annotation.NonNull;
-import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
-import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
-import android.content.ServiceConnection;
-import android.content.ComponentName;
-import android.os.IBinder;
-import androidx.fragment.app.FragmentManager;
-import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
-import org.walkersguide.android.ui.fragment.HistoryFragment;
+import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.data.object_with_id.Route;
+import org.walkersguide.android.data.object_with_id.point.GPS;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.database.util.AccessDatabase;
-import com.google.android.material.tabs.TabItem;
-import androidx.core.view.ViewCompat;
-import org.walkersguide.android.ui.view.builder.TextViewBuilder;
-import org.walkersguide.android.ui.UiHelper;
-import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.sensor.bearing.BearingSensor;
+import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
+import org.walkersguide.android.server.wg.poi.PoiProfile;
+import org.walkersguide.android.shortcut.StaticShortcutAction;
+import org.walkersguide.android.ui.dialog.ChangelogDialog;
+import org.walkersguide.android.ui.dialog.InfoDialog;
+import org.walkersguide.android.ui.dialog.PlanRouteDialog;
+import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.dialog.WhereAmIDialog;
+import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
+import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
+import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
+import org.walkersguide.android.ui.dialog.toolbar.LocationDetailsDialog;
+import org.walkersguide.android.ui.fragment.HistoryFragment;
+import org.walkersguide.android.ui.fragment.SettingsFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
-import android.view.Menu;
+import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
+import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
+import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
+import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
+import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
+import org.walkersguide.android.ui.fragment.tabs.RoutesTabLayoutFragment;
+import org.walkersguide.android.ui.fragment.tabs.routes.NavigateFragment;
+import org.walkersguide.android.ui.view.builder.TextViewBuilder;
+import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.WalkersGuideService.ServiceState;
+import org.walkersguide.android.util.WalkersGuideService.StartServiceFailure;
+import org.walkersguide.android.util.WalkersGuideService;
 
 
 public class MainActivity extends AppCompatActivity
@@ -117,7 +104,7 @@ public class MainActivity extends AppCompatActivity
         if (route == null) {
             return;
         }
-        route.jumpToRouteObjectAt(0);
+        GlobalInstance.getInstance().clearRouteCurrentPosition(route);
         SettingsManager.getInstance().setLastSelectedRoute(route);
 
         switch (route.getType()) {
@@ -254,6 +241,12 @@ public class MainActivity extends AppCompatActivity
                 } else if (menuItem.getItemId() == R.id.menuItemInfo) {
                     InfoDialog.newInstance()
                         .show(getSupportFragmentManager(), "InfoDialog");
+                } else if (menuItem.getItemId() == R.id.menuItemUserManual) {
+                    Intent openBrowserIntent = new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(
+                                getResources().getString(R.string.variableUserManualUrl)));
+                    startActivity(openBrowserIntent);
                 } else if (menuItem.getItemId() == R.id.menuItemContactMe) {
                     SendFeedbackDialog.newInstance(
                             SendFeedbackDialog.FeedbackToken.QUESTION)
@@ -469,7 +462,7 @@ public class MainActivity extends AppCompatActivity
             GPS currentGPSLocation = (GPS) currentLocation;
             locationDescriptionBuilder.append(
                     currentGPSLocation.formatAccuracyInMeters());
-            if (currentGPSLocation.isOutdated()) {
+            if (currentGPSLocation.getMillisecondsElapsedSinceCreation() > 5*60*1000) {
                 locationDescriptionBuilder.append(
                         String.format(", %1$s", GlobalInstance.getStringResource(R.string.toolbarSensorDataOutdated)));
             }
@@ -788,16 +781,22 @@ public class MainActivity extends AppCompatActivity
                 .commit();
 
         } else if (fragment instanceof TabLayoutFragment) {
+
             if (newSubTab != null) {
                 popEverythingButTheTabLayoutFragmentFromBackStack();
                 ((TabLayoutFragment) fragment).changeTab(newSubTab);
+
+                if (newSubTab == RoutesTabLayoutFragment.Tab.NAVIGATE) {
+                    Intent loadNewRouteIntent = new Intent(NavigateFragment.ACTION_LOAD_NEW_ROUTE);
+                    LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(loadNewRouteIntent);
+                }
             }
         }
 
         updateToolbarNavigateUpButtonVisibility();
         settingsManagerInstance.setSelectedTabForMainActivity(newTab);
 
-        if (openLastPointProfileInPointsTab && newTab == Tab.POINTS) {
+        if (newTab == Tab.POINTS && openLastPointProfileInPointsTab) {
             addFragment(
                     PoiListFromServerFragment.newInstance(
                         settingsManagerInstance.getSelectedPoiProfile()));
@@ -817,10 +816,16 @@ public class MainActivity extends AppCompatActivity
 
         Fragment currentFragment = getSupportFragmentManager().findFragmentByTag(sameTab.name());
         if (currentFragment instanceof TabLayoutFragment) {
+
             if (newSubTab != null) {
                 popEverythingButTheTabLayoutFragmentFromBackStack();
                 ((TabLayoutFragment) currentFragment).changeTab(newSubTab);
                 updateToolbarNavigateUpButtonVisibility();
+
+                if (newSubTab == RoutesTabLayoutFragment.Tab.NAVIGATE) {
+                    Intent loadNewRouteIntent = new Intent(NavigateFragment.ACTION_LOAD_NEW_ROUTE);
+                    LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(loadNewRouteIntent);
+                }
             }
         }
 
@@ -849,7 +854,6 @@ public class MainActivity extends AppCompatActivity
             for (Fragment fragment : fragments) {
                 if (fragment instanceof PlanRouteDialog) {
                     ((PlanRouteDialog) fragment).dismiss();
-                    Timber.d("PlanRouteDialog dismissed");
                 }
             }
         }
@@ -864,7 +868,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override public void addFragment(DialogFragment fragment) {
         if (hasOpenDialog()) {
-            Timber.d("addFragment: fragment wnats to be a dialog");
+            Timber.d("addFragment: fragment wants to be a dialog");
             fragment.show(getSupportFragmentManager(), null);
         } else {
             Timber.d("addFragment: want to be embedded");

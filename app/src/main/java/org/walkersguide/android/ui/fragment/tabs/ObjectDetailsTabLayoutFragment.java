@@ -59,6 +59,8 @@ import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import androidx.fragment.app.DialogFragment;
 import android.text.TextUtils;
+import org.walkersguide.android.ui.UiHelper;
+import androidx.annotation.Nullable;
 
 
 public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
@@ -127,6 +129,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         object = (ObjectWithId) getArguments().getSerializable(KEY_OBJECT);
         Timber.d("configureView: object=%1$s", object);
         if (object != null) {
+
             ObjectWithIdView layoutObject = (ObjectWithIdView) view.findViewById(R.id.layoutObject);
             layoutObject.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
                 @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
@@ -135,39 +138,40 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             }, false);
             layoutObject.configureAsSingleObject(object);
 
-            // details label
             labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
             labelDistanceAndBearing.setVisibility(View.GONE);
+        }
 
-            // prepare tab list
+        return view;
+    }
+
+    @Override public void onStart() {
+        super.onStart();
+
+        if (object != null) {
             ArrayList<Tab> tabList = new ArrayList<Tab>();
+
             if (! (object instanceof Intersection)) {
                 tabList.add(Tab.DETAILS);
             }
-
             if (object instanceof Station) {
                 tabList.add(Tab.DEPARTURES);
             }
-
             if (object instanceof POI && ((POI) object).hasEntrance()) {
                 tabList.add(Tab.ENTRANCES);
             }
-
             if (object instanceof Intersection) {
                 tabList.add(Tab.INTERSECTION_STRUCTURE);
                 if (((Intersection) object).hasPedestrianCrossing()) {
                     tabList.add(Tab.PEDESTRIAN_CROSSINGS);
                 }
             }
-
             if (object instanceof IntersectionSegment) {
                 tabList.add(Tab.STREET_COURSE);
             }
 
             initializeViewPagerAndTabLayout(new TabAdapter(tabList));
         }
-
-        return view;
     }
 
 
@@ -235,34 +239,26 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         private TTSWrapper ttsWrapperInstance = TTSWrapper.getInstance();
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (getDialog() == null && ! getActivity().hasWindowFocus()) {
-                // fragment is embedded but not in the foreground
-                if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
-                        && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
-                        && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
-                    // only update, the distance label, if the current location was important
+            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                if (acceptNewPositionForDistanceLabel.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
+                            UiHelper.isInBackground(ObjectDetailsTabLayoutFragment.this),
+                            intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
                     updateDistanceAndBearingLabel();
                 }
-                return;
-            }
-
-            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (currentLocation != null) {
-                    if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)
-                            || acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
-                        updateDistanceAndBearingLabel();
-                    }
-                    if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
+                if (acceptNewPositionForTtsAnnouncement.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION), false, false)) {
+                    if (! UiHelper.isInBackground(ObjectDetailsTabLayoutFragment.this)) {
                         ttsWrapperInstance.announce(
                                 ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
                     }
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (currentBearing != null
-                        && acceptNewBearing.updateBearing(currentBearing)) {
+                if (acceptNewBearing.updateBearing(
+                            (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
+                            UiHelper.isInBackground(ObjectDetailsTabLayoutFragment.this),
+                            intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
                     updateDistanceAndBearingLabel();
                 }
             }
@@ -283,14 +279,11 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (TextUtils.isEmpty(labelDistanceAndBearing.getText())) {
-                updateDirectionLabel();
-                return;
-            }
             if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (currentBearing != null
-                        && acceptNewBearing.updateBearing(currentBearing)) {
+                if (acceptNewBearing.updateBearing(
+                            (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
+                            UiHelper.isInBackground(ObjectDetailsTabLayoutFragment.this),
+                            intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
                     updateDirectionLabel();
                 }
             }

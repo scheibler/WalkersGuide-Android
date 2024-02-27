@@ -120,7 +120,7 @@ public class PositionManager implements android.location.LocationListener {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
                     && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
                 locationManager.requestLocationUpdates(
-                        LocationManager.FUSED_PROVIDER, 0, 0, this);
+                        LocationManager.FUSED_PROVIDER, 10000, 0, this);
             } else if (locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(
                         LocationManager.NETWORK_PROVIDER, 10000, 0, this);
@@ -167,7 +167,7 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     public void requestCurrentLocation() {
-        broadcastCurrentLocation(false);
+        broadcastCurrentLocation(true);
     }
 
     private void broadcastCurrentLocation(boolean isImportant) {
@@ -357,8 +357,6 @@ public class PositionManager implements android.location.LocationListener {
      */
 
     // enable / disable simulation
-    public static final String ACTION_LOCATION_SIMULATION_STATE_CHANGED = "action.locationSimulationStateChanged";
-    public static final String EXTRA_SIMULATION_ENABLED = "simulationEnabled.locationSimulationStateChanged";
 
     private boolean simulationEnabled = false;
 
@@ -368,11 +366,6 @@ public class PositionManager implements android.location.LocationListener {
 
     public void setSimulationEnabled(boolean enabled) {
         this.simulationEnabled = enabled;
-
-        Intent intent = new Intent(ACTION_LOCATION_SIMULATION_STATE_CHANGED);
-        intent.putExtra(EXTRA_SIMULATION_ENABLED, enabled);
-        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
-
         broadcastCurrentLocation(true);
     }
 

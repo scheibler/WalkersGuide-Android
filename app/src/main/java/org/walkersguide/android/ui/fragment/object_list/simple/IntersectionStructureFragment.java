@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.object_list.simple;
 
+import org.walkersguide.android.ui.UiHelper;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
     import org.walkersguide.android.ui.view.ObjectWithIdView;
@@ -157,7 +158,7 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
         private IntersectionSegment lastClosestSegment = null;
 
         @Override public void onReceive(Context context, Intent intent) {
-            if (getDialog() == null && ! getActivity().hasWindowFocus()) {
+            if (UiHelper.isInBackground(IntersectionStructureFragment.this)) {
                 return;
             }
 

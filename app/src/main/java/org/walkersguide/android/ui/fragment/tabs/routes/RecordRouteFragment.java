@@ -68,6 +68,8 @@ import android.widget.Toast;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
+import org.walkersguide.android.util.Helper;
+import org.walkersguide.android.tts.TTSWrapper;
 
 
 public class RecordRouteFragment extends Fragment implements FragmentResultListener, MenuProvider {
@@ -265,12 +267,15 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
                                             R.plurals.manuallyAddedPoint,
                                             numberOfPointsByUser));
                             }
+
                             labelRecordedRouteStatus.setText(
                                     String.format(
                                         "%1$s: %2$s",
                                         context.getResources().getString(R.string.labelRecordedRouteStatus),
                                         message)
                                     );
+                            Helper.vibrateOnce(
+                                    Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
 
                             buttonStartRouteRecording.setVisibility(View.GONE);
                             layoutRouteRecordingInProgress.setVisibility(View.VISIBLE);

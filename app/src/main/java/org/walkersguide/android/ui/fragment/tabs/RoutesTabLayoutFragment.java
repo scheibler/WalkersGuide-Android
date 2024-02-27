@@ -62,8 +62,8 @@ public class RoutesTabLayoutFragment extends TabLayoutFragment {
     }
 
 
-    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    @Override public void onStart() {
+        super.onStart();
         initializeViewPagerAndTabLayout(new RoutesTabAdapter());
     }
 

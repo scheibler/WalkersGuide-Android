@@ -331,10 +331,10 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                     switchFromForegroundIntoStoppedState();
                     // break statement is missing intentionally
                 case STOPPED:
-                    if (this.trackingMode != TrackingMode.OFF) {
-                        disableTrackingHandler.postDelayed(disableTrackingRunnable, 10*60*1000l);
-                    } else if (routeRecordingState != RouteRecordingState.OFF) {
+                    if (this.routeRecordingState != RouteRecordingState.OFF) {
                         return START_STICKY;
+                    } else if (this.trackingMode != TrackingMode.OFF) {
+                        disableTrackingHandler.postDelayed(disableTrackingRunnable, 10*60*1000l);
                     } else {
                         destroyService();
                     }
@@ -711,16 +711,14 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
     @Override public void newLocation(Point point, boolean isImportant) {
         if (trackingMode != TrackingMode.OFF
-                && (
-                       isImportant
-                    || acceptNewValueForTrackedObjectListUpdate.updatePoint(point))) {
+                && acceptNewValueForTrackedObjectListUpdate.updatePoint(point, false, isImportant)) {
             Helper.vibrateOnce(100, Helper.VIBRATION_INTENSITY_WEAK);
             updateTrackedObjectList();
         }
 
         if (this.trackedObjectCache != null
                 && this.trackingMode == TrackingMode.DISTANCE
-                && acceptNewValueForDistanceTrackingMode.updatePoint(point)) {
+                && acceptNewValueForDistanceTrackingMode.updatePoint(point, false, isImportant)) {
             distanceTrackingMode.lookForNearbyObjects(
                     trackedObjectCache, point, deviceSensorManagerInstance.getCurrentBearing());
         }
@@ -740,10 +738,10 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     // device sensor data
     private AcceptNewBearing acceptNewValueForBearingTrackingMode = new AcceptNewBearing(10, 0);
 
-    @Override public void newBearing(Bearing bearing) {
+    @Override public void newBearing(Bearing bearing, boolean isImportant) {
         if (this.trackedObjectCache != null
                 && this.trackingMode == TrackingMode.BEARING
-                && acceptNewValueForBearingTrackingMode.updateBearing(bearing)) {
+                && acceptNewValueForBearingTrackingMode.updateBearing(bearing, false, isImportant)) {
             if (bearingTrackingMode.isRunning()) {
                 bearingTrackingMode.cancel();
             }
@@ -1033,8 +1031,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         // trivial cases
         if (       pointToAdd == null
                 || pointToAdd.getBearing() == null
-                || pointToAdd.getAccuracy() == null
-                || pointToAdd.getAccuracy() > 10.0) {
+                || pointToAdd.getAccuracy() == null) {
             return false;
         } else if (recordedPointList.isEmpty()) {
             return true;
@@ -1042,6 +1039,15 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
         GPS previousPoint = recordedPointList.get(recordedPointList.size()-1);
         if (previousPoint.distanceTo(pointToAdd) < RECORDED_POINTS_MIN_DISTANCE_IN_METERS) {
+            return false;
+        } else if (previousPoint.getAccuracy() > 20.0
+                && previousPoint.getMillisecondsElapsedSinceCreation() < 30*1000) {
+            return false;
+        } else if (previousPoint.getAccuracy() > 15.0
+                && previousPoint.getMillisecondsElapsedSinceCreation() < 20*1000) {
+            return false;
+        } else if (previousPoint.getAccuracy() > 10.0
+                && previousPoint.getMillisecondsElapsedSinceCreation() < 10*1000) {
             return false;
         }
 
@@ -1058,7 +1064,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         GPS destination = positionManagerInstance.getGPSLocation();
         if (destination != null
                 && destination.distanceTo(recordedPointList.get(recordedPointList.size()-1)) > RECORDED_POINTS_MIN_DISTANCE_IN_METERS
-                && destination.distanceTo(recordedPointList.get(recordedPointList.size()-1)) < 200) {
+                && recordedPointList.get(recordedPointList.size()-1).getMillisecondsElapsedSinceCreation() > 10*60*1000) {
             recordedPointList.add(destination);
         }
 

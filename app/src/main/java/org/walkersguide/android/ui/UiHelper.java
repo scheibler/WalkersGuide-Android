@@ -91,6 +91,19 @@ public class UiHelper {
 
 
     /**
+     * fragment in background check
+     */
+
+    public static boolean isInBackground(Fragment fragment) {
+        if (fragment instanceof DialogFragment
+                && ((DialogFragment) fragment).getDialog() != null) {
+            return false;
+        }
+        return fragment != null && ! fragment.getActivity().hasWindowFocus();
+    }
+
+
+    /**
      * an accessibility delegate, that tells talkback, that the selected ui element is a button
      */
 

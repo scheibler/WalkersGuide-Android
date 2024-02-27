@@ -134,8 +134,11 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         settingsManagerInstance = SettingsManager.getInstance();
         ttsWrapperInstance = TTSWrapper.getInstance();
 
-        route = getArguments() != null
-            ? (Route) getArguments().getSerializable(KEY_ROUTE) : null;
+        if (savedInstanceState != null) {
+            route = (Route) savedInstanceState.getSerializable(KEY_ROUTE);
+        } else if (getArguments() != null) {
+            route = (Route) getArguments().getSerializable(KEY_ROUTE);
+        }
         showObjectWithIdView = getArguments() != null
             ? getArguments().getBoolean(KEY_SHOW_OBJECT_WITH_ID_VIEW) : false;
     }
@@ -322,6 +325,38 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         });
     }
 
+    @Override public void onStart() {
+        super.onStart();
+        IntentFilter loadNewRouteFilter = new IntentFilter();
+        loadNewRouteFilter.addAction(ACTION_LOAD_NEW_ROUTE);
+        LocalBroadcastManager
+            .getInstance(getActivity())
+            .registerReceiver(loadNewRouteBroadcastReceiver, loadNewRouteFilter);
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(loadNewRouteBroadcastReceiver);
+    }
+
+    @Override public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(KEY_ROUTE, this.route);
+    }
+
+    // broadcast to load new route
+    public static final String ACTION_LOAD_NEW_ROUTE = "load_new_route";
+
+    private BroadcastReceiver loadNewRouteBroadcastReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ACTION_LOAD_NEW_ROUTE)) {
+                Timber.d("onReceive: ACTION_LOAD_NEW_ROUTE");
+                route = SettingsManager.getInstance().getLastSelectedRoute();
+                requestUiUpdate();
+            }
+        }
+    };
+
 
     /**
      * pause and resume
@@ -330,15 +365,24 @@ public class NavigateFragment extends Fragment implements MenuProvider {
 
     @Override public void onPause() {
         super.onPause();
-        if (route != null) {
-            LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(routeBroadcastReceiver);
-        }
-        Timber.d("onPause");
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(routeBroadcastReceiver);
     }
 
     @Override public void onResume() {
         super.onResume();
-        Timber.d("onResume");
+
+        IntentFilter locationAndBearingUpdateFilter = new IntentFilter();
+        locationAndBearingUpdateFilter.addAction(PositionManager.ACTION_NEW_LOCATION);
+        locationAndBearingUpdateFilter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
+        locationAndBearingUpdateFilter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE);
+        LocalBroadcastManager
+            .getInstance(getActivity())
+            .registerReceiver(routeBroadcastReceiver, locationAndBearingUpdateFilter);
+
+        requestUiUpdate();
+    }
+
+    private void requestUiUpdate() {
         layoutRoute.setVisibility(View.GONE);
         layoutCurrentRouteObject.setVisibility(View.GONE);
         layoutIntersectionStructure.setVisibility(View.GONE);
@@ -346,7 +390,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         buttonPreviousRouteObject.setVisibility(View.GONE);
         buttonNextRouteObject.setVisibility(View.GONE);
 
-        // load route from settings
         if (route != null) {
             layoutRoute.setVisibility(
                     showObjectWithIdView ? View.VISIBLE : View.GONE);
@@ -355,13 +398,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             buttonPreviousRouteObject.setVisibility(View.VISIBLE);
             buttonNextRouteObject.setVisibility(View.VISIBLE);
             updateUi();
-
-            // broadcast filter
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(PositionManager.ACTION_NEW_LOCATION);
-            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
-            filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE);
-            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(routeBroadcastReceiver, filter);
 
             // request current location for labelDistanceAndBearing field
             acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
@@ -494,16 +530,8 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         private long arrivalTime;
 
         @Override public void onReceive(Context context, Intent intent) {
+            if (route == null) { return; }
             RouteObject currentRouteObject = route.getCurrentRouteObject();
-
-            if (! getActivity().hasWindowFocus()) {
-                if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)
-                        && intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION) != null
-                        && intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)) {
-                    updateDistanceAndBearingLabel(currentRouteObject);
-                }
-                return;
-            }
 
             if (! currentRouteObject.equals(lastRouteObject)) {
                 // skipped to next route object
@@ -514,22 +542,25 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             }
 
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                Point currentLocation = (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION);
-                if (currentLocation != null) {
-                    if (intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false)
-                            || acceptNewPositionForDistanceLabel.updatePoint(currentLocation)) {
-                        updateDistanceAndBearingLabel(currentRouteObject);
-                    }
-                    if (acceptNewPositionForTtsAnnouncement.updatePoint(currentLocation)) {
+                if (acceptNewPositionForDistanceLabel.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
+                            UiHelper.isInBackground(NavigateFragment.this),
+                            intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
+                    updateDistanceAndBearingLabel(currentRouteObject);
+                }
+                if (acceptNewPositionForTtsAnnouncement.updatePoint(
+                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION), false, false)) {
+                    if (! UiHelper.isInBackground(NavigateFragment.this)) {
                         ttsWrapperInstance.announce(
                                 currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
                     }
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                Bearing currentBearing = (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (currentBearing != null
-                        && acceptNewBearing.updateBearing(currentBearing)) {
+                if (acceptNewBearing.updateBearing(
+                            (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
+                            UiHelper.isInBackground(NavigateFragment.this),
+                            intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
                     updateDistanceAndBearingLabel(currentRouteObject);
                 }
 

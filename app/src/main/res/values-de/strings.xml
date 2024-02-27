@@ -104,6 +104,7 @@
     <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Kontakt</string>
+    <string name="menuItemUserManual">Bedienungsanleitung</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Route planen</string>
@@ -317,7 +318,7 @@
     <string name="fragmentPoiProfileListNameEmbedded">Umgebung</string>
     <string name="fragmentPoiProfileListNameSelect">Punktprofil auswählen:</string>
     <string name="buttonAddPoiProfile">Punktprofil hinzufügen</string>
-    <string name="labelEmptyPoiProfileList">Bitte legen Sie mindestens ein Punktprofil an, um nach Punkten in der Umgebung suchen zu können.</string>
+    <string name="labelEmptyPoiProfileList">Bitte lege mindestens ein Punktprofil an, um nach Punkten in der Umgebung suchen zu können.</string>
 
     <!-- CreatePoiProfileDialog  -->
     <string name="createPoiProfileDialogTitle">Punktprofil erstellen:</string>
@@ -492,7 +493,7 @@
     <string name="menuItemSelectStation">Haltestelle auswählen</string>
     <string name="labelNearby">In der Nähe von</string>
     <string name="labelNoPtStationsNearby">Der ausgewählte ÖPNV Provider konnte keine Haltestelle finden.</string>
-    <string name="labelSelectStation">Bitte wählen Sie eine Haltestelle für die Abfahrtsinformationen aus.</string>
+    <string name="labelSelectStation">Bitte wähle eine Haltestelle für die Abfahrtsinformationen aus.</string>
     <!-- DepartureAdapter -->
     <string name="labelDepartureAdapter">%1$s\nnach %2$s\n%3$s %4$s</string>
     <string name="labelDepartureAdapterCD">%1$s nach %2$s, %3$s, %4$s</string>

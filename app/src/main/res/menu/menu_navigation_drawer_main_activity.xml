@@ -28,6 +28,9 @@
                 android:id="@+id/menuItemInfo"
                 android:title="@string/menuItemInfo" />
             <item
+                android:id="@+id/menuItemUserManual"
+                android:title="@string/menuItemUserManual" />
+            <item
                 android:id="@+id/menuItemContactMe"
                 android:title="@string/menuItemContactMe" />
         </menu>
