@@ -81,7 +81,7 @@ public class StaticProfile extends DatabaseProfile implements Serializable {
         return new StaticProfile(
                 ID_TRACKED_OBJECTS_WITH_ID,
                 GlobalInstance.getStringResource(R.string.databaseProfileTrackedObjectsWithId),
-                R.plurals.pointAndRoute,
+                R.plurals.point,
                 SortMethod.DISTANCE_ASC);
     }
 

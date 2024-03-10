@@ -94,7 +94,7 @@ public class PoiProfileTask extends ServerTask {
                 //          num_low num_hgh
                 //  rad_low r++,--- ---,n++
                 //  rad_hgh r++,--- r++,n++
-                if (((float) cachedResult.getLookupNumberOfResults() / cachedResult.getNumberOfResults()) > 0.66) {
+                if (((float) cachedResult.getLookupNumberOfResults() / cachedResult.getNumberOfResults()) > 0.5) {
                     // num_hgh: increase number of results
                     newNumberOfResults += PoiProfileResult.INITIAL_NUMBER_OF_RESULTS;
                     if (((float) cachedResult.getLookupRadius() / cachedResult.getRadius()) > 0.33) {

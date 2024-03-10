@@ -68,6 +68,10 @@
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Bearing details</string>
+    <string name="switchAutoSwitchBearingSource">Switch bearing sensor automatically</string>
+    <string name="switchAutoSwitchBearingSourceHint">When activated, the app gets its bearing information
+        from satellite data, for example, when you put your smartphone upright in your pocket.</string>
+    <string name="messageAutoSwitchBearingSourceEnabled">You can\'t select a bearing sensor manually, while the automatic switch-sensor option is enabled. Please see below to disable.</string>
     <string name="buttonEnableBearingSimulation">Enable simulation</string>
     <string name="labelForDegreeEditText">Degree:</string>
 
@@ -75,7 +79,7 @@
     <string name="locationDetailsDialogTitle">Location details</string>
     <string name="labelCurrentLocationHeading">Current location</string>
     <string name="buttonActionForCurrentLocation">Actions for the current location</string>
-    <string name="currentLocationMenuItemAddToPinnedPoints">Pin</string>
+    <string name="currentLocationMenuItemSave">Save location</string>
     <string name="buttonEnableLocationSimulation">Enable simulation</string>
 
     <!-- LocationSensorDetailsDialog -->
@@ -138,6 +142,7 @@
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
     <string name="pointSelectFromCollections">Collections</string>
     <string name="pointSelectFromPOI">Select from nearby points</string>
+    <string name="pointSelectFromHistory">History</string>
     <string name="pointSelectFromCoordinatesLink">Import from shared link</string>
 
     <!-- enter address dialog -->
@@ -262,6 +267,8 @@
     <string name="buttonFinishRecordingCD">Finish recording</string>
     <string name="labelRecordedPointName">Point %1$d</string>
     <string name="labelNoRecordedRoutes">No routes have been recorded yet.</string>
+    <string name="messageNoteRouteRecordingOnlyInForeground">Please note, that your route only is recorded, as long as the app is in the foreground.
+        When you lock the display or put WalkersGuide in the background, the route recording is paused.</string>
     <string name="messageRecordedRouteTooFewPoints">Can\'t save the recorded route. It still contains too few points.</string>
     <string name="messageRecordedRouteNameIsMissing">Please enter a name for the recorded route.</string>
     <string name="messageSaveRecordedRouteFailed">Error: Can\'t save the recorded route.</string>
@@ -711,15 +718,12 @@
 
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
-    <string name="contextMenuItemOverview">Overview</string>
-    <string name="contextMenuItemUserAnnotation">Edit annotation</string>
-    <string name="contextMenuItemRename">Rename</string>
-    <string name="contextMenuItemRemove">Remove</string>
-    <!-- overview sub menu -->
     <string name="contextMenuItemOverviewPin">Pinned</string>
     <string name="contextMenuItemOverviewTrack">Tracked</string>
-    <string name="contextMenuItemOverviewAddToBoth">Pin and track</string>
-    <string name="contextMenuItemOverviewRemoveFromBoth">Remove from both</string>
+    <string name="contextMenuItemUserAnnotationAdd">Add annotation</string>
+    <string name="contextMenuItemUserAnnotationEdit">Edit annotation</string>
+    <string name="contextMenuItemRename">Rename</string>
+    <string name="contextMenuItemRemove">Remove</string>
 
     <!-- dialog button labels -->
     <string name="dialogOK">OK</string>
@@ -903,14 +907,15 @@
     <string name="poiCategoryEntertainment">Sports and entertainment</string>
     <string name="poiCategoryPublicService">Public services</string>
     <string name="poiCategoryBuildingsWithName">All buildings with a name</string>
-    <string name="poiCategoryEntrance">Entrances</string>
+    <string name="poiCategoryEntrance">Entrances with a name</string>
+    <string name="poiCategoryEntranceWithoutName">All other entrances</string>
     <string name="poiCategorySurveillance">Surveillance cameras</string>
     <string name="poiCategoryBench">Benches</string>
     <string name="poiCategoryTrash">Trash cans</string>
     <string name="poiCategoryNature">Lakes and mountains</string>
     <string name="poiCategoryBridge">Bridges</string>
-    <string name="poiCategoryNamedIntersection">Intersections with name</string>
-    <string name="poiCategoryOtherIntersection">Intersections without name</string>
+    <string name="poiCategoryNamedIntersection">Intersections with a name</string>
+    <string name="poiCategoryOtherIntersection">All other intersections</string>
     <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
 
 
@@ -993,6 +998,7 @@
     -->
 
     <!-- BearingSensor -->
+    <string name="bearingSensor">Bearing source</string>
     <string name="bearingSensorCompass">Compass</string>
     <string name="bearingSensorSatellite">Satellite</string>
 
@@ -1156,12 +1162,6 @@
     </plurals>
 
     <plurals
-        name="trackedObject">
-        <item quantity="one">1 tracked object</item>
-        <item quantity="other">%d tracked objects</item>
-    </plurals>
-
-    <plurals
         name="point">
         <item quantity="one">1 point</item>
         <item quantity="other">%d points</item>
@@ -1171,6 +1171,12 @@
         name="manuallyAddedPoint">
         <item quantity="one">1 manually added point</item>
         <item quantity="other">%d manually added points</item>
+    </plurals>
+
+    <plurals
+        name="trackedPoint">
+        <item quantity="one">1 tracked point</item>
+        <item quantity="other">%d tracked points</item>
     </plurals>
 
     <plurals

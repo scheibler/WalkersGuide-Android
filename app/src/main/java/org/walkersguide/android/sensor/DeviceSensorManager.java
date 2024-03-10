@@ -1,5 +1,7 @@
 package org.walkersguide.android.sensor;
 
+import org.walkersguide.android.R;
+import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.util.Helper;
 import timber.log.Timber;
 import org.walkersguide.android.data.angle.Bearing;
@@ -29,6 +31,8 @@ import org.walkersguide.android.util.SettingsManager;
 import android.view.Display;
 import android.view.WindowManager;
 import android.view.Surface;
+import android.os.Handler;
+import android.os.Looper;
 
 
 public class DeviceSensorManager implements SensorEventListener {
@@ -76,11 +80,17 @@ public class DeviceSensorManager implements SensorEventListener {
     /**
      * start and stop sensor updates
      */
+    public static final String ACTION_BEARING_SENSOR_CHANGED = "bearingSensorChanged";
+
     private SensorManager sensorManager = null;
+    private AutoSwitchBearingSourceHysteresis autoSwitchBearingSourceHysteresis;
+    private boolean deviceUpright;
 
     public void startSensors() {
         if (sensorManager == null) {
             sensorManager = (SensorManager) GlobalInstance.getContext().getSystemService(Context.SENSOR_SERVICE);
+            autoSwitchBearingSourceHysteresis = new AutoSwitchBearingSourceHysteresis();
+            deviceUpright = false;
 
             // accelerometer sensor (shake detection and fallback compass)
             sensorManager.registerListener(
@@ -126,6 +136,9 @@ public class DeviceSensorManager implements SensorEventListener {
         if (sensorManager != null) {
             sensorManager.unregisterListener(this);
             sensorManager = null;
+            autoSwitchBearingSourceHysteresis.unregisterHandlers();
+            autoSwitchBearingSourceHysteresis = null;
+            deviceUpright = false;
 
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(mMessageReceiver);
         }
@@ -138,7 +151,89 @@ public class DeviceSensorManager implements SensorEventListener {
     public void setSelectedBearingSensor(BearingSensor newBearingSensor) {
         if (newBearingSensor != null) {
             settingsManagerInstance.setSelectedBearingSensor(newBearingSensor);
+            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(new Intent(ACTION_BEARING_SENSOR_CHANGED));
             broadcastCurrentBearing(true);
+        }
+    }
+
+    public boolean isDeviceUpright() {
+        return this.deviceUpright;
+    }
+
+    private void updateDeviceUpright(float[] orientationValues) {
+        // compass: degree (z-axis)
+        //Timber.d("degree: %1$.1f", orientationValues[0]);
+        // vertically upright: pitch (y-axis)
+        //Timber.d("pitch: %1$.1f", orientationValues[1]);
+        boolean verticallyUpright = orientationValues[1] < -1.25 || orientationValues[1] > 1.25;
+        // horizontally upright: roll (x-axis)
+        //Timber.d("roll: %1$.1f", orientationValues[2]);
+        boolean horizontallyUpright = (orientationValues[2] > -1.95 && orientationValues[2] < -1.35)
+                                            || (orientationValues[2] > 1.35 &&  orientationValues[2] < 1.95);
+
+        boolean newDeviceUpright = verticallyUpright || horizontallyUpright;
+        if (newDeviceUpright != this.deviceUpright) {
+            this.deviceUpright = newDeviceUpright;
+            if (settingsManagerInstance.getAutoSwitchBearingSourceEnabled()) {
+                this.autoSwitchBearingSourceHysteresis.deviceOrientationChanged();
+            }
+        }
+    }
+
+
+    private class AutoSwitchBearingSourceHysteresis {
+        private static final long THRESHOLD_IN_MS = 5000l;
+
+        private Handler handler;
+        private Runnable switchToCompass, switchToSatellite;
+
+        public AutoSwitchBearingSourceHysteresis() {
+            this.handler = new Handler(Looper.getMainLooper());
+            this.switchToCompass = new Runnable() {
+                @Override public void run() {
+                    setSelectedBearingSensor(BearingSensor.COMPASS);
+                    announceBearingSensorChange();
+                }
+            };
+            this.switchToSatellite = new Runnable() {
+                @Override public void run() {
+                    setSelectedBearingSensor(BearingSensor.SATELLITE);
+                    announceBearingSensorChange();
+                }
+            };
+        }
+
+        private void announceBearingSensorChange() {
+            TTSWrapper.getInstance().announce(
+                    String.format(
+                        "%1$s: %2$s",
+                        GlobalInstance.getStringResource(R.string.bearingSensor),
+                        getSelectedBearingSensor())
+                    );
+        }
+
+        public void deviceOrientationChanged() {
+            switch (getSelectedBearingSensor()) {
+                case COMPASS:
+                    if (isDeviceUpright()) {
+                        this.handler.postDelayed(this.switchToSatellite, THRESHOLD_IN_MS);
+                    } else {
+                        this.handler.removeCallbacks(this.switchToSatellite);
+                    }
+                    break;
+                case SATELLITE:
+                    if (! isDeviceUpright()) {
+                        this.handler.postDelayed(this.switchToCompass, THRESHOLD_IN_MS);
+                    } else {
+                        this.handler.removeCallbacks(this.switchToCompass);
+                    }
+                    break;
+            }
+        }
+
+        public void unregisterHandlers() {
+            this.handler.removeCallbacks(this.switchToSatellite);
+            this.handler.removeCallbacks(this.switchToCompass);
         }
     }
 
@@ -224,6 +319,11 @@ public class DeviceSensorManager implements SensorEventListener {
                 calculateShakeIntensity(event.values);
                 // accelerometer value array is required for compass without gyroscope
                 System.arraycopy(event.values, 0, valuesAccelerometer, 0, 3);
+                // upside down
+                float z = event.values[2];
+                if (z < -9.0) {
+                    // device is upside down
+                }
                 break;
 
             case Sensor.TYPE_MAGNETIC_FIELD:
@@ -238,8 +338,10 @@ public class DeviceSensorManager implements SensorEventListener {
                     SensorManager.getRotationMatrix(
                             matrixR, matrixI, valuesAccelerometer, event.values);
                     SensorManager.getOrientation(matrixR, orientationValues);
+                    updateDeviceUpright(orientationValues);
+
                     // swap x and z axis if the smartphone stands upright
-                    if (isPhoneUpright(orientationValues)) {
+                    if (isDeviceUpright()) {
                         SensorManager.remapCoordinateSystem(
                                 matrixR, SensorManager.AXIS_X, SensorManager.AXIS_Z, matrixR);
                         SensorManager.getOrientation(matrixR, orientationValues);
@@ -251,8 +353,10 @@ public class DeviceSensorManager implements SensorEventListener {
                     SensorManager.getRotationMatrixFromVector(
                             matrixRotation, event.values);
                     SensorManager.getOrientation(matrixRotation, orientationValues);
+                    updateDeviceUpright(orientationValues);
+
                     // swap x and z axis if the smartphone stands upright
-                    if (isPhoneUpright(orientationValues)) {
+                    if (isDeviceUpright()) {
                         SensorManager.remapCoordinateSystem(
                                 matrixRotation, SensorManager.AXIS_X, SensorManager.AXIS_Z, matrixRotation);
                         SensorManager.getOrientation(matrixRotation, orientationValues);
@@ -338,11 +442,6 @@ public class DeviceSensorManager implements SensorEventListener {
                 }
                 break;
         }
-    }
-
-    private boolean isPhoneUpright(float[] orientationValues) {
-        //Timber.d("%1$.1f; %2$.1f; %3$.1f", orientationValues[0], orientationValues[1], orientationValues[2]);
-        return orientationValues[1] < -1.2;         // pitch
     }
 
     private int radianToDegree(float radian) {

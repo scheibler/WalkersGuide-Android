@@ -233,7 +233,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
      * current location context menu
      */
     private static final int MENU_ITEM_DETAILS = 1;
-    private static final int MENU_ITEM_PIN = 2;
+    private static final int MENU_ITEM_SAVE = 2;
     private static final int MENU_ITEM_SHARE = 3;
 
     private void showContextMenuForCurrentLocation(final View view, final Point currentLocation) {
@@ -243,7 +243,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                 Menu.NONE, MENU_ITEM_DETAILS, 1, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
         // pin
         contextMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_PIN, 2, GlobalInstance.getStringResource(R.string.currentLocationMenuItemAddToPinnedPoints));
+                Menu.NONE, MENU_ITEM_SAVE, 2, GlobalInstance.getStringResource(R.string.currentLocationMenuItemSave));
         // share
         SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
                 Menu.NONE, Menu.NONE, 4, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareCoordinates));
@@ -254,7 +254,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                 if (item.getItemId() == MENU_ITEM_DETAILS) {
                     LocationSensorDetailsDialog.newInstance()
                         .show(getChildFragmentManager(), "LocationSensorDetailsDialog");
-                } else if (item.getItemId() == MENU_ITEM_PIN) {
+                } else if (item.getItemId() == MENU_ITEM_SAVE) {
                     SaveCurrentLocationDialog.addToDatabaseProfile()
                         .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                 } else if (item.getItemId() == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {

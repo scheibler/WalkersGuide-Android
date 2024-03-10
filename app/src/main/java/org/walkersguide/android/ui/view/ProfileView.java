@@ -309,17 +309,13 @@ public class ProfileView extends LinearLayout {
      */
 
     private static final int MENU_ITEM_DETAILS = 1;
-    private static final int MENU_ITEM_POI_CATEGORIES = 2;
-    private static final int MENU_ITEM_COLLECTIONS = 3;
-    private static final int MENU_ITEM_OVERVIEW = 4;
-    private static final int MENU_ITEM_PIN_SHORTCUT = 5;
-    private static final int MENU_ITEM_RENAME = 6;
-    private static final int MENU_ITEM_REMOVE = 7;
-
-    private static final int MENU_ITEM_OVERVIEW_PIN = 200;
-    private static final int MENU_ITEM_OVERVIEW_TRACK = 201;
-    private static final int MENU_ITEM_OVERVIEW_ADD_TO_BOTH = 202;
-    private static final int MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH = 203;
+    private static final int MENU_ITEM_OVERVIEW_PIN = 2;
+    private static final int MENU_ITEM_OVERVIEW_TRACK = 3;
+    private static final int MENU_ITEM_POI_CATEGORIES = 4;
+    private static final int MENU_ITEM_COLLECTIONS = 5;
+    private static final int MENU_ITEM_PIN_SHORTCUT = 6;
+    private static final int MENU_ITEM_RENAME = 7;
+    private static final int MENU_ITEM_REMOVE = 8;
 
 
     public void showContextMenu(final View view, final Profile profile) {
@@ -334,6 +330,17 @@ public class ProfileView extends LinearLayout {
         if (profile instanceof MutableProfile) {
             MutableProfile mutableProfile = (MutableProfile) profile;
 
+            // pin
+            MenuItem menuItemOverviewPin = contextMenu.getMenu().add(
+                    Menu.NONE, MENU_ITEM_OVERVIEW_PIN, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
+            menuItemOverviewPin.setCheckable(true);
+            menuItemOverviewPin.setChecked(mutableProfile.isPinned());
+            // track
+            MenuItem menuItemOverviewTrack = contextMenu.getMenu().add(
+                    Menu.NONE, MENU_ITEM_OVERVIEW_TRACK, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
+            menuItemOverviewTrack.setCheckable(true);
+            menuItemOverviewTrack.setChecked(mutableProfile.isTracked());
+
             // poi profile specific: select poi categories and collections
             if (profile instanceof PoiProfile) {
                 contextMenu.getMenu().add(
@@ -341,40 +348,6 @@ public class ProfileView extends LinearLayout {
                 contextMenu.getMenu().add(
                         Menu.NONE, MENU_ITEM_COLLECTIONS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemProfileCollections));
             }
-
-            // begin "overview" submenu
-
-            SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
-                    Menu.NONE, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverview));
-            boolean profileIsPinned = mutableProfile.isPinned();
-            boolean profileIsTracked = mutableProfile.isTracked();
-
-            // pin
-            MenuItem menuItemOverviewPin = overviewSubMenu.add(
-                    Menu.NONE, MENU_ITEM_OVERVIEW_PIN, 0,
-                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
-            menuItemOverviewPin.setCheckable(true);
-            menuItemOverviewPin.setChecked(profileIsPinned);
-            // track
-            MenuItem menuItemOverviewTrack = overviewSubMenu.add(
-                    Menu.NONE, MENU_ITEM_OVERVIEW_TRACK, 1,
-                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
-            menuItemOverviewTrack.setCheckable(true);
-            menuItemOverviewTrack.setChecked(profileIsTracked);
-
-            if (! profileIsPinned && ! profileIsTracked) {
-                // neither pinned or tracked
-                overviewSubMenu.add(
-                        Menu.NONE, MENU_ITEM_OVERVIEW_ADD_TO_BOTH, 2,
-                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewAddToBoth));
-            } else if (profileIsPinned && profileIsTracked) {
-                // both, pinned and tracked
-                overviewSubMenu.add(
-                        Menu.NONE, MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH, 2,
-                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewRemoveFromBoth));
-            }
-
-            // end "overview" submenu
 
             // poi profile specific: add to home screen
             if (profile instanceof PoiProfile
@@ -421,6 +394,17 @@ public class ProfileView extends LinearLayout {
                 mainActivityController.addFragment(profileDetailsFragment);
             }
 
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_PIN
+                || menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
+            MutableProfile mutableProfile = (MutableProfile) selectedProfile;
+            if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
+                mutableProfile.setPinned(! mutableProfile.isPinned());
+            } else if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
+                mutableProfile.setTracked(! mutableProfile.isTracked());
+            }
+            // update parent view
+            ViewChangedListener.sendProfileListChangedBroadcast();
+
         } else if (menuItemId == MENU_ITEM_POI_CATEGORIES) {
             UpdatePoiProfileSelectedPoiCategoriesDialog.newInstance((PoiProfile) selectedProfile)
                 .show(mainActivityController.getFragmentManagerInstance(), "UpdatePoiProfileSelectedPoiCategoriesDialog");
@@ -428,35 +412,6 @@ public class ProfileView extends LinearLayout {
         } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
             UpdatePoiProfileSelectedCollectionsDialog.newInstance((PoiProfile) selectedProfile)
                 .show(mainActivityController.getFragmentManagerInstance(), "UpdatePoiProfileSelectedCollectionsDialog");
-
-        } else if (menuItemId >= MENU_ITEM_OVERVIEW_PIN
-                && menuItemId <= MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-            MutableProfile mutableProfile = (MutableProfile) selectedProfile;
-            boolean profileIsPinned = mutableProfile.isPinned();
-            boolean profileIsTracked = mutableProfile.isTracked();
-
-            // pin
-            if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
-                // toggle
-                mutableProfile.setPinned(! profileIsPinned);
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                mutableProfile.setPinned(true);
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                mutableProfile.setPinned(false);
-            }
-
-            // track
-            if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
-                // toggle
-                mutableProfile.setTracked(! profileIsTracked);
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                mutableProfile.setTracked(true);
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                mutableProfile.setTracked(false);
-            }
-
-            // update parent view
-            ViewChangedListener.sendProfileListChangedBroadcast();
 
         } else if (menuItemId == MENU_ITEM_PIN_SHORTCUT) {
             AddPoiProfileToHomeScreenDialog.newInstance((PoiProfile) selectedProfile)

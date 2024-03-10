@@ -22,6 +22,9 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import timber.log.Timber;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
+import android.media.AudioManager;
+import android.annotation.SuppressLint;
+import android.media.AudioFocusRequest;
 
 
 public class TTSWrapper extends UtteranceProgressListener {
@@ -29,6 +32,7 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     private static TTSWrapper managerInstance;
     private AccessibilityManager accessibilityManager;
+    private AudioManager mAudioManager;
     private TextToSpeech tts;
 
     public static TTSWrapper getInstance() {
@@ -47,6 +51,8 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     private TTSWrapper() {
         accessibilityManager = (AccessibilityManager) GlobalInstance.getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        mAudioManager = (AudioManager) GlobalInstance.getContext().getSystemService(Context.AUDIO_SERVICE);
+
         tts = new TextToSpeech(GlobalInstance.getContext(), new TextToSpeech.OnInitListener() {
             @Override public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
@@ -93,18 +99,12 @@ public class TTSWrapper extends UtteranceProgressListener {
         if (isInitialized()) {
             stop();
 
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .setUsage(
-                        isScreenReaderEnabled()
-                        ? AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY
-                        : AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
-                .build();
-            tts.setAudioAttributes(audioAttributes);
-
             // speak
-            for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
-                tts.speak(chunk, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
+            tts.setAudioAttributes(buildAudioAttributes());
+            if (tryToGetAudioFocus()) {
+                for (String chunk : Splitter.fixedLength(tts.getMaxSpeechInputLength()).splitToList(message)) {
+                    tts.speak(chunk, TextToSpeech.QUEUE_ADD, null, UTTERANCE_ID_SPEAK);
+                }
             }
         }
     }
@@ -112,7 +112,46 @@ public class TTSWrapper extends UtteranceProgressListener {
     public void stop() {
         if (isInitialized() && isSpeaking()) {
             tts.stop();
+            giveUpAudioFocus();
         }
+    }
+
+    private AudioAttributes buildAudioAttributes() {
+        return new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .setUsage(
+                    isScreenReaderEnabled()
+                    ? AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY
+                    : AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+            .build();
+    }
+
+
+    /**
+     * audio focus
+     * only supported for android sdk >= 26 (version 8.0)
+     */
+
+    private boolean tryToGetAudioFocus() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            return mAudioManager.requestAudioFocus(buildAudioFocusRequest()) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        }
+        return true;
+    }
+
+    private void giveUpAudioFocus() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            mAudioManager.abandonAudioFocusRequest(buildAudioFocusRequest());
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private AudioFocusRequest buildAudioFocusRequest() {
+        return new AudioFocusRequest.Builder(
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(buildAudioAttributes())
+            .setAcceptsDelayedFocusGain(false)
+            .build();
     }
 
 
@@ -125,9 +164,12 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     @Override public void onError(String utteranceId) {
         tts.setLanguage(Locale.getDefault());
+        giveUpAudioFocus();
     }
 
     @Override public void onDone(String utteranceId) {
+        Timber.d("onDone");
+        giveUpAudioFocus();
     }
 
 }

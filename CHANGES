@@ -3,6 +3,17 @@ Change Log
 
 
 
+v3.0.0: 2024-03-09
+------------------
+
+- Pin and track points and routes
+- Record your own routes
+- Collections to group and manage your points and routes
+- Improved GPX file import
+- Support for Android 14.
+
+
+
 v2.3.1: 2023-06-14
 ------------------
 

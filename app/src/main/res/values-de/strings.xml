@@ -69,6 +69,10 @@
 
     <!-- BearingDetailsDialog -->
     <string name="bearingDetailsDialogTitle">Richtungsdetails</string>
+    <string name="switchAutoSwitchBearingSource">Richtungsquelle automatisch wechseln</string>
+    <string name="switchAutoSwitchBearingSourceHint">Wenn aktiviert, bezieht die App ihre Richtungsinformationen
+        aus Satellitendaten, wenn du dein Smartphone beispielsweise hochkannt in die Hosentasche steckst.</string>
+    <string name="messageAutoSwitchBearingSourceEnabled">Du kannst die Richtungsquelle nicht manuell wechseln, solange die Option zum automatischen Wechseln der Quelle aktiviert ist.</string>
     <string name="buttonEnableBearingSimulation">Simulation aktivieren</string>
     <string name="labelForDegreeEditText">Grad:</string>
 
@@ -76,7 +80,7 @@
     <string name="locationDetailsDialogTitle">Standortdetails</string>
     <string name="labelCurrentLocationHeading">Aktuelle Position</string>
     <string name="buttonActionForCurrentLocation">Aktionen für die aktuelle Position</string>
-    <string name="currentLocationMenuItemAddToPinnedPoints">Anheften</string>
+    <string name="currentLocationMenuItemSave">Position sichern</string>
     <string name="buttonEnableLocationSimulation">Simulation aktivieren</string>
 
     <!-- LocationSensorDetailsDialog -->
@@ -139,6 +143,7 @@
     <string name="pointSelectFromEnterCoordinates">Koordinaten eingeben</string>
     <string name="pointSelectFromCollections">Sammlungen</string>
     <string name="pointSelectFromPOI">Punkte in der Nähe</string>
+    <string name="pointSelectFromHistory">Verlauf</string>
     <string name="pointSelectFromCoordinatesLink">Aus geteiltem Link importieren</string>
 
     <!-- enter address dialog -->
@@ -263,6 +268,8 @@
     <string name="buttonFinishRecordingCD">Aufzeichnung beenden</string>
     <string name="labelRecordedPointName">Punkt %1$d</string>
     <string name="labelNoRecordedRoutes">Es wurden noch keine Routen aufgezeichnet.</string>
+    <string name="messageNoteRouteRecordingOnlyInForeground">Bitte beachte, dass deine Route nur aufgezeichnet wird, solange du die App im Vordergrund geöffnet hast.
+        Wenn du den Bildschirm sperrst oder WalkersGuide in den Hintergrund legst, wird die Routenaufzeichnung angehalten.</string>
     <string name="messageRecordedRouteTooFewPoints">Die aufgezeichnete Route enthält noch zu wenige Punkte, um abgespeichert werden zu können.</string>
     <string name="messageRecordedRouteNameIsMissing">Bitte gib einen Namen für die aufgezeichnete Route ein.</string>
     <string name="messageSaveRecordedRouteFailed">Beim Abspeichern der aufgezeichneten Route ist ein Fehler aufgetreten.</string>
@@ -711,15 +718,12 @@
 
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
-    <string name="contextMenuItemOverview">Übersicht</string>
-    <string name="contextMenuItemUserAnnotation">Notiz bearbeiten</string>
-    <string name="contextMenuItemRename">Umbenennen</string>
-    <string name="contextMenuItemRemove">Entfernen</string>
-    <!-- overview sub menu -->
     <string name="contextMenuItemOverviewPin">Angeheftet</string>
     <string name="contextMenuItemOverviewTrack">Verfolgt</string>
-    <string name="contextMenuItemOverviewAddToBoth">Anheften und verfolgen</string>
-    <string name="contextMenuItemOverviewRemoveFromBoth">Aus beiden entfernen</string>
+    <string name="contextMenuItemUserAnnotationAdd">Notiz hinzufügen</string>
+    <string name="contextMenuItemUserAnnotationEdit">Notiz bearbeiten</string>
+    <string name="contextMenuItemRename">Umbenennen</string>
+    <string name="contextMenuItemRemove">Entfernen</string>
 
     <!-- dialog button labels -->
     <string name="dialogOK">OK</string>
@@ -903,14 +907,15 @@
     <string name="poiCategoryEntertainment">Sport und Unterhaltung</string>
     <string name="poiCategoryPublicService">Öffentliche Einrichtungen</string>
     <string name="poiCategoryBuildingsWithName">Gebäude mit einem Namen</string>
-    <string name="poiCategoryEntrance">Eingänge</string>
+    <string name="poiCategoryEntrance">Eingänge mit einem Namen</string>
+    <string name="poiCategoryEntranceWithoutName">Alle sonstigen Eingänge</string>
     <string name="poiCategorySurveillance">Überwachungskameras</string>
     <string name="poiCategoryBench">Bänke</string>
     <string name="poiCategoryTrash">Mülleimer</string>
     <string name="poiCategoryNature">Seen und Berge</string>
     <string name="poiCategoryBridge">Brücken</string>
-    <string name="poiCategoryNamedIntersection">Kreuzungen mit Name</string>
-    <string name="poiCategoryOtherIntersection">Kreuzungen ohne Name</string>
+    <string name="poiCategoryNamedIntersection">Kreuzungen mit einem Namen</string>
+    <string name="poiCategoryOtherIntersection">Alle sonstigen Kreuzungen</string>
     <string name="poiCategoryPedestrianCrossings">Fußgängerquerungen</string>
 
 
@@ -993,6 +998,7 @@
     -->
 
     <!-- BearingSensor -->
+    <string name="bearingSensor">Richtungsquelle</string>
     <string name="bearingSensorCompass">Kompass</string>
     <string name="bearingSensorSatellite">Satellit</string>
 
@@ -1160,12 +1166,6 @@
     </plurals>
 
     <plurals
-        name="trackedObject">
-        <item quantity="one">1 verfolgtes Objekt</item>
-        <item quantity="other">%d verfolgte Objekte</item>
-    </plurals>
-
-    <plurals
         name="point">
         <item quantity="one">1 Punkt</item>
         <item quantity="other">%d Punkte</item>
@@ -1175,6 +1175,12 @@
         name="manuallyAddedPoint">
         <item quantity="one">1 selbst hinzugefügter Punkt</item>
         <item quantity="other">%d selbst hinzugefügte Punkte</item>
+    </plurals>
+
+    <plurals
+        name="trackedPoint">
+        <item quantity="one">1 verfolgter Punkt</item>
+        <item quantity="other">%d verfolgte Punkte</item>
     </plurals>
 
     <plurals

@@ -57,6 +57,7 @@ public class SettingsManager {
 
     // defaults
     public static final MainActivity.Tab DEFAULT_SELECTED_TAB_MAIN_ACTIVITY = MainActivity.Tab.OVERVIEW;
+    public static final boolean DEFAULT_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE = true;
     // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final boolean DEFAULT_DISPLAY_REMAINS_ACTIVE = false;
@@ -65,6 +66,7 @@ public class SettingsManager {
     public static final boolean DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = false;
     // bearing sensor
     public static final BearingSensor DEFAULT_BEARING_SENSOR = BearingSensor.COMPASS;
+    public static final boolean DEFAULT_AUTO_SWITCH_BEARING_SOURCE_ENABLED = false;
     // poi settings
     public static final int DEFAULT_SELECTED_POI_PROFILE_ID = 1;
     // p2p route settings
@@ -77,6 +79,7 @@ public class SettingsManager {
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
     private static final String KEY_HOME_ADDRESS_ID = "homeAddressId";
     private static final String KEY_CHANGELOG_VERSION_CODE = "changelogVersionCode";
+    private static final String KEY_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE = "showRouteRecordingOnlyInForegroundMessage";
     // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
@@ -94,6 +97,7 @@ public class SettingsManager {
     private static final String KEY_PTE_AND_OSM_STATION_ID_SELECTION_CACHE = "pteAndOsmStationIdSelectionCache";
     // bearing sensor
     private static final String KEY_SELECTED_BEARING_SENSOR = "selectedBearingSensor";
+    private static final String KEY_AUTO_SWITCH_BEARING_SOURCE_ENABLED = "autoSwitchBearingSourceEnabled";
     private static final String KEY_BEARING_SENSOR_VALUE_FROM_COMPASS = "bearingSensorValueFromCompass";
     private static final String KEY_BEARING_SENSOR_VALUE_FROM_SATELLITE = "bearingSensorValueFromSatellite";
     private static final String KEY_SIMULATED_BEARING = "simulatedBearing";
@@ -211,6 +215,17 @@ public class SettingsManager {
     public void setChangelogDialogVersionCode() {
         Editor editor = settings.edit();
         editor.putInt(KEY_CHANGELOG_VERSION_CODE, BuildConfig.VERSION_CODE);
+        editor.apply();
+    }
+
+    public boolean showRouteRecordingOnlyInForegroundMessage() {
+        return settings.getBoolean(
+                KEY_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE, DEFAULT_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE);
+    }
+
+    public void setShowRouteRecordingOnlyInForegroundMessage(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE, newValue);
         editor.apply();
     }
 
@@ -460,6 +475,17 @@ public class SettingsManager {
         Editor editor = settings.edit();
         editor.putString(
                 KEY_SELECTED_BEARING_SENSOR, gson.toJson(newBearingSensor));
+        editor.apply();
+    }
+
+    public boolean getAutoSwitchBearingSourceEnabled() {
+        return settings.getBoolean(
+                KEY_AUTO_SWITCH_BEARING_SOURCE_ENABLED, DEFAULT_AUTO_SWITCH_BEARING_SOURCE_ENABLED);
+    }
+
+    public void setAutoSwitchBearingSourceEnabled(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_AUTO_SWITCH_BEARING_SOURCE_ENABLED, newValue);
         editor.apply();
     }
 

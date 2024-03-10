@@ -37,6 +37,21 @@
             android:layout_marginTop="2dp"
             android:focusable="true" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchAutoSwitchBearingSource"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/switchAutoSwitchBearingSourceHint"
+            android:text="@string/switchAutoSwitchBearingSource" />
+
+        <include
+            layout="@layout/layout_default_divider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp" />
+
 
         <!-- simulation -->
 
@@ -45,7 +60,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/minHeight"
-            android:layout_marginTop="30dp"
             android:text="@string/buttonEnableBearingSimulation"
             android:theme="@style/HeadingTextView" />
 

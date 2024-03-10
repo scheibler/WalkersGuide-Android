@@ -61,6 +61,13 @@
             android:focusable="true"
             android:text="@string/labelGPSTime" />
 
+        <include
+            layout="@layout/layout_default_divider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp" />
+
 
         <!-- simulation -->
 
@@ -69,7 +76,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/minHeight"
-            android:layout_marginTop="30dp"
             android:text="@string/buttonEnableLocationSimulation"
             android:theme="@style/HeadingTextView" />
 

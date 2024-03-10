@@ -27,6 +27,7 @@ public class PoiCategory implements Serializable {
     public static final String PUBLIC_SERVICE = "public_service";
     public static final String ALL_BUILDINGS_WITH_NAME = "all_buildings_with_name";
     public static final String ENTRANCE = "entrance";
+    public static final String ENTRANCE_WITHOUT_NAME = "entrance_without_name";
     public static final String SURVEILLANCE = "surveillance";
     public static final String BRIDGE = "bridge";
     public static final String BENCH = "bench";
@@ -102,6 +103,8 @@ public class PoiCategory implements Serializable {
             return GlobalInstance.getStringResource(R.string.poiCategoryBuildingsWithName);
         } else if (id.equals(ENTRANCE)) {
             return GlobalInstance.getStringResource(R.string.poiCategoryEntrance);
+        } else if (id.equals(ENTRANCE_WITHOUT_NAME)) {
+            return GlobalInstance.getStringResource(R.string.poiCategoryEntranceWithoutName);
         } else if (id.equals(SURVEILLANCE)) {
             return GlobalInstance.getStringResource(R.string.poiCategorySurveillance);
         } else if (id.equals(BRIDGE)) {

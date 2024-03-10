@@ -218,8 +218,10 @@ public class GlobalInstance extends Application {
 
 
     /**
-     * static shortcuts
+     * app shortcuts
      */
+
+    // static shortchuts
     private LinkedHashMap<StaticShortcutAction,Boolean> staticShortcutActionEnabledMap = new LinkedHashMap<StaticShortcutAction,Boolean>();
 
     public ArrayList<StaticShortcutAction> getEnabledStaticShortcutActions() {
@@ -238,6 +240,17 @@ public class GlobalInstance extends Application {
 
     public void resetEnabledStaticShortcutActions() {
         this.staticShortcutActionEnabledMap.clear();
+    }
+
+    // dynamic shortchuts
+    private boolean dynamicShortcutActionEnabled = false;
+
+    public boolean isDynamicShortcutActionEnabled() {
+        return this.dynamicShortcutActionEnabled;
+    }
+
+    public void setDynamicShortcutActionEnabled(boolean enabled) {
+        this.dynamicShortcutActionEnabled = enabled;
     }
 
 

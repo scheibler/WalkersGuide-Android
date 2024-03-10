@@ -1041,13 +1041,10 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         if (previousPoint.distanceTo(pointToAdd) < RECORDED_POINTS_MIN_DISTANCE_IN_METERS) {
             return false;
         } else if (previousPoint.getAccuracy() > 20.0
-                && previousPoint.getMillisecondsElapsedSinceCreation() < 30*1000) {
-            return false;
-        } else if (previousPoint.getAccuracy() > 15.0
-                && previousPoint.getMillisecondsElapsedSinceCreation() < 20*1000) {
+                && previousPoint.getMillisecondsElapsedSinceCreation() < 10*1000) {
             return false;
         } else if (previousPoint.getAccuracy() > 10.0
-                && previousPoint.getMillisecondsElapsedSinceCreation() < 10*1000) {
+                && previousPoint.getMillisecondsElapsedSinceCreation() < 5*1000) {
             return false;
         }
 

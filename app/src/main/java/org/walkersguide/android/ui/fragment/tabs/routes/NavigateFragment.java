@@ -325,37 +325,15 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         });
     }
 
-    @Override public void onStart() {
-        super.onStart();
-        IntentFilter loadNewRouteFilter = new IntentFilter();
-        loadNewRouteFilter.addAction(ACTION_LOAD_NEW_ROUTE);
-        LocalBroadcastManager
-            .getInstance(getActivity())
-            .registerReceiver(loadNewRouteBroadcastReceiver, loadNewRouteFilter);
-    }
-
-    @Override public void onStop() {
-        super.onStop();
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(loadNewRouteBroadcastReceiver);
-    }
-
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putSerializable(KEY_ROUTE, this.route);
     }
 
-    // broadcast to load new route
-    public static final String ACTION_LOAD_NEW_ROUTE = "load_new_route";
-
-    private BroadcastReceiver loadNewRouteBroadcastReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION_LOAD_NEW_ROUTE)) {
-                Timber.d("onReceive: ACTION_LOAD_NEW_ROUTE");
-                route = SettingsManager.getInstance().getLastSelectedRoute();
-                requestUiUpdate();
-            }
-        }
-    };
+    public void loadNewRouteFromSettings() {
+        route = SettingsManager.getInstance().getLastSelectedRoute();
+        requestUiUpdate();
+    }
 
 
     /**

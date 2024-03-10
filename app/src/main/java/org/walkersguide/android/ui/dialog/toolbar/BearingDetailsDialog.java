@@ -49,6 +49,7 @@ import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import java.util.Locale;
 import timber.log.Timber;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class BearingDetailsDialog extends DialogFragment {
@@ -64,6 +65,7 @@ public class BearingDetailsDialog extends DialogFragment {
 
     // dialog
     private DeviceSensorManager deviceSensorManagerInstance;
+    private SettingsManager settingsManagerInstance;
 
     private RadioButton radioCompass, radioSatellite;
     private TextView labelCompassDetails, labelSatelliteDetails;
@@ -74,6 +76,7 @@ public class BearingDetailsDialog extends DialogFragment {
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         deviceSensorManagerInstance = DeviceSensorManager.getInstance();
+        settingsManagerInstance = SettingsManager.getInstance();
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -81,45 +84,20 @@ public class BearingDetailsDialog extends DialogFragment {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_bearing_details, nullParent);
 
-        // compass
-        labelCompassDetails = (TextView) view.findViewById(R.id.labelCompassDetails);
-        radioCompass = (RadioButton) view.findViewById(R.id.radioCompass);
-        radioCompass.setChecked(
-                deviceSensorManagerInstance.getSelectedBearingSensor() == BearingSensor.COMPASS);
-        radioCompass.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.COMPASS);
-                    // uncheck gps radio button
-                    radioSatellite.setChecked(false);
-                }
+        SwitchCompat switchAutoSwitchBearingSource = (SwitchCompat) view.findViewById(R.id.switchAutoSwitchBearingSource);
+        switchAutoSwitchBearingSource.setChecked(settingsManagerInstance.getAutoSwitchBearingSourceEnabled());
+        switchAutoSwitchBearingSource.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                settingsManagerInstance.setAutoSwitchBearingSourceEnabled(isChecked);
             }
         });
 
+        // compass
+        labelCompassDetails = (TextView) view.findViewById(R.id.labelCompassDetails);
+        radioCompass = (RadioButton) view.findViewById(R.id.radioCompass);
         // gps
         labelSatelliteDetails = (TextView) view.findViewById(R.id.labelSatelliteDetails);
         radioSatellite = (RadioButton) view.findViewById(R.id.radioSatellite);
-        radioSatellite.setChecked(
-                deviceSensorManagerInstance.getSelectedBearingSensor() == BearingSensor.SATELLITE);
-        radioSatellite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    if (deviceSensorManagerInstance.getBearingValueFromSatellite() == null) {
-                        // no satellite bearing
-                        Toast.makeText(
-                                getActivity(),
-                                getResources().getString(R.string.errorNoBearingFound),
-                                Toast.LENGTH_LONG).show();
-                        radioCompass.setChecked(true);
-                        radioSatellite.setChecked(false);
-                    } else {
-                        deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.SATELLITE);
-                        // uncheck compass radio button
-                        radioCompass.setChecked(false);
-                    }
-                }
-            }
-        });
 
         // simulated direction
 
@@ -240,6 +218,8 @@ public class BearingDetailsDialog extends DialogFragment {
 
     @Override public void onStart() {
         super.onStart();
+        checkBearingSensorRadioButtons();
+
         final AlertDialog dialog = (AlertDialog)getDialog();
         if(dialog != null) {
             Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
@@ -251,6 +231,7 @@ public class BearingDetailsDialog extends DialogFragment {
         }
 
         IntentFilter filter = new IntentFilter();
+        filter.addAction(DeviceSensorManager.ACTION_BEARING_SENSOR_CHANGED);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_COMPASS);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
@@ -264,9 +245,65 @@ public class BearingDetailsDialog extends DialogFragment {
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
+    private void checkBearingSensorRadioButtons() {
+        radioCompass.setOnCheckedChangeListener(null);
+        radioCompass.setChecked(
+                   deviceSensorManagerInstance.getSelectedBearingSensor() == BearingSensor.COMPASS
+                || deviceSensorManagerInstance.getBearingValueFromSatellite() == null);
+
+        radioSatellite.setOnCheckedChangeListener(null);
+        radioSatellite.setChecked(
+                   deviceSensorManagerInstance.getSelectedBearingSensor() == BearingSensor.SATELLITE
+                && deviceSensorManagerInstance.getBearingValueFromSatellite() != null);
+
+        // add listeners
+
+        radioCompass.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    if (settingsManagerInstance.getAutoSwitchBearingSourceEnabled()) {
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.messageAutoSwitchBearingSourceEnabled),
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.COMPASS);
+                    }
+                    checkBearingSensorRadioButtons();
+                }
+            }
+        });
+
+        radioSatellite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    if (settingsManagerInstance.getAutoSwitchBearingSourceEnabled()) {
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.messageAutoSwitchBearingSourceEnabled),
+                                Toast.LENGTH_LONG).show();
+                    } else if (deviceSensorManagerInstance.getBearingValueFromSatellite() == null) {
+                        // no satellite bearing
+                        Toast.makeText(
+                                getActivity(),
+                                getResources().getString(R.string.errorNoBearingFound),
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        deviceSensorManagerInstance.setSelectedBearingSensor(BearingSensor.SATELLITE);
+                    }
+                    checkBearingSensorRadioButtons();
+                }
+            }
+        });
+    }
+
+
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_COMPASS)) {
+            if (intent.getAction().equals(DeviceSensorManager.ACTION_BEARING_SENSOR_CHANGED)) {
+                checkBearingSensorRadioButtons();
+
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_COMPASS)) {
                 BearingSensorValue bearingValueFromCompass = (BearingSensorValue) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
                 if (bearingValueFromCompass != null) {
                     radioCompass.setText(

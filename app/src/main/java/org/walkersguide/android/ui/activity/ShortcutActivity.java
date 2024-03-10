@@ -67,16 +67,17 @@ public class ShortcutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Timber.d("onCreate action: %1$s", getIntent().getAction());
 
+        // dynamic shortcuts
         if (PinnedShortcutUtility.PINNED_ACTION_OPEN_POI_PROFILE.equals(getIntent().getAction())) {
             Bundle extras = getIntent().getExtras();
             if (extras != null) {
                 PoiProfile newPoiProfile = PoiProfile.load(
                         extras.getLong(PinnedShortcutUtility.EXTRA_POI_PROFILE_ID, -1l));
                 if (newPoiProfile != null) {
-                    MainActivity.loadPoiProfile(
-                            ShortcutActivity.this, newPoiProfile);
-                    finishAndRemoveTask();
-                    return;
+                    SettingsManager.getInstance().setSelectedPoiProfile(newPoiProfile);
+                    GlobalInstance
+                        .getInstance()
+                        .setDynamicShortcutActionEnabled(true);
                 }
             }
         }

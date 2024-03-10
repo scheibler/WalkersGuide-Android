@@ -19,14 +19,16 @@ import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.angle.Bearing;
 import java.util.Iterator;
 import java.util.Map;
+import org.walkersguide.android.sensor.PositionManager;
+import timber.log.Timber;
 
 
 public class DistanceTrackingMode {
-    private HashMap<Long,Pair<Point,Long>> announcedObjectBlacklist;
+    private HashMap<ObjectWithId,Pair<Point,Long>> announcedObjectBlacklist;
     private SettingsManager settingsManagerInstance;
 
     public DistanceTrackingMode() {
-        this.announcedObjectBlacklist = new HashMap<Long,Pair<Point,Long>>();
+        this.announcedObjectBlacklist = new HashMap<ObjectWithId,Pair<Point,Long>>();
         this.settingsManagerInstance = SettingsManager.getInstance();
     }
 
@@ -37,23 +39,23 @@ public class DistanceTrackingMode {
         // selected point profile or collection to be tracked
         for (ObjectWithId objectWithId : cache.profileList) {
             if (isWithinDistanceOf(objectWithId, currentLocation, announcementRadius.meter)
-                    && isWithinBearingOf(objectWithId, currentLocation, currentBearing, 300, 60)
-                    && announce(objectWithId, currentLocation)) {
-                return;
+                    && isWithinBearingOf(objectWithId, currentLocation, currentBearing, 300, 60)) {
+                if (announce(objectWithId, currentLocation)) {
+                    return;
+                }
             }
         }
 
         // special tracked objects profile
         for (ObjectWithId objectWithId : cache.objectsList) {
-            if (isWithinBearingOf(objectWithId, currentLocation, currentBearing, 270, 90)
-                    && announce(objectWithId, currentLocation)) {
+            if (announce(objectWithId, currentLocation)) {
                 return;
             }
         }
     }
 
     private boolean announce(ObjectWithId object, Point currentLocation) {
-        if (! this.announcedObjectBlacklist.containsKey(object.getId())) {
+        if (! this.announcedObjectBlacklist.containsKey(object)) {
             TTSWrapper.getInstance().announce(
                     String.format(
                         "%1$s %2$s",
@@ -62,20 +64,39 @@ public class DistanceTrackingMode {
                             R.plurals.inMeters))
                     );
             announcedObjectBlacklist.put(
-                    object.getId(), Pair.create(currentLocation, System.currentTimeMillis()));
+                    object, Pair.create(currentLocation, System.currentTimeMillis()));
             return true;
         }
         return false;
     }
 
     private void cleanup(Point currentLocation) {
-        final int announcementDistanceInterval = settingsManagerInstance.getTtsSettings().getDistanceAnnouncementInterval();
-        final long announcementTimeInterval = 30;
-        Iterator<Map.Entry<Long,Pair<Point,Long>>> it = announcedObjectBlacklist.entrySet().iterator();
+        Iterator<Map.Entry<ObjectWithId,Pair<Point,Long>>> it = announcedObjectBlacklist.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<Long,Pair<Point,Long>> entry = (Map.Entry<Long,Pair<Point,Long>>)it.next();
-            if (! isWithinDistanceOf(entry.getValue().first, currentLocation, announcementDistanceInterval)
-                    && ! isWithinTimeOf(entry.getValue().second, announcementTimeInterval)) {
+            Map.Entry<ObjectWithId,Pair<Point,Long>> entry = (Map.Entry<ObjectWithId,Pair<Point,Long>>)it.next();
+
+            int factor;
+            Integer distanceToCurrentLocation = currentLocation.distanceTo(entry.getKey());
+            if (distanceToCurrentLocation > 10000) {
+                factor = 10;
+            } else if (distanceToCurrentLocation > 5000) {
+                factor = 6;
+            } else if (distanceToCurrentLocation > 2500) {
+                factor = 5;
+            } else if (distanceToCurrentLocation > 1000) {
+                factor = 4;
+            } else if (distanceToCurrentLocation > 500) {
+                factor = 3;
+            } else if (distanceToCurrentLocation > 250) {
+                factor = 2;
+            } else {
+                factor = 1;
+            }
+
+            final int announcementDistanceInterval = settingsManagerInstance.getTtsSettings().getDistanceAnnouncementInterval();
+            final long announcementTimeInterval = 30;
+            if (! isWithinDistanceOf(entry.getValue().first, currentLocation, factor * announcementDistanceInterval)
+                    && ! isWithinTimeOf(entry.getValue().second, factor * announcementTimeInterval)) {
                 it.remove();
             }
         }

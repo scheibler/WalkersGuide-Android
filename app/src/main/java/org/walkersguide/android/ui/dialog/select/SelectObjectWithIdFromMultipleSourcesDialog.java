@@ -49,6 +49,7 @@ import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
 import android.widget.Toast;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 
 
 
@@ -232,6 +233,19 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                     break;
             }
 
+            // remove action history
+            switch (target) {
+                case ROUTE_START_POINT:
+                case ROUTE_VIA_POINT_1:
+                case ROUTE_VIA_POINT_2:
+                case ROUTE_VIA_POINT_3:
+                case ROUTE_DESTINATION_POINT:
+                case ADD_TO_COLLECTION:
+                case USE_AS_HOME_ADDRESS:
+                    sourceActionList.remove(SourceAction.HISTORY);
+                    break;
+            }
+
             listViewItems.setAdapter(
                     new ArrayAdapter<SourceAction>(
                         getActivity(), android.R.layout.simple_list_item_1, sourceActionList));
@@ -258,6 +272,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
         ENTER_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromEnterAddress)),
         COLLECTIONS(GlobalInstance.getStringResource(R.string.pointSelectFromCollections)),
         POI(GlobalInstance.getStringResource(R.string.pointSelectFromPOI)),
+        HISTORY(GlobalInstance.getStringResource(R.string.pointSelectFromHistory)),
         FROM_COORDINATES_LINK(GlobalInstance.getStringResource(R.string.pointSelectFromCoordinatesLink)),
         ENTER_COORDINATES(GlobalInstance.getStringResource(R.string.pointSelectFromEnterCoordinates));
 
@@ -347,6 +362,21 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
             case POI:
                 PoiProfileListFragment.selectProfile()
                     .show(getChildFragmentManager(), "PoiProfileListFragment");
+                break;
+
+            case HISTORY:
+                HistoryProfile historyProfile = null;
+                if (target == Target.ADD_TO_PINNED_POINTS_AND_ROUTES) {
+                    historyProfile = HistoryProfile.pinnedObjectsWithId();
+                } else if (target == Target.ADD_TO_TRACKED_OBJECTS) {
+                    historyProfile = HistoryProfile.trackedObjectsWithId();
+                } else if (target == Target.SIMULATE_LOCATION) {
+                    historyProfile = HistoryProfile.simulatedPoints();
+                }
+                if (historyProfile != null) {
+                    ObjectListFromDatabaseFragment.selectObjectWithId(historyProfile)
+                        .show(getChildFragmentManager(), "SelectPointDialog");
+                }
                 break;
 
             case FROM_COORDINATES_LINK:

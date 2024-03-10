@@ -277,7 +277,7 @@ public class TrackFragment extends BaseOverviewFragment implements FragmentResul
                 settingsManagerInstance.getTrackedProfile());
 
         labelTrackedObjectsHeading.setText(
-                GlobalInstance.getPluralResource(R.plurals.trackedObject, 0));
+                GlobalInstance.getPluralResource(R.plurals.trackedPoint, 0));
         listViewTrackedObjects.setAdapter(null);
         listViewTrackedObjects.setOnScrollListener(null);
 
@@ -299,7 +299,7 @@ public class TrackFragment extends BaseOverviewFragment implements FragmentResul
     private void loadTrackedObjectsSuccessful(ArrayList<ObjectWithId> objectList) {
         labelTrackedObjectsHeading.setText(
                 GlobalInstance.getPluralResource(
-                    R.plurals.trackedObject, objectList.size()));
+                    R.plurals.trackedPoint, objectList.size()));
 
         listViewTrackedObjects.setAdapter(
                 new ObjectWithIdAdapter(

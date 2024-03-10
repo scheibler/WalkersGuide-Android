@@ -77,6 +77,7 @@ public abstract class ObjectListFragment extends RootFragment
             setSelectObjectWithId(false);
             setAutoUpdate(false);
             setViewingDirectionFilter(false);
+            setDisableShakeToRefreshUi(false);
         }
 
         public BundleBuilder setSelectObjectWithId(boolean newState) {
@@ -91,6 +92,10 @@ public abstract class ObjectListFragment extends RootFragment
             bundle.putBoolean(KEY_VIEWING_DIRECTION_FILTER, newState);
             return this;
         }
+        public BundleBuilder setDisableShakeToRefreshUi(boolean newState) {
+            bundle.putBoolean(KEY_DISABLE_SHAKE_TO_REFRESH_UI, newState);
+            return this;
+        }
 
         public Bundle build() {
             return bundle;
@@ -102,14 +107,16 @@ public abstract class ObjectListFragment extends RootFragment
     private static final String KEY_SELECT_OBJECT_WITH_ID = "selectObjectWithId";
     private static final String KEY_AUTO_UPDATE = "autoUpdate";
     private static final String KEY_VIEWING_DIRECTION_FILTER = "viewingDirectionFilter";
+    private static final String KEY_DISABLE_SHAKE_TO_REFRESH_UI = "disableShakeToRefreshUi";
     private static final String KEY_LIST_POSITION = "listPosition";
 
-    private boolean selectObjectWithId, autoUpdate, viewingDirectionFilter;
+    private boolean selectObjectWithId, autoUpdate, viewingDirectionFilter, disableShakeToRefreshUi;
     private int listPosition;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         selectObjectWithId = getArguments().getBoolean(KEY_SELECT_OBJECT_WITH_ID);
+        disableShakeToRefreshUi = getArguments().getBoolean(KEY_DISABLE_SHAKE_TO_REFRESH_UI);
 
         if (savedInstanceState != null) {
             autoUpdate = savedInstanceState.getBoolean(KEY_AUTO_UPDATE);
@@ -386,8 +393,10 @@ public abstract class ObjectListFragment extends RootFragment
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SHAKE_DETECTED)) {
-                requestUiUpdate();
-                Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
+                if (! disableShakeToRefreshUi) {
+                    requestUiUpdate();
+                    Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
+                }
 
             } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
                 ServerException serverException = (ServerException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);

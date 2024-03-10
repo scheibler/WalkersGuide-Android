@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment;
 
+import org.walkersguide.android.ui.fragment.tabs.routes.NavigateFragment;
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener;
 import android.text.format.DateFormat;
 import android.widget.TextView;
@@ -117,7 +118,7 @@ public abstract class TabLayoutFragment extends RootFragment implements OnTabSel
     }
 
     public void changeTab(Enum<?> newTab) {
-        if (newTab != null) {
+        if (tabLayout != null && newTab != null) {
             selectedTab = newTab;
             setSelectedTab();
         }
@@ -145,7 +146,15 @@ public abstract class TabLayoutFragment extends RootFragment implements OnTabSel
             .replace(R.id.fragmentContainerViewSubTabs, fragment, tag)
             .addToBackStack(null)
             .commit();
+        getChildFragmentManager().executePendingTransactions();
         updateToolbarTitle();
+
+        if (fragment instanceof NavigateFragment
+                && getChildFragmentManager().findFragmentByTag(tag) != null) {
+            // only call the loadNewRouteFromSettings function, if the fragment is already attached
+            // otherwise the fragment throws a NullPointerException
+            ((NavigateFragment) fragment).loadNewRouteFromSettings();
+        }
     }
 
     @Override public void onTabUnselected(TabLayout.Tab tab) {
@@ -153,7 +162,11 @@ public abstract class TabLayoutFragment extends RootFragment implements OnTabSel
     }
 
     @Override public void onTabReselected(TabLayout.Tab tab) {
-        Timber.d("onTabReselected");
+        Timber.d("onTabReselected: selectedTab=%1$s", selectedTab);
+        Fragment fragment = getChildFragmentManager().findFragmentByTag(selectedTab.name());
+        if (fragment instanceof NavigateFragment) {
+            ((NavigateFragment) fragment).loadNewRouteFromSettings();
+        }
     }
 
 

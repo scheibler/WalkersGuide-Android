@@ -471,16 +471,17 @@ public class ObjectWithIdView extends LinearLayout {
     private static final int MENU_ITEM_PEDESTRIAN_CROSSINGS = 4;
     private static final int MENU_ITEM_LOAD_ROUTE = 5;
     private static final int MENU_ITEM_STREET_COURSE = 6;
-    private static final int MENU_ITEM_EXCLUDE_FROM_ROUTING = 10;
-    private static final int MENU_ITEM_SIMULATE_LOCATION = 11;
-    private static final int MENU_ITEM_SIMULATE_BEARING = 12;
-    private static final int MENU_ITEM_OVERVIEW = 14;
-    private static final int MENU_ITEM_COLLECTIONS = 15;
-    private static final int MENU_ITEM_USER_ANNOTATION = 16;
-    private static final int MENU_ITEM_RENAME = 17;
-    private static final int MENU_ITEM_REMOVE = 18;
-    private static final int MENU_ITEM_ROUTE_PLANNER = 20;
-    private static final int MENU_ITEM_SHARE_COORDINATES = 21;
+    private static final int MENU_ITEM_OVERVIEW_PIN = 10;
+    private static final int MENU_ITEM_OVERVIEW_TRACK = 11;
+    private static final int MENU_ITEM_SIMULATE_LOCATION = 12;
+    private static final int MENU_ITEM_SIMULATE_BEARING = 13;
+    private static final int MENU_ITEM_EXCLUDE_FROM_ROUTING = 14;
+    private static final int MENU_ITEM_USER_ANNOTATION = 15;
+    private static final int MENU_ITEM_RENAME = 16;
+    private static final int MENU_ITEM_REMOVE = 17;
+    private static final int MENU_ITEM_COLLECTIONS = 20;
+    private static final int MENU_ITEM_ROUTE_PLANNER = 21;
+    private static final int MENU_ITEM_SHARE_COORDINATES = 22;
 
     private static final int MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION = 50;
     private static final int MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION = 51;
@@ -490,11 +491,6 @@ public class ObjectWithIdView extends LinearLayout {
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2 = 102;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3 = 103;
     private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT = 104;
-
-    private static final int MENU_ITEM_OVERVIEW_PIN = 200;
-    private static final int MENU_ITEM_OVERVIEW_TRACK = 201;
-    private static final int MENU_ITEM_OVERVIEW_ADD_TO_BOTH = 202;
-    private static final int MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH = 203;
 
 
     public void showContextMenu(final View view, final ObjectWithId object) {
@@ -525,6 +521,22 @@ public class ObjectWithIdView extends LinearLayout {
             }
         }
 
+        // pin
+        MenuItem menuItemOverviewPin = contextMenu.getMenu().add(
+                MENU_GROUP_2, MENU_ITEM_OVERVIEW_PIN, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
+        menuItemOverviewPin.setCheckable(true);
+        menuItemOverviewPin.setChecked(
+                StaticProfile.pinnedObjectsWithId().containsObject(object));
+
+        // track (only for points)
+        if (object instanceof Point) {
+            MenuItem menuItemOverviewTrack = contextMenu.getMenu().add(
+                    MENU_GROUP_2, MENU_ITEM_OVERVIEW_TRACK, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
+            menuItemOverviewTrack.setCheckable(true);
+            menuItemOverviewTrack.setChecked(
+                    StaticProfile.trackedObjectsWithId().containsObject(object));
+        }
+
         // simulation
         if (object instanceof Point) {
             MenuItem menuItemSimulateLocation = contextMenu.getMenu().add(
@@ -553,54 +565,22 @@ public class ObjectWithIdView extends LinearLayout {
                     StaticProfile.excludedRoutingSegments().containsObject(object));
         }
 
-        // begin "overview" submenu
-
-        SubMenu overviewSubMenu = contextMenu.getMenu().addSubMenu(
-                MENU_GROUP_2, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverview));
-        boolean objectIsPinned = StaticProfile.pinnedObjectsWithId().containsObject(object);
-        boolean objectIsTracked = StaticProfile.trackedObjectsWithId().containsObject(object);
-
-        // pin (everything)
-        MenuItem menuItemOverviewPin = overviewSubMenu.add(
-                Menu.NONE, MENU_ITEM_OVERVIEW_PIN, 0,
-                GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
-        menuItemOverviewPin.setCheckable(true);
-        menuItemOverviewPin.setChecked(objectIsPinned);
-
-        // track (only for points)
-        if (object instanceof Point) {
-            MenuItem menuItemOverviewTrack = overviewSubMenu.add(
-                    Menu.NONE, MENU_ITEM_OVERVIEW_TRACK, 1,
-                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
-            menuItemOverviewTrack.setCheckable(true);
-            menuItemOverviewTrack.setChecked(objectIsTracked);
-
-            if (! objectIsPinned && ! objectIsTracked) {
-                // neither pinned or tracked
-                overviewSubMenu.add(
-                        Menu.NONE, MENU_ITEM_OVERVIEW_ADD_TO_BOTH, 2,
-                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewAddToBoth));
-            } else if (objectIsPinned && objectIsTracked) {
-                // both, pinned and tracked
-                overviewSubMenu.add(
-                        Menu.NONE, MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH, 2,
-                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewRemoveFromBoth));
-            }
-        }
-
-        // end "overview" submenu
-
-        // collections, user annotation, rename and remove
+        // user annotation, rename and remove
         contextMenu.getMenu().add(
-                MENU_GROUP_2, MENU_ITEM_COLLECTIONS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdCollections));
-        contextMenu.getMenu().add(
-                MENU_GROUP_2, MENU_ITEM_USER_ANNOTATION, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotation));
+                MENU_GROUP_2, MENU_ITEM_USER_ANNOTATION, orderId++,
+                object.hasUserAnnotation()
+                ? GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotationEdit)
+                : GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotationAdd));
         contextMenu.getMenu().add(
                 MENU_GROUP_2, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemRename));
         if (onRemoveObjectActionListener != null) {
             contextMenu.getMenu().add(
                     MENU_GROUP_2, MENU_ITEM_REMOVE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemRemove));
         }
+
+        // add to collections
+        contextMenu.getMenu().add(
+                MENU_GROUP_3, MENU_ITEM_COLLECTIONS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdCollections));
 
         // route planner
         if (object instanceof Point) {
@@ -666,45 +646,26 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executeObjectMenuAction(Context context, ObjectWithId object, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId >= MENU_ITEM_OVERVIEW_PIN
-                && menuItemId <= MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-            boolean objectIsPinned = StaticProfile.pinnedObjectsWithId().containsObject(object);
-            boolean objectIsTracked = StaticProfile.trackedObjectsWithId().containsObject(object);
+        if (menuItemId == MENU_ITEM_OVERVIEW_PIN
+                || menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
 
-            // pin
             if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
-                // toggle
-                if (objectIsPinned) {
+                if (StaticProfile.pinnedObjectsWithId().containsObject(object)) {
                     StaticProfile.pinnedObjectsWithId().removeObject(object);
                 } else {
                     StaticProfile.pinnedObjectsWithId().addObject(object);
                 }
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                StaticProfile.pinnedObjectsWithId().addObject(object);
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                StaticProfile.pinnedObjectsWithId().removeObject(object);
-            }
 
-            // track
-            if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
-                // toggle
-                if (objectIsTracked) {
+            } else if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
+                if (StaticProfile.trackedObjectsWithId().containsObject(object)) {
                     StaticProfile.trackedObjectsWithId().removeObject(object);
                 } else {
                     StaticProfile.trackedObjectsWithId().addObject(object);
                 }
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_ADD_TO_BOTH) {
-                StaticProfile.trackedObjectsWithId().addObject(object);
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_REMOVE_FROM_BOTH) {
-                StaticProfile.trackedObjectsWithId().removeObject(object);
             }
 
             // update parent view
-            ViewChangedListener.sendObjectWithIdListChangedBroadcast();
-
-        } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
-            UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object)
-                .show(mainActivityController.getFragmentManagerInstance(), "UpdateObjectWithIdSelectedCollectionsDialog");
+            ViewChangedListener.sendProfileListChangedBroadcast();
 
         } else if (menuItemId == MENU_ITEM_USER_ANNOTATION) {
             UserAnnotationForObjectWithIdDialog.newInstance(object)
@@ -719,6 +680,10 @@ public class ObjectWithIdView extends LinearLayout {
                 onRemoveObjectActionListener.onRemoveObjectActionClicked(object);
             }
             this.reset();
+
+        } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
+            UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object)
+                .show(mainActivityController.getFragmentManagerInstance(), "UpdateObjectWithIdSelectedCollectionsDialog");
 
         } else {
             return false;

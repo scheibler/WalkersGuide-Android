@@ -70,6 +70,7 @@ import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromD
 import org.walkersguide.android.ui.fragment.object_list.ExtendedObjectListFragment;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class RecordRouteFragment extends Fragment implements FragmentResultListener, MenuProvider {
@@ -79,12 +80,16 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
         return fragment;
     }
 
+
+    private SettingsManager settingsManagerInstance;
+
     private TextView labelRecordedRouteStatus;
     private Button buttonStartRouteRecording, buttonPauseOrResumeRecording, buttonFinishRecording;
     private LinearLayout layoutRouteRecordingInProgress;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        settingsManagerInstance = SettingsManager.getInstance();
 
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -120,6 +125,12 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
         buttonStartRouteRecording.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 WalkersGuideService.startRouteRecording();
+                if (settingsManagerInstance.showRouteRecordingOnlyInForegroundMessage()) {
+                    SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.messageNoteRouteRecordingOnlyInForeground))
+                        .show(getChildFragmentManager(), "SimpleMessageDialog");
+                    settingsManagerInstance.setShowRouteRecordingOnlyInForegroundMessage(false);
+                }
             }
         });
 

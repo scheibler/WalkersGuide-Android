@@ -74,10 +74,11 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
 
     public static ObjectListFromDatabaseFragment newInstance(DatabaseProfile profile) {
         ObjectListFromDatabaseFragment fragment = new ObjectListFromDatabaseFragment();
-        fragment.setArguments(
-                new BundleBuilder(
-                    new DatabaseProfileRequest(profile))
-                .build());
+        BundleBuilder bundleBuilder = new BundleBuilder(new DatabaseProfileRequest(profile));
+        if (StaticProfile.recordedRoutes().equals(profile)) {
+            bundleBuilder.setDisableShakeToRefreshUi(true);
+        }
+        fragment.setArguments(bundleBuilder.build());
         return fragment;
     }
 

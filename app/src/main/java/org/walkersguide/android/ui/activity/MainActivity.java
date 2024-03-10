@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.BuildConfig;
 import java.util.List;
 
 import com.google.android.material.navigation.NavigationView;
@@ -96,9 +97,8 @@ import org.walkersguide.android.util.WalkersGuideService;
 
 public class MainActivity extends AppCompatActivity
         implements FragmentResultListener, MainActivityController, OnTabSelectedListener {
-    public static String EXTRA_NEW_TAB = "newTab";
-    public static String EXTRA_NEW_SUB_TAB = "newSubTab";
-    public static String EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB = "openLastPointProfileInPointsTab";
+    private static String EXTRA_NEW_TAB = "newTab";
+    private static String EXTRA_NEW_SUB_TAB = "newSubTab";
 
     public static void loadRoute(Context context, Route route) {
         if (route == null) {
@@ -119,22 +119,10 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
 
+        // see openTab(...) function below
         Intent mainActivityIntent = new Intent(context, MainActivity.class);
         mainActivityIntent.putExtra(EXTRA_NEW_TAB, Tab.ROUTES);
         mainActivityIntent.putExtra(EXTRA_NEW_SUB_TAB, RoutesTabLayoutFragment.Tab.NAVIGATE);
-        context.startActivity(mainActivityIntent);
-    }
-
-    public static void loadPoiProfile(Context context, PoiProfile poiProfile) {
-        if (poiProfile == null) {
-            return;
-        }
-        SettingsManager.getInstance().setSelectedPoiProfile(poiProfile);
-
-        Intent mainActivityIntent = new Intent(context, MainActivity.class);
-        mainActivityIntent.putExtra(EXTRA_NEW_TAB, Tab.POINTS);
-        mainActivityIntent.putExtra(EXTRA_NEW_SUB_TAB, PointsTabLayoutFragment.Tab.NEARBY);
-        mainActivityIntent.putExtra(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, true);
         context.startActivity(mainActivityIntent);
     }
 
@@ -158,6 +146,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Timber.d("onCreate");
         setContentView(R.layout.activity_main);
         registerFlingGestureDetector();
         AccessDatabase.getInstance();   // important for app-started-for-the-first-time detection
@@ -284,12 +273,6 @@ public class MainActivity extends AppCompatActivity
         openTab(getIntent());
     }
 
-    @Override protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        Timber.d("onNewIntent");
-        openTab(intent);
-    }
-
     private TextView createTabLayoutTabCustomView(final Tab tab, final Enum<?>[] subTabs) {
         final LayoutParams lpMatchParent = new LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -345,19 +328,29 @@ public class MainActivity extends AppCompatActivity
         return customView;
     }
 
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Timber.d("onNewIntent");
+        openTab(intent);
+    }
+
     private void openTab(Intent intent) {
         Tab tabToOpen = null;
         Enum<?> subTabToOpen = null;
-        boolean openLastPointProfileInPointsTab = false;
-        if (intent != null && intent.getExtras() != null) {
+
+        if (globalInstance.isDynamicShortcutActionEnabled()) {
+            tabToOpen = Tab.POINTS;
+            subTabToOpen = PointsTabLayoutFragment.Tab.NEARBY;
+        } else if (intent != null && intent.getExtras() != null) {
             tabToOpen = (Tab) intent.getExtras().getSerializable(EXTRA_NEW_TAB);
             subTabToOpen = (Enum<?>) intent.getExtras().getSerializable(EXTRA_NEW_SUB_TAB);
-            openLastPointProfileInPointsTab = intent.getExtras().getBoolean(EXTRA_OPEN_LAST_POINT_PROFILE_IN_POINTS_TAB, false);
         }
+
         loadFragment(
                 tabToOpen != null ? tabToOpen : getCurrentTab(),
                 subTabToOpen,
-                openLastPointProfileInPointsTab);
+                globalInstance.isDynamicShortcutActionEnabled());
+        globalInstance.setDynamicShortcutActionEnabled(false);
     }
 
     @Override public void onBackPressed() {
@@ -781,15 +774,9 @@ public class MainActivity extends AppCompatActivity
                 .commit();
 
         } else if (fragment instanceof TabLayoutFragment) {
-
             if (newSubTab != null) {
                 popEverythingButTheTabLayoutFragmentFromBackStack();
                 ((TabLayoutFragment) fragment).changeTab(newSubTab);
-
-                if (newSubTab == RoutesTabLayoutFragment.Tab.NAVIGATE) {
-                    Intent loadNewRouteIntent = new Intent(NavigateFragment.ACTION_LOAD_NEW_ROUTE);
-                    LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(loadNewRouteIntent);
-                }
             }
         }
 
@@ -816,16 +803,10 @@ public class MainActivity extends AppCompatActivity
 
         Fragment currentFragment = getSupportFragmentManager().findFragmentByTag(sameTab.name());
         if (currentFragment instanceof TabLayoutFragment) {
-
             if (newSubTab != null) {
                 popEverythingButTheTabLayoutFragmentFromBackStack();
                 ((TabLayoutFragment) currentFragment).changeTab(newSubTab);
                 updateToolbarNavigateUpButtonVisibility();
-
-                if (newSubTab == RoutesTabLayoutFragment.Tab.NAVIGATE) {
-                    Intent loadNewRouteIntent = new Intent(NavigateFragment.ACTION_LOAD_NEW_ROUTE);
-                    LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(loadNewRouteIntent);
-                }
             }
         }
 
