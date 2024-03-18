@@ -64,6 +64,8 @@ public class SettingsManager {
     public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
     // tts
     public static final boolean DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = false;
+    // WalkersGuide server
+    public static final boolean DEFAULT_PREFER_TRANSLATED_STRINGS = false;
     // bearing sensor
     public static final BearingSensor DEFAULT_BEARING_SENSOR = BearingSensor.COMPASS;
     public static final boolean DEFAULT_AUTO_SWITCH_BEARING_SOURCE_ENABLED = false;
@@ -92,6 +94,7 @@ public class SettingsManager {
     // WalkersGuide server
     private static final String KEY_WG_SERVER_URL = "wgServerUrl";
     private static final String KEY_SELECTED_MAP = "selectedMap";
+    private static final String KEY_PREFER_TRANSLATED_STRINGS = "preferTranslatedStrings";
     // public transport
     private static final String KEY_SELECTED_NETWORK_ID = "selectedNetworkId";
     private static final String KEY_PTE_AND_OSM_STATION_ID_SELECTION_CACHE = "pteAndOsmStationIdSelectionCache";
@@ -410,6 +413,17 @@ public class SettingsManager {
         editor.apply();
         // clear caches
         GlobalInstance.getInstance().clearCaches();
+    }
+
+    public boolean getPreferTranslatedStrings() {
+        return settings.getBoolean(
+                KEY_PREFER_TRANSLATED_STRINGS, DEFAULT_PREFER_TRANSLATED_STRINGS);
+    }
+
+    public void setPreferTranslatedStrings(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_PREFER_TRANSLATED_STRINGS, newValue);
+        editor.apply();
     }
 
 

@@ -77,14 +77,14 @@ public class Point extends ObjectWithId implements Serializable {
     private String subType;
     private Coordinates coordinates;
     // optional params
-    private String altName, oldName, note, wikidataId;
+    private String inscription, altName, oldName, note, wikidataId;
     private TactilePaving tactilePaving;
     private Wheelchair wheelchair;
 
     public Point(JSONObject inputData) throws JSONException {
         super(
                 Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID),
-                Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
+                Helper.getNullableEnumFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.class),
                 inputData);
         this.subType = inputData.getString(KEY_SUB_TYPE);
         this.coordinates = new Coordinates(
@@ -92,6 +92,7 @@ public class Point extends ObjectWithId implements Serializable {
                 inputData.getDouble(KEY_LONGITUDE));
 
         // optional parameters
+        this.inscription = Helper.getNullableStringFromJsonObject(inputData, KEY_INSCRIPTION);
         this.altName = Helper.getNullableStringFromJsonObject(inputData, KEY_ALT_NAME);
         this.oldName = Helper.getNullableStringFromJsonObject(inputData, KEY_OLD_NAME);
         this.note = Helper.getNullableStringFromJsonObject(inputData, KEY_NOTE);
@@ -116,6 +117,10 @@ public class Point extends ObjectWithId implements Serializable {
      * optional params
      */
     private static final String WIKIDATA_BASE_URL = "https://m.wikidata.org/wiki/%1$s";
+
+    public String getInscription() {
+        return this.inscription;
+    }
 
     public String getAltName() {
         return this.altName;
@@ -271,6 +276,7 @@ public class Point extends ObjectWithId implements Serializable {
     public static final String KEY_LATITUDE = "lat";
     public static final String KEY_LONGITUDE = "lon";
     // optional params
+    public static final String KEY_INSCRIPTION = "inscription";
     public static final String KEY_ALT_NAME = "alt_name";
     public static final String KEY_OLD_NAME = "old_name";
     public static final String KEY_NOTE = "note";
@@ -288,6 +294,9 @@ public class Point extends ObjectWithId implements Serializable {
         jsonObject.put(KEY_LONGITUDE, this.coordinates.getLongitude());
 
         // optional parameters
+        if (this.inscription != null) {
+            jsonObject.put(KEY_INSCRIPTION, this.inscription);
+        }
         if (this.altName != null) {
             jsonObject.put(KEY_ALT_NAME, this.altName);
         }

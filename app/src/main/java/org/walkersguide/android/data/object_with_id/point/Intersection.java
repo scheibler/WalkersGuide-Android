@@ -94,7 +94,7 @@ public class Intersection extends Point implements Serializable {
         return this.pedestrianCrossingList;
     }
 
-    public boolean hasPedestrianCrossing() {
+    public boolean hasPedestrianCrossings() {
         return this.pedestrianCrossingList != null && ! this.pedestrianCrossingList.isEmpty();
     }
 
@@ -105,34 +105,30 @@ public class Intersection extends Point implements Serializable {
     }
 
     public String formatNumberOfStreets() {
-        if (this.numberOfStreets != null) {
-            return String.format(
-                    GlobalInstance.getStringResource(R.string.intersectionNumberOfStreets),
-                    GlobalInstance.getPluralResource(R.plurals.street, this.numberOfStreets));
-        }
-        return "";
+        return String.format(
+                GlobalInstance.getStringResource(R.string.intersectionNumberOfStreets),
+                GlobalInstance.getPluralResource(
+                    R.plurals.street,
+                    this.numberOfStreets != null ? this.numberOfStreets : this.segmentList.size()));
     }
 
     public String formatNumberOfCrossingsNearby() {
-        if (hasPedestrianCrossing()) {
-            return String.format(
-                    GlobalInstance.getStringResource(R.string.intersectionNumberOfCrossingsNearby),
-                    GlobalInstance.getPluralResource(R.plurals.crossing, this.pedestrianCrossingList.size()));
-        }
-        return "";
+        return String.format(
+                GlobalInstance.getStringResource(R.string.intersectionNumberOfCrossingsNearby),
+                GlobalInstance.getPluralResource(
+                    R.plurals.crossing,
+                    hasPedestrianCrossings() ? this.pedestrianCrossingList.size() : 0));
     }
 
     @Override public String toString() {
         String description = super.toString();
         // second line: number of streets
-        String numberOfStreetsFormatted = formatNumberOfStreets();
-        if (! TextUtils.isEmpty(numberOfStreetsFormatted)) {
-            description += String.format("\n%1$s", numberOfStreetsFormatted);
-        }
+        description += System.lineSeparator();
+        description += formatNumberOfStreets();
         // third line: crossings nearby
-        String numberOfCrossingsNearbyFormatted = formatNumberOfCrossingsNearby();
-        if (! TextUtils.isEmpty(numberOfCrossingsNearbyFormatted)) {
-            description += String.format("\n%1$s", numberOfCrossingsNearbyFormatted);
+        if (hasPedestrianCrossings()) {
+            description += System.lineSeparator();
+            description += formatNumberOfCrossingsNearby();
         }
         return description;
     }

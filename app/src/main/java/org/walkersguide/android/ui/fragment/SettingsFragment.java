@@ -116,6 +116,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 
     private ObjectWithIdView layoutHomeAddress;
     private Button buttonServerURL, buttonServerMap;
+    private SwitchCompat switchPreferTranslatedStrings;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
     private SwitchCompat switchShowActionButton, switchDisplayRemainsActive;
@@ -248,7 +249,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
             }
         });
 
-        // server settings
+        // wg server settings
 
         buttonServerURL = (Button) view.findViewById(R.id.buttonServerURL);
         buttonServerURL.setOnClickListener(new View.OnClickListener() {
@@ -267,6 +268,18 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                     .show(getChildFragmentManager(), "SelectMapDialog");
             }
         });
+
+        switchPreferTranslatedStrings = (SwitchCompat) view.findViewById(R.id.switchPreferTranslatedStrings);
+        switchPreferTranslatedStrings.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked != settingsManagerInstance.getPreferTranslatedStrings()) {
+                    GlobalInstance.getInstance().clearCaches();
+                    settingsManagerInstance.setPreferTranslatedStrings(isChecked);
+                }
+            }
+        });
+
+        // public transport
 
         buttonPublicTransportProvider = (Button) view.findViewById(R.id.buttonPublicTransportProvider);
         buttonPublicTransportProvider.setOnClickListener(new View.OnClickListener() {
@@ -423,6 +436,8 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         // WalkersGuide server map placeholder
         buttonServerMap.setText(
                 getResources().getString(R.string.buttonServerMapNoSelection));
+
+        switchPreferTranslatedStrings.setChecked(settingsManagerInstance.getPreferTranslatedStrings());
 
         // public transport provider
         if (settingsManagerInstance.getSelectedNetworkId() != null) {

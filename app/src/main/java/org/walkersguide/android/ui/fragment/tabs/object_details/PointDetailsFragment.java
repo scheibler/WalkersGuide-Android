@@ -44,6 +44,7 @@ import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import androidx.annotation.NonNull;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.util.Helper;
 
 
 public class PointDetailsFragment extends Fragment implements MenuProvider {
@@ -620,16 +621,58 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
         } else if (point instanceof PedestrianCrossing) {
             PedestrianCrossing pedestrianCrossing = (PedestrianCrossing) point;
 
-            if (pedestrianCrossing.getTrafficSignalsSound() != null
+            if (pedestrianCrossing.getCrossingBarrier() != null
+                    || pedestrianCrossing.getKerb() != null
+                    || pedestrianCrossing.getIsland() != null
+                    || pedestrianCrossing.getTrafficSignalsSound() != null
                     || pedestrianCrossing.getTrafficSignalsVibration() != null) {
                 layoutAttributes.addView(
                         new TextViewBuilder(
                                 PointDetailsFragment.this.getContext(),
-                                getResources().getString(R.string.labelPointTrafficSignalsAttributesHeading))
+                                getResources().getString(R.string.labelPointPedestrianCrossingDetailsHeading))
                             .isHeading()
                             .addTopMargin()
                             .create()
                         );
+
+                // crossing barrier
+                if (pedestrianCrossing.getCrossingBarrier() != null) {
+                    layoutAttributes.addView(
+                            new TextViewBuilder(
+                                    PointDetailsFragment.this.getContext(),
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointCrossingBarrier),
+                                        pedestrianCrossing.getCrossingBarrier().toString()))
+                                .create()
+                            );
+                }
+
+                // kerb
+                if (pedestrianCrossing.getKerb() != null) {
+                    layoutAttributes.addView(
+                            new TextViewBuilder(
+                                    PointDetailsFragment.this.getContext(),
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointKerb),
+                                        pedestrianCrossing.getKerb().toString()))
+                                .create()
+                            );
+                }
+
+                // traffic island
+                if (pedestrianCrossing.getIsland() != null) {
+                    layoutAttributes.addView(
+                            new TextViewBuilder(
+                                    PointDetailsFragment.this.getContext(),
+                                    String.format(
+                                        "%1$s: %2$s",
+                                        getResources().getString(R.string.labelPointIsland),
+                                        Helper.formatYesOrNo(pedestrianCrossing.getIsland())))
+                                .create()
+                            );
+                }
 
                 // traffic signals sound
                 if (pedestrianCrossing.getTrafficSignalsSound() != null) {
@@ -639,7 +682,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                     String.format(
                                         "%1$s: %2$s",
                                         getResources().getString(R.string.labelPointTrafficSignalsSound),
-                                        pedestrianCrossing.getTrafficSignalsSound().toString()))
+                                        Helper.formatYesOrNo(pedestrianCrossing.getTrafficSignalsSound())))
                                 .create()
                             );
                 }
@@ -652,7 +695,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                     String.format(
                                         "%1$s: %2$s",
                                         getResources().getString(R.string.labelPointTrafficSignalsVibration),
-                                        pedestrianCrossing.getTrafficSignalsVibration().toString()))
+                                        Helper.formatYesOrNo(pedestrianCrossing.getTrafficSignalsVibration())))
                                 .create()
                             );
                 }
@@ -661,6 +704,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
 
         // notes
         if (point.getDescription() != null
+                || point.getInscription() != null
                 || point.getAltName() != null
                 || point.getOldName() != null
                 || point.getNote() != null
@@ -682,6 +726,18 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                     "%1$s:\n%2$s",
                                     getResources().getString(R.string.labelSegmentFootwayDescription),
                                     point.getDescription()))
+                            .create()
+                        );
+            }
+
+            if (point.getInscription() != null) {
+                layoutAttributes.addView(
+                        new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointInscription),
+                                    point.getInscription()))
                             .create()
                         );
             }

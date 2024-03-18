@@ -181,8 +181,12 @@ public class WgUtility {
     public static JSONObject createServerParamList() throws JSONException {
         JSONObject requestJson = new JSONObject();
         // session id and language
-        requestJson.put("session_id", GlobalInstance.getInstance().getSessionId());
-        requestJson.put("language", Locale.getDefault().getLanguage());
+        requestJson.put(
+                "session_id", GlobalInstance.getInstance().getSessionId());
+        requestJson.put(
+                "language", Locale.getDefault().getLanguage());
+        requestJson.put(
+                "prefer_translated_strings_in_osm_tags", SettingsManager.getInstance().getPreferTranslatedStrings());
         // selected map id
         OSMMap selectedMap = SettingsManager.getInstance().getSelectedMap();
         if (selectedMap != null) {

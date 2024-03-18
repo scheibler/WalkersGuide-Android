@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -48,24 +49,31 @@
 
         <LinearLayout
             android:id="@+id/layoutPoiListFromServerFragment"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:visibility="gone" >
 
             <Button
                 android:id="@+id/buttonSelectPoiCategories"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.0" />
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
+                android:drawableLeft="@drawable/image_profile_icon_server"
+                android:drawableTint="@color/image"
+                tools:ignore="UnusedAttribute" />
 
             <Button
                 android:id="@+id/buttonSelectCollections"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.0" />
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
+                android:drawableLeft="@drawable/image_profile_icon_local"
+                android:drawableTint="@color/image"
+                tools:ignore="UnusedAttribute" />
         </LinearLayout>
     </LinearLayout>
 

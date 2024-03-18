@@ -58,6 +58,11 @@ public class POI extends PointWithAddressData implements Serializable {
         return this.entranceList != null && ! this.entranceList.isEmpty();
     }
 
+    public String formatNumberOfEntrances() {
+        return GlobalInstance.getPluralResource(
+                R.plurals.entrance, hasEntrance() ? this.entranceList.size() : 0);
+    }
+
     public POI getOuterBuilding() {
         return this.isInside;
     }
@@ -80,9 +85,13 @@ public class POI extends PointWithAddressData implements Serializable {
 
     @Override public String toString() {
         String description = super.toString();
-        if (! this.entranceList.isEmpty()) {
+        // number of entrances
+        if (hasEntrance()) {
+            description += System.lineSeparator();
             description += String.format(
-                    ", %1$s", GlobalInstance.getPluralResource(R.plurals.entrance, this.entranceList.size()));
+                    "%1$s %2$s",
+                    GlobalInstance.getStringResource(R.string.fillingWordHas),
+                    formatNumberOfEntrances());
         }
         return description;
     }

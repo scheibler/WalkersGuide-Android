@@ -443,11 +443,15 @@
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Intersection</string>
     <!-- pedestrian crossing -->
-    <string name="labelPointTrafficSignalsAttributesHeading">Traffic light</string>
-    <string name="labelPointTrafficSignalsSound">Sound</string>
-    <string name="labelPointTrafficSignalsVibration">Vibration</string>
+    <string name="labelPointPedestrianCrossingDetailsHeading">Crossing details</string>
+    <string name="labelPointCrossingBarrier">Barrier</string>
+    <string name="labelPointKerb">Kerb</string>
+    <string name="labelPointIsland">Traffic island</string>
+    <string name="labelPointTrafficSignalsSound">Sound signal</string>
+    <string name="labelPointTrafficSignalsVibration">Vibration signal</string>
     <!-- point: alt names -->
     <string name="labelPointNotesHeading">Notes</string>
+    <string name="labelPointInscription">Inscription</string>
     <string name="labelPointAltName">Alternative name</string>
     <string name="labelPointOldName">Old name</string>
     <string name="labelPointNote">Mappers note</string>
@@ -534,8 +538,14 @@
     <string name="buttonServerURLNoSelection">URL: None selected</string>
     <string name="buttonServerMap">Map: %1$s</string>
     <string name="buttonServerMapNoSelection">Map: None selected</string>
-    <string name="buttonPublicTransportProvider">Public transport: %1$s</string>
-    <string name="buttonPublicTransportProviderNoSelection">Public transport: None selected</string>
+    <string name="switchPreferTranslatedStrings">Prefer translations</string>
+    <string name="switchPreferTranslatedStringsHint">
+            If the map database has multiple languages stored for an entry, this setting ensures that the app outputs
+            everything that\'s available in your set system language or, as a fallback, in English.
+            For instance, the name of restaurants or attractions is occasionally available as an English translation.</string>
+    <string name="labelPublicTransportSettingsHeader">Public transport:</string>
+    <string name="buttonPublicTransportProvider">Provider: %1$s</string>
+    <string name="buttonPublicTransportProviderNoSelection">Provider: None selected</string>
     <string name="labelInterfaceSettingsHeader">User interface:</string>
     <string name="switchShowActionButton">Show action button</string>
     <string name="switchShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
@@ -746,6 +756,7 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">and</string>
+    <string name="fillingWordHas">has</string>
     <string name="stateCollapsed">collapsed</string>
     <string name="stateExpanded">expanded</string>
     <string name="viewClassNameTab">Tab</string>
@@ -780,9 +791,25 @@
     <string name="intersectionNumberOfCrossingsNearby">%1$s nearby</string>
 
     <!-- PedestrianCrossing -->
-    <!-- TrafficSignal -->
-    <string name="trafficSignalNo">No</string>
-    <string name="trafficSignalYes">Yes</string>
+    <!-- details in toString -->
+    <string name="pedestrianCrossingDetailsIslandYes">Traffic island</string>
+    <string name="pedestrianCrossingDetailsCrossingBarrierNo">No barrier</string>
+    <string name="pedestrianCrossingDetailsCrossingBarrierYes">Barrier</string>
+    <string name="pedestrianCrossingDetailsKerbNo">No kerb</string>
+    <string name="pedestrianCrossingDetailsSoundYes">Sound</string>
+    <string name="pedestrianCrossingDetailsTactilePavingYes">Tactile paving</string>
+    <!-- CrossingBarrier -->
+    <string name="crossingBarrierFull">Full</string>
+    <string name="crossingBarrierHalf">Half</string>
+    <string name="crossingBarrierYes">Yes</string>
+    <string name="crossingBarrierNo">No</string>
+    <!-- Kerb -->
+    <string name="kerbFlush">Flush</string>
+    <string name="kerbLowered">Lowered</string>
+    <string name="kerbRolled">Rolled</string>
+    <string name="kerbRaised">Raised</string>
+    <string name="kerbYes">Yes</string>
+    <string name="kerbNo">No</string>
 
     <!-- StationPoint -->
     <string name="stationPlatform">Platform</string>
@@ -906,9 +933,11 @@
     <string name="poiCategoryFinance">Finance</string>
     <string name="poiCategoryEntertainment">Sports and entertainment</string>
     <string name="poiCategoryPublicService">Public services</string>
+    <string name="poiCategoryOtherService">Other services</string>
     <string name="poiCategoryBuildingsWithName">All buildings with a name</string>
     <string name="poiCategoryEntrance">Entrances with a name</string>
     <string name="poiCategoryEntranceWithoutName">All other entrances</string>
+    <string name="poiCategoryPostBox">Post boxes</string>
     <string name="poiCategorySurveillance">Surveillance cameras</string>
     <string name="poiCategoryBench">Benches</string>
     <string name="poiCategoryTrash">Trash cans</string>
@@ -1267,12 +1296,6 @@
         name="pointProfile">
         <item quantity="one">1 point profile</item>
         <item quantity="other">%d point profiles</item>
-    </plurals>
-
-    <plurals
-        name="category">
-        <item quantity="one">1 category</item>
-        <item quantity="other">%d categories</item>
     </plurals>
 
     <plurals

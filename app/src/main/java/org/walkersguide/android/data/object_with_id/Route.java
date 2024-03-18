@@ -224,7 +224,7 @@ public class Route extends ObjectWithId implements Serializable {
     public Route(JSONObject inputData) throws JSONException {
         super(
                 Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID),
-                Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
+                Helper.getNullableEnumFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.class),
                 inputData);
         this.reversed = false;
         try {

@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.R;
 import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import timber.log.Timber;
 
@@ -21,6 +22,7 @@ import androidx.core.util.Pair;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.walkersguide.android.data.ObjectWithId;
+import java.util.Locale;
 
 
 public class Helper {
@@ -78,6 +80,29 @@ public class Helper {
         filteredPointList.add(pointList.get(pointList.size()-1));
 
         return filteredPointList;
+    }
+
+
+    /**
+     * format strings
+     */
+
+    public static String formatStringListWithFillWordAnd(ArrayList<String> stringList) {
+        if (stringList == null || stringList.isEmpty()) { return ""; }
+        String result = stringList.get(0);
+        for (int i=1; i<stringList.size(); i++) {
+            result += i+1 == stringList.size()      // check if last list item
+                ? String.format(" %1$s ", GlobalInstance.getStringResource(R.string.fillingWordAnd))
+                : ", ";
+            result += stringList.get(i);
+        }
+        return result;
+    }
+
+    public static String formatYesOrNo(boolean value) {
+        return value
+            ? GlobalInstance.getStringResource(R.string.dialogYes)
+            : GlobalInstance.getStringResource(R.string.dialogNo);
     }
 
 
@@ -183,6 +208,9 @@ public class Helper {
             try {
                 return jsonObject.getBoolean(key);
             } catch (JSONException e) {}
+            try {
+                return jsonObject.getInt(key) != 0;
+            } catch (JSONException e) {}
         }
         return null;
     }
@@ -199,17 +227,40 @@ public class Helper {
         return null;
     }
 
-    public static <T extends Enum> T getEnumByNameFromJsonObject(
-            JSONObject jsonObject, String key, T[] enumValues) {
-        String name = jsonObject.optString(key, null);
-        if (name != null) {
-            for (T t : enumValues) {
-                if (t.name().equalsIgnoreCase(name)) {
-                    return t;
-                }
+    public static JSONObject putNullableBooleanToJsonObject(
+            JSONObject jsonObject, String key, Boolean value) throws JSONException {
+        return putNullableBooleanToJsonObject(jsonObject, key, value, false);
+    }
+
+    public static JSONObject putNullableBooleanToJsonObject(
+            JSONObject jsonObject, String key, Boolean value, boolean asInt) throws JSONException {
+        if (value != null) {
+            if (asInt) {
+                jsonObject.put(key, value ? 1 : 0);
+            } else {
+                jsonObject.put(key, value);
             }
         }
+        return jsonObject;
+    }
+
+    public static <T extends Enum<T>> T getNullableEnumFromJsonObject(
+            JSONObject jsonObject, String key, Class<T> enumClass) {
+        String enumValue = getNullableStringFromJsonObject(jsonObject, key);
+        if (enumValue != null) {
+            try {
+                return Enum.valueOf(enumClass, enumValue.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {}
+        }
         return null;
+    }
+
+    public static <T extends Enum<T>> JSONObject putNullableEnumToJsonObject(
+            JSONObject jsonObject, String key, T value) throws JSONException {
+        if (value != null) {
+            jsonObject.put(key, value.name());
+        }
+        return jsonObject;
     }
 
 

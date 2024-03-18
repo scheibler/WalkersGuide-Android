@@ -101,6 +101,7 @@ public class RouteObjectView extends LinearLayout {
     }
 
     private void configureRouteObjectView(int instructionNumber, boolean isSelected) {
+        // route segment
         if (! this.routeObject.getIsFirstRouteObject()) {
             if (isSelected) {
                 this.layoutRouteSegment.setPrefix(
@@ -111,12 +112,21 @@ public class RouteObjectView extends LinearLayout {
             this.layoutRouteSegment.setVisibility(View.VISIBLE);
         }
 
+        // route point
         if (instructionNumber > -1) {
             this.layoutRoutePoint.setPrefix(
                     String.format(Locale.getDefault(), "%1$d.", instructionNumber));
         }
+
+        String routePointInstruction = this.routeObject.formatPointInstruction();
+        if (this.routeObject.getPoint() instanceof Intersection
+                && ((Intersection) this.routeObject.getPoint()).hasPedestrianCrossings()) {
+            routePointInstruction += System.lineSeparator();
+            routePointInstruction += ((Intersection) this.routeObject.getPoint()).formatNumberOfCrossingsNearby();
+        }
+
         this.layoutRoutePoint.configureAsSingleObject(
-                this.routeObject.getPoint(), this.routeObject.formatPointInstruction());
+                this.routeObject.getPoint(), routePointInstruction);
     }
 
 }

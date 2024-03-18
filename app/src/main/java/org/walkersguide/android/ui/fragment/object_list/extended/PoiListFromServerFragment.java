@@ -259,9 +259,7 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 
         int numberOfSelectedPoiCategories = request.hasProfile()
             ? request.getProfile().getPoiCategoryList().size() : 0;
-        buttonSelectPoiCategories.setText(
-                GlobalInstance.getPluralResource(
-                    R.plurals.category, numberOfSelectedPoiCategories));
+        buttonSelectPoiCategories.setText(String.valueOf(numberOfSelectedPoiCategories));
         buttonSelectPoiCategories.setContentDescription(
                 String.format(
                     "%1$s: %2$s",
@@ -274,9 +272,7 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
 
         int numberOfSelectedCollections = request.hasProfile()
             ? request.getProfile().getCollectionList().size() : 0;
-        buttonSelectCollections.setText(
-                GlobalInstance.getPluralResource(
-                    R.plurals.collection, numberOfSelectedCollections));
+        buttonSelectCollections.setText(String.valueOf(numberOfSelectedCollections));
         buttonSelectCollections.setContentDescription(
                 String.format(
                     "%1$s: %2$s",

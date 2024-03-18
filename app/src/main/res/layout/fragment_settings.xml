@@ -19,7 +19,7 @@
                 app:compact="true" />
 
 
-        <!-- server settings -->
+        <!-- wg server settings -->
 
         <TextView
             android:layout_width="match_parent"
@@ -40,6 +40,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/buttonServerMapNoSelection" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchPreferTranslatedStrings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/switchPreferTranslatedStringsHint"
+            android:text="@string/switchPreferTranslatedStrings" />
+
+
+        <!-- public transport settings -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:focusable="true"
+            android:text="@string/labelPublicTransportSettingsHeader"
+            android:theme="@style/HeadingTextView" />
 
         <Button
             android:id="@+id/buttonPublicTransportProvider"

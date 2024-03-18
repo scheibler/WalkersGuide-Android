@@ -109,11 +109,20 @@ public class Station extends POI implements Serializable {
             for (Line line : this.lineList) {
                 lineNrSet.add(line.getNr());
             }
-            description += "\n" + String.format(
+            description += System.lineSeparator();
+            description += String.format(
                     GlobalInstance.getStringResource(R.string.stationLines),
                     TextUtils.join(", ", lineNrSet));
         }
 
+        // number of entrances
+        if (hasEntrance()) {
+            description += System.lineSeparator();
+            description += String.format(
+                    "%1$s %2$s",
+                    GlobalInstance.getStringResource(R.string.fillingWordHas),
+                    formatNumberOfEntrances());
+        }
         return description;
     }
 

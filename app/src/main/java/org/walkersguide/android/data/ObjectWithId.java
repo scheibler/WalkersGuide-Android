@@ -99,14 +99,7 @@ public abstract class ObjectWithId implements Serializable {
                     GlobalInstance.getPluralResource(R.plurals.point, points));
         }
         // concatenate and return
-        String result = stringList.get(0);
-        for (int i=1; i<stringList.size(); i++) {
-            result += i+1 == stringList.size()      // check if last list item
-                ? String.format(" %1$s ", GlobalInstance.getStringResource(R.string.fillingWordAnd))
-                : ", ";
-            result += stringList.get(i);
-        }
-        return result;
+        return Helper.formatStringListWithFillWordAnd(stringList);
     }
 
 
@@ -115,8 +108,8 @@ public abstract class ObjectWithId implements Serializable {
      */
 
     public static ObjectWithId fromJson(JSONObject jsonObject) throws JSONException {
-        Point.Type pointType = Helper.getEnumByNameFromJsonObject(
-                jsonObject, KEY_TYPE, Point.Type.values());
+        Point.Type pointType = Helper.getNullableEnumFromJsonObject(
+                jsonObject, KEY_TYPE, Point.Type.class);
         if (pointType != null) {
             switch (pointType) {
                 case POINT:
@@ -138,8 +131,8 @@ public abstract class ObjectWithId implements Serializable {
             }
         }
 
-        Segment.Type segmentType = Helper.getEnumByNameFromJsonObject(
-                jsonObject, KEY_TYPE, Segment.Type.values());
+        Segment.Type segmentType = Helper.getNullableEnumFromJsonObject(
+                jsonObject, KEY_TYPE, Segment.Type.class);
         if (segmentType != null) {
             switch (segmentType) {
                 case SEGMENT:
@@ -151,8 +144,8 @@ public abstract class ObjectWithId implements Serializable {
             }
         }
 
-        Route.Type routeType = Helper.getEnumByNameFromJsonObject(
-                jsonObject, KEY_TYPE, Route.Type.values());
+        Route.Type routeType = Helper.getNullableEnumFromJsonObject(
+                jsonObject, KEY_TYPE, Route.Type.class);
         if (routeType != null) {
             switch (routeType) {
                 case P2P_ROUTE:

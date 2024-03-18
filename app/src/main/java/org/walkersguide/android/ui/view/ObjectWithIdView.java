@@ -277,6 +277,13 @@ public class ObjectWithIdView extends LinearLayout {
         this.objectWithId = null;
         this.showObjectIcon = false;
         this.staticLabelText = null;
+
+        // remove previously added accessibility actions
+        for (Integer actionId : registeredAccessibilityActionIdList) {
+            ViewCompat.removeAccessibilityAction(this.label, actionId);
+        }
+        registeredAccessibilityActionIdList.clear();
+
         updateLabelAndButtonText();
     }
 
@@ -326,13 +333,16 @@ public class ObjectWithIdView extends LinearLayout {
 
             // accessibility actions
             for (final Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
-                ViewCompat.addAccessibilityAction(
+                int actionId = ViewCompat.addAccessibilityAction(
                         this.label,
                         entry.getValue(),
                         (actionView, arguments) -> {
                             executeAccessibilityMenuAction(entry.getKey());
                             return true;
                         });
+                if (actionId != View.NO_ID) {
+                    registeredAccessibilityActionIdList.add(actionId);
+                }
             }
 
             // action button
@@ -351,6 +361,11 @@ public class ObjectWithIdView extends LinearLayout {
         this.label.setContentDescription(labelContentDescription);
     }
 
+
+    /** accessibility actions
+     */
+    private ArrayList<Integer> registeredAccessibilityActionIdList = new ArrayList<Integer>();;
+
     private LinkedHashMap<Integer,String> getAccessibilityActionMenuItemMap() {
         LinkedHashMap<Integer,String> actionMap = new LinkedHashMap<Integer,String>();
         if (objectDetailsActionEnabled) {
@@ -367,7 +382,7 @@ public class ObjectWithIdView extends LinearLayout {
                         MENU_ITEM_ENTRANCES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdEntrances));
             }
         } else if (objectWithId instanceof Intersection) {
-            if (((Intersection) objectWithId).hasPedestrianCrossing()) {
+            if (((Intersection) objectWithId).hasPedestrianCrossings()) {
                 actionMap.put(
                         MENU_ITEM_PEDESTRIAN_CROSSINGS, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdPedestrianCrossings));
             }

@@ -162,7 +162,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             }
             if (object instanceof Intersection) {
                 tabList.add(Tab.INTERSECTION_STRUCTURE);
-                if (((Intersection) object).hasPedestrianCrossing()) {
+                if (((Intersection) object).hasPedestrianCrossings()) {
                     tabList.add(Tab.PEDESTRIAN_CROSSINGS);
                 }
             }

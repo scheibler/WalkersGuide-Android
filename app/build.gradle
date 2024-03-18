@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        versionCode 33
+        versionCode 34
         minSdkVersion 21
         targetSdkVersion 34
         multiDexEnabled true

@@ -72,7 +72,7 @@ public class Segment extends ObjectWithId implements Serializable {
     public Segment(JSONObject inputData) throws JSONException {
         super(
                 Helper.getNullableAndPositiveLongFromJsonObject(inputData, KEY_ID),
-                Helper.getEnumByNameFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.values()),
+                Helper.getNullableEnumFromJsonObject(inputData, ObjectWithId.KEY_TYPE, Type.class),
                 inputData);
         this.subType = inputData.getString(KEY_SUB_TYPE);
         this.bearing = new Bearing(inputData.getInt(KEY_BEARING));

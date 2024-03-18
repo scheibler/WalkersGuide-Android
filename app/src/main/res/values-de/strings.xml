@@ -444,11 +444,15 @@
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Kreuzung</string>
     <!-- pedestrian crossing -->
-    <string name="labelPointTrafficSignalsAttributesHeading">Ampel</string>
+    <string name="labelPointPedestrianCrossingDetailsHeading">Querungsdetails</string>
+    <string name="labelPointCrossingBarrier">Beschrankt</string>
+    <string name="labelPointKerb">Bordstein</string>
+    <string name="labelPointIsland">Verkehrsinsel</string>
     <string name="labelPointTrafficSignalsSound">Tonsignal</string>
     <string name="labelPointTrafficSignalsVibration">Vibrationssignal</string>
     <!-- point: alt names -->
     <string name="labelPointNotesHeading">Anmerkungen</string>
+    <string name="labelPointInscription">Inschrift</string>
     <string name="labelPointAltName">Alternativname</string>
     <string name="labelPointOldName">Früherer Name</string>
     <string name="labelPointNote">Notiz des Mappers</string>
@@ -534,8 +538,15 @@
     <string name="buttonServerURLNoSelection">URL: Keine ausgewählt</string>
     <string name="buttonServerMap">Karte: %1$s</string>
     <string name="buttonServerMapNoSelection">Karte: Keine ausgewählt</string>
-    <string name="buttonPublicTransportProvider">ÖPNV Betreiber: %1$s</string>
-    <string name="buttonPublicTransportProviderNoSelection">ÖPNV Betreiber: Keiner ausgewählt</string>
+    <string name="switchPreferTranslatedStrings">Übersetzungen bevorzugen</string>
+    <string name="switchPreferTranslatedStringsHint">
+            Wenn die Kartendatenbank für einen Eintrag mehrere Sprachen hinterlegt hat, dann bewirkt
+            diese Einstellung, dass die App alle Informationen in deiner eingestellten Systemsprache
+            oder, falls nicht vorhanden, auf Englisch ausgibt. So ist beispielsweise bei Restaurants oder Sehenswürdigkeiten
+            der Name gelegentlich auch auf Englisch hinterlegt.</string>
+    <string name="labelPublicTransportSettingsHeader">ÖPNV:</string>
+    <string name="buttonPublicTransportProvider">Betreiber: %1$s</string>
+    <string name="buttonPublicTransportProviderNoSelection">Betreiber: Keiner ausgewählt</string>
     <string name="labelInterfaceSettingsHeader">Benutzungsoberfläche:</string>
     <string name="switchShowActionButton">Aktion-Button anzeigen</string>
     <string name="switchShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
@@ -746,6 +757,7 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">und</string>
+    <string name="fillingWordHas">hat</string>
     <string name="stateCollapsed">minimiert</string>
     <string name="stateExpanded">maximiert</string>
     <string name="viewClassNameTab">Tab</string>
@@ -780,9 +792,25 @@
     <string name="intersectionNumberOfCrossingsNearby">%1$s in der Nähe:</string>
 
     <!-- PedestrianCrossing -->
-    <!-- TrafficSignal -->
-    <string name="trafficSignalNo">Nein</string>
-    <string name="trafficSignalYes">Ja</string>
+    <!-- details in toString -->
+    <string name="pedestrianCrossingDetailsIslandYes">Verkehrsinsel</string>
+    <string name="pedestrianCrossingDetailsCrossingBarrierNo">Unbeschrankt</string>
+    <string name="pedestrianCrossingDetailsCrossingBarrierYes">Schranke</string>
+    <string name="pedestrianCrossingDetailsKerbNo">Keinen Bordstein</string>
+    <string name="pedestrianCrossingDetailsSoundYes">Tonsignal</string>
+    <string name="pedestrianCrossingDetailsTactilePavingYes">Leitlinie</string>
+    <!-- CrossingBarrier -->
+    <string name="crossingBarrierFull">Vollschranke</string>
+    <string name="crossingBarrierHalf">Halbschranke</string>
+    <string name="crossingBarrierYes">Ja</string>
+    <string name="crossingBarrierNo">Nein</string>
+    <!-- Kerb -->
+    <string name="kerbFlush">Ebenerdig</string>
+    <string name="kerbLowered">Abgesenkt</string>
+    <string name="kerbRolled">Gerollt</string>
+    <string name="kerbRaised">Erhöht</string>
+    <string name="kerbYes">Ja</string>
+    <string name="kerbNo">Nein</string>
 
     <!-- StationPoint -->
     <string name="stationPlatform">Gleis</string>
@@ -905,10 +933,12 @@
     <string name="poiCategoryEducation">Bildung</string>
     <string name="poiCategoryFinance">Finanzen</string>
     <string name="poiCategoryEntertainment">Sport und Unterhaltung</string>
-    <string name="poiCategoryPublicService">Öffentliche Einrichtungen</string>
+    <string name="poiCategoryPublicService">Öffentliche Dienstleistungen</string>
+    <string name="poiCategoryOtherService">Sonstige Dienstleistungen</string>
     <string name="poiCategoryBuildingsWithName">Gebäude mit einem Namen</string>
     <string name="poiCategoryEntrance">Eingänge mit einem Namen</string>
     <string name="poiCategoryEntranceWithoutName">Alle sonstigen Eingänge</string>
+    <string name="poiCategoryPostBox">Briefkästen</string>
     <string name="poiCategorySurveillance">Überwachungskameras</string>
     <string name="poiCategoryBench">Bänke</string>
     <string name="poiCategoryTrash">Mülleimer</string>
@@ -1271,12 +1301,6 @@
         name="pointProfile">
         <item quantity="one">1 Punktprofil</item>
         <item quantity="other">%d Punktprofile</item>
-    </plurals>
-
-    <plurals
-        name="category">
-        <item quantity="one">1 Kategorie</item>
-        <item quantity="other">%d Kategorien</item>
     </plurals>
 
     <plurals
