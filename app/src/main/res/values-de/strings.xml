@@ -192,7 +192,6 @@
     -->
 
     <!-- main activity -->
-    <string name="app_name">WalkersGuide</string>
     <string name="mainMenu">Hauptmenü</string>
     <string name="navigateUp">Nach oben</string>
     <!-- main tab names -->
