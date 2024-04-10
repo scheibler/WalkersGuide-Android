@@ -40,7 +40,8 @@ public class Helper {
         return filteredObjectList;
     }
 
-    public static ArrayList<Point> filterPointListByTurnValueAndImportantIntersections(ArrayList<? extends Point> pointList) {
+    public static ArrayList<Point> filterPointListByTurnValueAndImportantIntersections(
+            ArrayList<? extends Point> pointList, boolean enumeratePointsWithoutName) {
         ArrayList<Point> filteredPointList = new ArrayList<Point>();
 
         // first point must always be added
@@ -65,19 +66,37 @@ public class Helper {
             }
             Timber.d("%1$s - %2$s = %3$s, isImportant=%4$s", bearingFromPreviousToCurrent, bearingFromCurrentToNext, turn, isImportantIntersection);
 
-            // skip the current point, if:
-            // - it wasn't added manually
-            // - and the point is no important intersection
-            // - and turn == cross
+            boolean addPoint = false;
             if (       current.hasCustomName()      // hack to determine, if the point was added by the user
-                    || turn.getInstruction() != Turn.Instruction.CROSS
-                    || isImportantIntersection) {
+                    || isImportantIntersection
+                    || previous.distanceTo(current) > 100) {
+                addPoint = true;
+            } else if (turn.getInstruction() != Turn.Instruction.CROSS
+                    && previous.distanceTo(current) > 3) {
+                addPoint = true;
+            }
+            if (addPoint) {
                 filteredPointList.add(current);
             }
         }
 
         // and the last point must always be added too
         filteredPointList.add(pointList.get(pointList.size()-1));
+
+        // rename point list
+        if (enumeratePointsWithoutName) {
+            int pointNumber = 1;
+            for (Point point : filteredPointList) {
+                if (! point.hasCustomName()) {         // don't rename points, who were added by the user
+                    point.rename(
+                            String.format(
+                                GlobalInstance.getStringResource(R.string.labelRecordedPointName),
+                                pointNumber)
+                            );
+                }
+                pointNumber++;
+            }
+        }
 
         return filteredPointList;
     }

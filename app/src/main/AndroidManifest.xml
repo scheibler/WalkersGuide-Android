@@ -40,6 +40,37 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- gpx files -->
+
+			<intent-filter
+                android:label="@string/importGpxFileDialogTitle" >
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<data android:scheme="content" android:host="*" android:mimeType="binary/octet-stream" />
+				<data android:scheme="content" android:host="*" android:mimeType="application/octet-stream" />
+			</intent-filter>
+
+            <intent-filter
+                tools:ignore="AppLinkUrlError"
+                android:label="@string/importGpxFileDialogTitle" >
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT"/>
+				<data android:mimeType="text/plain" />
+                <data android:mimeType="application/xml" />
+				<data android:mimeType="application/gpx+xml" />
+			</intent-filter>
+
+            <!-- post addresses -->
+
+            <intent-filter
+                android:label="@string/contextMenuItemObjectWithIdUseAsDestinationPoint" >
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="geo" />
+            </intent-filter>
+
+            <!-- shortcuts -->
+
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />

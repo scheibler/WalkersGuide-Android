@@ -236,7 +236,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     @Override public View configureView(View view, Bundle savedInstanceState) {
         layoutHomeAddress = (ObjectWithIdView) view.findViewById(R.id.layoutHomeAddress);
         layoutHomeAddress.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.USE_AS_HOME_ADDRESS)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");

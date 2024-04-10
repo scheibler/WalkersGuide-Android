@@ -59,7 +59,7 @@ public class StreetCourseTask extends ServerTask {
                     request.getStreetCourseName(),
                     request.getStreetCourseDescription(),
                     false,
-                    Helper.filterPointListByTurnValueAndImportantIntersections(pointList));
+                    Helper.filterPointListByTurnValueAndImportantIntersections(pointList, false));
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_RESPONSE);
         }

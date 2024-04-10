@@ -132,8 +132,10 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
             ObjectWithIdView layoutObject = (ObjectWithIdView) view.findViewById(R.id.layoutObject);
             layoutObject.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-                @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
-                    // do nothing
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
+                    if (objectWithId != null) {
+                        view.showContextMenu(subView, objectWithId);
+                    }
                 }
             }, false);
             layoutObject.configureAsSingleObject(object);

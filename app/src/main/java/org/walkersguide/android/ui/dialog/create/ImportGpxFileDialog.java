@@ -76,23 +76,25 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
     // instance constructors
 
-    public static ImportGpxFileDialog newInstance(boolean isPinned) {
+    public static ImportGpxFileDialog newInstance(Uri uri, boolean pinCollection) {
         ImportGpxFileDialog dialog = new ImportGpxFileDialog();
         Bundle args = new Bundle();
-        args.putBoolean(KEY_IS_PINNED, isPinned);
+        args.putParcelable(KEY_URI, uri);
+        args.putBoolean(KEY_PIN_COLLECTION, pinCollection);
         dialog.setArguments(args);
         return dialog;
     }
 
     // dialog
-    private static final String KEY_IS_PINNED = "isPinned";
+    private static final String KEY_URI = "uri";
+    private static final String KEY_PIN_COLLECTION = "pinCollection";
     private static final String KEY_FILE_PICKING_IN_PROGRESS = "filePickingInProgress";
     private static final String KEY_GPX_FILE_NAME = "gpxFileName";
     private static final String KEY_OBJECT_LIST = "objectList";
     private static final String KEY_RADIO_BUTTON_NEW_COLLECTION_IS_CHECKED = "radioButtonNewCollectionIsChecked";
     private static final String KEY_SELECTED_EXISTING_DATABASE_PROFILE = "selectedExistingDatabaseProfile";
 
-    private boolean isPinned, filePickingInProgress;
+    private boolean pinCollection, filePickingInProgress;
     private String gpxFileName;
     private ArrayList<ObjectWithId> objectList;
     private boolean radioButtonNewCollectionIsChecked;
@@ -132,7 +134,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        isPinned = getArguments().getBoolean(KEY_IS_PINNED);
+        pinCollection = getArguments().getBoolean(KEY_PIN_COLLECTION);
 
         if (savedInstanceState != null) {
             filePickingInProgress = savedInstanceState.getBoolean(KEY_FILE_PICKING_IN_PROGRESS);
@@ -209,7 +211,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
         // create dialog
         return new AlertDialog.Builder(getActivity())
             .setTitle(
-                    isPinned
+                    pinCollection
                     ? getResources().getString(R.string.importGpxFileDialogTitlePinned)
                     : getResources().getString(R.string.importGpxFileDialogTitle))
             .setView(view)
@@ -264,11 +266,16 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 layoutExistingDatabaseProfile.setVisibility(View.GONE);
                 buttonPositive.setVisibility(View.GONE);
 
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("application/*");
-                startActivityForResult(intent, RC_SELECT_GPX_FILE);
-                filePickingInProgress = true;
+                Uri uri = getArguments().getParcelable(KEY_URI);
+                if (uri == null) {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("application/*");
+                    startActivityForResult(intent, RC_SELECT_GPX_FILE);
+                    filePickingInProgress = true;
+                } else {
+                    processUri(uri);
+                }
 
             } else {
                 updateUI();
@@ -309,7 +316,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
         } else {
             radioButtonExistingDatabaseProfile.setChecked(true);
         }
-        if (! isPinned) {
+        if (! pinCollection) {
             radioButtonNewCollection.setVisibility(View.VISIBLE);
             radioButtonExistingDatabaseProfile.setVisibility(View.VISIBLE);
         }
@@ -343,7 +350,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 return;
             }
 
-            profileToAddObjectsTo = Collection.create(newCollectionName, isPinned);
+            profileToAddObjectsTo = Collection.create(newCollectionName, pinCollection);
             if (profileToAddObjectsTo == null) {
                 Toast.makeText(
                         getActivity(),
@@ -401,12 +408,13 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
             dismiss();
             return;
         }
+        processUri(resultData.getData());
+    }
 
-        final Uri uri = resultData.getData();
-        labelImportResult.setText(
-                getResources().getString(R.string.messagePleaseWait));
+    private void processUri(final Uri uri) {
         ViewCompat.setAccessibilityLiveRegion(
                 labelImportResult, ViewCompat.ACCESSIBILITY_LIVE_REGION_ASSERTIVE);
+
         Executors.newSingleThreadExecutor().execute(() -> {
 
             try {
@@ -697,7 +705,7 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 routeDescription,
                 false,
                 isTrack
-                ? Helper.filterPointListByTurnValueAndImportantIntersections(routePointList)
+                ? Helper.filterPointListByTurnValueAndImportantIntersections(routePointList, true)
                 : routePointList);
     }
 

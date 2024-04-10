@@ -60,16 +60,26 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
     // instance constructors
 
     public static EnterAddressDialog newInstance() {
+        return newInstance(null);
+    }
+
+    public static EnterAddressDialog newInstance(String addressString) {
         EnterAddressDialog dialog = new EnterAddressDialog();
+        Bundle args = new Bundle();
+        args.putString(KEY_ADDRESS_STRING, addressString);
+        dialog.setArguments(args);
         return dialog;
     }
 
     // dialog
+    private static final String KEY_ADDRESS_STRING = "addressString";
     private static final String KEY_TASK_ID = "taskId";
     private static final String KEY_NEARBY_CURRENT_LOCATION_IS_CHECKED = "nearbyCurrentLocationIsChecked";
+    private static final String KEY_TRIED_TO_RESOLVE_ADDRESS_AUTOMATICALLY = "triedToResolveAddressAutomatically";
 
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
+    private boolean triedToResolveAddressAutomatically;
 
     private EditTextAndClearInputButton layoutAddress;
     private SwitchCompat buttonNearbyCurrentLocation;
@@ -92,8 +102,10 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            triedToResolveAddressAutomatically = savedInstanceState.getBoolean(KEY_TRIED_TO_RESOLVE_ADDRESS_AUTOMATICALLY);
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
+            triedToResolveAddressAutomatically = false;
         }
 
         // custom view
@@ -103,6 +115,11 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
 
         layoutAddress = (EditTextAndClearInputButton) view.findViewById(R.id.layoutAddress);
         layoutAddress.setHint(getResources().getString(R.string.editHintAddress));
+        layoutAddress.setInputText(
+                savedInstanceState != null
+                ? savedInstanceState.getString(KEY_ADDRESS_STRING)
+                : getArguments().getString(KEY_ADDRESS_STRING));
+        layoutAddress.setVisibility(View.GONE);
         layoutAddress.setEditorAction(
                 EditorInfo.IME_ACTION_DONE,
                 new EditTextAndClearInputButton.OnSelectedActionClickListener() {
@@ -112,6 +129,7 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
                 });
 
         buttonNearbyCurrentLocation = (SwitchCompat) view.findViewById(R.id.buttonNearbyCurrentLocation);
+        buttonNearbyCurrentLocation.setVisibility(View.GONE);
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -135,36 +153,45 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
     @Override public void onStart() {
         super.onStart();
         final AlertDialog dialog = (AlertDialog)getDialog();
-        if(dialog != null) {
+        if(dialog == null) return;
 
-            // positive button
-            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            updatePositiveButtonText(
-                    serverTaskExecutorInstance.taskInProgress(taskId));
-            buttonPositive.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    if (serverTaskExecutorInstance.taskInProgress(taskId)) {
-                        serverTaskExecutorInstance.cancelTask(taskId);
-                    } else {
-                        tryToGetCoordinatesForAddress();
-                    }
+        // positive button
+        Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        updatePositiveButtonText(
+                serverTaskExecutorInstance.taskInProgress(taskId));
+        buttonPositive.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                    serverTaskExecutorInstance.cancelTask(taskId);
+                } else {
+                    tryToGetCoordinatesForAddress();
                 }
-            });
+            }
+        });
 
-            // negative button
-            Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-            buttonNegative.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    dismiss();
-                }
-            });
-        }
+        // negative button
+        Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        buttonNegative.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                dismiss();
+            }
+        });
 
         IntentFilter localIntentFilter = new IntentFilter();
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_RESOLVE_ADDRESS_STRING_TASK_SUCCESSFUL);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
         localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(localIntentReceiver, localIntentFilter);
+
+        // auto mode if an address was given
+        if (! triedToResolveAddressAutomatically
+                && ! TextUtils.isEmpty(getArguments().getString(KEY_ADDRESS_STRING))) {
+            tryToGetCoordinatesForAddress();
+            triedToResolveAddressAutomatically = true;
+        } else {
+            layoutAddress.setVisibility(View.VISIBLE);
+            buttonNearbyCurrentLocation.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override public void onStop() {
@@ -175,6 +202,8 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putString(KEY_ADDRESS_STRING, layoutAddress.getInputText());
+        savedInstanceState.putBoolean(KEY_TRIED_TO_RESOLVE_ADDRESS_AUTOMATICALLY, triedToResolveAddressAutomatically);
     }
 
     @Override public void onDestroy() {
@@ -257,6 +286,8 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
                     }
                 }
 
+                layoutAddress.setVisibility(View.VISIBLE);
+                buttonNearbyCurrentLocation.setVisibility(View.VISIBLE);
                 updatePositiveButtonText(false);
             }
         }

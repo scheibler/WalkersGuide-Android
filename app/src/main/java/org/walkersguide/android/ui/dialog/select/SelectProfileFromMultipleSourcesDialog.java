@@ -246,7 +246,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
 
             case FROM_GPX_FILE:
                 ImportGpxFileDialog.newInstance(
-                        target == Target.ADD_TO_PINNED_PROFILES ? true : false)
+                        null, target == Target.ADD_TO_PINNED_PROFILES ? true : false)
                     .show(getChildFragmentManager(), "ImportGpxFileDialog");
                 break;
         }

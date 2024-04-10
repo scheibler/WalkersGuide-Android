@@ -193,6 +193,7 @@
     <!-- main activity -->
     <string name="mainMenu">Main menu</string>
     <string name="navigateUp">Navigate up</string>
+    <string name="errorAddressStringFromIntentEmpty">The shared address is empty.</string>
     <!-- main tab names -->
     <string name="mainTabNameOverview">Overview</string>
     <string name="mainTabNameRoutes">Routes</string>
@@ -957,7 +958,7 @@
     <string name="routeDescriptionDefault">The route is %1$s long and contains %2$s.</string>
     <string name="labelOppositeDirection">Opposite direction</string>
     <string name="messageAlmostArrivedAtRouteStart">Almost at start point</string>
-    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s</string>
+    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s at %2$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>
     <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
     <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s.\nThen: %3$s</string>

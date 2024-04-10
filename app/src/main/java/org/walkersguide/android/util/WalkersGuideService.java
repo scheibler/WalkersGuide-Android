@@ -1055,8 +1055,6 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     }
 
     private Route createRouteFromRecordedPointList(String routeName) {
-        ArrayList<GPS> filteredRecordedPointList = null;
-
         // add destination point, if not automatically done
         GPS destination = positionManagerInstance.getGPSLocation();
         if (destination != null
@@ -1065,48 +1063,19 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             recordedPointList.add(destination);
         }
 
-        // filter redundant points by turn value
-        filteredRecordedPointList = new ArrayList<GPS>();
-        for (Point point : Helper.filterPointListByTurnValueAndImportantIntersections(recordedPointList)) {
+        // filter redundant points
+        ArrayList<GPS> filteredRecordedPointList = new ArrayList<GPS>();
+        for (Point point : Helper.filterPointListByTurnValueAndImportantIntersections(recordedPointList, true)) {
             if (point instanceof GPS) {
                 filteredRecordedPointList.add((GPS) point);
             }
-        }
-        recordedPointList = filteredRecordedPointList;
-
-        // filter redundant points by small distance
-        filteredRecordedPointList = new ArrayList<GPS>();
-        // first point must always be added
-        filteredRecordedPointList.add(recordedPointList.get(0));
-        for (int i=1; i<recordedPointList.size(); i++) {
-            GPS previous = filteredRecordedPointList.get(filteredRecordedPointList.size()-1);
-            GPS current = recordedPointList.get(i);
-            // skip, if the current point wasn't added manually and it is closer than 4m away from the previous one
-            if (current.hasCustomName()      // hack to determine, if the point was added by the user
-                    || previous.distanceTo(current) > 3) {
-                filteredRecordedPointList.add(current);
-            }
-        }
-        recordedPointList = filteredRecordedPointList;
-
-        // rename recorded points
-        int pointNumber = 1;
-        for (GPS point : recordedPointList) {
-            if (! point.hasCustomName()) {         // don't rename points, who were added by the user
-                point.rename(
-                        String.format(
-                            getResources().getString(R.string.labelRecordedPointName),
-                            pointNumber)
-                        );
-            }
-            pointNumber++;
         }
 
         // create route
         Route route = null;
         try {
             route = Route.fromPointList(
-                    Route.Type.RECORDED_ROUTE, routeName, recordedPointList);
+                    Route.Type.RECORDED_ROUTE, routeName, filteredRecordedPointList);
         } catch (JSONException e) {}
         return route;
     }

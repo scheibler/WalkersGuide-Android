@@ -153,7 +153,8 @@ public class ObjectWithIdView extends LinearLayout {
         label.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 if (onDefaultObjectActionListener != null) {
-                    onDefaultObjectActionListener.onDefaultObjectActionClicked(objectWithId);
+                    onDefaultObjectActionListener.onDefaultObjectActionClicked(
+                            ObjectWithIdView.this, view, objectWithId);
                 } else if (objectWithId != null) {
                     // open details
                     executeAccessibilityMenuAction(MENU_ITEM_DETAILS);
@@ -198,7 +199,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean objectDetailsActionEnabled;
 
     public interface OnDefaultObjectActionListener {
-        public void onDefaultObjectActionClicked(ObjectWithId objectWithId);
+        public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId);
     }
 
     public void setOnDefaultObjectActionListener(OnDefaultObjectActionListener listener) {

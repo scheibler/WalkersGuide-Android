@@ -138,7 +138,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
 
         layoutSimulationPoint = (ObjectWithIdView) view.findViewById(R.id.layoutSimulationPoint);
         layoutSimulationPoint.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.SIMULATE_LOCATION)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");

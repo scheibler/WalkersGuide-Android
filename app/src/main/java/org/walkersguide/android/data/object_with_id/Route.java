@@ -288,7 +288,8 @@ public class Route extends ObjectWithId implements Serializable {
         } else {
             return String.format(
                     GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRoutePoint),
-                    currentRouteObject.getTurn().getInstruction());
+                    currentRouteObject.getTurn().getInstruction(),
+                    currentRouteObject.getPoint().getName());
         }
     }
 

@@ -160,7 +160,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
         layoutStartPoint = (ObjectWithIdView) view.findViewById(R.id.layoutStartPoint);
         layoutStartPoint.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_START_POINT)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
@@ -169,7 +169,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
         layoutDestinationPoint = (ObjectWithIdView) view.findViewById(R.id.layoutDestinationPoint);
         layoutDestinationPoint.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_DESTINATION_POINT)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
@@ -189,7 +189,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
         layoutViaPoint1 = (ObjectWithIdView) view.findViewById(R.id.layoutViaPoint1);
         layoutViaPoint1.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_1)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
@@ -206,7 +206,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
         layoutViaPoint2 = (ObjectWithIdView) view.findViewById(R.id.layoutViaPoint2);
         layoutViaPoint2.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_2)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
@@ -223,7 +223,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
         layoutViaPoint3 = (ObjectWithIdView) view.findViewById(R.id.layoutViaPoint3);
         layoutViaPoint3.setOnDefaultObjectActionListener(new ObjectWithIdView.OnDefaultObjectActionListener() {
-            @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+            @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_VIA_POINT_3)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");

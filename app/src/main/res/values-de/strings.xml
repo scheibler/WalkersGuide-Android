@@ -194,6 +194,7 @@
     <!-- main activity -->
     <string name="mainMenu">Hauptmenü</string>
     <string name="navigateUp">Nach oben</string>
+    <string name="errorAddressStringFromIntentEmpty">Die geteilte Adresse ist leer.</string>
     <!-- main tab names -->
     <string name="mainTabNameOverview">Übersicht</string>
     <string name="mainTabNameRoutes">Routen</string>
@@ -958,7 +959,7 @@
     <string name="routeDescriptionDefault">Die Route ist %1$s lang und besteht aus %2$s.</string>
     <string name="labelOppositeDirection">In Gegenrichtung</string>
     <string name="messageAlmostArrivedAtRouteStart">Startpunkt der Route beinahe erreicht.</string>
-    <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s</string>
+    <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s an %2$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Zielpunkt der Route beinahe erreicht.</string>
     <string name="messageArrivedAtRouteStart">Startpunkt der Route erreicht.</string>
     <string name="messageArrivedAtRoutePoint">Punkt %1$d erreicht: %2$s.\nDanach: %3$s</string>

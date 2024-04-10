@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
 import org.walkersguide.android.BuildConfig;
 import java.util.List;
 
@@ -93,6 +94,15 @@ import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.util.WalkersGuideService.ServiceState;
 import org.walkersguide.android.util.WalkersGuideService.StartServiceFailure;
 import org.walkersguide.android.util.WalkersGuideService;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.ui.dialog.create.ImportGpxFileDialog;
+import android.text.TextUtils;
+import java.nio.charset.StandardCharsets;
+import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 
 
 public class MainActivity extends AppCompatActivity
@@ -129,12 +139,14 @@ public class MainActivity extends AppCompatActivity
 
     // activity
     private static String KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME = "skipPositionManagerInitialisationDuringOnResume";
+    private static final String KEY_LAST_URI = "lastUri";
 
     private GlobalInstance globalInstance;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
     private SettingsManager settingsManagerInstance;
     private boolean broadcastReceiverAlreadyRegistered, skipPositionManagerInitialisationDuringOnResume;
+    private Uri lastUri;
 
     private Toolbar toolbar;
     private TextView labelToolbarTitle, labelWalkersGuideServiceNotRunningWarning;
@@ -160,10 +172,20 @@ public class MainActivity extends AppCompatActivity
             savedInstanceState != null
             ? savedInstanceState.getBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME)
             : false;
+        lastUri =
+            savedInstanceState != null
+            ? savedInstanceState.getParcelable(KEY_LAST_URI)
+            : null;
 
         getSupportFragmentManager()
             .setFragmentResultListener(
                     PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    EnterAddressDialog.REQUEST_ENTER_ADDRESS, this, this);
 
         // toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -351,6 +373,35 @@ public class MainActivity extends AppCompatActivity
                 subTabToOpen,
                 globalInstance.isDynamicShortcutActionEnabled());
         globalInstance.setDynamicShortcutActionEnabled(false);
+
+        Uri uri = intent.getData();
+        if (uri != null
+                && ! uri.equals(lastUri)) {
+            Timber.d("uri from intent filter: %1$s", uri.toString());
+            if ("geo".equals(uri.getScheme())) {
+                String[] parts = uri.toString().split("\\?q=");
+                if (parts.length > 1
+                        && ! TextUtils.isEmpty(parts[1])) {
+                    String addressString = null;
+                    try {
+                        addressString = URLDecoder.decode(
+                                parts[1], StandardCharsets.UTF_8.name());
+                    } catch (UnsupportedEncodingException e) {
+                        addressString = parts[1];
+                    }
+                    EnterAddressDialog.newInstance(addressString)
+                        .show(getSupportFragmentManager(), "EnterAddressDialog");
+                } else {
+                    SimpleMessageDialog.newInstance(
+                            getResources().getString(R.string.errorAddressStringFromIntentEmpty))
+                        .show(getSupportFragmentManager(), "SimpleMessageDialog");
+                }
+            } else {
+                ImportGpxFileDialog.newInstance(uri, false)
+                    .show(getSupportFragmentManager(), "ImportGpxFileDialog");
+            }
+            lastUri = uri;
+        }
     }
 
     @Override public void onBackPressed() {
@@ -366,11 +417,25 @@ public class MainActivity extends AppCompatActivity
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: requestKey=%1$s", requestKey);
-        if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
+        if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
+            StreetAddress newRouteDestination = (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS);
+            if (newRouteDestination != null) {
+                ObjectDetailsTabLayoutFragment.details(newRouteDestination)
+                    .show(getSupportFragmentManager(), "Details");
+            }
+
+        } else if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
             Point sharedLocation = (Point) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
             if (sharedLocation != null) {
                 ObjectDetailsTabLayoutFragment.details(sharedLocation)
                     .show(getSupportFragmentManager(), "Details");
+            }
+
+        } else if (requestKey.equals(ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL)) {
+            DatabaseProfile importedGpxFileCollection = (DatabaseProfile) bundle.getSerializable(ImportGpxFileDialog.EXTRA_GPX_FILE_PROFILE);
+            if (importedGpxFileCollection != null) {
+                ObjectListFromDatabaseFragment.newInstance(importedGpxFileCollection)
+                    .show(getSupportFragmentManager(), "ImportedGpxFileCollection");
             }
         }
     }
@@ -378,6 +443,7 @@ public class MainActivity extends AppCompatActivity
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME, skipPositionManagerInitialisationDuringOnResume);
+        savedInstanceState.putParcelable(KEY_LAST_URI, lastUri);
     }
 
     @Override public void recreateActivity() {

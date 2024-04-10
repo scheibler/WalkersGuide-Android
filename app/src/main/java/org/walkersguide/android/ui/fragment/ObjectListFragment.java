@@ -143,7 +143,7 @@ public abstract class ObjectListFragment extends RootFragment
         }
     }
 
-    @Override public void onDefaultObjectActionClicked(ObjectWithId objectWithId) {
+    @Override public void onDefaultObjectActionClicked(ObjectWithIdView view, View subView, ObjectWithId objectWithId) {
         Bundle result = new Bundle();
         result.putSerializable(EXTRA_OBJECT_WITH_ID, objectWithId);
         getParentFragmentManager().setFragmentResult(REQUEST_SELECT_OBJECT, result);
