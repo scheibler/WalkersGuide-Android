@@ -46,6 +46,7 @@ import android.widget.Toast;
 import androidx.core.view.ViewCompat;
 import org.walkersguide.android.ui.UiHelper;
 import android.text.method.LinkMovementMethod;
+import android.net.Uri;
 
 
 public class InfoDialog extends DialogFragment {
@@ -125,6 +126,14 @@ public class InfoDialog extends DialogFragment {
                         getResources().getString(R.string.variableUserManualUrl))
                     )
                 );
+        labelInfoUserManual.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(
+                        Uri.parse(getResources().getString(R.string.variableUserManualUrl)));
+                getActivity().startActivity(i);
+            }
+        });
         ViewCompat.setAccessibilityDelegate(
                 labelInfoUserManual, UiHelper.getAccessibilityDelegateViewClassButton());
 
@@ -137,6 +146,14 @@ public class InfoDialog extends DialogFragment {
                         getResources().getString(R.string.variablePrivacyPolicyUrl))
                     )
                 );
+        labelInfoPrivacyPolicy.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(
+                        Uri.parse(getResources().getString(R.string.variablePrivacyPolicyUrl)));
+                getActivity().startActivity(i);
+            }
+        });
         ViewCompat.setAccessibilityDelegate(
                 labelInfoPrivacyPolicy, UiHelper.getAccessibilityDelegateViewClassButton());
 
