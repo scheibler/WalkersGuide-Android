@@ -52,6 +52,7 @@ import java.util.Locale;
 import org.walkersguide.android.util.Helper;
 import timber.log.Timber;
 import java.util.function.Consumer;
+import org.walkersguide.android.tts.TTSWrapper;
 
 
 public class PositionManager implements android.location.LocationListener {
@@ -118,6 +119,7 @@ public class PositionManager implements android.location.LocationListener {
             }
             // additionally use fused or network provider for better results (if available)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                    && settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider()
                     && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
                 locationManager.requestLocationUpdates(
                         LocationManager.FUSED_PROVIDER, 10000, 0, this);
@@ -144,6 +146,10 @@ public class PositionManager implements android.location.LocationListener {
             locationManager.removeUpdates(this);
             locationManager = null;
         }
+    }
+
+    public boolean isRunning() {
+        return this.locationManager != null;
     }
 
 

@@ -90,6 +90,13 @@
             android:hint="@string/switchDisplayRemainsActiveHint"
             android:text="@string/switchDisplayRemainsActive" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchPreferFusedLocationProviderInsteadOfNetworkProvider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/switchPreferFusedLocationProviderInsteadOfNetworkProviderHint"
+            android:text="@string/switchPreferFusedLocationProviderInsteadOfNetworkProvider" />
+
         <Button
             android:id="@+id/buttonShakeIntensity"
             android:layout_width="match_parent"

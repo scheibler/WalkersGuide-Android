@@ -300,11 +300,21 @@ public class Route extends ObjectWithId implements Serializable {
         } else if (currentRouteObject.getIsLastRouteObject()) {
             return GlobalInstance.getStringResource(R.string.messageArrivedAtRouteDestination);
         } else {
-            return String.format(
-                    GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePoint),
-                    getCurrentPosition()+1,
-                    currentRouteObject.getTurn().getInstruction(),
-                    this.routeObjectList.get(getCurrentPosition()+1).formatSegmentInstruction());
+            RouteObject nextRouteObject = this.routeObjectList.get(getCurrentPosition()+1);
+            if (nextRouteObject.getTurn() != null) {
+                return String.format(
+                        GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePointWithNextTurn),
+                        getCurrentPosition()+1,
+                        currentRouteObject.getTurn().getInstruction(),
+                        nextRouteObject.formatSegmentInstruction(),
+                        nextRouteObject.getTurn().getInstruction());
+            } else {
+                return String.format(
+                        GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePoint),
+                        getCurrentPosition()+1,
+                        currentRouteObject.getTurn().getInstruction(),
+                        nextRouteObject.formatSegmentInstruction());
+            }
         }
     }
 

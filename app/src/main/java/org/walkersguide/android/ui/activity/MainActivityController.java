@@ -12,5 +12,6 @@ public interface MainActivityController {
     public void openPlanRouteDialog();
 
     public FragmentManager getFragmentManagerInstance();
+    public void closeAllOpenDialogs();
     public void addFragment(DialogFragment fragment);
 }

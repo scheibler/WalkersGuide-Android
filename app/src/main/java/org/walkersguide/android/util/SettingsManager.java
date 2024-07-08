@@ -61,6 +61,7 @@ public class SettingsManager {
     // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final boolean DEFAULT_DISPLAY_REMAINS_ACTIVE = false;
+    public static final boolean DEFAULT_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER = true;
     public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
     // tts
     public static final boolean DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = false;
@@ -85,6 +86,7 @@ public class SettingsManager {
     // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
+    private static final String KEY_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER = "preferFusedLocationProviderInsteadOfNetworkProvider";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
     private static final String KEY_TRACKING_MODE_ANNOUNCEMENT_RADIUS = "trackingModeAnnouncementRadius";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
@@ -254,6 +256,18 @@ public class SettingsManager {
     public void setDisplayRemainsActive(boolean newValue) {
         Editor editor = settings.edit();
         editor.putBoolean(KEY_DISPLAY_REMAINS_ACTIVE, newValue);
+        editor.apply();
+    }
+
+    public boolean getPreferFusedLocationProviderInsteadOfNetworkProvider() {
+        return settings.getBoolean(
+                KEY_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER, DEFAULT_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER);
+    }
+
+    public void setPreferFusedLocationProviderInsteadOfNetworkProvider(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(
+                KEY_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER, newValue);
         editor.apply();
     }
 

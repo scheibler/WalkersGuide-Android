@@ -242,18 +242,23 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                boolean announceViaTts = false;
                 if (acceptNewPositionForDistanceLabel.updatePoint(
                             (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
                             UiHelper.isInBackground(ObjectDetailsTabLayoutFragment.this),
                             intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
                     updateDistanceAndBearingLabel();
+                    announceViaTts = labelDistanceAndBearing.isAccessibilityFocused();
                 }
                 if (acceptNewPositionForTtsAnnouncement.updatePoint(
                             (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION), false, false)) {
                     if (! UiHelper.isInBackground(ObjectDetailsTabLayoutFragment.this)) {
-                        ttsWrapperInstance.announce(
-                                ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
+                        announceViaTts = true;
                     }
+                }
+                if (announceViaTts) {
+                    ttsWrapperInstance.announce(
+                            ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {

@@ -165,7 +165,7 @@ public class DeviceSensorManager implements SensorEventListener {
         //Timber.d("degree: %1$.1f", orientationValues[0]);
         // vertically upright: pitch (y-axis)
         //Timber.d("pitch: %1$.1f", orientationValues[1]);
-        boolean verticallyUpright = orientationValues[1] < -1.25 || orientationValues[1] > 1.25;
+        boolean verticallyUpright = orientationValues[1] < -1.11 || orientationValues[1] > 1.11;
         // horizontally upright: roll (x-axis)
         //Timber.d("roll: %1$.1f", orientationValues[2]);
         boolean horizontallyUpright = (orientationValues[2] > -1.95 && orientationValues[2] < -1.35)

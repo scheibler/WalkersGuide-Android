@@ -19,7 +19,7 @@
 
     <!-- status message -->
     <string name="walkersGuideServiceStateForeground">WalkersGuide läuft</string>
-    <string name="walkersGuideServiceStateStopped">WalkersGuide angehalten</string>
+    <string name="walkersGuideServiceStateStopped">WalkersGuide inaktiv</string>
 
     <!-- missing location provider -->
     <string name="messageNoLocationProviderAvailableShort">Fehlende Standortprovider</string>
@@ -239,6 +239,8 @@
     <string name="labelIntersectionStructureHeading">Kreuzungsaufbau</string>
     <string name="buttonPreviousRouteObject">Vorheriger Routenpunkt</string>
     <string name="buttonNextRouteObject">Nächster Routenpunkt</string>
+    <string name="messageFirstSegment">Startpunkt der Route</string>
+    <string name="messageNextSegmentInstructionAndTurn">%1$s. Anschließend %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Neu berechnen</string>
     <string name="menuItemRecalculateWithCurrentPosition">Mit aktueller Position neu berechnen</string>
@@ -552,6 +554,10 @@
     <string name="switchShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
     <string name="switchDisplayRemainsActive">Bildschirm bleibt während der Benutzung der App aktiv</string>
     <string name="switchDisplayRemainsActiveHint">Verhindert das automatische Sperren des Bildschirms bei Inaktivität.</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Fused Location Provider bei der Positionsbestimmung bevorzugen</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Wenn aktiviert, ist speziell die Standortbestimmung innerhalb von Gebäuden schneller und genauer.
+        Allerdings können bei einigen Geräten auch Probleme mit der Genauigkeit bei der Navigation auftreten.
+        Dann sollte der Fused Location Provider deaktiviert werden.</string>
     <string name="buttonShakeIntensity">Schüttelintensität</string>
     <string name="buttonShakeIntensityHint">Schütteln, um den "Wo bin ich" Dialog und den "Punkte" Tab zu aktualisieren.</string>
     <string name="labelTTSSettingsHeader">Sprachausgabe</string>
@@ -944,8 +950,10 @@
     <string name="poiCategoryTrash">Mülleimer</string>
     <string name="poiCategoryNature">Seen und Berge</string>
     <string name="poiCategoryBridge">Brücken</string>
-    <string name="poiCategoryNamedIntersection">Kreuzungen mit einem Namen</string>
-    <string name="poiCategoryOtherIntersection">Alle sonstigen Kreuzungen</string>
+    <string name="poiCategoryFullyNamedIntersection">Vollständig benannte Kreuzungen</string>
+    <string name="poiCategoryPartiallyNamedIntersection">Teilweise benannte Kreuzungen</string>
+    <string name="poiCategoryUnnamedIntersection">Unbenannte Kreuzungen</string>
+    <string name="poiCategoryRailwayIntersection">Kreuzungen mit Eisenbahnschienen</string>
     <string name="poiCategoryPedestrianCrossings">Fußgängerquerungen</string>
 
 
@@ -962,7 +970,8 @@
     <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s an %2$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Zielpunkt der Route beinahe erreicht.</string>
     <string name="messageArrivedAtRouteStart">Startpunkt der Route erreicht.</string>
-    <string name="messageArrivedAtRoutePoint">Punkt %1$d erreicht: %2$s.\nDanach: %3$s</string>
+    <string name="messageArrivedAtRoutePoint">Punkt %1$d erreicht.\nJetzt: %2$s.\nDanach: %3$s.</string>
+    <string name="messageArrivedAtRoutePointWithNextTurn">Punkt %1$d erreicht.\nJetzt: %2$s.\nDanach: %3$s.\nAnschließend: %4$s.</string>
     <string name="messageArrivedAtRouteDestination">Zielpunkt der Route erreicht.</string>
 
     <!-- RouteObject -->

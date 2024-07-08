@@ -760,18 +760,22 @@ public class ObjectWithIdView extends LinearLayout {
         int menuItemId = item.getItemId();
 
         if (menuItemId == MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION) {
+            mainActivityController.closeAllOpenDialogs();
             MainActivity.loadRoute(context, route);
 
         } else if (menuItemId == MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION) {
+            Route reversedRoute = null;
             try {
-                MainActivity.loadRoute(
-                        context, Route.reverse(route));
+                reversedRoute = Route.reverse(route);
             } catch (JSONException e) {
                 Toast.makeText(
                         context,
                         GlobalInstance.getStringResource(R.string.messageCantReverseRoute),
                         Toast.LENGTH_LONG).show();
+                return false;
             }
+            mainActivityController.closeAllOpenDialogs();
+            MainActivity.loadRoute(context, reversedRoute);
 
         } else {
             return false;

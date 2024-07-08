@@ -97,6 +97,7 @@ import android.widget.Toast;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import androidx.fragment.app.DialogFragment;
+import org.walkersguide.android.sensor.PositionManager;
 
 
 public class SettingsFragment extends RootFragment implements FragmentResultListener {
@@ -119,7 +120,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private SwitchCompat switchPreferTranslatedStrings;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
-    private SwitchCompat switchShowActionButton, switchDisplayRemainsActive;
+    private SwitchCompat switchShowActionButton, switchDisplayRemainsActive, switchPreferFusedLocationProviderInsteadOfNetworkProvider;
     private SwitchCompat switchAnnouncementsEnabled, switchKeepBluetoothHeadsetConnectionAlive;
     private EditText editDistanceAnnouncementInterval;
 
@@ -310,6 +311,21 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
             }
         });
 
+        switchPreferFusedLocationProviderInsteadOfNetworkProvider = (SwitchCompat) view.findViewById(R.id.switchPreferFusedLocationProviderInsteadOfNetworkProvider);
+        switchPreferFusedLocationProviderInsteadOfNetworkProvider.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider() != isChecked) {
+                    settingsManagerInstance.setPreferFusedLocationProviderInsteadOfNetworkProvider(isChecked);
+                    // toggle position manager
+                    PositionManager positionManagerInstance = PositionManager.getInstance();
+                    if (positionManagerInstance.isRunning()) {
+                        positionManagerInstance.stopGPS();
+                        positionManagerInstance.startGPS();
+                    }
+                }
+            }
+        });
+
         buttonShakeIntensity = (Button) view.findViewById(R.id.buttonShakeIntensity);
         buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -456,6 +472,11 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         // ui settings
         switchShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
         switchDisplayRemainsActive.setChecked(settingsManagerInstance.getDisplayRemainsActive());
+        switchPreferFusedLocationProviderInsteadOfNetworkProvider.setChecked(
+                settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider());
+        switchPreferFusedLocationProviderInsteadOfNetworkProvider.setVisibility(
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                ? View.VISIBLE : View.GONE);
         buttonShakeIntensity.setText(
                 String.format(
                     "%1$s: %2$s",

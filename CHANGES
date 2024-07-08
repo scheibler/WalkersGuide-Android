@@ -3,6 +3,25 @@ Change Log
 
 
 
+v3.1.0: 2024-07-08
+------------------
+
+- POI categories:
+    - New: post boxes and intersections with railway tracks
+    - Reorganized:
+        - services has been divided into public and other services
+        - named intersections has been divided into fully named intersections and partially named intersections (the latter is helpful if you walk on small paths and want to know if there is an intersection with a bigger street nearby).
+- Click on post addresses in your contacts app or .gpx files in your file browser to open them in WalkersGuide directly
+- More detailed information for pedestrian crossings
+- New settings:
+    - Prefer localized names and descriptions from the OpenStreetMap if available.
+      For example a Japanese restaurant may provide an English translation of its name.
+    - Optionally you can disable the previously introduced fused location provider. It improves the GPS
+      accuracy especially indoors but may cause problems for some users.
+- Many smaller bug fixes and improvements like more precise route instructions
+
+
+
 v3.0.0: 2024-03-09
 ------------------
 

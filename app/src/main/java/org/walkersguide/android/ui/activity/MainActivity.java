@@ -909,6 +909,20 @@ public class MainActivity extends AppCompatActivity
             .show(getSupportFragmentManager(), "PlanRouteDialog");
     }
 
+    @Override public void closeAllOpenDialogs() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof DialogFragment) {
+                    DialogFragment dialogFragment = (DialogFragment) fragment;
+                    if (dialogFragment.getShowsDialog()) {
+                        dialogFragment.dismiss();
+                    }
+                }
+            }
+        }
+    }
+
     @Override public FragmentManager getFragmentManagerInstance() {
         return getSupportFragmentManager();
     }

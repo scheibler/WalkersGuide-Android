@@ -97,7 +97,7 @@ public class PedestrianCrossing extends Point implements Serializable {
         if (! attributeList.isEmpty()) {
             description += System.lineSeparator();
             description += String.format(
-                    "%1$s: %2$s",
+                    "%1$s %2$s",
                     GlobalInstance.getStringResource(R.string.fillingWordHas),
                     Helper.formatStringListWithFillWordAnd(attributeList));
         }

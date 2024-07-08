@@ -34,8 +34,10 @@ public class PoiCategory implements Serializable {
     public static final String BRIDGE = "bridge";
     public static final String BENCH = "bench";
     public static final String TRASH = "trash";
-    public static final String NAMED_INTERSECTION = "named_intersection";
-    public static final String OTHER_INTERSECTION = "other_intersection";
+    public static final String FULLY_NAMED_INTERSECTION = "named_intersection";
+    public static final String PARTIALLY_NAMED_INTERSECTION = "partially_named_intersection";
+    public static final String UNNAMED_INTERSECTION = "other_intersection";
+    public static final String RAILWAY_INTERSECTION = "railway_intersection";
     public static final String PEDESTRIAN_CROSSINGS = "pedestrian_crossings";
 
 
@@ -113,18 +115,22 @@ public class PoiCategory implements Serializable {
             return GlobalInstance.getStringResource(R.string.poiCategoryPostBox);
         } else if (id.equals(SURVEILLANCE)) {
             return GlobalInstance.getStringResource(R.string.poiCategorySurveillance);
-        } else if (id.equals(BRIDGE)) {
-            return GlobalInstance.getStringResource(R.string.poiCategoryBridge);
         } else if (id.equals(BENCH)) {
             return GlobalInstance.getStringResource(R.string.poiCategoryBench);
         } else if (id.equals(TRASH)) {
             return GlobalInstance.getStringResource(R.string.poiCategoryTrash);
-        } else if (id.equals(NAMED_INTERSECTION)) {
-            return GlobalInstance.getStringResource(R.string.poiCategoryNamedIntersection);
-        } else if (id.equals(OTHER_INTERSECTION)) {
-            return GlobalInstance.getStringResource(R.string.poiCategoryOtherIntersection);
+        } else if (id.equals(BRIDGE)) {
+            return GlobalInstance.getStringResource(R.string.poiCategoryBridge);
         } else if (id.equals(PEDESTRIAN_CROSSINGS)) {
             return GlobalInstance.getStringResource(R.string.poiCategoryPedestrianCrossings);
+        } else if (id.equals(FULLY_NAMED_INTERSECTION)) {
+            return GlobalInstance.getStringResource(R.string.poiCategoryFullyNamedIntersection);
+        } else if (id.equals(PARTIALLY_NAMED_INTERSECTION)) {
+            return GlobalInstance.getStringResource(R.string.poiCategoryPartiallyNamedIntersection);
+        } else if (id.equals(UNNAMED_INTERSECTION)) {
+            return GlobalInstance.getStringResource(R.string.poiCategoryUnnamedIntersection);
+        } else if (id.equals(RAILWAY_INTERSECTION)) {
+            return GlobalInstance.getStringResource(R.string.poiCategoryRailwayIntersection);
         } else {
             return id;
         }

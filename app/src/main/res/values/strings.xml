@@ -19,7 +19,7 @@
 
     <!-- status message -->
     <string name="walkersGuideServiceStateForeground">WalkersGuide running</string>
-    <string name="walkersGuideServiceStateStopped">WalkersGuide stopped</string>
+    <string name="walkersGuideServiceStateStopped">WalkersGuide inactive</string>
 
     <!-- missing location provider -->
     <string name="messageNoLocationProviderAvailableShort">Location provider missing</string>
@@ -238,6 +238,8 @@
     <string name="labelIntersectionStructureHeading">Intersection structure</string>
     <string name="buttonPreviousRouteObject">Previous route point</string>
     <string name="buttonNextRouteObject">Next route point</string>
+    <string name="messageFirstSegment">Route start point</string>
+    <string name="messageNextSegmentInstructionAndTurn">%1$s. Afterwards %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
@@ -551,6 +553,10 @@
     <string name="switchShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
     <string name="switchDisplayRemainsActive">Screen remains active, while the app is in use.</string>
     <string name="switchDisplayRemainsActiveHint">Disables the auto lock screen feature during navigation.</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Prefer the fused Location Provider for location determination.</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">If enabled you get more precise location fixes especially within buildings.
+        But on some devices it may cause accuracy problems during navigation.
+        If so you should disable the fused location provider here.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "Points" Tab.</string>
     <string name="labelTTSSettingsHeader">Text to speech</string>
@@ -943,8 +949,10 @@
     <string name="poiCategoryTrash">Trash cans</string>
     <string name="poiCategoryNature">Lakes and mountains</string>
     <string name="poiCategoryBridge">Bridges</string>
-    <string name="poiCategoryNamedIntersection">Intersections with a name</string>
-    <string name="poiCategoryOtherIntersection">All other intersections</string>
+    <string name="poiCategoryFullyNamedIntersection">Fully named intersections</string>
+    <string name="poiCategoryPartiallyNamedIntersection">Partially named intersections</string>
+    <string name="poiCategoryUnnamedIntersection">Unnamed intersections</string>
+    <string name="poiCategoryRailwayIntersection">Intersections with railway tracks</string>
     <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
 
 
@@ -961,7 +969,8 @@
     <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s at %2$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>
     <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
-    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d: %2$s.\nThen: %3$s</string>
+    <string name="messageArrivedAtRoutePoint">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.</string>
+    <string name="messageArrivedAtRoutePointWithNextTurn">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.\nAfterwarts: %4$s.</string>
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
 
     <!-- RouteObject -->

@@ -394,8 +394,18 @@ public class NavigateFragment extends Fragment implements MenuProvider {
 
     private void onPostProcessSkipRouteObjectManually(boolean skipWasSuccessful) {
         if (skipWasSuccessful) {
-            ttsWrapperInstance.announce(
-                    route.getCurrentRouteObject().formatSegmentInstruction());
+            String nextInstruction;
+            if (route.getCurrentRouteObject().getTurn() != null) {
+                nextInstruction = String.format(
+                        GlobalInstance.getStringResource(R.string.messageNextSegmentInstructionAndTurn),
+                        route.getCurrentRouteObject().formatSegmentInstruction(),
+                        route.getCurrentRouteObject().getTurn().getInstruction());
+            } else if (! TextUtils.isEmpty(route.getCurrentRouteObject().formatSegmentInstruction())) {
+                nextInstruction = route.getCurrentRouteObject().formatSegmentInstruction();
+            } else {
+                nextInstruction = GlobalInstance.getStringResource(R.string.messageFirstSegment);
+            }
+            ttsWrapperInstance.announce(nextInstruction);
         }
         updateUi();
     }
@@ -520,18 +530,23 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             }
 
             if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                boolean announceViaTts = false;
                 if (acceptNewPositionForDistanceLabel.updatePoint(
                             (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
                             UiHelper.isInBackground(NavigateFragment.this),
                             intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
                     updateDistanceAndBearingLabel(currentRouteObject);
+                    announceViaTts = labelDistanceAndBearing.isAccessibilityFocused();
                 }
                 if (acceptNewPositionForTtsAnnouncement.updatePoint(
                             (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION), false, false)) {
                     if (! UiHelper.isInBackground(NavigateFragment.this)) {
-                        ttsWrapperInstance.announce(
-                                currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
+                        announceViaTts = true;
                     }
+                }
+                if (announceViaTts) {
+                    ttsWrapperInstance.announce(
+                            currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
                 }
 
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
