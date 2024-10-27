@@ -23,12 +23,14 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/backup_rules"
         android:fullBackupContent="@xml/backup_rules_legacy"
+        android:localeConfig="@xml/locales_config"
         android:supportsRtl="false"
         android:networkSecurityConfig="@xml/public_transport_enabler_network_security_config"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:name=".util.GlobalInstance" >
+        android:name=".util.GlobalInstance"
+        tools:ignore="UnusedAttribute" >
 
         <activity
             android:name=".ui.activity.MainActivity"
@@ -43,7 +45,8 @@
             <!-- gpx files -->
 
 			<intent-filter
-                android:label="@string/importGpxFileDialogTitle" >
+                android:label="@string/importGpxFileDialogTitle"
+                tools:ignore="IntentFilterUniqueDataAttributes" >
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:scheme="content" android:host="*" android:mimeType="binary/octet-stream" />

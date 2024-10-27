@@ -66,14 +66,11 @@ public class TTSWrapper extends UtteranceProgressListener {
     }
 
     public boolean isInitialized() {
-        if (tts != null) {
-            return true;
-        }
-        return false;
+        return tts != null;
     }
 
     public boolean isSpeaking() {
-    if (isInitialized()) {
+        if (isInitialized()) {
             return tts.isSpeaking();
         }
         return false;

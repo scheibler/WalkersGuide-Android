@@ -1,0 +1,1354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" >
+
+    <!--
+         language specific string variables
+    -->
+
+    <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual_android/</string>
+    <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
+
+
+    <!--
+         service and permissions
+    -->
+
+    <!-- notification channel -->
+    <string name="walkersGuideServiceNotificationChannelName">Служба WalkersGuide</string>
+    <string name="walkersGuideServiceNotificationChannelDescription">Відображається на панелі сповіщень і на екрані блокування під час роботи  WalkersGuide.</string>
+
+    <!-- status message -->
+    <string name="walkersGuideServiceStateForeground">WalkersGuide запущено</string>
+    <string name="walkersGuideServiceStateStopped">WalkersGuide не працює</string>
+
+    <!-- missing location provider -->
+    <string name="messageNoLocationProviderAvailableShort">Відсутнє джерело геоданих</string>
+
+    <!-- denied permissions -->
+    <string name="messageLocationPermissionDenied">Дозвіл на доступ до  геоданих не надано. Програма не отримуватиме ніякої інформації про місцезнаходження</string>
+    <string name="messageLocationPermissionDeniedShort">Немає доступу до геоданих</string>
+    <string name="messagePostNotificationsPermissionDenied">Програма не отримуватиме ніякої інформації про місцезнаходження, оскільки їй заборонено надсилати вам сповіщення. Багато функцій WalkersGuide, наприклад відстежування місцезнаходження та запис маршруту, працюють як служби. Android вимагає, щоб такі служби, що працюють у фоновому режимі, відображали сповіщення. Тому програма запитує цей дозвіл.</string>
+    <string name="messagePostNotificationsPermissionDeniedShort">Немає дозволу на надсилання сповіщень.</string>
+
+    <!-- location provider disabled -->
+    <string name="messageLocationProviderDisabledShort">Геодані вимкнено</string>
+
+    <!-- RouteRecordingState -->
+    <string name="wgRouteRecordingStateOff">Вимкнено</string>
+    <string name="wgRouteRecordingStatePaused">Призупинено</string>
+    <string name="wgRouteRecordingStateRunning">Увімкнено</string>
+    <string name="messageRouteRecordingPaused">Запис маршруту призупинено</string>
+
+    <!-- TrackingMode -->
+    <string name="wgTrackingModeOff">Вимкнено</string>
+    <string name="wgTrackingModeDistance">Відстань</string>
+    <string name="wgTrackingModeBearing">Напрямок погляду</string>
+
+    <!-- TrackingMode hints -->
+    <string name="wgTrackingModeHintOff">Відстежування вимкнено</string>
+    <string name="wgTrackingModeHintDistance">Точки та маршрути оголошуються, коли ви проходите поруч із ними.</string>
+    <string name="wgTrackingModeHintBearing">Повільно обертайте пристрійі ви почуєте точки, на які вказуєте</string>
+
+
+    <!--
+        toolbar and main menu
+    -->
+
+    <!-- toolbar -->
+    <string name="toolbarSensorPrefixPosition">Геодані</string>
+    <string name="toolbarSensorPrefixSimulation">Імітація</string>
+    <string name="toolbarSensorDataOutdated">Дані застарілі</string>
+    <string name="toolbarSensorCalibrationRequired">відкалібруйте</string>
+    <string name="labelWalkersGuideServiceNotRunningWarning">Увага</string>
+
+    <!-- BearingDetailsDialog -->
+    <string name="bearingDetailsDialogTitle">Визначення азимуту</string>
+    <string name="switchAutoSwitchBearingSource">Автоматичне перемикання датчика азимуту</string>
+    <string name="switchAutoSwitchBearingSourceHint">Якщо позначено, програма отримуватиме інформацію про азимут із супутникових даних, наприклад, коли ви кладете пристрій до кишені.</string>
+    <string name="messageAutoSwitchBearingSourceEnabled">Ви не можете вибрати датчик азимуту вручну, якщо позначено прапорець автоматичного перемикання датчика. Будь ласка, спершу вимкніть цю функцію.</string>
+    <string name="buttonEnableBearingSimulation">Імітувати азимут</string>
+    <string name="labelForDegreeEditText">Градуси:</string>
+
+    <!-- LocationDetailsDialog -->
+    <string name="locationDetailsDialogTitle">Визначення місцезнаходження</string>
+    <string name="labelCurrentLocationHeading">Поточне місцезнаходження</string>
+    <string name="buttonActionForCurrentLocation">Дії для поточного місцезнаходження</string>
+    <string name="currentLocationMenuItemSave">Зберегти місцезнаходження</string>
+    <string name="buttonEnableLocationSimulation">Імітувати місцезнаходження</string>
+
+    <!-- LocationSensorDetailsDialog -->
+    <string name="locationSensorDetailsDialogTitle">Деталі місцезнаходження</string>
+    <string name="labelGPSCoordinates">Координати</string>
+    <string name="labelGPSLatitude">Широта</string>
+    <string name="labelGPSLongitude">Довгота</string>
+    <string name="labelGPSProvider">Джерело</string>
+    <string name="labelGPSAccuracy">Точність</string>
+    <string name="labelGPSAltitude">Висота</string>
+    <string name="labelGPSBearing">Азимут</string>
+    <string name="labelGPSSpeed">швидкість</string>
+    <string name="labelGPSTime">Оновлено</string>
+
+    <!-- WhereAmIDialog -->
+    <string name="whereAmIDialogTitle">де я?</string>
+
+    <!-- main menu -->
+    <string name="menuItemPlanRoute">Побудувати маршрут</string>
+    <string name="menuItemSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
+    <string name="menuItemCollections">Бази</string>
+    <string name="menuItemHistory">Історія</string>
+    <string name="menuItemOpenPointShareLink">Відкрити посилання з координатами</string>
+    <string name="menuItemMisc">Різне:</string>
+    <string name="menuItemSettings">Налаштування</string>
+    <string name="menuItemInfo">Інформація</string>
+    <string name="menuItemContactMe">Зворотний зв\'язок</string>
+    <string name="menuItemUserManual">Посібник користувача</string>
+
+    <!-- plan route dialog -->
+    <string name="planRouteDialogTitle">Побудова маршруту</string>
+    <string name="switchShowViaPointList">Показати проміжні точки</string>
+    <!-- options menu -->
+    <string name="planRouteMenuItemSwap">Поміняти місцями початкову та кінцеву точки</string>
+    <string name="planRouteMenuItemExcludedWays">Виключені дороги</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Категорії доріг</string>
+    <string name="planRouteMenuItemClear">Очистити точки</string>
+
+    <!-- ConfigureWayClassWeightsDialog -->
+    <string name="configureWayClassWeightsDialogTitle">Пріоритетність категорій доріг</string>
+
+    <!-- SelectObjectWithIdFromMultipleSourcesDialog -->
+    <!-- dialog titles -->
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteStartPoint">Виберіть початкову точку:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteFirstViaPoint">Виберіть першу проміжнуточку:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteSecondViaPoint">Виберіть другу проміжну точку:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteThirdViaPoint">Виберіть третю проміжну точку:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleRouteDestinationPoint">Виберітькінцеву точку:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleHomeAddress">Виберіть домашню адресу:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToCollection">Додати до бази:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToPinnedPointsAndRoutes">Виберіть точку чи маршрут для закріплення:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleAddToTrackedObjects">Виберіть точку для відстежування:</string>
+    <string name="selectObjectWithIdFromMultipleSourcesDialogTitleSimulationPoint">Виберіть точку для імітації:</string>
+    <string name="messageObjectWithIdIncompatibleTargetPointRequired">Будь ласка, виберіть точку.</string>
+    <!-- list items -->
+    <string name="pointSelectFromCurrentLocation">Поточне місцезнаходження</string>
+    <string name="pointSelectFromClosestAddress">Найближча адреса</string>
+    <string name="pointSelectFromHomeAddress">Домашня адреса</string>
+    <string name="pointSelectFromEnterAddress">Ввести адресу</string>
+    <string name="pointSelectFromEnterCoordinates">Ввести координати</string>
+    <string name="pointSelectFromCollections">Вибрати з бази</string>
+    <string name="pointSelectFromPOI">Вибрати з найближчих точок</string>
+    <string name="pointSelectFromHistory">Вибрати зісторії</string>
+    <string name="pointSelectFromCoordinatesLink">Імпортувати з посилання</string>
+
+    <!-- enter address dialog -->
+    <string name="enterAddressDialogName">Введіть адресу</string>
+    <string name="editHintAddress">вулиця та номер будинку, місто за бажанням</string>
+    <string name="buttonNearbyCurrentLocation">Шукати лише поблизу поточного місцезнаходження</string>
+    <string name="messageAddressMissing">Будь ласка, введіть адресу.</string>
+    <string name="selectAddressPointFromListDialogTitle">Виберіть адресу:</string>
+
+    <!-- enter coordinates dialog -->
+    <string name="enterCoordinatesDialogName">Введіть координати:</string>
+    <string name="labelOptionalName">Назва (необов\'язково):</string>
+    <string name="messageLatitudeMissing">Відсутнє або неправильне значення широти.</string>
+    <string name="messageLongitudeMissing">Відсутнє або неправильне значення довготи.</string>
+
+    <!-- point from coordinates link dialog -->
+    <string name="pointFromCoordinatesLinkDialogTitle">Введіть посилання з координатами:</string>
+    <string name="editHintMapLinkURL">Посилання на карти Google, Apple або OSM</string>
+    <string name="messageLinkUrlMissing">Відсутнє посилання з координатами.</string>
+    <string name="messageAppleMapsUrlFormatUnknown">Не вдалося видобути широту та довготу. Невідомий формат посилання на карти Apple.</string>
+    <string name="messageGoogleMapsUrlFormatUnknown">Не вдалося видобути широту та довготу. Невідомий формат посилання на карти Google.</string>
+    <string name="messageOsmOrgUrlFormatUnknown">Не вдалося видобути широту та довготу. Невідомий формат посилання на карти OpenStreet.</string>
+    <string name="messageOsmAndUrlFormatUnknown">Не вдалося видобути широту та довготу. Невідомий формат посилання OsmAnd.</string>
+    <string name="messageLinkContainsInvalidCoordinates">Посилання містить недопустимі координати.</string>
+    <string name="messageCouldNotResolveShortenedUrl">Не вдалося обробити скорочене посилання.</string>
+    <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">Не вдалося визначити координати для введеного ідентифікатора вузла.</string>
+    <string name="messageLinkUrlFormatUnknown">Невідомий формат посилання з координатами. Будь ласка, введіть посилання на OpenStreetMap, карти Google або Apple.</string>
+
+    <!-- SaveCurrentLocationDialog -->
+    <string name="saveCurrentLocationDialogTitle">Зберегти поточне місцезнаходження:</string>
+    <string name="saveCurrentLocationDialogTitleCollection">Додати поточне місцезнаходження до бази:</string>
+    <string name="saveCurrentLocationDialogTitleHome">Зберегти поточне місцезнаходження як домашню адресу:</string>
+    <string name="saveCurrentLocationDialogTitlePin">Закріпити поточне місцезнаходження:</string>
+    <string name="saveCurrentLocationDialogTitleTrack">Відстежувати поточне місцезнаходження:</string>
+    <string name="labelName">Назва</string>
+    <string name="messageNameMissing">Будь ласка, введіть назву.</string>
+    <string name="labelGPSSignal">Сигнал GPS:\nТочність %1$s, %2$s</string>
+    <string name="messageSearchLocationInProgress">Визначається поточне місцезнаходження, будь ласка, зачекайте…</string>
+    <string name="messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful">Поточне місцезнаходження успішно закріплено.</string>
+    <string name="messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful">Розпочато відстежування поточного місцезнаходження.</string>
+    <string name="messageCurrentLocationAddedToCollectionSuccessful">Поточне місцезнаходження додано до бази %1$s.</string>
+
+
+    <!--
+         main activity and fragments
+    -->
+
+    <!-- main activity -->
+    <string name="mainMenu">Головне меню</string>
+    <string name="navigateUp">Перейти вгору</string>
+    <string name="errorAddressStringFromIntentEmpty">Адреса порожня.</string>
+    <!-- main tab names -->
+    <string name="mainTabNameOverview">Головна</string>
+    <string name="mainTabNameRoutes">Маршрути</string>
+    <string name="mainTabNamePoints">Точки</string>
+
+    <!-- OverviewTabLayoutFragment -->
+    <string name="buttonCollections">Бази</string>
+    <string name="buttonHistory">Історія</string>
+
+    <!-- pin fragment -->
+    <string name="fragmentPinName">Закріплені</string>
+    <string name="menuItemClearPinnedObjects">Скинути</string>
+    <string name="menuItemClearPinnedObjectsOnlyProfiles">Тільки профілі</string>
+    <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Тільки точки і маршрути</string>
+    <string name="menuItemClearPinnedObjectsBoth">Скинути все</string>
+    <string name="labelSomethingPinned">%1$s закріплено</string>
+    <string name="groupNameProfiles">Профілі</string>
+    <string name="buttonAddPinnedProfile">Закріпити профіль</string>
+    <string name="groupNamePointsAndRoutes">Точки та маршрути</string>
+    <string name="buttonAddPinnedPointOrRoute">Закріпити точку чи маршрут</string>
+    <string name="labelNoPinnedObjectsHint">Сюди ви можете додавати профілі точок і бази, а також точки та маршрути, щоб мати їх напохваті.</string>
+
+    <!-- track fragment -->
+    <string name="fragmentTrackName">Відстежування</string>
+    <string name="menuItemClearTrackedObjects">Скинути до стандартних налаштувань</string>
+    <string name="menuItemClearTrackedObjectsOnlyProfile">Тільки профілі</string>
+    <string name="menuItemClearTrackedObjectsOnlyPointsAndRoutes">Тільки точки та маршрути</string>
+    <string name="menuItemClearTrackedObjectsBoth">Скинути все</string>
+    <string name="spinnerTrackingModeCD">Режим відстежування</string>
+    <string name="spinnerTrackingModePrompt">Виберіть режим відстежування:</string>
+    <string name="layoutTrackedProfile">Відстежуваний профіль</string>
+    <string name="labelAnnouncementRadius">У радіусі:</string>
+    <string name="spinnerAnnouncementRadiusPrompt">Оголошувати у радіусі:</string>
+    <string name="buttonAddTrackedPoint">Додати точку</string>
+    <string name="labelNoTrackedObjectsHint">Додайте точки, які ви хочете відстежувати. Залежно від режиму відстежування, вибраного в налаштуваннях вище, ви будете отримувати періодичні голосові сповіщення про ці точки.</string>
+
+    <!-- navigate fragment -->
+    <string name="fragmentNavigateName">Навігація</string>
+    <string name="labelRoutePosition">%1$d з %2$d\t(%3$d з %4$s, %5$d%%)</string>
+    <string name="labelRoutePositionCD">Крок %1$d з %2$d, %3$d з %4$s подолано, %5$d%%</string>
+    <string name="labelIntersectionStructureHeading">Схема перехрестя</string>
+    <string name="buttonPreviousRouteObject">Попередня маршрутна точка</string>
+    <string name="buttonNextRouteObject">Наступна маршрутна точка</string>
+    <string name="messageFirstSegment">Початкова точка маршруту</string>
+    <string name="messageNextSegmentInstructionAndTurn">%1$s. після чого %2$s.</string>
+    <!-- more options menu -->
+    <string name="menuItemRecalculate">Перебудувати</string>
+    <string name="menuItemRecalculateWithCurrentPosition">Перебудувати від поточного місцезнаходження</string>
+    <string name="menuItemRecalculateOriginalRoute">Перебудувати початковий маршрут</string>
+    <string name="menuItemRecalculateReturnRoute">Перебудувати зворотний маршрут</string>
+    <string name="menuItemJumpToRoutePoint">Перейти до маршрутної точки</string>
+    <string name="menuItemJumpToFirstRoutePoint">Першої точки</string>
+    <string name="menuItemJumpToClosestRoutePoint">Найближчої точки</string>
+    <string name="menuItemJumpToLastRoutePoint">Останньої точки</string>
+    <string name="menuItemAutoSkipToNextRoutePoint">Автоматично переходити до наступної точки</string>
+    <string name="menuItemShowPreciseBearingValues">Показувати точні азимути</string>
+    <string name="menuItemShowIntersectionLayoutDetails">Показувати схеми перехресть</string>
+
+    <!-- record route fragment -->
+    <string name="fragmentRecordRouteName">Запис</string>
+    <string name="menuItemCancelRouteRecording">Скасувати запис</string>
+    <string name="cancelRouteRecordingDialogTitle">Ви дійсно хочете скасувати цей запис? Записану ділянку маршруту буде втрачено.</string>
+    <string name="labelRecordedRouteStatus">Записано</string>
+    <string name="buttonStartRouteRecording">Почати запис</string>
+    <string name="buttonPauseRecording">Призупинити</string>
+    <string name="buttonPauseRecordingCD">Призупинити запис</string>
+    <string name="buttonResumeRecording">Відновити</string>
+    <string name="buttonResumeRecordingCD">Відновити запис</string>
+    <string name="buttonAddPointManually">Додати точку</string>
+    <string name="buttonAddPointManuallyCD">Додати поточне місцезнаходження</string>
+    <string name="buttonFinishRecording">Завершити</string>
+    <string name="buttonFinishRecordingCD">Завершити запис</string>
+    <string name="labelRecordedPointName">Точка %1$d</string>
+    <string name="labelNoRecordedRoutes">Ще немає записаних маршрутів.</string>
+    <string name="messageNoteRouteRecordingOnlyInForeground">Зверніть увагу, що запис маршруту здійснюється лише коли програма працює на передньому плані. Якщо ви заблокуєте екран або перемкнете WalkersGuide у фоновий режим, запис маршруту призупиниться.</string>
+    <string name="messageRecordedRouteTooFewPoints">Не вдається зберегти записаний маршрут. Наразі у ньому замало точок.</string>
+    <string name="messageRecordedRouteNameIsMissing">Введіть назву для записаного маршруту.</string>
+    <string name="messageSaveRecordedRouteFailed">Помилка: не вдалося зберегти записаний маршрут.</string>
+    <string name="messageSaveRecordedRouteSuccessful">Маршрут успішно збережено.</string>
+
+    <!-- EnterRouteNameDialog -->
+    <string name="enterRouteNameDialogTitle">Назва маршруту:</string>
+
+
+    <!--
+        ProfileListFragment
+    -->
+
+    <!-- SelectProfileFromMultipleSourcesDialog -->
+    <string name="selectProfileFromMultipleSourcesDialogTitle">Виберіть профіль:</string>
+    <string name="selectProfileFromMultipleSourcesDialogTitleCreate">Створити базу:</string>
+    <string name="selectProfileFromMultipleSourcesDialogTitlePin">Закріпити профіль:</string>
+    <string name="selectProfileFromMultipleSourcesDialogTitleTrack">Відстежувати профіль:</string>
+    <string name="profileSelectFromCollections">База</string>
+    <string name="profileSelectFromPoiProfiles">Профіль точок</string>
+    <string name="profileSelectFromEmptyCollection">Порожня база</string>
+    <string name="profileSelectFromGpxFile">файл GPX</string>
+    <string name="messageNoProfileSelected">Профіль не вибрано.</string>
+    <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Можна закріпити лише бази та профілі точок.</string>
+    <string name="messageProfileIncompatibleTargetSaveCurrentLocation">Поточне місцезнаходження можна лише закріпити чи додати до бази.</string>
+    <string name="messageProfileIncompatibleTargetGpxFileImport">Імпортовані об\'єкти можна лише закріпити або додати до бази.</string>
+
+    <!-- CollectionListFragment -->
+    <string name="fragmentCollectionListName">Бази</string>
+    <string name="fragmentCollectionListNameSelect">Виберіть базу:</string>
+    <string name="buttonAddCollection">Нова база</string>
+    <string name="labelEmptyCollectionList">Додайте бази, щоб упорядкувати ваші збережені точки та маршрути.</string>
+
+    <!-- create collections -->
+    <string name="layoutCollectionName">Назва бази:</string>
+    <string name="messageCollectionNameMissing">Будь ласка, введіть назву бази.</string>
+    <string name="messageCouldNotCreateCollection">Не вдалося створити базу.</string>
+
+    <!-- ImportGpxFileDialog -->
+    <string name="importGpxFileDialogTitle">Імпорт файлу GPX</string>
+    <string name="importGpxFileDialogTitlePinned">Закріпити файл GPX</string>
+    <string name="labelImportResult">%1$s:\n%2$s знайдено.</string>
+    <string name="radioButtonNewCollection">Створити нову базу</string>
+    <string name="radioButtonExistingDatabaseProfile">Додати до існуючої бази</string>
+    <!-- gpx import messages -->
+    <string name="messageExtractGpxFileNameFailed">Не вдалося визначити ім\'я вибраного файлу GPX.</string>
+    <string name="messageOpenGpxFileFailed">Не вдалося відкрити вибраний файл GPX.</string>
+    <string name="messageInvalidGpxFileContents">Вибраний файл GPX має неправильний формат.</string>
+    <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s було додано до %2$s.</string>
+
+    <!-- PoiProfileListFragment -->
+    <string name="fragmentPoiProfileListName">Профілі точок</string>
+    <string name="fragmentPoiProfileListNameEmbedded">Поруч</string>
+    <string name="fragmentPoiProfileListNameSelect">Виберіть профіль точок:</string>
+    <string name="buttonAddPoiProfile">Додати профіль точок</string>
+    <string name="labelEmptyPoiProfileList">Для пошуку навколишніх місць створіть принаймні один профіль точок.</string>
+
+    <!-- CreatePoiProfileDialog  -->
+    <string name="createPoiProfileDialogTitle">Створити профіль</string>
+    <string name="labelProfileName">Назва:</string>
+    <string name="messagePoiProfileNameMissing">Будь ласка, введіть назву для профілю точок.</string>
+    <string name="messageCouldNotCreatePoiProfile">Не вдалося створити профіль точок.</string>
+
+    <!-- SelectCollectionsDialog -->
+    <string name="selectCollectionsDialogTitle">Вибрати бази:</string>
+
+    <!-- SelectPoiCategoriesDialog -->
+    <string name="selectPoiCategoriesDialogTitle">Вибрати категорії точок:</string>
+
+    <!-- history fragment -->
+    <string name="fragmentHistoryName">Історія</string>
+    <!-- groups -->
+    <string name="historyProfileGroupPoints">Точки</string>
+    <string name="historyProfileGroupRoutes">Маршрути</string>
+    <string name="historyProfileGroupOverview">Загальні</string>
+
+
+    <!--
+        ObjectListFragment
+    -->
+    <string name="labelHeadingSecondLineViewingDirection">Напрямок погляду</string>
+    <string name="labelHeadingSecondLineAutoUpdate">Автоматичне оновлення</string>
+    <!-- toolbar menu -->
+    <string name="menuItemRefresh">Оновити</string>
+    <string name="menuItemCancel">Скасувати</string>
+    <string name="menuItemAutoUpdate">Автоматичне оновлення списку</string>
+    <string name="menuItemFilterResult">Фільтрувати за напрямком погляду</string>
+    <string name="menuItemJumpToTop">Перейти до початку списку</string>
+
+    <!-- SimpleObjectListFragment -->
+    <string name="fragmentEntrancesName">Входи</string>
+    <string name="fragmentPedestrianCrossingsName">Переходи</string>
+    <string name="labelPleaseSelect">Будь ласка, виберіть:</string>
+
+    <!-- IntersectionStructureFragment -->
+    <string name="fragmentIntersectionStructureName">Схема перехрестя</string>
+    <string name="menuItemAnnounceWayAhead">Оголошувати дороги попереду</string>
+    <string name="labelPartOfPreviousRouteSegment">Попередній відрізок маршруту</string>
+    <string name="labelPartOfNextRouteSegment">Наступний відрізок маршруту</string>
+
+    <!-- ExtendedObjectListFragment -->
+    <string name="hintSearch">Пошук</string>
+    <string name="buttonClearSearch">Очистити пошук</string>
+    <string name="labelPleaseSelectFrom">Будь ласка, виберіть з %1$s:</string>
+
+    <!-- ObjectListFromDatabaseFragment -->
+    <string name="labelHeadingSecondLineObjectTypeFilter">Фільтр%1$s</string>
+    <string name="labelHeadingSecondLineSortMethod">Впорядковано за %1$s</string>
+    <!-- toolbar menu -->
+    <string name="menuItemObjectTypeFilter">Фільтрувати за типом</string>
+    <string name="menuItemSortMethod">Впорядкувати за</string>
+    <string name="menuItemClearProfile">Очистити профіль</string>
+    <!-- clear profile dialog -->
+    <string name="clearProfileDialogTitle">Ви хочете видалити всі елементи з профілю \"%1$s\"</string>
+
+    <!-- SelectObjectTypeFilterDialog -->
+    <string name="selectObjectTypeFilterDialogTitle">Які об\'єкти ви хочете побачити?</string>
+
+    <!-- SelectSortMethodDialog -->
+    <string name="selectSortMethodDialogTitle">Виберіть спосіб упорядкування:</string>
+
+    <!-- PoiListFromServerFragment -->
+    <string name="labelHeadingSecondLineRadius">Радіус: %1$s</string>
+    <string name="labelMoreResults">Завантажити більше точок</string>
+
+
+    <!--
+         details fragments
+    -->
+
+    <!-- object details tab layout fragment -->
+    <string name="labelPointDistanceAndBearing">Відстань: %1$s</string>
+    <string name="labelSegmentDirection">Напрямок: %1$s</string>
+    <string name="labelUserAnnotation">Моя примітка</string>
+
+    <!-- PointDetailsFragment -->
+    <string name="fragmentPointDetailsName">Подробиці</string>
+    <string name="menuItemOpenOsmWebsite">Показати на OpenStreetMap.org</string>
+    <!-- entrance -->
+    <string name="labelPointEntranceAttributesHeading">Вхід</string>
+    <string name="labelPointEntranceLabel">Мітка</string>
+    <!-- poi -->
+    <string name="labelPointPOIBuildingHeading">будівля</string>
+    <string name="labelPointPOIBuildingIsInside">Всередині</string>
+    <string name="labelPointPOIBuildingNumberOfEntrances">Кількість входів</string>
+    <string name="labelPointPOIContactHeading">Контактна інформація</string>
+    <string name="labelPointPOIContactPostAddress">Поштова адреса</string>
+    <string name="labelPointPOIContactEMailAddress">Адреса електронної пошти</string>
+    <string name="labelPointPOIContactPhoneNumber">Номер телефону</string>
+    <string name="labelPointPOIContactWebsite">Веб-сторінка</string>
+    <string name="labelPointPOIContactOpeningHours">Години роботи</string>
+    <!-- station -->
+    <string name="labelPointStationAttributesHeading">Станція</string>
+    <string name="labelStationNetwork">Мережа</string>
+    <string name="labelStationOperator">Перевізник</string>
+    <string name="labelPointStationVehicleTypes">Тип рухомого складу</string>
+    <string name="labelPointStationLinesHeading">Маршрути</string>
+    <!-- point with address -->
+    <string name="labelPointWithAddressDataHeading">Повна адреса</string>
+    <string name="labelPointWithAddressDataHouseNumber">Номер будинку</string>
+    <string name="labelPointWithAddressDataRoad">Дорога</string>
+    <string name="labelPointWithAddressDataResidential">Житловий район</string>
+    <string name="labelPointWithAddressDataSuburb">Передмістя</string>
+    <string name="labelPointWithAddressDataCityDistrict">Район міста</string>
+    <string name="labelPointWithAddressDataPostcode">Поштовий індекс</string>
+    <string name="labelPointWithAddressDataCity">Місто</string>
+    <string name="labelPointWithAddressDataState">Регіон</string>
+    <string name="labelPointWithAddressDataCountry">Країна</string>
+    <!-- gps -->
+    <string name="labelPointGPSDetailsHeading">Подробиці GPS</string>
+    <string name="labelPointGPSTimestamp">Створено о</string>
+    <!-- intersection -->
+    <string name="labelPointIntersectionAttributesHeading">Перехрестя</string>
+    <!-- pedestrian crossing -->
+    <string name="labelPointPedestrianCrossingDetailsHeading">Подробиці переходу</string>
+    <string name="labelPointCrossingBarrier">Шлагбаум</string>
+    <string name="labelPointKerb">Бордюр</string>
+    <string name="labelPointIsland">Острівець безпеки</string>
+    <string name="labelPointTrafficSignalsSound">Звуковий сигнал</string>
+    <string name="labelPointTrafficSignalsVibration">Вібросигнал</string>
+    <!-- point: alt names -->
+    <string name="labelPointNotesHeading">Примітки</string>
+    <string name="labelPointInscription">напис</string>
+    <string name="labelPointAltName">Альтернативна назва</string>
+    <string name="labelPointOldName">Попередня назва</string>
+    <string name="labelPointNote">Примітка картографів</string>
+    <string name="labelPointWikidata">Більше інформації на wikidata.org</string>
+    <!-- point: accessibility -->
+    <string name="labelPointAccessibilityHeading">Доступність</string>
+    <string name="labelPointTactilePaving">Тактильна плитка</string>
+    <string name="labelPointWheelchair">Доступність для крісел колісних</string>
+    <!-- point: coordinates and gps -->
+    <string name="labelPointCoordinatesHeading">Координати</string>
+
+
+    <!-- RouteDetailsFragment -->
+    <string name="fragmentRouteDetailsName">Деталі маршруту</string>
+
+    <!-- SegmentDetailsFragment -->
+    <string name="fragmentSegmentDetailsName">Подробиці</string>
+    <!-- intersection segment -->
+    <string name="labelSegmentIntersectionAttributesHeading">Частина перехрестя</string>
+    <string name="labelSegmentIntersectionName">Назва</string>
+    <!-- route segment -->
+    <string name="labelSegmentRouteAttributesHeading">Маршрут</string>
+    <string name="labelSegmentRouteDistance">Відстань</string>
+    <!-- segment attributes -->
+    <string name="labelSegmentFootwayAttributesHeading">Атрибути</string>
+    <string name="labelSegmentBearing">Напрямок</string>
+    <string name="labelSegmentFootwayDescription">опис</string>
+    <string name="labelSegmentFootwaySidewalk">Тротуар</string>
+    <string name="labelSegmentFootwaySurface">Поверхня</string>
+    <string name="labelSegmentFootwaySmoothness">Якість покриття</string>
+    <string name="labelSegmentFootwayWidth">Ширина</string>
+    <string name="labelSegmentFootwayNumberOfLanes">Кількість смуг</string>
+    <string name="labelSegmentFootwayMaxSpeed">Максимальна швидкість (зазвичай у  км/год)</string>
+    <string name="labelSegmentFootwaySegregated">Розділені велосипедна та пішохідна доріжки</string>
+    <string name="labelSegmentFootwayTram">Трамвайна колія</string>
+
+    <!-- StreetCourseFragment -->
+    <string name="fragmentStreetCourseName">Опис дороги</string>
+    <string name="menuItemWalkStreetCourse">Пройти вздовж</string>
+
+
+    <!--
+         pt departures and trips
+    -->
+
+    <!-- DeparturesFragment -->
+    <string name="fragmentDeparturesName">Відправлення</string>
+    <string name="menuItemSelectDepartureDateAndTime">Час відправлення</string>
+    <string name="menuItemPublicTransportProvider">Постачальник даних громадського транспорту</string>
+    <string name="menuItemSelectStation">Вибрати станцію</string>
+    <string name="labelNearby">Поруч</string>
+    <string name="labelNoPtStationsNearby">У вибраного постачальника даних немає інформації про станції поблизу.</string>
+    <string name="labelSelectStation">Будь ласка, виберіть станцію.</string>
+    <!-- DepartureAdapter -->
+    <string name="labelDepartureAdapter">%1$s\nдо %2$s\n%3$s %4$s</string>
+    <string name="labelDepartureAdapterCD">%1$s до %2$s, %3$s, %4$s</string>
+    <string name="labelFromPlatform">Від платформи %1$s</string>
+
+    <!-- SelectPtStationDialog -->
+    <string name="selectPtStationDialogTitle">Виберіть станцію:</string>
+
+    <!-- select public transport provider  dialog -->
+    <string name="selectPublicTransportProviderDialogTitle">Виберіть постачальника даних громадського транспорту</string>
+
+    <!-- SelectDepartureDateAndTimeDialog -->
+    <string name="selectDepartureDateAndTimeDialogTitle">Виберіть дату та час відправлення:</string>
+
+    <!-- TripDetailsFragment -->
+    <string name="labelNoMoreStops">Транспорт прибув на кінцеву зупинку.</string>
+    <!-- TripAdapter -->
+    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
+    <string name="labelTripAdapterCD">%1$s, %2$s, %3$s</string>
+
+
+    <!--
+         info and settings
+    -->
+
+    <!-- settings fragment -->
+    <string name="fragmentSettingsName">Налаштування</string>
+    <string name="labelHomeAddress">Домашня адреса</string>
+    <string name="labelServerSettingsHeader">Сервер WalkersGuide:</string>
+    <string name="buttonServerURL">URL-адреса: %1$s</string>
+    <string name="buttonServerURLNoSelection">URL-адреса: не вибрано</string>
+    <string name="buttonServerMap">Карта: %1$s</string>
+    <string name="buttonServerMapNoSelection">Карта: не вибрано</string>
+    <string name="switchPreferTranslatedStrings">Відображати перекладені назви тегів</string>
+    <string name="switchPreferTranslatedStringsHint">Якщо на карті дані для місця збережені кількома мовами, цей параметр дозволяє відображати інформацію мовою вашого пристрою або, як запасний варіант, англійською. Наприклад, деякі назви міст в інших країнах доступні українською мовою.</string>
+    <string name="labelPublicTransportSettingsHeader">Громадський транспорт:</string>
+    <string name="buttonPublicTransportProvider">Постачальник даних: %1$s</string>
+    <string name="buttonPublicTransportProviderNoSelection">Постачальник даних: не вибрано</string>
+    <string name="labelInterfaceSettingsHeader">Інтерфейс користувача:</string>
+    <string name="switchShowActionButton">Показувати кнопку дій</string>
+    <string name="switchShowActionButtonHint">Для відкриття контекстного меню замість цієї кнопки ви можете виконати натискання з утриманням.</string>
+    <string name="switchDisplayRemainsActive">Залишати екран увімкненим під час роботи програми.</string>
+    <string name="switchDisplayRemainsActiveHint">Вимикає функцію автоматичного блокування екрана під час навігації.</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Віддавати перевагу об\'єднаному системному джерелу геоданих  для визначення місцезнаходження.</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Якщо позначено, ви отримуєте точніші геодані, особливо всередені будівель. Однак на деяких пристроях це може спричинити проблеми з точністю під час навігації. У такому випадку вимкніть цю функцію.</string>
+    <string name="buttonShakeIntensity">Інтенсивність струшування</string>
+    <string name="buttonShakeIntensityHint">Струсіть, щоб оновити інформацію у діалозі «Де я?» та список на вкладці «Точки».</string>
+    <string name="labelTTSSettingsHeader">Синтез мовлення</string>
+    <string name="switchAnnouncementsEnabled">Голосові сповіщення.</string>
+    <string name="labelDistanceAnnouncementInterval">Інтервал сповіщень (за відстанню)</string>
+    <string name="labelDistanceAnnouncementIntervalUnit">метрів</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAlive">Підтримувати активним підключення Bluetooth-гарнітури</string>
+    <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Деякі Bluetooth-гарнітури переходять у режим сну після певного часу бездіяльності, а їх подальше пробудження викликає помітну затримку, що може спричинити пропуск частини наступного сповіщення.</string>
+    <string name="labelImportAndExportSettingsHeader">Імпорт та експорт налаштувань програми:</string>
+    <string name="buttonImportSettings">Імпортувати налаштування</string>
+    <string name="buttonExportSettings">Експортувати налаштування</string>
+    <!-- import messages -->
+    <string name="labelProceedWithImport">Хочете продовжити імпорт?</string>
+    <string name="labelImportSuccessful">Успішно імпортовано.</string>
+    <string name="labelImportFailed">Помилка імпорту.</string>
+    <!-- export messages -->
+    <string name="labelExportSuccessful">Успішно експортовано.</string>
+    <string name="labelExportFailed">Помилка експорту.</string>
+
+    <!-- ChangeServerUrlDialog -->
+    <string name="changeServerUrlDialogTitle">Новий сервер WalkersGuide:</string>
+    <string name="editHintServerURL">URL-адреса сервера</string>
+
+    <!-- select map dialog -->
+    <string name="selectMapDialogTitle">Виберіть карту:</string>
+
+    <!-- Select shake intentsity Dialog -->
+    <string name="selectShakeIntensityDialogTitle">Виберіть інтенсивність:</string>
+
+    <!-- InfoDialog -->
+    <string name="infoDialogTitle">Інформація</string>
+    <string name="labelAppInformationHeader">WalkersGuide</string>
+    <string name="labelInfoProgramVersion">Версія</string>
+    <string name="labelInfoLastChangelog">Останні зміни</string>
+    <string name="labelContactDataHeader">Контактна інформація</string>
+    <string name="labelInfoEMail">Електронна пошта</string>
+    <string name="labelInfoURL">Веб-сторінка</string>
+    <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;Посібник користувача&lt;/a&gt;</string>
+    <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Політика конфіденційності&lt;/a&gt;</string>
+    <string name="labelServerHeader">Сервер карт</string>
+    <string name="labelServerName">Ім\'я</string>
+    <string name="labelServerVersion">Версія</string>
+    <string name="labelSelectedMapName">Карта</string>
+    <string name="labelSelectedMapCreated">Створено</string>
+
+    <!-- SendFeedbackDialog -->
+    <string name="sendFeedbackDialogTitle">Надіслати відгук:</string>
+    <string name="sendFeedbackDialogTitleMissingMap">Запит: карта OSM</string>
+    <string name="sendFeedbackDialogTitleMissingPtProvider">Запит: Постачальник даних громадського транспорту</string>
+    <string name="labelSenderEmailAddress">Ваша електронна адреса (необов\'язково):</string>
+    <string name="labelMessage">Ваше повідомлення:</string>
+    <string name="labelMessageMissingMap">Карта якої країни відсутня?</string>
+    <string name="labelMessageMissingPtProvider">Який постачальник даних громадського транспорту відсутній?</string>
+    <string name="messageSendFeedbackSuccessful">Повідомлення успішно надіслано.</string>
+    <string name="messageFeedbackMessageIsEmpty">Будь ласка, введіть повідомлення.</string>
+
+    <!-- ChangelogDialog -->
+    <string name="changelogDialogTitle">Зміни у версії 3.0.0:</string>
+    <string name="buttonOpenUserManual">Посібник користувача</string>
+    <!-- new features -->
+    <string name="labelNewFeaturesHeading">Нові функції</string>
+    <string name="labelNewFeatures1">- Закріплення та відстежування точок і маршрутів</string>
+    <string name="labelNewFeatures2">- Запис ваших власних маршрутів</string>
+    <string name="labelNewFeatures3">- Бази для групування та керування точками та маршрутами</string>
+    <string name="labelNewFeatures4">— Покращено імпорт файлів GPX</string>
+    <string name="labelNewFeatures5">- Програма тепер підтримує Android 14</string>
+    <!-- additional changes -->
+    <string name="labelAdditionalChangesHeading">Інші зміни  </string>
+    <string name="labelAdditionalChanges1">Структура програми змінилася. Вкладку Обрані» замінено на вкладку Головна». Ваші наявні обрані перенесено до бази, і тепер їх можна знайти на вкладці Головна в розділі закріплених профілів.</string>
+    <string name="labelAdditionalChanges2">Панель вкладок у нижній частині екрана тепер постійно видима, що дозволяє легше перемикатися між основними розділами програми.</string>
+    <string name="labelAdditionalChanges3">Деякі вкладки тепер мають власну панель вкладок, , вона розташована у верхній частині екрана. Наприклад, вкладка Головна» має дві підвкладки Закріплені» та Відстежування». Нова вкладка «Маршрути» розділена на підвкладки «Навігація» та «Запис».</string>
+    <string name="labelAdditionalChanges4">Ви можете швидко отримати доступ до всіх підвкладок з інших частин програми. Для цього встановіть фокус на відповідній вкладці в нижній частині екрана та натисніть з утриманням або скористайтеся діями TalkBack.</string>
+
+
+    <!--
+         main views
+    -->
+    <string name="buttonActionFor">Дії для</string>
+    <string name="labelNothingSelected">Нічого не вибрано</string>
+
+    <!--
+         ObjectWithIdView
+    -->
+    <string name="messageCantReverseRoute">Не вдалося побудувати зворотний маршрут.</string>
+
+    <!-- label prefix -->
+    <string name="labelPrefixStart">Початок</string>
+    <string name="labelPrefixVia1">Проміжна 1</string>
+    <string name="labelPrefixVia2">Проміжна 2</string>
+    <string name="labelPrefixVia3">Проміжна 3</string>
+    <string name="labelPrefixDestination">Кінець</string>
+    <string name="labelPrefixSimulation">Імітація</string>
+
+    <!-- object context menu -->
+    <string name="contextMenuItemObjectWithIdDepartures">Відправлення</string>
+    <string name="contextMenuItemObjectWithIdEntrances">Входи</string>
+    <string name="contextMenuItemObjectWithIdPedestrianCrossings">Переходи</string>
+    <string name="contextMenuItemObjectWithIdLoadRoute">Завантажити маршрут</string>
+    <string name="contextMenuItemObjectWithIdStreetCourse">Опис дороги</string>
+    <string name="contextMenuItemObjectWithIdExcludeFromRouting">Виключити з маршрутизації</string>
+    <string name="contextMenuItemObjectWithIdSimulateLocation">Імітувати місцезнаходження</string>
+    <string name="contextMenuItemObjectWithIdSimulateBearing">Імітувати напрямок</string>
+    <string name="contextMenuItemObjectWithIdCollections">Додати до бази</string>
+    <string name="contextMenuItemObjectWithIdRoutePlanner">Побудувати маршрут</string>
+    <string name="contextMenuItemObjectWithIdShareCoordinates">Поділитися координатами</string>
+    <!-- load route sub menu -->
+    <string name="contextMenuItemObjectWithIdLoadRouteCurrentDirection">Прямий напрямок</string>
+    <string name="contextMenuItemObjectWithIdLoadRouteOppositeDirection">Зворотний напрямок</string>
+    <!-- routeplanner context submenu -->
+    <string name="contextMenuItemObjectWithIdUseAsStartPoint">Як початкову точку</string>
+    <string name="contextMenuItemObjectWithIdUseAsViaPoint1">Як проміжну точку 1</string>
+    <string name="contextMenuItemObjectWithIdUseAsViaPoint2">Як проміжну точку 2</string>
+    <string name="contextMenuItemObjectWithIdUseAsViaPoint3">Як проміжну точку 3</string>
+    <string name="contextMenuItemObjectWithIdUseAsDestinationPoint">Як кінцеву точку</string>
+    <!-- share coordinates context submenu -->
+    <string name="contextMenuItemObjectWithIdShareOsmOrgLink">OpenStreetMap</string>
+    <string name="contextMenuItemObjectWithIdShareGoogleMapsLink">Карти Google</string>
+    <string name="contextMenuItemObjectWithIdShareAppleMapsLink">Карти Apple</string>
+
+    <!-- UserAnnotationForObjectWithIdDialog -->
+    <string name="userAnnotationForObjectWithIdDialogTitle">Примітка для %1$s:</string>
+
+    <!-- RenameObjectWithIdDialog -->
+    <string name="renameObjectWithIdDialogTitle">Перейменувати %1$s:</string>
+
+    <!-- UpdateObjectWithIdSelectedCollectionsDialog -->
+    <string name="updateObjectWithIdSelectedCollectionsDialogTitle">Додати до бази</string>
+
+
+    <!--
+         ProfileView
+    -->
+    <string name="labelPrefixAddTo">Додати до</string>
+    <string name="messageUpdateCollectionsFailed">Не вдається зберегти вибрані бази.</string>
+    <string name="messageUpdatePoiCategoriesFailed">Не вдається зберегти вибрані категорії точок.</string>
+    <string name="removeProfileDialogTitle">Ви хочете видалити профіль %1$s?</string>
+
+    <!-- profile context menu -->
+    <string name="contextMenuItemProfilePoiCategories">Категорії точок</string>
+    <string name="contextMenuItemProfileCollections">Бази</string>
+    <string name="contextMenuItemProfilePinShortcut">Додати на головний екран</string>
+
+    <!-- RenameProfileDialog -->
+    <string name="renameProfileDialogTitle">Перейменувати профіль:</string>
+
+    <!-- AddPoiProfileToHomeScreenDialog -->
+    <string name="addPoiProfileToHomeScreenDialogTitle">Введіть назву ярлика:</string>
+    <string name="messageShortcutNameMissing">Будь ласка, введіть назву ярлика.</string>
+    <string name="messageCorrespondingPoiProfileNotFound">Профіль точок для цього ярлика не знайдено. Можливо, його видалили.</string>
+
+
+    <!--
+         other dialogs and layouts
+    -->
+
+    <!-- layout_edit_text_and_clear_input_button -->
+    <string name="buttonClearInput">Очистити</string>
+    <string name="buttonClearInputWithLabel">Очистити %1$s</string>
+
+    <!-- RouteObjectView -->
+    <string name="labelIndexSelected">Поточний крок</string>
+
+    <!-- IntersectionScheme -->
+    <string name="labelIntersectionScheme">Схематичне зображення перехрестя</string>
+    <string name="labelIntersectionCenter">Центр перехрестя</string>
+
+    <!-- common context menu entries -->
+    <string name="contextMenuItemDetails">Подробиці</string>
+    <string name="contextMenuItemOverviewPin">Закріпити</string>
+    <string name="contextMenuItemOverviewTrack">Відстежувати</string>
+    <string name="contextMenuItemUserAnnotationAdd">Додати примітку</string>
+    <string name="contextMenuItemUserAnnotationEdit">Редагувати примітку</string>
+    <string name="contextMenuItemRename">Перейменувати</string>
+    <string name="contextMenuItemRemove">видалити</string>
+
+    <!-- dialog button labels -->
+    <string name="dialogOK">OK</string>
+    <string name="dialogCancel">Скасувати</string>
+    <string name="dialogBack">Назад</string>
+    <string name="dialogClose">Закрити</string>
+    <string name="dialogYes">так</string>
+    <string name="dialogNo">Ні</string>
+    <string name="dialogSelectAll">Вибрати все</string>
+    <string name="dialogAdd">додати</string>
+    <string name="dialogAppInfo">Відкрити сторінку інформації про програму</string>
+    <string name="dialogClear">Очистити</string>
+    <string name="dialogCalculate">Побудувати</string>
+    <string name="dialogDefault">Стандартні параметри</string>
+    <string name="dialogNow">Зараз</string>
+    <string name="dialogOptions">Параметри</string>
+    <string name="dialogRefresh">Оновити</string>
+    <string name="dialogSend">Надіслати</string>
+    <string name="dialogSomethingMissing">Щось пропущено?</string>
+
+    <!-- other common labels and messages -->
+    <string name="fillingWordAnd">і</string>
+    <string name="fillingWordHas">має</string>
+    <string name="stateCollapsed">згорнуто</string>
+    <string name="stateExpanded">розгорнуто</string>
+    <string name="viewClassNameTab">вкладка</string>
+    <string name="messagePleaseWait">Будь ласка, зачекайте…</string>
+    <string name="messageNameIsMissing">Будь ласка, введіть ім\'я.</string>
+    <string name="messageRenameFailed">Не вдалося перейменувати.  </string>
+    <string name="messageSetUserAnnotationFailed">Не вдалося зберегти примітку.</string>
+
+
+    <!--
+         points, segments and routes
+    -->
+
+    <!-- object icon -->
+    <string name="objectIconPoint">точка</string>
+    <string name="objectIconRoute">Маршрут</string>
+    <string name="objectIconSegment">шлях</string>
+
+    <!-- Point -->
+    <string name="preciseBearingValues">на %1$d°</string>
+    <!-- TactilePaving -->
+    <string name="tactilePavingNo">немає</string>
+    <string name="tactilePavingYes">так</string>
+    <string name="tactilePavingIncorrect">Неправильно</string>
+    <!-- Wheelchair -->
+    <string name="wheelchairNo">Ні</string>
+    <string name="wheelchairLimited">Обмежено</string>
+    <string name="wheelchairYes">так</string>
+
+    <!-- intersection point -->
+<string name="intersectionNumberOfStreets">Перехрестя, має %1$s</string>
+<string name="intersectionNumberOfCrossingsNearby">%1$s поруч</string>
+
+    <!-- PedestrianCrossing -->
+    <!-- details in toString -->
+    <string name="pedestrianCrossingDetailsIslandYes">Острівець безпеки</string>
+    <string name="pedestrianCrossingDetailsCrossingBarrierNo">Без шлагбаума</string>
+    <string name="pedestrianCrossingDetailsCrossingBarrierYes">Шлагбаум</string>
+    <string name="pedestrianCrossingDetailsKerbNo">Без бордюру</string>
+    <string name="pedestrianCrossingDetailsSoundYes">Звук</string>
+    <string name="pedestrianCrossingDetailsTactilePavingYes">Тактильна плитка</string>
+    <!-- CrossingBarrier -->
+    <string name="crossingBarrierFull">На всю ширину</string>
+<string name="crossingBarrierHalf">На половину ширини</string>
+    <string name="crossingBarrierYes">Так</string>
+    <string name="crossingBarrierNo">Ні</string>
+    <!-- Kerb -->
+    <string name="kerbFlush">Врівень</string>
+    <string name="kerbLowered">Знижений</string>
+    <string name="kerbRolled">Заокруглений</string>
+    <string name="kerbRaised">Піднятий</string>
+    <string name="kerbYes">Так</string>
+    <string name="kerbNo">Ні</string>
+
+    <!-- StationPoint -->
+    <string name="stationPlatform">Платформа</string>
+    <string name="stationLines">Маршрути: %1$s</string>
+
+
+    <!--
+         segments
+    -->
+
+    <!-- segment -->
+    <!-- sidewalk -->
+    <string name="sidewalkNo">Ні</string>
+    <string name="sidewalkLeft">Ліворуч</string>
+    <string name="sidewalkRight">Праворуч</string>
+    <string name="sidewalkBoth">З обох боків</string>
+
+    <!-- route segment -->
+    <string name="routeSegmentNameUnknown">Відрізок шляху</string>
+    <string name="routeSegmentToString">Рухайтесь %1$s по %2$s</string>
+
+
+    <!--
+         angles
+    -->
+
+    <!-- Bearing -->
+    <!-- Orientation -->
+    <string name="orientationNorth">Північ</string>
+    <string name="orientationNorthEast">Північний схід</string>
+    <string name="orientationEast">Схід</string>
+    <string name="orientationSouthEast">Південний схід</string>
+    <string name="orientationSouth">Південь</string>
+    <string name="orientationSouthWest">Південний захід</string>
+    <string name="orientationWest">Захід</string>
+    <string name="orientationNorthWest">Північний захід</string>
+
+    <!-- RelativeBearing -->
+    <!-- Direction -->
+    <string name="directionStraightAhead">Попереду</string>
+    <string name="directionRightSlightly">Праворуч попереду</string>
+    <string name="directionRight">Праворуч</string>
+    <string name="directionRightStrongly">Праворуч позаду</string>
+    <string name="directionBehind">Позаду</string>
+    <string name="directionLeftStrongly">Ліворуч позаду</string>
+    <string name="directionLeft">Ліворуч</string>
+    <string name="directionLeftSlightly">Ліворуч попереду</string>
+
+    <!-- Turn -->
+    <!-- Instruction -->
+    <string name="instructionCross">Рухайтесь прямо</string>
+    <string name="instructionTurnRightSlightly">Злегка поверніть праворуч</string>
+    <string name="instructionTurnRight">Поверніть праворуч</string>
+<string name="instructionTurnRightStrongly">Різко поверніть праворуч</string>
+    <string name="instructionTurnRound">Розверніться</string>
+    <string name="instructionTurnLeftStrongly">Різко поверніть ліворуч</string>
+    <string name="instructionTurnLeft">Поверніть ліворуч</string>
+    <string name="instructionTurnLeftSlightly">Злегка поверніть ліворуч</string>
+
+    <!-- BearingSensorValue -->
+    <string name="labelBearingAccuracy">Точність</string>
+    <string name="labelBearingOutdated">Значення застаріле</string>
+
+
+    <!--
+         profile
+    -->
+
+    <!-- profile icon -->
+    <string name="profileIconDatabase">Профіль</string>
+    <string name="profileIconCollection">База</string>
+    <string name="profileIconHistory">історія</string>
+    <string name="profileIconPoiProfile">Профіль точок</string>
+
+    <!-- DatabaseProfile -->
+    <string name="databaseProfileExcludedFromRouting">Виключені з маршрутизації дороги.</string>
+    <string name="databaseProfileRecordedRoutes">Записані маршрути</string>
+    <string name="databaseProfilePinnedObjectsWithId">Закріплені точки та маршрути</string>
+    <string name="databaseProfileTrackedObjectsWithId">Відстежувані точки</string>
+    <!-- point history -->
+    <string name="historyDatabaseProfileAddressPoints">Адреси</string>
+    <string name="historyDatabaseProfileIntersectionPoints">Перехрестя</string>
+    <string name="historyDatabaseProfileStationPoints">Станції</string>
+    <string name="historyDatabaseProfileSimulatedPoints">Імітовані точки</string>
+    <string name="historyDatabaseProfileAllPoints">Усі точки</string>
+    <!-- route history -->
+    <string name="historyDatabaseProfilePlannedRoutes">Побудовані маршрути</string>
+    <string name="historyDatabaseProfileRecordedRoutes">Записані маршрути</string>
+    <string name="historyDatabaseProfileRoutesFromGpxFile">Імпортовані з файлів GPX  </string>
+    <string name="historyDatabaseProfileAllRoutes">Усі маршрути</string>
+
+    <!-- Collection -->
+    <string name="collectionNameFavorites">Обрані</string>
+
+    <!-- ObjectTypeFilter -->
+    <string name="objectTypeFilterAll">всі</string>
+    <string name="objectTypeFilterPoints">Точки</string>
+    <string name="objectTypeFilterRoutes">Маршрути</string>
+    <string name="objectTypeFilterSegments">Шляхи</string>
+
+    <!-- SortMethod -->
+    <string name="sortAccessedAsc">Останнє відвідування, за зростанням</string>
+    <string name="sortAccessedDesc">Останнє відвідування, за спаданням</string>
+    <string name="sortNameAsc">Назва, за зростанням</string>
+    <string name="sortNameDesc">Назва, за спаданням</string>
+    <string name="sortDistanceAsc">Відстань, за зростанням</string>
+    <string name="sortDistanceDesc">Відстань, за спаданням</string>
+    <string name="sortCreatedAsc">Час додавання, за зростанням</string>
+    <string name="sortCreatedDesc">Час додавання, за спаданням</string>
+
+    <!-- POICategory -->
+    <string name="poiCategoryBusTram">Автобусні та трамвайні зупинки</string>
+    <string name="poiCategoryTrain">Залізничні станції та станції метро</string>
+    <string name="poiCategoryAirportFerry">Аеропорти, поромні термінали та канатні дороги</string>
+    <string name="poiCategoryTaxi">Таксі</string>
+    <string name="poiCategoryFood">Їжа та напої</string>
+    <string name="poiCategoryTourism">Туризм</string>
+    <string name="poiCategoryShop">Торгівля</string>
+    <string name="poiCategoryHealth">Здоров\'я</string>
+    <string name="poiCategoryEducation">Освіта</string>
+    <string name="poiCategoryFinance">Фінанси</string>
+    <string name="poiCategoryEntertainment">Спорт і дозвілля</string>
+    <string name="poiCategoryPublicService">Державні послуги</string>
+    <string name="poiCategoryOtherService">Інші послуги</string>
+    <string name="poiCategoryBuildingsWithName">Іменовані будівлі</string>
+    <string name="poiCategoryEntrance">Іменовані входи</string>
+    <string name="poiCategoryEntranceWithoutName">Інші входи</string>
+    <string name="poiCategoryPostBox">Поштові скриньки</string>
+    <string name="poiCategorySurveillance">Камери спостереження</string>
+    <string name="poiCategoryBench">Лавки</string>
+    <string name="poiCategoryTrash">Контейнери для сміття</string>
+    <string name="poiCategoryNature">Гори та озера</string>
+    <string name="poiCategoryBridge">Мости</string>
+    <string name="poiCategoryFullyNamedIntersection">Іменовані перехрестя</string>
+    <string name="poiCategoryPartiallyNamedIntersection">Частково іменовані перехрестя</string>
+    <string name="poiCategoryUnnamedIntersection">Інші перехрестя</string>
+    <string name="poiCategoryRailwayIntersection">Залізничні переїзди та переходи</string>
+    <string name="poiCategoryPedestrianCrossings">Пішохідні переходи та світлофори</string>
+
+
+    <!--
+         route management
+    -->
+
+    <!-- Route -->
+    <string name="routeNameStreetCourse">Опис дороги для %1$s у напрямку на %2$s</string>
+    <string name="routeDescriptionStreetCourse">Маршрут починається на перехресті %1$s і слідує вздовж %2$s у напрямку на %3$s.</string>
+    <string name="routeDescriptionDefault">Маршрут довжиною %1$s і містить %2$s.</string>
+    <string name="labelOppositeDirection">Зворотний напрямок</string>
+    <string name="messageAlmostArrivedAtRouteStart">Ви наближаєтесь до початкової точки</string>
+    <string name="messageAlmostArrivedAtRoutePoint">Невдовзі: %1$s у %2$s</string>
+    <string name="messageAlmostArrivedAtRouteDestination">Ви наближаєтесь до кінцевої точки</string>
+    <string name="messageArrivedAtRouteStart">Ви прибули до початкової точки.</string>
+    <string name="messageArrivedAtRoutePoint">Ви прибули до точки %1$d.\nТеперр: %2$s.\nПотім: %3$s.</string>
+    <string name="messageArrivedAtRoutePointWithNextTurn">Ви прибули до точки %1$d.\nТепер: %2$s.\nПотім: %3$s.\nПісля чого: %4$s.</string>
+    <string name="messageArrivedAtRouteDestination">Ви прибули до кінцевої точки.</string>
+
+    <!-- RouteObject -->
+    <string name="routePointInstructionStart">Початок: %1$s</string>
+    <string name="routePointInstructionIntermediateCross">%1$s у точці %2$s</string>
+    <string name="routePointInstructionIntermediateTurn">%1$s у точці %2$s</string>
+    <string name="routePointInstructionDestination">Кінець: %1$s</string>
+    <string name="routeSegmentBewareCyclists">Увага: велосипедний рух</string>
+
+    <!-- WayClassType -->
+    <string name="wayClassTypeBigStreets">Головні вулиці</string>
+    <string name="wayClassTypeSmallStreets">Другорядні вулиці</string>
+    <string name="wayClassTypePavedWays">Доріжки з покриттям</string>
+    <string name="wayClassTypeUnpavedWays">Доріжки без покриття</string>
+    <string name="wayClassTypeSteps">Сходи</string>
+    <string name="wayClassTypeUnclassifiedWays">Некласифіковані шляхи</string>
+
+    <!-- WayClassWeight -->
+    <string name="wayClassWeightStronglyPrefer">Явно віддавати перевагу</string>
+    <string name="wayClassWeightPrefer">Віддавати перевагу</string>
+    <string name="wayClassWeightSlightlyPrefer">Злегка віддавати перевагу</string>
+    <string name="wayClassWeightNeutral">Відноситися нейтрально</string>
+    <string name="wayClassWeightSlightlyAvoid">Злегка уникати</string>
+    <string name="wayClassWeightAvoid">Уникати</string>
+    <string name="wayClassWeightStronglyAvoid">Явно уникати</string>
+    <string name="wayClassWeightExclude">Виключити</string>
+
+
+    <!-- 
+        public transport
+    -->
+
+    <!-- PTHelper -->
+    <string name="contentDescriptionAbsoluteDepartureTime">о %1$s</string>
+    <string name="contentDescriptionRelativeDepartureTime">через %1$s</string>
+
+    <!-- Countries -->
+    <string name="countryEurope">Європа</string>
+    <string name="countryGermany">Німеччина</string>
+
+    <!-- public transport provider -->
+    <!-- europe -->
+    <string name="publicTransportProviderRT">Railteam (Europe)</string>
+    <!-- germany -->
+    <string name="publicTransportProviderDB">Deutsche Bahn</string>
+    <string name="publicTransportProviderVGN">Verkehrsverbund Großraum Nürnberg</string>
+    <string name="publicTransportProviderVVO">Verkehrsverbund Oberelbe</string>
+
+    <!-- Vehicle type names -->
+    <string name="productHighSpeedTrain">Швидкісний поїзд</string>
+    <string name="productRegionalTrain">поїзд</string>
+    <string name="productSuburbanTrain">Приміський поїзд</string>
+    <string name="productSubway">Метро</string>
+    <string name="productTram">Трамвай</string>
+    <string name="productBus">Автобус</string>
+    <string name="productFerry">Паром</string>
+    <string name="productCableCar">Канатна дорога</string>
+    <string name="productOnDemand">На вимогу</string>
+
+
+    <!--
+         sensors
+    -->
+
+    <!-- BearingSensor -->
+    <string name="bearingSensor">Спосіб визначення напрямку</string>
+    <string name="bearingSensorCompass">Компас</string>
+    <string name="bearingSensorSatellite">Супутники</string>
+
+    <!-- BearingSensorAccuracyRating -->
+    <string name="bearingSensorAccuracyLow">Низька</string>
+    <string name="bearingSensorAccuracyMedium">Середня</string>
+    <string name="bearingSensorAccuracyHigh">Висока</string>
+    <string name="bearingSensorAccuracyUnknown">Невідома</string>
+
+    <!-- : ShakeIntensity -->
+    <string name="shakeIntensityDisabled">Вимкнено</string>
+    <string name="shakeIntensityVeryWeak">Дуже низька</string>
+    <string name="shakeIntensityWeak">Низька</string>
+    <string name="shakeIntensityMedium">Середня</string>
+    <string name="shakeIntensityStrong">Висока</string>
+    <string name="shakeIntensityVeryStrong">Дуже висока</string>
+
+
+    <!--
+        errors and exceptions
+    -->
+
+    <!-- ServerRequestException -->
+    <string name="errorReqRequestFailed">Помилка запиту на сервер.</string>
+    <string name="errorReqNoInternetConnection">Немає підключення до Інтернету.</string>
+    <string name="errorReqBadRequest">Не вдалося створити запит на сервер. Недійсні параметри.</string>
+    <string name="errorReqBadResponse">Не вдалося обробити відповідь сервера.</string>
+    <string name="errorReqRequestCancelled">Запит на сервер скасовано</string>
+    <string name="errorReqUnknownReturnCode">Невідома помилка: %1$d</string>
+
+    <!-- WgRequestException -->
+
+    <!-- walkersguide server -->
+    <string name="errorWgReqBadRequest">Сервер WalkersGuide: Недійсні параметри запиту.</string>
+    <string name="errorWgReqRequestInProgress">Попередній запит все ще виконується. Повторіть спробу пізніше.</string>
+    <string name="errorWgReqInternalServerError">Внутрішня помилка сервера.</string>
+    <string name="errorWgReqServiceUnavailableOrBusy">Сервер зайнятий. Повторіть спробу пізніше.</string>
+    <string name="errorWgReqNoPOITagsSelected">Категорії точок не вибрано.</string>
+    <string name="errorWgReqMapLoadingFailed">Вибрана карта недоступна на сервері або застаріла.</string>
+    <string name="errorWgReqWrongMapSelected">Вказане місце знаходиться за межами вибраної карти.</string>
+    <string name="errorWgReqMapOutdated">Вибрана карта не має цієї функції.</string>
+    <string name="errorWgReqStartOrDestinationMissing">Відсутня початкова або кінцева точка.</string>
+    <string name="errorWgReqStartAndDestinationTooFarAway">Відстань між початковою та кінцевою точками завелика. Задайте принаймні один проміжний пункт.</string>
+    <string name="errorWgReqTooManyWayClassesIgnored">Ви виключили з маршрутизації забагато категорій доріг.</string>
+    <string name="errorWgReqNoRouteBetweenStartAndDestination">Сервер не може знайти маршрут між вказаними початковою та кінцевою точками.</string>
+
+    <!-- app errorWgReqs -->
+    <!-- poi -->
+    <string name="errorWgReqNoPOIProfileCreated">Будь ласка, створіть хоча б один профіль точок.</string>
+    <string name="errorWgReqNoPOIProfileSelected">Профіль точок не вибрано.</string>
+    <string name="errorWgReqPOIProfileParsing">Помилка аналізу профілю точок.</string>
+    <string name="errorWgReqUnsupportedPOIRequestAction">Непідтримувана дія запиту POI</string>
+    <!-- route -->
+    <string name="errorWgReqNoRouteCreated">Маршрут не створено.</string>
+    <string name="errorWgReqNoRouteSelected">Маршрут не вибрано.</string>
+    <string name="errorWgReqRouteParsing">Помилка аналізу маршруту.</string>
+    <!-- status -->
+    <string name="errorWgReqNoServerURL">Порожня або неправильна URL-адреса сервера.</string>
+    <string name="errorWgReqAPIClientOutdated">Версія API цієї програми застаріла для вибраного сервера. Будь ласка, перевірте наявність оновлень програми на walkersguide.org або в магазині Google Play.</string>
+    <string name="errorWgReqAPIServerOutdated">Версія API вибраного сервера карт більше не підтримується цією програмою.</string>
+    <string name="errorWgReqNoMapList">На сервері немає жодної карти.</string>
+
+    <!-- ptRequestException -->
+    <string name="errorPtReqNoNetworkProvider">Не вибрано постачальника даних громадського транспорту.</string>
+    <string name="errorPtReqNoStation">Станцію не вибрано.</string>
+    <string name="errorPtReqNoDepartureDate">Дата відправлення не вибрана.</string>
+    <string name="errorPtReqNoCoordinates">Поточне місцезнаходження недоступно.</string>
+    <string name="errorPtReqPTServiceDown">Постачальник даних громадського транспорту недоступний.</string>
+    <string name="errorPtReqInvalidProvider">Недійсний постачальник даних громадського транспорту.</string>
+    <string name="errorPtReqInvalidStation">Недійсна станція.</string>
+    <string name="errorPtReqNoDepartures">Відправлення не знайдено.</string>
+    <string name="errorPtReqNoTrips">Підходящої поїздки не знайдено.</string>
+    <string name="errorPtReqAmbiguousDestination">Неоднозначна точка призначення.</string>
+    <string name="errorPtReqUnknownServerResponse">Не вдалося обробити відповідь постачальника даних громадського транспорту.</string>
+
+    <!-- AddressRequestException -->
+    <string name="errorAddrReqNoCoordinatesForAddress">Не знайдено координати для цієї адреси.</string>
+    <string name="errorAddrReqNoAddressForCoordinates">Не знайдено адреси для цих координат.</string>
+
+    <!-- other errors -->
+    <string name="errorSavePointFailed">Помилка створення точки.</string>
+    <string name="errorNoHomeAddressSet">Ви ще не вибрали свою домашню адресу. Це можна зробити в налаштуваннях програми.</string>
+    <string name="errorNoLocationFound">Дані про місцезнаходження недоступні.</string>
+    <string name="errorNoBearingFound">Дані про азимут недоступні.</string>
+
+
+    <plurals
+        name="departure">
+        <item quantity="one">%d відправлення</item>
+        <item quantity="few">%d відправлення</item>
+        <item quantity="many">%d відправлень</item>
+        <item quantity="other">%d відправлень</item>
+    </plurals>
+
+    <plurals tools:ignore="MissingQuantity"
+        name="hourShort">
+        <item quantity="one">%d год</item>
+        <item quantity="other">%d год</item>
+    </plurals>
+
+    <plurals
+        name="hourLong">
+        <item quantity="one">%d година</item>
+        <item quantity="few">%d години</item>
+        <item quantity="many">%d годин</item>
+        <item quantity="other">%d годин</item>
+    </plurals>
+
+    <plurals tools:ignore="MissingQuantity"
+        name="minuteShort">
+        <item quantity="one">%d хв</item>
+        <item quantity="other">%d хв</item>
+    </plurals>
+
+    <plurals
+        name="minuteLong">
+        <item quantity="one">%d хвилина</item>
+        <item quantity="few">%d хвилини</item>
+        <item quantity="many">%d хвилин</item>
+        <item quantity="other">%d хвилин</item>
+    </plurals>
+
+    <plurals
+        name="meter">
+        <item quantity="one">%d метр</item>
+        <item quantity="few">%d метри</item>
+        <item quantity="many">%d метрів</item>
+        <item quantity="other">%d метрів</item>
+    </plurals>
+
+    <plurals tools:ignore="MissingQuantity"
+        name="meterFloat">
+        <item quantity="one">%1$.1f метр</item>
+        <item quantity="other">%1$.1f метра</item>
+    </plurals>
+
+    <plurals
+        name="meters">
+        <item quantity="one">%d метр</item>
+        <item quantity="few">%d метри</item>
+        <item quantity="many">%d метрів</item>
+        <item quantity="other">%d метрів</item>
+    </plurals>
+
+    <plurals
+        name="inMeters">
+        <item quantity="one">%d метр</item>
+        <item quantity="few">%d метри</item>
+        <item quantity="many">%d метрів</item>
+        <item quantity="other">%d метрів</item>
+    </plurals>
+
+    <plurals
+        name="result">
+        <item quantity="one">%d результат</item>
+        <item quantity="few">%d результати</item>
+        <item quantity="many">%d результатів</item>
+        <item quantity="other">%d результатів</item>
+    </plurals>
+
+    <plurals
+        name="satellite">
+        <item quantity="one">%d супутник</item>
+        <item quantity="few">%d супутники</item>
+        <item quantity="many">%d супутників</item>
+        <item quantity="other">%d супутників</item>
+    </plurals>
+
+    <plurals
+        name="object">
+        <item quantity="one">%d об\'єкт</item>
+        <item quantity="few">%d об\'єкти</item>
+        <item quantity="many">%d об\'єктів</item>
+        <item quantity="other">%d об\'єктів</item>
+    </plurals>
+
+    <plurals
+        name="point">
+        <item quantity="one">%d точка</item>
+        <item quantity="few">%d точки</item>
+        <item quantity="many">%d точок</item>
+        <item quantity="other">%d точок</item>
+    </plurals>
+
+    <plurals
+        name="manuallyAddedPoint">
+        <item quantity="one">%d додана користувачем точка</item>
+        <item quantity="few">%d доданих користувачем точки</item>
+        <item quantity="many">%d доданих користувачем точок</item>
+        <item quantity="other">%d доданих користувачем точок</item>
+    </plurals>
+
+    <plurals
+        name="trackedPoint">
+        <item quantity="one">%d відстежувана точка</item>
+        <item quantity="few">%d відстежуваних точки</item>
+        <item quantity="many">%d відстежуваних точок</item>
+        <item quantity="other">%d відстежуваних точок</item>
+    </plurals>
+
+    <plurals
+        name="route">
+        <item quantity="one">%d маршрут</item>
+        <item quantity="few">%d маршрути</item>
+        <item quantity="many">%d маршрутів</item>
+        <item quantity="other">%d маршрутів</item>
+    </plurals>
+
+    <plurals
+        name="pointAndRoute">
+        <item quantity="one">%d точка чи маршрут</item>
+        <item quantity="few">%d точки чи маршрути</item>
+        <item quantity="many">%d точок чи маршрутів</item>
+        <item quantity="other">%d точок чи маршрутів</item>
+    </plurals>
+
+    <plurals
+        name="recordedRoute">
+        <item quantity="one">%d записаний маршрут</item>
+        <item quantity="few">%d записаних маршрути</item>
+        <item quantity="many">%d записаних маршрутів</item>
+        <item quantity="other">%d записаних маршрутів</item>
+    </plurals>
+
+    <plurals
+        name="way">
+        <item quantity="one">%d дорога</item>
+        <item quantity="few">%d дороги</item>
+        <item quantity="many">%d доріг</item>
+        <item quantity="other">%d доріг</item>
+    </plurals>
+
+    <plurals
+        name="crossing">
+        <item quantity="one">%d перехід</item>
+        <item quantity="few">%d переходи</item>
+        <item quantity="many">%d переходів</item>
+        <item quantity="other">%d переходів</item>
+    </plurals>
+
+    <plurals
+        name="entrance">
+        <item quantity="one">%d вхід</item>
+        <item quantity="few">%d входи</item>
+        <item quantity="many">%d входів</item>
+        <item quantity="other">%d входів</item>
+    </plurals>
+
+    <plurals
+        name="intersection">
+        <item quantity="one">%d перехрестя</item>
+        <item quantity="few">%d перехрестя</item>
+        <item quantity="many">%d перехресть</item>
+        <item quantity="other">%d перехресть</item>
+    </plurals>
+
+    <plurals
+        name="poi">
+        <item quantity="one">%d точка</item>
+        <item quantity="few">%d точки</item>
+        <item quantity="many">%d точок</item>
+        <item quantity="other">%d точок</item>
+    </plurals>
+
+    <plurals
+        name="station">
+        <item quantity="one">%d станція</item>
+        <item quantity="few">%d станції</item>
+        <item quantity="many">%d станцій</item>
+        <item quantity="other">%d станцій</item>
+    </plurals>
+
+    <plurals
+        name="street">
+        <item quantity="one">%d вулиця</item>
+        <item quantity="few">%d вулиці</item>
+        <item quantity="many">%d вулиць</item>
+        <item quantity="other">%d вулиць</item>
+    </plurals>
+
+    <plurals
+        name="turning">
+        <item quantity="one">%d поворот</item>
+        <item quantity="few">%d повороти</item>
+        <item quantity="many">%d поворотів</item>
+        <item quantity="other">%d поворотів</item>
+    </plurals>
+
+    <plurals
+        name="profile">
+        <item quantity="one">%d профіль</item>
+        <item quantity="few">%d профілі</item>
+        <item quantity="many">%d профілів</item>
+        <item quantity="other">%d профілів</item>
+    </plurals>
+
+    <plurals
+        name="collection">
+        <item quantity="one">%d база</item>
+        <item quantity="few">%d бази</item>
+        <item quantity="many">%d баз</item>
+        <item quantity="other">%d баз</item>
+    </plurals>
+
+    <plurals
+        name="collectionSelected">
+        <item quantity="one">%d база вибрана</item>
+        <item quantity="few">%d бази вибрано</item>
+        <item quantity="many">%d баз вибрано</item>
+        <item quantity="other">%d баз вибрано</item>
+    </plurals>
+
+    <plurals
+        name="pointProfile">
+        <item quantity="one">%d профіль точок</item>
+        <item quantity="few">%d профілі точок</item>
+        <item quantity="many">%d профілів точок</item>
+        <item quantity="other">%d профілів точок</item>
+    </plurals>
+
+    <plurals
+        name="poiCategory">
+        <item quantity="one">%d категорія точок</item>
+        <item quantity="few">%d категорії точок</item>
+        <item quantity="many">%d категорій точок</item>
+        <item quantity="other">%d категорій точок</item>
+    </plurals>
+
+    <plurals
+        name="poiCategorySelected">
+        <item quantity="one">%d категорія точок вибрана</item>
+        <item quantity="few">%d категорії точок вибрано</item>
+        <item quantity="many">%d категорій точок вибрано</item>
+        <item quantity="other">%d категорій точок вибрано</item>
+    </plurals>
+
+</resources>

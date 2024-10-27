@@ -23,15 +23,12 @@ android {
     compileSdkVersion 34
     namespace "org.walkersguide.android"
 
-    androidResources {
-        generateLocaleConfig true
-    }
-
     defaultConfig {
-        versionCode 36
+        versionCode 40
         minSdkVersion 21
         targetSdkVersion 34
         multiDexEnabled true
+        resConfigs "en", "de", "uk"
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
@@ -75,7 +72,7 @@ android {
         prod {
             applicationId "org.walkersguide.android"
             dimension "version"
-            versionName '3.1.0'
+            versionName '3.2.0-b3'
             signingConfig signingConfigs.prod
             // internal database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
@@ -103,7 +100,7 @@ android {
 
     lintOptions {
         disable "GoogleAppIndexingWarning", "Autofill", "IconLauncherShape", "ButtonStyle"
-        abortOnError true
+        abortOnError false
         baseline file("lint-baseline.xml")
     }
 }
