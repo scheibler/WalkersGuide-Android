@@ -139,10 +139,10 @@ public class Helper {
 
     public static Date parseTimestamp(String timestamp) {
         try {
-            return (new SimpleDateFormat(ISO_8601_FORMAT1)).parse(timestamp);
+            return (new SimpleDateFormat(ISO_8601_FORMAT1, Locale.ROOT)).parse(timestamp);
         } catch (Exception e) {}
         try {
-            return (new SimpleDateFormat(ISO_8601_FORMAT2)).parse(timestamp);
+            return (new SimpleDateFormat(ISO_8601_FORMAT2, Locale.ROOT)).parse(timestamp);
         } catch (Exception e) {}
         return null;
     }

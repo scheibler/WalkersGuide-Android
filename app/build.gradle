@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-rocket-launcher'
 
 // get signing properties
 Properties keystoreProperties = new Properties()
@@ -20,13 +19,14 @@ if (keystoreProperties.isEmpty()) {
 }
 
 android {
-    compileSdkVersion 34
+    compileSdkVersion 35
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 40
+        versionCode 41
+        versionName '3.2.0-b4'
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         multiDexEnabled true
         resConfigs "en", "de", "uk"
         // contact data
@@ -63,7 +63,6 @@ android {
         beta {
             applicationId "org.walkersguide.android.beta"
             dimension "version"
-            versionName '3.0.0-b12'
             signingConfig signingConfigs.beta
             // internal database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
@@ -75,7 +74,6 @@ android {
         prod {
             applicationId "org.walkersguide.android"
             dimension "version"
-            versionName '3.2.0-b3'
             signingConfig signingConfigs.prod
             // internal database
             buildConfigField 'String', 'DATABASE_NAME', '"walkersguide.db"'
@@ -103,7 +101,7 @@ android {
 
     lintOptions {
         disable "GoogleAppIndexingWarning", "Autofill", "IconLauncherShape", "ButtonStyle"
-        abortOnError false
+        abortOnError true
         baseline file("lint-baseline.xml")
     }
 }
@@ -111,9 +109,9 @@ android {
 dependencies {
     // androidX
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.core:core:1.13.1'
+    implementation 'androidx.core:core:1.15.0'
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
-    implementation 'androidx.fragment:fragment:1.8.0'
+    implementation 'androidx.fragment:fragment:1.8.5'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // material design
@@ -121,29 +119,32 @@ dependencies {
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     // google helpers
-    implementation 'com.google.guava:guava:31.0.1-android'
+    implementation 'com.google.guava:guava:33.3.1-android'
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2023-11-25@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2024-11-06@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
-    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-api:2.0.16'
 }
 
-configurations.implementation {
-    // must exclude that jdk below, otherwise classes get duplicated
-    // required since update of androidx.core dependency to version 1.10.0
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-}
-
-repositories {
-    // include local libs directory
-    flatDir {
-        dirs 'libs'
+// open the APK on your Android Device
+android.applicationVariants.all { variant ->
+    if (variant.install) {
+        tasks.create(name: "open${variant.name.capitalize()}", type: Exec,
+                dependsOn: variant.install) {
+            group = 'Open'
+            description "Installs and opens the APK for ${variant.description}."
+            doFirst {
+                String activityClass = ".ui.activity.MainActivity"
+                commandLine android.adbExe, 'shell', 'am', 'start', '-n',
+                        "${variant.applicationId}/${activityClass}"
+            }
+        }
     }
 }
 

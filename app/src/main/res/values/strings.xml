@@ -114,7 +114,7 @@
     <!-- options menu -->
     <string name="planRouteMenuItemSwap">Swap start and destination</string>
     <string name="planRouteMenuItemExcludedWays">Excluded ways</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Way classes</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Way class weights</string>
     <string name="planRouteMenuItemClear">Clear points</string>
 
     <!-- ConfigureWayClassWeightsDialog -->
