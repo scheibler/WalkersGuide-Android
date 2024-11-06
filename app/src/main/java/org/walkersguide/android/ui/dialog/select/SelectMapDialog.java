@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import org.walkersguide.android.server.wg.status.OSMMap;
 import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 
@@ -80,17 +79,6 @@ public class SelectMapDialog extends DialogFragment {
                     new String[]{getResources().getString(R.string.messagePleaseWait)},
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                        }
-                    }
-                    )
-            .setNeutralButton(
-                    getResources().getString(R.string.dialogSomethingMissing),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            SendFeedbackDialog.newInstance(
-                                    SendFeedbackDialog.FeedbackToken.MAP_REQUEST)
-                                .show(getParentFragmentManager(), "SendFeedbackDialog");
-                            dismiss();
                         }
                     }
                     )

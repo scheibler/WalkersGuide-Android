@@ -676,7 +676,7 @@ public class SettingsManager {
             }
         }
         if (resetToDefaults) {
-            wayClassWeightSettings = WayClassWeightSettings.getDefault();
+            wayClassWeightSettings = WayClassWeightSettings.Preset.URBAN_ON_FOOT.settings;
         }
         // return
         return wayClassWeightSettings;

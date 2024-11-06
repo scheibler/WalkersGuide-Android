@@ -1,6 +1,7 @@
 package org.walkersguide.android.ui.dialog.edit;
 
 import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
+import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings.Preset;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassWeight;
 
@@ -30,6 +31,11 @@ import android.widget.ArrayAdapter;
 import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 import android.widget.TableRow;
 import android.widget.AdapterView;
+import androidx.appcompat.widget.PopupMenu;
+import android.view.Menu;
+import org.walkersguide.android.util.GlobalInstance;
+import android.view.MenuItem;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class ConfigureWayClassWeightsDialog extends DialogFragment
@@ -40,11 +46,8 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
 
     // instance constructors
 
-    public static ConfigureWayClassWeightsDialog newInstance(WayClassWeightSettings wayClassWeightSettings) {
+    public static ConfigureWayClassWeightsDialog newInstance() {
         ConfigureWayClassWeightsDialog dialog = new ConfigureWayClassWeightsDialog();
-        Bundle args = new Bundle();
-        args.putSerializable(KEY_WAY_CLASS_SETTINGS, wayClassWeightSettings);
-        dialog.setArguments(args);
         return dialog;
     }
 
@@ -56,11 +59,9 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
     private TableLayout tableLayout;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            wayClassWeightSettings = (WayClassWeightSettings) savedInstanceState.getSerializable(KEY_WAY_CLASS_SETTINGS);
-        } else {
-            wayClassWeightSettings = (WayClassWeightSettings) getArguments().getSerializable(KEY_WAY_CLASS_SETTINGS);
-        }
+        wayClassWeightSettings = savedInstanceState != null
+            ? (WayClassWeightSettings) savedInstanceState.getSerializable(KEY_WAY_CLASS_SETTINGS)
+            : SettingsManager.getInstance().getWayClassWeightSettings();
 
         tableLayout = new TableLayout(
                 ConfigureWayClassWeightsDialog.this.getContext());
@@ -87,7 +88,7 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
                         }
                     })
             .setNeutralButton(
-                    getResources().getString(R.string.dialogDefault),
+                    getResources().getString(R.string.dialogPresets),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -110,6 +111,7 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
             Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
+                    SettingsManager.getInstance().setWayClassWeightSettings(wayClassWeightSettings);
                     Bundle result = new Bundle();
                     result.putSerializable(EXTRA_WAY_CLASS_SETTINGS, wayClassWeightSettings);
                     getParentFragmentManager().setFragmentResult(REQUEST_WAY_CLASS_WEIGHTS_CHANGED, result);
@@ -121,8 +123,7 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    wayClassWeightSettings = WayClassWeightSettings.getDefault();
-                    populateTableLayout();
+                    showPresetsMenu(view);
                 }
             });
 
@@ -151,7 +152,7 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
             spinner.setId(type.ordinal());
             spinner.setLayoutParams(lpTableRowChild);
             spinner.setTag(type);
-            spinner.setPrompt(type.name);
+            spinner.setPrompt(type.toString());
             spinner.setOnItemSelectedListener(this);
 
             ArrayList<WayClassWeight> wayClassWeightList =
@@ -172,7 +173,7 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
 
             TextView label = new TextViewBuilder(
                     ConfigureWayClassWeightsDialog.this.getContext(),
-                    type.name,
+                    type.toString(),
                     lpTableRowChild)
                 .setId(WayClassType.values().length + spinner.getId() + 1)
                 .isLabelFor(spinner.getId())
@@ -204,4 +205,46 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
 
     @Override public void onNothingSelected(AdapterView parent) {
     }
+
+
+    // presets menu
+
+    private void showPresetsMenu(View view) {
+        PopupMenu optionsMenu = new PopupMenu(getActivity(), view);
+
+        final int MENU_GROUP_PRESET = 1;
+        int order = 0;
+        for (Preset preset : Preset.values()) {
+            optionsMenu.getMenu().add(
+                    MENU_GROUP_PRESET, preset.id, order++, preset.toString());
+        }
+        optionsMenu.getMenu().setGroupCheckable(MENU_GROUP_PRESET, true, true);
+
+        Preset matchingPreset = Preset.matches(wayClassWeightSettings);
+        if (matchingPreset != null) {
+            MenuItem matchingPresetMenuItem = optionsMenu.getMenu().findItem(matchingPreset.id);
+            if (matchingPresetMenuItem != null) {
+                matchingPresetMenuItem.setChecked(true);
+            }
+        }
+
+        optionsMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == Preset.URBAN_ON_FOOT.id) {
+                    wayClassWeightSettings = Preset.URBAN_ON_FOOT.settings;
+                } else if (item.getItemId() == Preset.URBAN_BY_CAR.id) {
+                    wayClassWeightSettings = Preset.URBAN_BY_CAR.settings;
+                } else if (item.getItemId() == Preset.HIKING.id) {
+                    wayClassWeightSettings = Preset.HIKING.settings;
+                } else {
+                    return false;
+                }
+                populateTableLayout();
+                return true;
+            }
+        });
+
+        optionsMenu.show();
+    }
+
 }

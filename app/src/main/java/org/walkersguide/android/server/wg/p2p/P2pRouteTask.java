@@ -81,14 +81,8 @@ public class P2pRouteTask extends ServerTask {
             }
 
             // allowed way classes
-            JSONObject jsonWayClassTypeAndWeightMappings = new JSONObject();
-            for (WayClassType type : WayClassType.values()) {
-                jsonWayClassTypeAndWeightMappings.put(
-                        type.id,
-                        wayClassWeightSettings.getWeightFor(type).weight);
-            }
             jsonServerParams.put(
-                    "allowed_way_classes", jsonWayClassTypeAndWeightMappings);
+                    "allowed_way_classes", this.wayClassWeightSettings.toJson());
 
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_REQUEST);

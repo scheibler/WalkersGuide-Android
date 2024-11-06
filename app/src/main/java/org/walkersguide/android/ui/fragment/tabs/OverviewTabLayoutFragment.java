@@ -1,6 +1,7 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
 import android.widget.ImageButton;
+import org.walkersguide.android.ui.fragment.tabs.overview.StartFragment;
 import org.walkersguide.android.ui.fragment.tabs.overview.PinFragment;
 import org.walkersguide.android.ui.fragment.tabs.overview.TrackFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
@@ -41,35 +42,6 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
     }
 
 
-    private ResolveCurrentAddressView layoutClosestAddress;
-
-    @Override public int getLayoutResourceId() {
-        return R.layout.fragment_overview;
-    }
-
-    @Override public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        layoutClosestAddress = (ResolveCurrentAddressView) view.findViewById(R.id.layoutClosestAddress);
-        layoutClosestAddress.requestAddressForCurrentLocation();
-
-        ImageButton buttonCollections = (ImageButton) view.findViewById(R.id.buttonCollections);
-        buttonCollections.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                mainActivityController.addFragment(
-                        CollectionListFragment.newInstance());
-            }
-        });
-
-        ImageButton buttonHistory = (ImageButton) view.findViewById(R.id.buttonHistory);
-        buttonHistory.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                mainActivityController.addFragment(
-                        HistoryFragment.newInstance());
-            }
-        });
-    }
-
     @Override public void onStart() {
         super.onStart();
         initializeViewPagerAndTabLayout(new OverviewTabAdapter());
@@ -81,6 +53,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
      */
 
     public enum Tab {
+        START(GlobalInstance.getStringResource(R.string.fragmentStartName)),
         PIN(GlobalInstance.getStringResource(R.string.fragmentPinName)),
         TRACK(GlobalInstance.getStringResource(R.string.fragmentTrackName));
 
@@ -102,7 +75,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
         }
 
         @Override public Enum<?> getDefaultTab() {
-            return Tab.PIN;
+            return Tab.START;
         }
 
         @Override public Fragment getFragment(int position) {
@@ -110,6 +83,8 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
             Timber.d("createFragment: position=%1$d, tab=%2$s", position, tab);
             if (tab != null) {
                 switch (tab) {
+                    case START:
+                        return StartFragment.newInstance();
                     case PIN:
                         return PinFragment.newInstance();
                     case TRACK:

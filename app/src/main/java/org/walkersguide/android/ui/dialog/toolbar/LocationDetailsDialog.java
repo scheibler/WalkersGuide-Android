@@ -144,6 +144,11 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
             }
         });
+        layoutSimulationPoint.setOnRemoveObjectActionListener(new ObjectWithIdView.OnRemoveObjectActionListener() {
+            @Override public void onRemoveObjectActionClicked(ObjectWithId objectWithId) {
+                positionManagerInstance.setSimulatedLocation(null);
+            }
+        });
 
         // create dialog
         return new AlertDialog.Builder(getActivity())
@@ -187,6 +192,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(PositionManager.ACTION_NEW_GPS_LOCATION);
+        filter.addAction(PositionManager.ACTION_SIMULATION_STATUS_CHANGED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request location
         positionManagerInstance.requestGPSLocation();
@@ -224,6 +230,10 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
                             gpsLocation.formatTimestamp(
                                 GlobalInstance.getStringResource(R.string.labelGPSTime)));
                 }
+
+            } else if (intent.getAction().equals(PositionManager.ACTION_SIMULATION_STATUS_CHANGED)) {
+                buttonEnableSimulation.setChecked(
+                        intent.getBooleanExtra(PositionManager.EXTRA_SIMULATION_ENABLED, false));
             }
         }
     };

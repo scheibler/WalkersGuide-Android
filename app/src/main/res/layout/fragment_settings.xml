@@ -41,6 +41,18 @@
             android:layout_height="wrap_content"
             android:text="@string/buttonServerMapNoSelection" />
 
+        <Button
+            android:id="@+id/buttonRoutingWayClasses"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/planRouteMenuItemRoutingWayClasses" />
+
+        <Button
+            android:id="@+id/buttonExcludedWays"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/databaseProfileExcludedFromRouting" />
+
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchPreferTranslatedStrings"
             android:layout_width="match_parent"

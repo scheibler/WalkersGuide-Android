@@ -379,6 +379,11 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             switch (routeRecordingState) {
                 case OFF:
                     recordedPointList.clear();
+                    // show warning dialog
+                    if (settingsManagerInstance.showRouteRecordingOnlyInForegroundMessage()) {
+                        settingsManagerInstance.setShowRouteRecordingOnlyInForegroundMessage(false);
+                        sendShowRouteRecordingOnlyInForegroundMessageBroadCast();
+                    }
                 case PAUSED:
                     routeRecordingState = RouteRecordingState.RUNNING;
                     sendRouteRecordingChangedBroadcast();
@@ -968,6 +973,15 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         Intent intent = createServiceRequestIntent(ACTION_ADD_POINT_TO_RECORDED_ROUTE);
         intent.putExtra(EXTRA_POINT_TO_ADD, pointToAdd);
         GlobalInstance.getContext().startService(intent);
+    }
+
+    // route recording only in foreground warning
+    public static final String ACTION_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE = String.format(
+            "%1$s.action.showRouteRecordingOnlyInForegroundMessage", BuildConfig.APPLICATION_ID);
+
+    private void sendShowRouteRecordingOnlyInForegroundMessageBroadCast() {
+        Intent intent = new Intent(ACTION_SHOW_ROUTE_RECORDING_ONLY_IN_FOREGROUND_MESSAGE);
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
     // route recording changed broadcast

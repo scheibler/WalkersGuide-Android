@@ -98,6 +98,11 @@ import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
+import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
+import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings.Preset;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public class SettingsFragment extends RootFragment implements FragmentResultListener {
@@ -116,7 +121,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private boolean settingsImportSuccessful;
 
     private ObjectWithIdView layoutHomeAddress;
-    private Button buttonServerURL, buttonServerMap;
+    private Button buttonServerURL, buttonServerMap, buttonRoutingWayClasses;
     private SwitchCompat switchPreferTranslatedStrings;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
@@ -146,6 +151,9 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectMapDialog.REQUEST_SELECT_MAP, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER, this, this);
@@ -191,6 +199,9 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         } else if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
             settingsManagerInstance.setSelectedMap(
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
+            updateUI();
+
+        } else if (requestKey.equals(ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED)) {
             updateUI();
 
         } else if (requestKey.equals(SelectPublicTransportProviderDialog.REQUEST_SELECT_PT_PROVIDER)) {
@@ -267,6 +278,22 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                 SelectMapDialog.newInstance(
                         settingsManagerInstance.getSelectedMap())
                     .show(getChildFragmentManager(), "SelectMapDialog");
+            }
+        });
+
+        buttonRoutingWayClasses = (Button) view.findViewById(R.id.buttonRoutingWayClasses);
+        buttonRoutingWayClasses.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                ConfigureWayClassWeightsDialog.newInstance()
+                    .show(getChildFragmentManager(), "ConfigureWayClassWeightsDialog");
+            }
+        });
+
+        Button buttonExcludedWays = (Button) view.findViewById(R.id.buttonExcludedWays);
+        buttonExcludedWays.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                    ObjectListFromDatabaseFragment.newInstance(StaticProfile.excludedRoutingSegments())
+                        .show(getChildFragmentManager(), "excludedRoutingSegments");
             }
         });
 
@@ -454,6 +481,16 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                 getResources().getString(R.string.buttonServerMapNoSelection));
 
         switchPreferTranslatedStrings.setChecked(settingsManagerInstance.getPreferTranslatedStrings());
+
+        Preset matchingWcwsPreset = Preset.matches(settingsManagerInstance.getWayClassWeightSettings());
+        buttonRoutingWayClasses.setText(
+                String.format(
+                    "%1$s: %2$s",
+                    getResources().getString(R.string.planRouteMenuItemRoutingWayClasses),
+                    matchingWcwsPreset != null
+                    ? matchingWcwsPreset.toString()
+                    : getResources().getString(R.string.fillingWordCustom))
+                );
 
         // public transport provider
         if (settingsManagerInstance.getSelectedNetworkId() != null) {

@@ -72,7 +72,7 @@
             android:focusable="true" />
 
 
-        <!-- selected server -->
+        <!-- WalkersGuide server -->
 
         <TextView
             android:layout_width="match_parent"
@@ -109,6 +109,23 @@
             android:layout_height="wrap_content"
             android:focusable="true"
             android:text="@string/labelSelectedMapCreated" />
+
+
+        <!-- public transport data -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:focusable="true"
+            android:text="@string/labelPublicTransportHeading"
+            android:theme="@style/HeadingTextView" />
+
+        <TextView
+            android:id="@+id/labelPublicTransportMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true" />
 
     </LinearLayout>
 </ScrollView>

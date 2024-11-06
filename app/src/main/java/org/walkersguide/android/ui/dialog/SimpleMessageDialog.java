@@ -20,6 +20,7 @@ import org.walkersguide.android.R;
 import android.content.Intent;
 import android.provider.Settings;
 import android.net.Uri;
+import org.walkersguide.android.ui.UiHelper;
 
 public class SimpleMessageDialog extends DialogFragment {
     public static final String REQUEST_DIALOG_CLOSED = "dialogClosed";
@@ -46,10 +47,19 @@ public class SimpleMessageDialog extends DialogFragment {
         return dialog;
     }
 
+    public static SimpleMessageDialog newInstanceWithPublicTransportDataSourceText() {
+        SimpleMessageDialog dialog = new SimpleMessageDialog();
+        Bundle args = new Bundle();
+        args.putBoolean(KEY_PUBLIC_TRANSPORT_DATA_SOURCE_TEXT, true);
+        dialog.setArguments(args);
+        return dialog;
+    }
+
 
     // dialog
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_SHOW_APP_INFO_BUTTON = "showAppInfoButton";
+    private static final String KEY_PUBLIC_TRANSPORT_DATA_SOURCE_TEXT = "publicTransportDataSourceText";
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         final ViewGroup nullParent = null;
@@ -57,7 +67,9 @@ public class SimpleMessageDialog extends DialogFragment {
         View view = inflater.inflate(R.layout.layout_single_text_view, nullParent);
         TextView labelSimpleMessage = (TextView) view.findViewById(R.id.label);
         labelSimpleMessage.setText(
-                getArguments().getString(KEY_MESSAGE));
+                getArguments().getBoolean(KEY_PUBLIC_TRANSPORT_DATA_SOURCE_TEXT)
+                ? UiHelper.getPublicTransportDataSourceText()
+                : getArguments().getString(KEY_MESSAGE));
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity())
             .setView(view)

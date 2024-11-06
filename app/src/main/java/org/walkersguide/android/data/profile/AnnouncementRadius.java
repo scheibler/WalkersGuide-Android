@@ -11,7 +11,7 @@ import org.walkersguide.android.util.GlobalInstance;
 
 public class AnnouncementRadius implements Serializable {
     private static final long serialVersionUID = 1l;
-    private static final int[] values = new int[]{ 25, 50, 100, 250, 500, 1000 };
+    private static final int[] values = new int[]{ 25, 50, 75, 100, 150, 200, 250, 500, 750, 1000 };
 
     public static ArrayList<AnnouncementRadius> values() {
         ArrayList<AnnouncementRadius> announcementRadiusList = new ArrayList<AnnouncementRadius>();
@@ -38,8 +38,16 @@ public class AnnouncementRadius implements Serializable {
         this.meter = meter;
     }
 
-    @Override public String toString() {
+    public String longFormat() {
         return GlobalInstance.getPluralResource(R.plurals.meter, this.meter);
+    }
+
+    public String shortFormat() {
+        return GlobalInstance.getPluralResource(R.plurals.meterShort, this.meter);
+    }
+
+    @Override public String toString() {
+        return longFormat();
     }
 
     @Override public int hashCode() {

@@ -96,7 +96,6 @@
     <string name="menuItemSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
     <string name="menuItemCollections">Бази</string>
     <string name="menuItemHistory">Історія</string>
-    <string name="menuItemOpenPointShareLink">Відкрити посилання з координатами</string>
     <string name="menuItemMisc">Різне:</string>
     <string name="menuItemSettings">Налаштування</string>
     <string name="menuItemInfo">Інформація</string>
@@ -192,10 +191,23 @@
     <string name="mainTabNameOverview">Головна</string>
     <string name="mainTabNameRoutes">Маршрути</string>
     <string name="mainTabNamePoints">Точки</string>
+    <!-- accessibility actions in the toolbar -->
+    <!-- translate me -->
+    <string name="accessibilityActionUseBearingSource">Use bearing source: %1$s</string>
+    <string name="accessibilityActionStartSimulationBearing">Simulate bearing: %1$s</string>
+    <string name="accessibilityActionStartSimulationLocation">Simulate location: %1$s</string>
+    <string name="accessibilityActionEndSimulation">End simulation of %1$s</string>
 
-    <!-- OverviewTabLayoutFragment -->
-    <string name="buttonCollections">Бази</string>
-    <string name="buttonHistory">Історія</string>
+    <!-- StartFragment -->
+    <!-- translate me -->
+    <string name="fragmentStartName">Home</string>
+    <string name="buttonNavigateToAddress">Navigate to address</string>
+    <string name="buttonSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
+    <string name="buttonShareLocation">Share my location</string>
+    <string name="buttonLoadSharedLocation">Load shared location</string>
+    <string name="buttonRecordRoute">Record route</string>
+    <string name="buttonCollections">Open collections</string>
+    <string name="buttonHistory">Show history</string>
 
     <!-- pin fragment -->
     <string name="fragmentPinName">Закріплені</string>
@@ -235,13 +247,8 @@
     <string name="messageNextSegmentInstructionAndTurn">%1$s. після чого %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Перебудувати</string>
-    <string name="menuItemRecalculateWithCurrentPosition">Перебудувати від поточного місцезнаходження</string>
-    <string name="menuItemRecalculateOriginalRoute">Перебудувати початковий маршрут</string>
-    <string name="menuItemRecalculateReturnRoute">Перебудувати зворотний маршрут</string>
-    <string name="menuItemJumpToRoutePoint">Перейти до маршрутної точки</string>
-    <string name="menuItemJumpToFirstRoutePoint">Першої точки</string>
-    <string name="menuItemJumpToClosestRoutePoint">Найближчої точки</string>
-    <string name="menuItemJumpToLastRoutePoint">Останньої точки</string>
+    <!-- translate me -->
+    <string name="menuItemJumpToNearestPoint">Jump to nearest point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Автоматично переходити до наступної точки</string>
     <string name="menuItemShowPreciseBearingValues">Показувати точні азимути</string>
     <string name="menuItemShowIntersectionLayoutDetails">Показувати схеми перехресть</string>
@@ -583,11 +590,17 @@
     <string name="labelInfoURL">Веб-сторінка</string>
     <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;Посібник користувача&lt;/a&gt;</string>
     <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Політика конфіденційності&lt;/a&gt;</string>
+    <!-- WalkersGuide server -->
     <string name="labelServerHeader">Сервер карт</string>
     <string name="labelServerName">Ім\'я</string>
     <string name="labelServerVersion">Версія</string>
     <string name="labelSelectedMapName">Карта</string>
     <string name="labelSelectedMapCreated">Створено</string>
+    <!-- public transport data -->
+    <!-- translate me -->
+    <string name="labelPublicTransportHeading">Public transport data</string>
+    <string name="labelPublicTransportMessage">The public transport data is provided by the library &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
+        Here you can find the &lt;a href="%2$s"&gt;list of all supported providers&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Надіслати відгук:</string>
@@ -646,6 +659,8 @@
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">Виключити з маршрутизації</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Імітувати місцезнаходження</string>
     <string name="contextMenuItemObjectWithIdSimulateBearing">Імітувати напрямок</string>
+    <!-- translate me -->
+    <string name="contextMenuItemObjectWithIdNavigateToThisPoint">Navigate to this point</string>
     <string name="contextMenuItemObjectWithIdCollections">Додати до бази</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Побудувати маршрут</string>
     <string name="contextMenuItemObjectWithIdShareCoordinates">Поділитися координатами</string>
@@ -716,6 +731,8 @@
     <string name="contextMenuItemOverviewTrack">Відстежувати</string>
     <string name="contextMenuItemUserAnnotationAdd">Додати примітку</string>
     <string name="contextMenuItemUserAnnotationEdit">Редагувати примітку</string>
+    <!-- translate me -->
+    <string name="contextMenuItemEdit">Edit</string>
     <string name="contextMenuItemRename">Перейменувати</string>
     <string name="contextMenuItemRemove">видалити</string>
 
@@ -734,12 +751,16 @@
     <string name="dialogDefault">Стандартні параметри</string>
     <string name="dialogNow">Зараз</string>
     <string name="dialogOptions">Параметри</string>
+    <!-- translate me -->
+    <string name="dialogPresets">Presets</string>
     <string name="dialogRefresh">Оновити</string>
     <string name="dialogSend">Надіслати</string>
     <string name="dialogSomethingMissing">Щось пропущено?</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">і</string>
+    <!-- translate me -->
+    <string name="fillingWordCustom">custom</string>
     <string name="fillingWordHas">має</string>
     <string name="stateCollapsed">згорнуто</string>
     <string name="stateExpanded">розгорнуто</string>
@@ -958,6 +979,12 @@
     <string name="routePointInstructionDestination">Кінець: %1$s</string>
     <string name="routeSegmentBewareCyclists">Увага: велосипедний рух</string>
 
+    <!-- WayClassSettings presets -->
+    <!-- translate me -->
+    <string name="wcwsPresetUrbanOnFoot">On foot in urban areas</string>
+    <string name="wcwsPresetUrbanByCar">By car in urban areas</string>
+    <string name="wcwsPresetHiking">Hiking</string>
+
     <!-- WayClassType -->
     <string name="wayClassTypeBigStreets">Головні вулиці</string>
     <string name="wayClassTypeSmallStreets">Другорядні вулиці</string>
@@ -1095,8 +1122,10 @@
     <string name="errorAddrReqNoAddressForCoordinates">Не знайдено адреси для цих координат.</string>
 
     <!-- other errors -->
+    <!-- translate me -->
     <string name="errorSavePointFailed">Помилка створення точки.</string>
     <string name="errorNoHomeAddressSet">Ви ще не вибрали свою домашню адресу. Це можна зробити в налаштуваннях програми.</string>
+    <string name="errorNoSpeechRecognition">The speech input feature is not available.</string>
     <string name="errorNoLocationFound">Дані про місцезнаходження недоступні.</string>
     <string name="errorNoBearingFound">Дані про азимут недоступні.</string>
 
@@ -1149,6 +1178,14 @@
         name="meterFloat">
         <item quantity="one">%1$.1f метр</item>
         <item quantity="other">%1$.1f метра</item>
+    </plurals>
+
+    <plurals
+        name="meterShort">
+        <item quantity="one">%d м</item>
+        <item quantity="few">%d м</item>
+        <item quantity="many">%d м</item>
+        <item quantity="other">%d м</item>
     </plurals>
 
     <plurals

@@ -162,6 +162,11 @@ public class InfoDialog extends DialogFragment {
         labelSelectedMapName = (TextView) view.findViewById(R.id.labelSelectedMapName);
         labelSelectedMapCreated= (TextView) view.findViewById(R.id.labelSelectedMapCreated);
 
+        TextView labelPublicTransportMessage = (TextView) view.findViewById(R.id.labelPublicTransportMessage);
+        labelPublicTransportMessage.setMovementMethod(LinkMovementMethod.getInstance());
+        labelPublicTransportMessage.setText(
+                UiHelper.getPublicTransportDataSourceText());
+
         return new AlertDialog.Builder(getActivity())
             .setTitle(GlobalInstance.getStringResource(R.string.infoDialogTitle))
             .setView(view)

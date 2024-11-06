@@ -25,15 +25,15 @@ public enum WayClassWeight {
 
 
     public double weight;
-    public String name;
+    public String label;
 
-    private WayClassWeight(double weight, String name) {
+    private WayClassWeight(double weight, String label) {
         this.weight = weight;
-        this.name = name;
+        this.label = label;
     }
 
     @Override public String toString() {
-        return this.name;
+        return this.label;
     }
 
 }

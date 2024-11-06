@@ -480,6 +480,7 @@ public class ObjectWithIdView extends LinearLayout {
     private static final int MENU_GROUP_1 = 1;
     private static final int MENU_GROUP_2 = 2;
     private static final int MENU_GROUP_3 = 3;
+    private static final int MENU_GROUP_4 = 4;
 
     private static final int MENU_ITEM_DETAILS = 1;
     private static final int MENU_ITEM_DEPARTURES = 2;
@@ -492,21 +493,24 @@ public class ObjectWithIdView extends LinearLayout {
     private static final int MENU_ITEM_SIMULATE_LOCATION = 12;
     private static final int MENU_ITEM_SIMULATE_BEARING = 13;
     private static final int MENU_ITEM_EXCLUDE_FROM_ROUTING = 14;
-    private static final int MENU_ITEM_USER_ANNOTATION = 15;
-    private static final int MENU_ITEM_RENAME = 16;
-    private static final int MENU_ITEM_REMOVE = 17;
-    private static final int MENU_ITEM_COLLECTIONS = 20;
-    private static final int MENU_ITEM_ROUTE_PLANNER = 21;
-    private static final int MENU_ITEM_SHARE_COORDINATES = 22;
+    private static final int MENU_ITEM_NAVIGATE_TO_THIS_POINT = 15;
+    private static final int MENU_ITEM_COLLECTIONS = 16;
+    private static final int MENU_ITEM_EDIT = 17;
+    private static final int MENU_ITEM_REMOVE = 18;
+    private static final int MENU_ITEM_ROUTE_PLANNER = 19;
+    private static final int MENU_ITEM_SHARE_COORDINATES = 20;
 
     private static final int MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION = 50;
     private static final int MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION = 51;
 
-    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT = 100;
-    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1 = 101;
-    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2 = 102;
-    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3 = 103;
-    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT = 104;
+    private static final int MENU_ITEM_EDIT_USER_ANNOTATION = 70;
+    private static final int MENU_ITEM_EDIT_RENAME = 71;
+
+    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT = 90;
+    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1 = 91;
+    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2 = 92;
+    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3 = 93;
+    private static final int MENU_ITEM_ROUTE_PLANNER_USE_AS_DESTINATION_POINT = 94;
 
 
     public void showContextMenu(final View view, final ObjectWithId object) {
@@ -581,28 +585,42 @@ public class ObjectWithIdView extends LinearLayout {
                     StaticProfile.excludedRoutingSegments().containsObject(object));
         }
 
-        // user annotation, rename and remove
-        contextMenu.getMenu().add(
-                MENU_GROUP_2, MENU_ITEM_USER_ANNOTATION, orderId++,
-                object.hasUserAnnotation()
-                ? GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotationEdit)
-                : GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotationAdd));
-        contextMenu.getMenu().add(
-                MENU_GROUP_2, MENU_ITEM_RENAME, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemRename));
-        if (onRemoveObjectActionListener != null) {
+        // navigate to this point
+        if (object instanceof Point) {
             contextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_REMOVE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemRemove));
+                    MENU_GROUP_3, MENU_ITEM_NAVIGATE_TO_THIS_POINT, orderId++,
+                    GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdNavigateToThisPoint));
         }
 
         // add to collections
         contextMenu.getMenu().add(
                 MENU_GROUP_3, MENU_ITEM_COLLECTIONS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdCollections));
 
+        // edit subcommand: user annotation and rename
+        SubMenu editSubMenu = contextMenu.getMenu().addSubMenu(
+                MENU_GROUP_3, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemEdit));
+        int editSubMenuOrder = 0;
+        // user annotation
+        editSubMenu.add(
+                Menu.NONE, MENU_ITEM_EDIT_USER_ANNOTATION, editSubMenuOrder++,
+                object.hasUserAnnotation()
+                ? GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotationEdit)
+                : GlobalInstance.getStringResource(R.string.contextMenuItemUserAnnotationAdd));
+        editSubMenu.add(
+                Menu.NONE, MENU_ITEM_EDIT_RENAME, editSubMenuOrder++,
+                GlobalInstance.getStringResource(R.string.contextMenuItemRename));
+
+        // remove
+        if (onRemoveObjectActionListener != null) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_3, MENU_ITEM_REMOVE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemRemove));
+        }
+
         // route planner
         if (object instanceof Point) {
             P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
             SubMenu routePlannerSubMenu = contextMenu.getMenu().addSubMenu(
-                    MENU_GROUP_3, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdRoutePlanner));
+                    MENU_GROUP_4, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdRoutePlanner));
             int planRouteSubMenuOrder = 0;
             // start
             routePlannerSubMenu.add(
@@ -633,7 +651,7 @@ public class ObjectWithIdView extends LinearLayout {
         // share
         if (object instanceof Point) {
             SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
-                    MENU_GROUP_3, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareCoordinates));
+                    MENU_GROUP_4, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareCoordinates));
             Point.populateShareCoordinatesSubMenuEntries(shareCoordinatesSubMenu);
         }
 
@@ -683,11 +701,15 @@ public class ObjectWithIdView extends LinearLayout {
             // update parent view
             ViewChangedListener.sendProfileListChangedBroadcast();
 
-        } else if (menuItemId == MENU_ITEM_USER_ANNOTATION) {
+        } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
+            UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object)
+                .show(mainActivityController.getFragmentManagerInstance(), "UpdateObjectWithIdSelectedCollectionsDialog");
+
+        } else if (menuItemId == MENU_ITEM_EDIT_USER_ANNOTATION) {
             UserAnnotationForObjectWithIdDialog.newInstance(object)
                 .show(mainActivityController.getFragmentManagerInstance(), "UserAnnotationForObjectWithIdDialog");
 
-        } else if (menuItemId == MENU_ITEM_RENAME) {
+        } else if (menuItemId == MENU_ITEM_EDIT_RENAME) {
             RenameObjectWithIdDialog.newInstance(object)
                 .show(mainActivityController.getFragmentManagerInstance(), "RenameObjectWithIdDialog");
 
@@ -696,10 +718,6 @@ public class ObjectWithIdView extends LinearLayout {
                 onRemoveObjectActionListener.onRemoveObjectActionClicked(object);
             }
             this.reset();
-
-        } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
-            UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object)
-                .show(mainActivityController.getFragmentManagerInstance(), "UpdateObjectWithIdSelectedCollectionsDialog");
 
         } else {
             return false;
@@ -717,6 +735,22 @@ public class ObjectWithIdView extends LinearLayout {
                 positionManagerInstance.setSimulatedLocation(point);
             }
             positionManagerInstance.setSimulationEnabled(enableSimulation);
+
+        } else if (menuItemId == MENU_ITEM_NAVIGATE_TO_THIS_POINT) {
+            Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+            if (currentLocation == null) {
+                Toast.makeText(
+                        context,
+                        GlobalInstance.getStringResource(R.string.errorNoLocationFound),
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+
+            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.getDefault();
+            p2pRouteRequest.setStartPoint(currentLocation);
+            p2pRouteRequest.setDestinationPoint(point);
+            settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+            mainActivityController.openPlanRouteDialog(true);
 
         } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1
@@ -737,7 +771,7 @@ public class ObjectWithIdView extends LinearLayout {
             }
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
             // show plan route dialog
-            mainActivityController.openPlanRouteDialog();
+            mainActivityController.openPlanRouteDialog(false);
 
         } else if (menuItemId == Point.MENU_ITEM_SHARE_APPLE_MAPS_LINK) {
             point.startShareCoordinatesChooserActivity(

@@ -1,6 +1,7 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
 import timber.log.Timber;
+import org.walkersguide.android.ui.adapter.AnnouncementRadiusAdapter;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
 import android.widget.Spinner;
 import android.content.Intent;
@@ -140,17 +141,13 @@ public class TrackFragment extends BaseOverviewFragment implements FragmentResul
         });
 
         spinnerAnnouncementRadius = (Spinner) view.findViewById(R.id.spinnerAnnouncementRadius);
-        ArrayAdapter<AnnouncementRadius> announcementRadiusAdapter = new ArrayAdapter<AnnouncementRadius>(
-                TrackFragment.this.getContext(),
-                // layout for the collapsed state
-                android.R.layout.simple_list_item_1,
-                AnnouncementRadius.values());
-        // layout for the expanded/opened state
+        AnnouncementRadiusAdapter announcementRadiusAdapter = new AnnouncementRadiusAdapter(
+                TrackFragment.this.getContext());
         announcementRadiusAdapter.setDropDownViewResource(R.layout.layout_single_text_view_checkbox);
         spinnerAnnouncementRadius.setAdapter(announcementRadiusAdapter);
         // select
         spinnerAnnouncementRadius.setSelection(
-                AnnouncementRadius.values().indexOf(
+                announcementRadiusAdapter.getIndexOf(
                     settingsManagerInstance.getTrackingModeAnnouncementRadius()));
         // must come after adapter and selection
         spinnerAnnouncementRadius.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

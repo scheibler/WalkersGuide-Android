@@ -331,10 +331,10 @@ public class PointFromCoordinatesLinkDialog extends DialogFragment {
         } catch (JSONException e) {}
         if (extractedCoordinates != null
                 && HistoryProfile.allPoints().addObject(extractedCoordinates)) {
+            dismiss();
             Bundle result = new Bundle();
             result.putSerializable(EXTRA_COORDINATES, extractedCoordinates);
             getParentFragmentManager().setFragmentResult(REQUEST_FROM_COORDINATES_LINK, result);
-            dismiss();
         } else {
             showErrorMessage(
                     getResources().getString(R.string.messageLinkContainsInvalidCoordinates));

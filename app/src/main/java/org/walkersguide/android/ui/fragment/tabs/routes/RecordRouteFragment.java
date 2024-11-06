@@ -125,12 +125,6 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
         buttonStartRouteRecording.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 WalkersGuideService.startRouteRecording();
-                if (settingsManagerInstance.showRouteRecordingOnlyInForegroundMessage()) {
-                    SimpleMessageDialog.newInstance(
-                            getResources().getString(R.string.messageNoteRouteRecordingOnlyInForeground))
-                        .show(getChildFragmentManager(), "SimpleMessageDialog");
-                    settingsManagerInstance.setShowRouteRecordingOnlyInForegroundMessage(false);
-                }
             }
         });
 

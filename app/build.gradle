@@ -35,6 +35,9 @@ android {
         // WalkersGuide server url
         buildConfigField 'String', 'SERVER_URL', '"https://api.walkersguide.org/"'
         buildConfigField 'String', 'SERVER_URL_DEV', '"https://api.test.walkersguide.org/"'
+        // public-transport-enabler library
+        buildConfigField 'String', 'PTE_LINK_MAIN_WEBSITE', '"https://github.com/schildbach/public-transport-enabler"'
+        buildConfigField 'String', 'PTE_LINK_PROVIDER_LIST', '"https://github.com/schildbach/public-transport-enabler/tree/master/src/de/schildbach/pte"'
     }
 
     signingConfigs {
@@ -143,3 +146,4 @@ repositories {
         dirs 'libs'
     }
 }
+

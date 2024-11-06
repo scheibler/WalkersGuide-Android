@@ -81,9 +81,23 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     private ObjectWithIdView layoutViaPoint1, layoutViaPoint2, layoutViaPoint3;
 
     public static PlanRouteDialog newInstance() {
+        return PlanRouteDialog.newInstance(false);
+    }
+
+    public static PlanRouteDialog newInstance(boolean startRouteCalculationImmediately) {
         PlanRouteDialog dialog = new PlanRouteDialog();
+        Bundle args = new Bundle();
+        args.putBoolean(KEY_START_ROUTE_CALCULATION_IMMEDIATELY, startRouteCalculationImmediately);
+        dialog.setArguments(args);
         return dialog;
     }
+
+
+    // dialog
+    private static final String KEY_START_ROUTE_CALCULATION_IMMEDIATELY = "startRouteCalculationImmediately";
+    private static final String KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY = "triedToStartRouteCalculationImmediately";
+
+    private boolean triedToStartRouteCalculationImmediately;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,9 +110,6 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         // fragment result listener
         getChildFragmentManager()
             .setFragmentResultListener(
-                    ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED, this, this);
-        getChildFragmentManager()
-            .setFragmentResultListener(
                     SelectMapDialog.REQUEST_SELECT_MAP, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -107,11 +118,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: %1$s", requestKey);
-        if (requestKey.equals(ConfigureWayClassWeightsDialog.REQUEST_WAY_CLASS_WEIGHTS_CHANGED)) {
-            settingsManagerInstance.setWayClassWeightSettings(
-                    (WayClassWeightSettings) bundle.getSerializable(ConfigureWayClassWeightsDialog.EXTRA_WAY_CLASS_SETTINGS));
-
-        } else if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
+        if (requestKey.equals(SelectMapDialog.REQUEST_SELECT_MAP)) {
             settingsManagerInstance.setSelectedMap(
                     (OSMMap) bundle.getSerializable(SelectMapDialog.EXTRA_MAP));
             startRouteCalculation();
@@ -149,8 +156,10 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            triedToStartRouteCalculationImmediately = savedInstanceState.getBoolean(KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY);
         } else {
             taskId = ServerTaskExecutor.NO_TASK_ID;
+            triedToStartRouteCalculationImmediately = false;
         }
 
         // custom view
@@ -306,6 +315,17 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
             filter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
             LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(mMessageReceiver, filter);
 
+            // start calculation immediately
+            if (! triedToStartRouteCalculationImmediately
+                    && getArguments().getBoolean(KEY_START_ROUTE_CALCULATION_IMMEDIATELY)) {
+                triedToStartRouteCalculationImmediately = true;
+                // cancel old running task and start calculation
+                if (serverTaskExecutorInstance.taskInProgress(taskId)) {
+                    serverTaskExecutorInstance.cancelTask(taskId, true);
+                }
+                startRouteCalculation();
+            }
+
             if (serverTaskExecutorInstance.taskInProgress(taskId)) {
                 progressHandler.postDelayed(progressUpdater, 2000);
             }
@@ -322,6 +342,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
+        savedInstanceState.putBoolean(KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY, triedToStartRouteCalculationImmediately);
     }
 
     @Override public void onDestroy() {
@@ -429,18 +450,22 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     private void showOptionsMenu(View view) {
         PopupMenu optionsMenu = new PopupMenu(getActivity(), view);
         optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_SWAP, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemSwap));
+                Menu.NONE, MENU_ITEM_CLEAR, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemClear));
         optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_EXCLUDED_WAYS, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemExcludedWays));
+                Menu.NONE, MENU_ITEM_SWAP, 2, GlobalInstance.getStringResource(R.string.planRouteMenuItemSwap));
         optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_ROUTING_WAY_CLASSES, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemRoutingWayClasses));
+                Menu.NONE, MENU_ITEM_EXCLUDED_WAYS, 3, GlobalInstance.getStringResource(R.string.planRouteMenuItemExcludedWays));
         optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_CLEAR, 2, GlobalInstance.getStringResource(R.string.planRouteMenuItemClear));
+                Menu.NONE, MENU_ITEM_ROUTING_WAY_CLASSES, 4, GlobalInstance.getStringResource(R.string.planRouteMenuItemRoutingWayClasses));
 
         optionsMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
             @Override public boolean onMenuItemClick(MenuItem item) {
 
-                if (item.getItemId() == MENU_ITEM_SWAP) {
+                if (item.getItemId() == MENU_ITEM_CLEAR) {
+                    settingsManagerInstance.setP2pRouteRequest(P2pRouteRequest.getDefault());
+                    updateUI();
+
+                } else if (item.getItemId() == MENU_ITEM_SWAP) {
                     P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
                     p2pRouteRequest.swapStartAndDestinationPoints();
                     settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
@@ -448,16 +473,11 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
                 } else if (item.getItemId() == MENU_ITEM_EXCLUDED_WAYS) {
                     ObjectListFromDatabaseFragment.newInstance(StaticProfile.excludedRoutingSegments())
-                        .show(getChildFragmentManager(), "ConfigureWayClassWeightsDialog");
+                        .show(getChildFragmentManager(), "excludedRoutingSegments");
 
                 } else if (item.getItemId() == MENU_ITEM_ROUTING_WAY_CLASSES) {
-                    ConfigureWayClassWeightsDialog.newInstance(
-                            settingsManagerInstance.getWayClassWeightSettings())
+                    ConfigureWayClassWeightsDialog.newInstance()
                         .show(getChildFragmentManager(), "ConfigureWayClassWeightsDialog");
-
-                } else if (item.getItemId() == MENU_ITEM_CLEAR) {
-                    settingsManagerInstance.setP2pRouteRequest(P2pRouteRequest.getDefault());
-                    updateUI();
 
                 } else {
                     return false;

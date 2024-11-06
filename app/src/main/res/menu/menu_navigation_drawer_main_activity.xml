@@ -8,8 +8,8 @@
         android:id="@+id/menuItemSaveCurrentLocation"
         android:title="@string/menuItemSaveCurrentLocation" />
     <item
-        android:id="@+id/menuItemOpenPointShareLink"
-        android:title="@string/menuItemOpenPointShareLink" />
+        android:id="@+id/menuItemOpenWhereAmIDialog"
+        android:title="@string/whereAmIDialogTitle" />
     <item
         android:id="@+id/menuItemCollections"
         android:title="@string/menuItemCollections" />

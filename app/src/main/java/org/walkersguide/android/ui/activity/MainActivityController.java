@@ -9,7 +9,7 @@ public interface MainActivityController {
 
     public void configureToolbarTitle(String title);
     public void displayRemainsActiveSettingChanged(boolean remainsActive);
-    public void openPlanRouteDialog();
+    public void openPlanRouteDialog(boolean startRouteCalculationImmediately);
 
     public FragmentManager getFragmentManagerInstance();
     public void closeAllOpenDialogs();

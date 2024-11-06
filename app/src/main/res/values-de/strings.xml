@@ -103,7 +103,6 @@
     <string name="menuItemSaveCurrentLocation">Aktuelle Position sichern</string>
     <string name="menuItemCollections">Sammlungen</string>
     <string name="menuItemHistory">Verlauf</string>
-    <string name="menuItemOpenPointShareLink">Geteilte-Position Link öffnen</string>
     <string name="menuItemMisc">Verschiedenes:</string>
     <string name="menuItemSettings">Einstellungen</string>
     <string name="menuItemInfo">Info</string>
@@ -199,10 +198,21 @@
     <string name="mainTabNameOverview">Übersicht</string>
     <string name="mainTabNameRoutes">Routen</string>
     <string name="mainTabNamePoints">Punkte</string>
+    <!-- accessibility actions in the toolbar -->
+    <string name="accessibilityActionUseBearingSource">Verwende Richtungsquelle: %1$s</string>
+    <string name="accessibilityActionStartSimulationBearing">Simuliere Richtung: %1$s</string>
+    <string name="accessibilityActionStartSimulationLocation">Simuliere Standort: %1$s</string>
+    <string name="accessibilityActionEndSimulation">Simulation von %1$s beenden</string>
 
-    <!-- OverviewTabLayoutFragment -->
-    <string name="buttonCollections">Sammlungen</string>
-    <string name="buttonHistory">Verlauf</string>
+    <!-- StartFragment -->
+    <string name="fragmentStartName">Start</string>
+    <string name="buttonNavigateToAddress">Zu Adresse navigieren</string>
+    <string name="buttonSaveCurrentLocation">Aktuelle Position sichern</string>
+    <string name="buttonShareLocation">Meinen Standort teilen</string>
+    <string name="buttonLoadSharedLocation">Geteilten Standort laden</string>
+    <string name="buttonRecordRoute">Route aufzeichnen</string>
+    <string name="buttonCollections">Sammlungen öffnen</string>
+    <string name="buttonHistory">Verlauf anzeigen</string>
 
     <!-- pin fragment -->
     <string name="fragmentPinName">Anheften</string>
@@ -243,13 +253,7 @@
     <string name="messageNextSegmentInstructionAndTurn">%1$s. Anschließend %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Neu berechnen</string>
-    <string name="menuItemRecalculateWithCurrentPosition">Mit aktueller Position neu berechnen</string>
-    <string name="menuItemRecalculateOriginalRoute">Ursprünglichen Weg berechnen</string>
-    <string name="menuItemRecalculateReturnRoute">Rückweg berechnen</string>
-    <string name="menuItemJumpToRoutePoint">Zu Routenpunkt springen</string>
-    <string name="menuItemJumpToFirstRoutePoint">An den Anfang der Route</string>
-    <string name="menuItemJumpToClosestRoutePoint">Nächstgelegener Routenpunkt</string>
-    <string name="menuItemJumpToLastRoutePoint">Ans Ende der Route</string>
+    <string name="menuItemJumpToNearestPoint">Zum nächstgelegenen Punkt springen</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. weiterschalten</string>
     <string name="menuItemShowPreciseBearingValues">Präzise Richtungsangaben anzeigen</string>
     <string name="menuItemShowIntersectionLayoutDetails">Kreuzungsaufbau anzeigen</string>
@@ -600,11 +604,16 @@
     <string name="labelInfoURL">Webseite</string>
     <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;Bedienungsanleitung&lt;/a&gt;</string>
     <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Datenschutzerklärung&lt;/a&gt;</string>
+    <!-- WalkersGuide server -->
     <string name="labelServerHeader">Kartenserver</string>
     <string name="labelServerName">Name</string>
     <string name="labelServerVersion">Version</string>
     <string name="labelSelectedMapName">Karte</string>
     <string name="labelSelectedMapCreated">Erstellt am</string>
+    <!-- public transport data -->
+    <string name="labelPublicTransportHeading">ÖPNV Daten</string>
+    <string name="labelPublicTransportMessage">Die Abfahrtsinformationen werden von der Bibliothek &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt; bereitgestellt.
+        Hier findest du die &lt;a href="%2$s"&gt;Liste aller unterstützten Provider&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Feedback senden:</string>
@@ -669,6 +678,7 @@
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">Vom Routing ausgeschlossen</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Position simuliert</string>
     <string name="contextMenuItemObjectWithIdSimulateBearing">Richtung simuliert</string>
+    <string name="contextMenuItemObjectWithIdNavigateToThisPoint">Zu diesem Punkt navigieren</string>
     <string name="contextMenuItemObjectWithIdCollections">Zu Sammlungen hinzufügen</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Routenplaner</string>
     <string name="contextMenuItemObjectWithIdShareCoordinates">Koordinaten teilen</string>
@@ -739,6 +749,7 @@
     <string name="contextMenuItemOverviewTrack">Verfolgt</string>
     <string name="contextMenuItemUserAnnotationAdd">Notiz hinzufügen</string>
     <string name="contextMenuItemUserAnnotationEdit">Notiz bearbeiten</string>
+    <string name="contextMenuItemEdit">Bearbeiten</string>
     <string name="contextMenuItemRename">Umbenennen</string>
     <string name="contextMenuItemRemove">Entfernen</string>
 
@@ -757,12 +768,14 @@
     <string name="dialogDefault">Standard</string>
     <string name="dialogNow">Jetzt</string>
     <string name="dialogOptions">Optionen</string>
+    <string name="dialogPresets">Presets</string>
     <string name="dialogRefresh">Aktualisieren</string>
     <string name="dialogSend">Senden</string>
     <string name="dialogSomethingMissing">Fehlt etwas?</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">und</string>
+    <string name="fillingWordCustom">benutzerdefiniert</string>
     <string name="fillingWordHas">hat</string>
     <string name="stateCollapsed">minimiert</string>
     <string name="stateExpanded">maximiert</string>
@@ -981,6 +994,11 @@
     <string name="routePointInstructionDestination">Zielpunkt: %1$s</string>
     <string name="routeSegmentBewareCyclists">Achtung: Radverkehr</string>
 
+    <!-- WayClassSettings presets -->
+    <string name="wcwsPresetUrbanOnFoot">Innerstädtisch zu Fuß</string>
+    <string name="wcwsPresetUrbanByCar">Innerstädtisch mit dem Auto</string>
+    <string name="wcwsPresetHiking">Wandern</string>
+
     <!-- WayClassType -->
     <string name="wayClassTypeBigStreets">Große Straßen</string>
     <string name="wayClassTypeSmallStreets">Kleine Straßen</string>
@@ -1124,6 +1142,7 @@
     <!-- other errors -->
     <string name="errorSavePointFailed">Fehler beim Anlegen des Punktes.</string>
     <string name="errorNoHomeAddressSet">Du hast dein Zuhause noch nicht festgelegt. Dies kannst du in den Einstellungen der App erledigen.</string>
+    <string name="errorNoSpeechRecognition">Die Spracheingabe ist nicht verfügbar.</string>
     <string name="errorNoLocationFound">Keine position verfügbar</string>
     <string name="errorNoBearingFound">Keine Richtungsangabe verfügbar</string>
 
@@ -1172,6 +1191,12 @@
         name="meterFloat">
         <item quantity="one">1.0 Meter</item>
         <item quantity="other">%1$.1f Meter</item>
+    </plurals>
+
+    <plurals
+        name="meterShort">
+        <item quantity="one">1 m</item>
+        <item quantity="other">%d m</item>
     </plurals>
 
     <plurals

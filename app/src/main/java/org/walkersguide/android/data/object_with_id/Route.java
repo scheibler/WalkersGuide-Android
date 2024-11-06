@@ -153,13 +153,13 @@ public class Route extends ObjectWithId implements Serializable {
 
         public Builder setViaPoints(final Point via1, final Point via2, final Point via3) throws JSONException {
             if (via1 != null) {
-                inputData.put(KEY_VIA_POINT_1, via1);
+                inputData.put(KEY_VIA_POINT_1, via1.toJson());
             }
             if (via2 != null) {
-                inputData.put(KEY_VIA_POINT_2, via2);
+                inputData.put(KEY_VIA_POINT_2, via2.toJson());
             }
             if (via3 != null) {
-                inputData.put(KEY_VIA_POINT_3, via3);
+                inputData.put(KEY_VIA_POINT_3, via3.toJson());
             }
             return this;
         }
@@ -364,6 +364,10 @@ public class Route extends ObjectWithId implements Serializable {
 
     public Point getViaPoint3() {
         return this.viaPoint3;
+    }
+
+    public boolean hasViaPoint() {
+        return getViaPoint1() != null || getViaPoint2() != null || getViaPoint3() != null;
     }
 
 

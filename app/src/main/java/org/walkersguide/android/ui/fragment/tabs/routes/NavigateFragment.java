@@ -178,10 +178,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
     }
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menuItemRecalculateWithCurrentPosition
-                || item.getItemId() == R.id.menuItemRecalculateOriginalRoute
-                || item.getItemId() == R.id.menuItemRecalculateReturnRoute) {
-            P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+        if (item.getItemId() == R.id.menuItemRecalculate) {
             if (route == null) {
                 Toast.makeText(
                         getActivity(),
@@ -190,41 +187,48 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                 return true;
             }
 
-            // start point
-            if (item.getItemId() == R.id.menuItemRecalculateWithCurrentPosition) {
-                Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-                if (currentLocation != null) {
-                    p2pRouteRequest.setStartPoint(currentLocation);
-                } else {
-                    Toast.makeText(
-                            getActivity(),
-                            GlobalInstance.getStringResource(R.string.errorNoLocationFound),
-                            Toast.LENGTH_LONG).show();
-                    return true;
+            // get current location
+            Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+            if (currentLocation == null) {
+                Toast.makeText(
+                        getActivity(),
+                        GlobalInstance.getStringResource(R.string.errorNoLocationFound),
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+
+            // create new route request
+            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.getDefault();
+            // new start but same destination point
+            p2pRouteRequest.setStartPoint(currentLocation);
+            p2pRouteRequest.setDestinationPoint(route.getDestinationPoint());
+
+            // set via points if not already passed by
+            if (route.hasViaPoint()) {
+                for (int i=route.getCurrentPosition()+1;
+                         i<route.getRouteObjectList().size();
+                         i++) {
+                    Point point = route.getRouteObjectList().get(i).getPoint();
+                    // via point 1
+                    if (point.equals(route.getViaPoint1())) {
+                        p2pRouteRequest.setViaPoint1(route.getViaPoint1());
+                    }
+                    // via point 2
+                    if (point.equals(route.getViaPoint2())) {
+                        p2pRouteRequest.setViaPoint2(route.getViaPoint2());
+                    }
+                    // via point 3
+                    if (point.equals(route.getViaPoint3())) {
+                        p2pRouteRequest.setViaPoint3(route.getViaPoint3());
+                    }
                 }
-            } else if (item.getItemId() == R.id.menuItemRecalculateReturnRoute) {
-                p2pRouteRequest.setStartPoint(route.getDestinationPoint());
-            } else {
-                p2pRouteRequest.setStartPoint(route.getStartPoint());
             }
 
-            // destination point
-            if (item.getItemId() == R.id.menuItemRecalculateReturnRoute) {
-                p2pRouteRequest.setDestinationPoint(route.getStartPoint());
-            } else {
-                p2pRouteRequest.setDestinationPoint(route.getDestinationPoint());
-            }
-
-            // set via points and show plan route dialog
-            p2pRouteRequest.setViaPoint1(route.getViaPoint1());
-            p2pRouteRequest.setViaPoint2(route.getViaPoint2());
-            p2pRouteRequest.setViaPoint3(route.getViaPoint3());
+            // recalculate route
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-            mainActivityController.openPlanRouteDialog();
+            mainActivityController.openPlanRouteDialog(true);
 
-        } else if (item.getItemId() == R.id.menuItemJumpToFirstRoutePoint
-                || item.getItemId() == R.id.menuItemJumpToClosestRoutePoint
-                || item.getItemId() == R.id.menuItemJumpToLastRoutePoint) {
+        } else if (item.getItemId() == R.id.menuItemJumpToNearestPoint) {
             if (route == null) {
                 Toast.makeText(
                         getActivity(),
@@ -233,13 +237,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                 return true;
             }
 
-            if (item.getItemId() == R.id.menuItemJumpToFirstRoutePoint) {
-                route.jumpToRouteObjectAt(0);
-            } else if (item.getItemId() == R.id.menuItemJumpToClosestRoutePoint) {
-                route.jumpToRouteObject(route.getClosestRouteObjectFromCurrentLocation());
-            } else if (item.getItemId() == R.id.menuItemJumpToLastRoutePoint) {
-                route.jumpToRouteObjectAt(route.getRouteObjectList().size() - 1);
-            }
+            route.jumpToRouteObject(route.getClosestRouteObjectFromCurrentLocation());
             updateUi();
 
         } else if (item.getItemId() == R.id.menuItemAutoSkipToNextRoutePoint) {

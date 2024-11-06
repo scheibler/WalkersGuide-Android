@@ -102,7 +102,6 @@
     <string name="menuItemSaveCurrentLocation">Save current location</string>
     <string name="menuItemCollections">Collections</string>
     <string name="menuItemHistory">History</string>
-    <string name="menuItemOpenPointShareLink">Open shared location link</string>
     <string name="menuItemMisc">Miscellaneous:</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
@@ -198,10 +197,21 @@
     <string name="mainTabNameOverview">Overview</string>
     <string name="mainTabNameRoutes">Routes</string>
     <string name="mainTabNamePoints">Points</string>
+    <!-- accessibility actions in the toolbar -->
+    <string name="accessibilityActionUseBearingSource">Use bearing source: %1$s</string>
+    <string name="accessibilityActionStartSimulationBearing">Simulate bearing: %1$s</string>
+    <string name="accessibilityActionStartSimulationLocation">Simulate location: %1$s</string>
+    <string name="accessibilityActionEndSimulation">End simulation of %1$s</string>
 
-    <!-- OverviewTabLayoutFragment -->
-    <string name="buttonCollections">Collections</string>
-    <string name="buttonHistory">History</string>
+    <!-- StartFragment -->
+    <string name="fragmentStartName">Home</string>
+    <string name="buttonNavigateToAddress">Navigate to address</string>
+    <string name="buttonSaveCurrentLocation">Save current location</string>
+    <string name="buttonShareLocation">Share my location</string>
+    <string name="buttonLoadSharedLocation">Load shared location</string>
+    <string name="buttonRecordRoute">Record route</string>
+    <string name="buttonCollections">Open collections</string>
+    <string name="buttonHistory">Show history</string>
 
     <!-- pin fragment -->
     <string name="fragmentPinName">Pin</string>
@@ -242,13 +252,7 @@
     <string name="messageNextSegmentInstructionAndTurn">%1$s. Afterwards %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Recalculate</string>
-    <string name="menuItemRecalculateWithCurrentPosition">Recalculate with current position</string>
-    <string name="menuItemRecalculateOriginalRoute">Recalculate original route</string>
-    <string name="menuItemRecalculateReturnRoute">Recalculate return route</string>
-    <string name="menuItemJumpToRoutePoint">Jump to route point</string>
-    <string name="menuItemJumpToFirstRoutePoint">First point</string>
-    <string name="menuItemJumpToClosestRoutePoint">Closest point</string>
-    <string name="menuItemJumpToLastRoutePoint">Last point</string>
+    <string name="menuItemJumpToNearestPoint">Jump to nearest point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
     <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
     <string name="menuItemShowIntersectionLayoutDetails">Show intersection structure</string>
@@ -599,11 +603,16 @@
     <string name="labelInfoURL">Website</string>
     <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;User manual&lt;/a&gt;</string>
     <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Privacy policy&lt;/a&gt;</string>
+    <!-- WalkersGuide server -->
     <string name="labelServerHeader">Map server</string>
     <string name="labelServerName">Name</string>
     <string name="labelServerVersion">Version</string>
     <string name="labelSelectedMapName">Map</string>
     <string name="labelSelectedMapCreated">Created</string>
+    <!-- public transport data -->
+    <string name="labelPublicTransportHeading">Public transport data</string>
+    <string name="labelPublicTransportMessage">The public transport data is provided by the library &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
+        Here you can find the &lt;a href="%2$s"&gt;list of all supported providers&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Send feedback:</string>
@@ -668,13 +677,14 @@
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">From route planning excluded</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Location simulated</string>
     <string name="contextMenuItemObjectWithIdSimulateBearing">Bearing simulated</string>
+    <string name="contextMenuItemObjectWithIdNavigateToThisPoint">Navigate to this point</string>
     <string name="contextMenuItemObjectWithIdCollections">Add to collections</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Route planner</string>
     <string name="contextMenuItemObjectWithIdShareCoordinates">Share coordinates</string>
     <!-- load route sub menu -->
     <string name="contextMenuItemObjectWithIdLoadRouteCurrentDirection">This direction</string>
     <string name="contextMenuItemObjectWithIdLoadRouteOppositeDirection">Opposite direction</string>
-    <!-- routeplanner context submenu -->
+    <!-- route planner context submenu -->
     <string name="contextMenuItemObjectWithIdUseAsStartPoint">As start point</string>
     <string name="contextMenuItemObjectWithIdUseAsViaPoint1">As via point 1</string>
     <string name="contextMenuItemObjectWithIdUseAsViaPoint2">As via point 2</string>
@@ -738,6 +748,7 @@
     <string name="contextMenuItemOverviewTrack">Tracked</string>
     <string name="contextMenuItemUserAnnotationAdd">Add annotation</string>
     <string name="contextMenuItemUserAnnotationEdit">Edit annotation</string>
+    <string name="contextMenuItemEdit">Edit</string>
     <string name="contextMenuItemRename">Rename</string>
     <string name="contextMenuItemRemove">Remove</string>
 
@@ -756,12 +767,14 @@
     <string name="dialogDefault">Default</string>
     <string name="dialogNow">Now</string>
     <string name="dialogOptions">Options</string>
+    <string name="dialogPresets">Presets</string>
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogSend">Send</string>
     <string name="dialogSomethingMissing">Something missing?</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">and</string>
+    <string name="fillingWordCustom">custom</string>
     <string name="fillingWordHas">has</string>
     <string name="stateCollapsed">collapsed</string>
     <string name="stateExpanded">expanded</string>
@@ -859,7 +872,7 @@
     <string name="directionRightSlightly">slight right</string>
     <string name="directionRight">right</string>
     <string name="directionRightStrongly">sharp right</string>
-    <string name="directionBehind">in your back</string>
+    <string name="directionBehind">Behind you</string>
     <string name="directionLeftStrongly">sharp left</string>
     <string name="directionLeft">left</string>
     <string name="directionLeftSlightly">slight left</string>
@@ -979,6 +992,11 @@
     <string name="routePointInstructionIntermediateTurn">%1$s at %2$s</string>
     <string name="routePointInstructionDestination">Destination: %1$s</string>
     <string name="routeSegmentBewareCyclists">Attention: bicycle traffic</string>
+
+    <!-- WayClassSettings presets -->
+    <string name="wcwsPresetUrbanOnFoot">On foot in urban areas</string>
+    <string name="wcwsPresetUrbanByCar">By car in urban areas</string>
+    <string name="wcwsPresetHiking">Hiking</string>
 
     <!-- WayClassType -->
     <string name="wayClassTypeBigStreets">Big streets</string>
@@ -1119,6 +1137,7 @@
     <!-- other errors -->
     <string name="errorSavePointFailed">Point creation failed.</string>
     <string name="errorNoHomeAddressSet">You didn\'t select your home address yet. You may do so in the app settings.</string>
+    <string name="errorNoSpeechRecognition">The speech input feature is not available.</string>
     <string name="errorNoLocationFound">No location available.</string>
     <string name="errorNoBearingFound">No bearing available.</string>
 
@@ -1167,6 +1186,12 @@
         name="meterFloat">
         <item quantity="one">1.0 meter</item>
         <item quantity="other">%1$.1f meters</item>
+    </plurals>
+
+    <plurals
+        name="meterShort">
+        <item quantity="one">1 m</item>
+        <item quantity="other">%d m</item>
     </plurals>
 
     <plurals

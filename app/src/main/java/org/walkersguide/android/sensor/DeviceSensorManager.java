@@ -151,9 +151,14 @@ public class DeviceSensorManager implements SensorEventListener {
     public void setSelectedBearingSensor(BearingSensor newBearingSensor) {
         if (newBearingSensor != null) {
             settingsManagerInstance.setSelectedBearingSensor(newBearingSensor);
-            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(new Intent(ACTION_BEARING_SENSOR_CHANGED));
+            broadcastBearingSensorChanged();
             broadcastCurrentBearing(true);
         }
+    }
+
+    public void broadcastBearingSensorChanged() {
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext())
+            .sendBroadcast(new Intent(ACTION_BEARING_SENSOR_CHANGED));
     }
 
     public boolean isDeviceUpright() {
@@ -517,6 +522,10 @@ public class DeviceSensorManager implements SensorEventListener {
      * simulated bearing
      */
 
+    // enable / disable simulation
+    public static final String ACTION_SIMULATION_STATUS_CHANGED = "bearingSimulationStatusChanged";
+    public static final String EXTRA_SIMULATION_ENABLED = "bearingSimulationEnabled";
+
     private boolean simulationEnabled = false;
 
     public boolean getSimulationEnabled() {
@@ -524,19 +533,28 @@ public class DeviceSensorManager implements SensorEventListener {
     }
 
     public void setSimulationEnabled(boolean enabled) {
-        this.simulationEnabled = enabled;
-        broadcastCurrentBearing(true);
+        if (getSimulationEnabled() != enabled) {
+            this.simulationEnabled = enabled;
+            broadcastSimulationStatusChanged();
+            broadcastCurrentBearing(true);
+        }
+    }
+
+    private void broadcastSimulationStatusChanged() {
+        Intent intent = new Intent(ACTION_SIMULATION_STATUS_CHANGED);
+        intent.putExtra(EXTRA_SIMULATION_ENABLED, getSimulationEnabled());
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
     // change simulated bearing
-    public static final String ACTION_NEW_SIMULATED_BEARING = "new_simulated_bearing";
+    public static final String ACTION_NEW_BEARING_VALUE_FROM_SIMULATION = "new_bearing_value_from_simulation";
 
     public void requestSimulatedBearing() {
         broadcastSimulatedBearing();
     }
 
     private void broadcastSimulatedBearing() {
-        Intent intent = new Intent(ACTION_NEW_SIMULATED_BEARING);
+        Intent intent = new Intent(ACTION_NEW_BEARING_VALUE_FROM_SIMULATION);
         intent.putExtra(EXTRA_BEARING, getSimulatedBearing());
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
@@ -546,14 +564,19 @@ public class DeviceSensorManager implements SensorEventListener {
     }
 
     public void setSimulatedBearing(Bearing newBearing) {
+        settingsManagerInstance.setSimulatedBearing(newBearing);
+
         if (newBearing != null) {
-            settingsManagerInstance.setSimulatedBearing(newBearing);
+            if (getSimulationEnabled()) {
+                broadcastCurrentBearing(true);
+            } else {
+                setSimulationEnabled(true);
+            }
             // broadcast new simulated bearing action
             broadcastSimulatedBearing();
-            // broadcast new bearing action
-            if (this.simulationEnabled) {
-                broadcastCurrentBearing(true);
-            }
+
+        } else if (getSimulationEnabled()) {
+            setSimulationEnabled(false);
         }
     }
 

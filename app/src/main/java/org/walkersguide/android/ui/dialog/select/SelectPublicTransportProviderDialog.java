@@ -1,7 +1,6 @@
 package org.walkersguide.android.ui.dialog.select;
 
-
-
+import org.walkersguide.android.BuildConfig;
 import de.schildbach.pte.AbstractNetworkProvider;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
@@ -31,9 +30,9 @@ import org.walkersguide.android.server.pt.PtUtility.Country;
 import java.util.ArrayList;
 import android.widget.ListView;
 import android.widget.CheckedTextView;
-import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 import de.schildbach.pte.NetworkId;
 import java.util.Locale;
+import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 
 
 public class SelectPublicTransportProviderDialog extends DialogFragment {
@@ -120,9 +119,8 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
             Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    SendFeedbackDialog.newInstance(
-                            SendFeedbackDialog.FeedbackToken.PT_PROVIDER_REQUEST)
-                        .show(getChildFragmentManager(), "SendFeedbackDialog");
+                    SimpleMessageDialog.newInstanceWithPublicTransportDataSourceText()
+                        .show(getChildFragmentManager(), "SimpleMessageDialog");
                 }
             });
             // negative button

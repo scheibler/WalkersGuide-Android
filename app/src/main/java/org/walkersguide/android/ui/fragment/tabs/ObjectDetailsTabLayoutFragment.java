@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
+import androidx.core.view.MenuProvider;
 import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.sensor.DeviceSensorManager;
@@ -61,9 +62,15 @@ import androidx.fragment.app.DialogFragment;
 import android.text.TextUtils;
 import org.walkersguide.android.ui.UiHelper;
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import androidx.lifecycle.Lifecycle;
+import org.walkersguide.android.util.SettingsManager;
 
 
-public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
+public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment implements MenuProvider {
     private static final String KEY_OBJECT = "object";
 
     public static ObjectDetailsTabLayoutFragment details(ObjectWithId object) {
@@ -110,6 +117,14 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
     }
 
 
+    private SettingsManager settingsManagerInstance;
+
+    @Override public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        settingsManagerInstance = SettingsManager.getInstance();
+    }
+
+
     /**
      * layout
      */
@@ -124,6 +139,7 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
     @Override public View configureView(View view, Bundle savedInstanceState) {
         view = super.configureView(view, savedInstanceState);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         // load object
         object = (ObjectWithId) getArguments().getSerializable(KEY_OBJECT);
@@ -174,6 +190,39 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
 
             initializeViewPagerAndTabLayout(new TabAdapter(tabList));
         }
+    }
+
+
+    /**
+     * menu
+     */
+
+    @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.menu_toolbar_object_details_tab_layout_fragment, menu);
+    }
+
+    @Override public void onPrepareMenu(@NonNull Menu menu) {
+        MenuItem menuItemShowPreciseBearingValues = menu.findItem(R.id.menuItemShowPreciseBearingValues);
+        if (menuItemShowPreciseBearingValues != null) {
+            menuItemShowPreciseBearingValues.setChecked(
+                    settingsManagerInstance.getShowPreciseBearingValues());
+            menuItemShowPreciseBearingValues.setVisible(
+                    object instanceof Point);
+        }
+    }
+
+    @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menuItemShowPreciseBearingValues) {
+            settingsManagerInstance.setShowPreciseBearingValues(
+                    ! settingsManagerInstance.getShowPreciseBearingValues());
+            if (object != null) {
+                // update distance label
+                PositionManager.getInstance().requestCurrentLocation();
+            }
+        } else {
+            return false;
+        }
+        return true;
     }
 
 
@@ -275,7 +324,8 @@ public class ObjectDetailsTabLayoutFragment extends TabLayoutFragment {
             labelDistanceAndBearing.setText(
                     String.format(
                         GlobalInstance.getStringResource(R.string.labelPointDistanceAndBearing),
-                        ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter))
+                        ((Point) object).formatDistanceAndRelativeBearingFromCurrentLocation(
+                            R.plurals.meter, settingsManagerInstance.getShowPreciseBearingValues()))
                     );
         }
     };

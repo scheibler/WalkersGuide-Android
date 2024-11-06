@@ -363,6 +363,8 @@ public class PositionManager implements android.location.LocationListener {
      */
 
     // enable / disable simulation
+    public static final String ACTION_SIMULATION_STATUS_CHANGED = "locationSimulationStatusChanged";
+    public static final String EXTRA_SIMULATION_ENABLED = "locationSimulationEnabled";
 
     private boolean simulationEnabled = false;
 
@@ -371,8 +373,18 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     public void setSimulationEnabled(boolean enabled) {
-        this.simulationEnabled = enabled;
-        broadcastCurrentLocation(true);
+        if (getSimulationEnabled() != enabled) {
+            this.simulationEnabled = enabled;
+            broadcastSimulationStatusChanged();
+            broadcastCurrentLocation(true);
+        }
+    }
+
+    private void broadcastSimulationStatusChanged() {
+        Timber.d("broadcastSimulationStatusChanged");
+        Intent intent = new Intent(ACTION_SIMULATION_STATUS_CHANGED);
+        intent.putExtra(EXTRA_SIMULATION_ENABLED, getSimulationEnabled());
+        LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
     }
 
     // change simulated location
@@ -397,16 +409,21 @@ public class PositionManager implements android.location.LocationListener {
     }
 
     public void setSimulatedLocation(Point newPoint) {
+        settingsManagerInstance.setSimulatedPoint(newPoint);
+
         if (newPoint != null) {
-            settingsManagerInstance.setSimulatedPoint(newPoint);
-            // add to history
-            HistoryProfile.simulatedPoints().addObject(newPoint);
+            if (getSimulationEnabled()) {
+                broadcastCurrentLocation(true);
+            } else {
+                setSimulationEnabled(true);
+            }
             // broadcast new simulated location action
             broadcastSimulatedLocation();
-            // broadcast new location action
-            if (this.simulationEnabled) {
-                broadcastCurrentLocation(true);
-            }
+            // add to history
+            HistoryProfile.simulatedPoints().addObject(newPoint);
+
+        } else if (getSimulationEnabled()) {
+            setSimulationEnabled(false);
         }
     }
 

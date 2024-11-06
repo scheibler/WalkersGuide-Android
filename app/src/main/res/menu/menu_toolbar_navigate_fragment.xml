@@ -5,35 +5,10 @@
 
     <item
         android:id="@+id/menuItemRecalculate"
-        android:title="@string/menuItemRecalculate" >
-        <menu>
-            <item
-                android:id="@+id/menuItemRecalculateWithCurrentPosition"
-                android:title="@string/menuItemRecalculateWithCurrentPosition" />
-            <item
-                android:id="@+id/menuItemRecalculateOriginalRoute"
-                android:title="@string/menuItemRecalculateOriginalRoute" />
-            <item
-                android:id="@+id/menuItemRecalculateReturnRoute"
-                android:title="@string/menuItemRecalculateReturnRoute" />
-        </menu>
-    </item>
-
+        android:title="@string/menuItemRecalculate" />
     <item
-        android:id="@+id/menuItemJumpToRoutePoint"
-        android:title="@string/menuItemJumpToRoutePoint" >
-        <menu>
-            <item
-                android:id="@+id/menuItemJumpToFirstRoutePoint"
-                android:title="@string/menuItemJumpToFirstRoutePoint" />
-            <item
-                android:id="@+id/menuItemJumpToClosestRoutePoint"
-                android:title="@string/menuItemJumpToClosestRoutePoint" />
-            <item
-                android:id="@+id/menuItemJumpToLastRoutePoint"
-                android:title="@string/menuItemJumpToLastRoutePoint" />
-        </menu>
-    </item>
+        android:id="@+id/menuItemJumpToNearestPoint"
+        android:title="@string/menuItemJumpToNearestPoint" />
 
     <item
         android:id="@+id/menuItemAutoSkipToNextRoutePoint"

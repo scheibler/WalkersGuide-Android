@@ -6,43 +6,22 @@ import org.walkersguide.android.util.GlobalInstance;
 
 public enum WayClassType {
 
-    BIG_STREETS(
-            "big_streets",
-            GlobalInstance.getStringResource(R.string.wayClassTypeBigStreets),
-            WayClassWeight.SLIGHTLY_PREFER),
-    SMALL_STREETS(
-            "small_streets",
-            GlobalInstance.getStringResource(R.string.wayClassTypeSmallStreets),
-            WayClassWeight.STRONGLY_PREFER),
-    PAVED_WAYS(
-            "paved_ways",
-            GlobalInstance.getStringResource(R.string.wayClassTypePavedWays),
-            WayClassWeight.NEUTRAL),
-    UNPAVED_WAYS(
-            "unpaved_ways",
-            GlobalInstance.getStringResource(R.string.wayClassTypeUnpavedWays),
-            WayClassWeight.AVOID),
-    STEPS(
-            "steps",
-            GlobalInstance.getStringResource(R.string.wayClassTypeSteps),
-            WayClassWeight.SLIGHTLY_AVOID),
-    UNCLASSIFIED_WAYS(
-            "unclassified_ways",
-            GlobalInstance.getStringResource(R.string.wayClassTypeUnclassifiedWays),
-            WayClassWeight.AVOID);
+    BIG_STREETS(GlobalInstance.getStringResource(R.string.wayClassTypeBigStreets)),
+    SMALL_STREETS(GlobalInstance.getStringResource(R.string.wayClassTypeSmallStreets)),
+    PAVED_WAYS(GlobalInstance.getStringResource(R.string.wayClassTypePavedWays)),
+    UNPAVED_WAYS(GlobalInstance.getStringResource(R.string.wayClassTypeUnpavedWays)),
+    STEPS(GlobalInstance.getStringResource(R.string.wayClassTypeSteps)),
+    UNCLASSIFIED_WAYS(GlobalInstance.getStringResource(R.string.wayClassTypeUnclassifiedWays));
 
 
-    public String id, name;
-    public WayClassWeight defaultWeight;
+    public String label;
 
-    private WayClassType(String id, String name, WayClassWeight defaultWeight) {
-        this.id = id;
-        this.name = name;
-        this.defaultWeight = defaultWeight;
+    private WayClassType(String label) {
+        this.label = label;
     }
 
     @Override public String toString() {
-        return this.name;
+        return this.label;
     }
 
 }

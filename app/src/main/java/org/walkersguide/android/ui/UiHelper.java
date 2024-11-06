@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui;
 
+import org.walkersguide.android.BuildConfig;
 import androidx.core.view.AccessibilityDelegateCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
@@ -167,6 +168,14 @@ public class UiHelper {
         SpannableString spanString = new SpannableString(text);
         spanString.setSpan(new URLSpan(""), 0, spanString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return spanString;
+    }
+
+    public static Spanned getPublicTransportDataSourceText() {
+        return fromHtml(
+                String.format(
+                    GlobalInstance.getStringResource(R.string.labelPublicTransportMessage),
+                    BuildConfig.PTE_LINK_MAIN_WEBSITE,
+                    BuildConfig.PTE_LINK_PROVIDER_LIST));
     }
 
     @SuppressWarnings("deprecation")

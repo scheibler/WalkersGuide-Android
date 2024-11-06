@@ -23,7 +23,8 @@
             android:id="@+id/labelTrackingModeHint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0" />
+            android:layout_weight="1.0"
+            android:textSize="@dimen/smallTextSize" />
     </LinearLayout>
 
     <include
@@ -32,29 +33,32 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:orientation="vertical" >
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:orientation="horizontal" >
 
         <org.walkersguide.android.ui.view.ProfileView
             android:id="@+id/layoutTrackedProfile"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1.0"
             app:compact="true"
             app:prefix="@string/layoutTrackedProfile" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal" >
 
-            <TextView
+            <ImageView
                 android:labelFor="@+id/spinnerAnnouncementRadius"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:text="@string/labelAnnouncementRadius" />
+                android:padding="2dp"
+                app:tint="@color/image"
+                android:src="@drawable/image_radius"
+                android:contentDescription="@string/labelAnnouncementRadius" />
 
             <Spinner
                 android:id="@+id/spinnerAnnouncementRadius"

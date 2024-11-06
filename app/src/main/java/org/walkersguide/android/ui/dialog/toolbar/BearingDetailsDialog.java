@@ -88,7 +88,12 @@ public class BearingDetailsDialog extends DialogFragment {
         switchAutoSwitchBearingSource.setChecked(settingsManagerInstance.getAutoSwitchBearingSourceEnabled());
         switchAutoSwitchBearingSource.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                settingsManagerInstance.setAutoSwitchBearingSourceEnabled(isChecked);
+                if (settingsManagerInstance.getAutoSwitchBearingSourceEnabled() != isChecked) {
+                    settingsManagerInstance.setAutoSwitchBearingSourceEnabled(isChecked);
+                    // next is required to trigger the ACTION_BEARING_SENSOR_CHANGED broadcast
+                    // see the function MainActivity.updateAccessibilityActionsOnBearingDetailsButton()
+                    deviceSensorManagerInstance.broadcastBearingSensorChanged();
+                }
             }
         });
 
@@ -234,6 +239,7 @@ public class BearingDetailsDialog extends DialogFragment {
         filter.addAction(DeviceSensorManager.ACTION_BEARING_SENSOR_CHANGED);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_COMPASS);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE);
+        filter.addAction(DeviceSensorManager.ACTION_SIMULATION_STATUS_CHANGED);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, filter);
         // request directions
         deviceSensorManagerInstance.requestBearingValueFromCompass();
@@ -338,6 +344,10 @@ public class BearingDetailsDialog extends DialogFragment {
                     labelSatelliteDetails.setText(
                             context.getResources().getString(R.string.errorNoBearingFound));
                 }
+
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SIMULATION_STATUS_CHANGED)) {
+                buttonEnableSimulation.setChecked(
+                        intent.getBooleanExtra(DeviceSensorManager.EXTRA_SIMULATION_ENABLED, false));
             }
         }
     };
