@@ -23,8 +23,8 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 41
-        versionName '3.2.0-b4'
+        versionCode 42
+        versionName '3.2.0-b5'
         minSdkVersion 21
         targetSdkVersion 35
         multiDexEnabled true
@@ -140,7 +140,7 @@ android.applicationVariants.all { variant ->
             group = 'Open'
             description "Installs and opens the APK for ${variant.description}."
             doFirst {
-                String activityClass = ".ui.activity.MainActivity"
+                String activityClass = "org.walkersguide.android.ui.activity.MainActivity"
                 commandLine android.adbExe, 'shell', 'am', 'start', '-n',
                         "${variant.applicationId}/${activityClass}"
             }

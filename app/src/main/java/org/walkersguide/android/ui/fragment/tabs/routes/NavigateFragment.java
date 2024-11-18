@@ -1,15 +1,13 @@
 package org.walkersguide.android.ui.fragment.tabs.routes;
 
+import org.walkersguide.android.ui.view.DistanceAndBearingView;
 import org.walkersguide.android.data.object_with_id.Segment.SortByBearingRelativeTo;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Build;
-import android.annotation.SuppressLint;
 import org.walkersguide.android.ui.view.IntersectionScheme;
 import android.widget.ImageButton;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.MainActivityController;
-import androidx.fragment.app.FragmentResultListener;
-import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
@@ -17,7 +15,6 @@ import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import org.walkersguide.android.ui.view.RouteObjectView;
 import org.walkersguide.android.ui.view.ObjectWithIdView;
 import android.widget.Toast;
-import timber.log.Timber;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,7 +22,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import android.os.Bundle;
-import android.os.Vibrator;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -37,52 +33,31 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.Button;
 import android.widget.TextView;
 
 
 
 import org.walkersguide.android.data.object_with_id.route.RouteObject;
-import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.dialog.PlanRouteDialog;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
 import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.data.object_with_id.Route;
-import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
-import androidx.core.view.ViewCompat;
-import java.util.Locale;
-import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
-import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.util.Helper;
 import android.os.Handler;
 import android.os.Looper;
-import java.util.ArrayList;
-import androidx.fragment.app.DialogFragment;
-import android.app.Dialog;
-import android.content.DialogInterface;
-import androidx.appcompat.app.AlertDialog;
-import android.widget.ListView;
-import androidx.core.util.Pair;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AbsListView;
 import org.walkersguide.android.data.object_with_id.point.Intersection;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.data.object_with_id.segment.IntersectionSegment;
 import org.walkersguide.android.data.Angle;
-import java.util.Collections;
 import android.text.TextUtils;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import android.widget.LinearLayout;
-import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 import org.walkersguide.android.ui.UiHelper;
@@ -125,7 +100,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
     private TextView labelIntersectionStructure;
     private IntersectionScheme intersectionScheme;
     // bottom
-    private TextView labelDistanceAndBearing;
+    private DistanceAndBearingView labelDistanceAndBearing;
     private ImageButton buttonPreviousRouteObject, buttonNextRouteObject;
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -300,7 +275,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         intersectionScheme = (IntersectionScheme) view.findViewById(R.id.intersectionScheme);
 
         // bottom layout
-        labelDistanceAndBearing = (TextView) view.findViewById(R.id.labelDistanceAndBearing);
+            labelDistanceAndBearing = (DistanceAndBearingView) view.findViewById(R.id.labelDistanceAndBearing);
 
         buttonPreviousRouteObject = (ImageButton) view.findViewById(R.id.buttonPreviousRouteObject);
         buttonPreviousRouteObject.setOnClickListener(new View.OnClickListener() {
@@ -337,7 +312,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
     /**
      * pause and resume
      */
-    private AcceptNewPosition acceptNewPositionForTtsAnnouncement;
 
     @Override public void onPause() {
         super.onPause();
@@ -347,13 +321,11 @@ public class NavigateFragment extends Fragment implements MenuProvider {
     @Override public void onResume() {
         super.onResume();
 
-        IntentFilter locationAndBearingUpdateFilter = new IntentFilter();
-        locationAndBearingUpdateFilter.addAction(PositionManager.ACTION_NEW_LOCATION);
-        locationAndBearingUpdateFilter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
-        locationAndBearingUpdateFilter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE);
+        IntentFilter bearingUpdateFilter = new IntentFilter();
+        bearingUpdateFilter.addAction(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE);
         LocalBroadcastManager
             .getInstance(getActivity())
-            .registerReceiver(routeBroadcastReceiver, locationAndBearingUpdateFilter);
+            .registerReceiver(routeBroadcastReceiver, bearingUpdateFilter);
 
         requestUiUpdate();
     }
@@ -376,7 +348,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             updateUi();
 
             // request current location for labelDistanceAndBearing field
-            acceptNewPositionForTtsAnnouncement = AcceptNewPosition.newInstanceForTtsAnnouncement();
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override public void run() {
                     // wait, until onResume is finished and the ui has focus
@@ -403,7 +374,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             } else {
                 nextInstruction = GlobalInstance.getStringResource(R.string.messageFirstSegment);
             }
-            ttsWrapperInstance.announce(nextInstruction);
+            ttsWrapperInstance.announce(nextInstruction, MessageType.TOP_PRIORITY);
         }
         updateUi();
     }
@@ -491,27 +462,14 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             }
         }
 
-        updateDistanceAndBearingLabel(currentRouteObject);
-    }
-
-    private void updateDistanceAndBearingLabel(RouteObject currentRouteObject) {
-        labelDistanceAndBearing.setText(
-                currentRouteObject
-                .getPoint()
-                .formatDistanceAndRelativeBearingFromCurrentLocation(
-                    R.plurals.meter, settingsManagerInstance.getShowPreciseBearingValues()));
+        labelDistanceAndBearing.setObjectWithId(currentRouteObject.getPoint());
     }
 
 
     private class RouteBroadcastReceiver extends BroadcastReceiver {
         private static final int SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS = 30;
 
-        // distance label
-        private AcceptNewPosition acceptNewPositionForDistanceLabel = AcceptNewPosition.newInstanceForDistanceLabelUpdate();
-        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForDistanceLabelUpdate();
-
         private RouteObject lastRouteObject = null;
-
         private boolean shortlyBeforeArrivalAnnounced, arrivalAnnounced;
         private long arrivalTime;
 
@@ -527,53 +485,26 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                 this.arrivalTime = System.currentTimeMillis();
             }
 
-            if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                boolean announceViaTts = false;
-                if (acceptNewPositionForDistanceLabel.updatePoint(
-                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION),
-                            UiHelper.isInBackground(NavigateFragment.this),
-                            intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
-                    updateDistanceAndBearingLabel(currentRouteObject);
-                    announceViaTts = labelDistanceAndBearing.isAccessibilityFocused();
-                }
-                if (acceptNewPositionForTtsAnnouncement.updatePoint(
-                            (Point) intent.getSerializableExtra(PositionManager.EXTRA_NEW_LOCATION), false, false)) {
-                    if (! UiHelper.isInBackground(NavigateFragment.this)) {
-                        announceViaTts = true;
-                    }
-                }
-                if (announceViaTts) {
-                    ttsWrapperInstance.announce(
-                            currentRouteObject.getPoint().formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter));
-                }
-
-            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                if (acceptNewBearing.updateBearing(
-                            (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
-                            UiHelper.isInBackground(NavigateFragment.this),
-                            intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
-                    updateDistanceAndBearingLabel(currentRouteObject);
-                }
-
-            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE)) {
+            if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE)) {
                 BearingSensorValue bearingValueFromSatellite = (BearingSensorValue) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING);
-                if (bearingValueFromSatellite != null) {
-                    // announce shortly before arrival
-                    if (
-                               ! shortlyBeforeArrivalAnnounced
-                            && ! currentRouteObject.getIsFirstRouteObject()
-                            && currentRouteObject.getPoint().distanceFromCurrentLocation() < SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS
-                            && currentRouteObject.getSegment().getDistance() > SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS) {
-                        announceShortlyBeforeArrival(currentRouteObject);
-                    }
-                    // announce arrival
-                    if (
-                               ! arrivalAnnounced
-                            && nextRouteObjectWithinRange(currentRouteObject, bearingValueFromSatellite)
-                            && ! walkingReverseDetected(currentRouteObject, bearingValueFromSatellite)
-                            && (System.currentTimeMillis() - arrivalTime) > 5000) {
-                        announceArrival(currentRouteObject);
-                    }
+                if (bearingValueFromSatellite == null) return;
+
+                // announce shortly before arrival
+                if (
+                           ! shortlyBeforeArrivalAnnounced
+                        && ! currentRouteObject.getIsFirstRouteObject()
+                        && currentRouteObject.getPoint().distanceFromCurrentLocation() < SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS
+                        && currentRouteObject.getSegment().getDistance() > SHORTLY_BEFORE_ARRIVAL_THRESHOLD_IN_METERS) {
+                    announceShortlyBeforeArrival(currentRouteObject);
+                }
+
+                // announce arrival
+                if (
+                           ! arrivalAnnounced
+                        && nextRouteObjectWithinRange(currentRouteObject, bearingValueFromSatellite)
+                        && ! walkingReverseDetected(currentRouteObject, bearingValueFromSatellite)
+                        && (System.currentTimeMillis() - arrivalTime) > 5000) {
+                    announceArrival(currentRouteObject);
                 }
             }
         }
@@ -625,14 +556,15 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         private void announceShortlyBeforeArrival(RouteObject currentRouteObject) {
             shortlyBeforeArrivalAnnounced = true;
             ttsWrapperInstance.announce(
-                    route.formatShortlyBeforeArrivalAtPointMessage());
+                    route.formatShortlyBeforeArrivalAtPointMessage(),
+                    MessageType.INSTRUCTION);
         }
 
         private void announceArrival(RouteObject currentRouteObject) {
             shortlyBeforeArrivalAnnounced = true;
             arrivalAnnounced = true;
             ttsWrapperInstance.announce(
-                    route.formatArrivalAtPointMessage());
+                    route.formatArrivalAtPointMessage(), MessageType.INSTRUCTION);
             Helper.vibrateOnce(Helper.VIBRATION_DURATION_LONG);
 
             // auto jump to next route point

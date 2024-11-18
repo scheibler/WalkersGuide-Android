@@ -29,6 +29,19 @@ import org.walkersguide.android.util.GlobalInstance;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import androidx.annotation.NonNull;
+import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.ui.UiHelper;
+import android.content.BroadcastReceiver;
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
+import android.content.Context;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.view.accessibility.AccessibilityEvent;
+import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
+import android.widget.TextView;
+import org.walkersguide.android.data.angle.Bearing;
+import org.walkersguide.android.data.angle.RelativeBearing;
 
 
 public class SegmentDetailsFragment extends Fragment implements MenuProvider {
@@ -41,6 +54,7 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
 
     // ui components
     private LinearLayout layoutAttributes;
+    private TextView labelBearing;
 
     // newInstance constructor for creating fragment with arguments
     public static SegmentDetailsFragment newInstance(Segment segment) {
@@ -55,7 +69,6 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
     /**
      * create view
      */
-
 
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.layout_single_linear_layout, container, false);
@@ -105,6 +118,10 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
 
     @Override public void onPause() {
         super.onPause();
+        if (segment != null) {
+            labelBearing = null;
+            LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(newBearingValueReceiver);
+        }
     }
 
     @Override public void onResume() {
@@ -113,6 +130,11 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
         if (segment == null) {
             return;
         }
+
+        // register for bearing updates
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(newBearingValueReceiver, filter);
 
         UserAnnotationView layoutUserAnnotation = new UserAnnotationView(getActivity());
         layoutUserAnnotation.setObjectWithId(segment);
@@ -174,15 +196,13 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
                 );
 
         // bearing
-        layoutAttributes.addView(
-                new TextViewBuilder(
-                        SegmentDetailsFragment.this.getContext(),
-                        String.format(
-                            "%1$s: %2$s",
-                            getResources().getString(R.string.labelSegmentBearing),
-                            segment.getBearing()))
-                    .create()
-                );
+        labelBearing = new TextViewBuilder(
+                SegmentDetailsFragment.this.getContext(),
+                getResources().getString(R.string.labelSegmentBearing))
+            .setAccessibilityDelegate(
+                    UiHelper.getAccessibilityDelegateToMuteContentChangedEventsWhileFocussed())
+            .create();
+        layoutAttributes.addView(labelBearing);
 
         // description
         if (segment.getDescription() != null) {
@@ -349,6 +369,43 @@ public class SegmentDetailsFragment extends Fragment implements MenuProvider {
                         );
             }
         }
+
+        // request current bearing to update the ui
+        DeviceSensorManager.getInstance().requestCurrentBearing();
     }
+
+
+    private BroadcastReceiver newBearingValueReceiver = new BroadcastReceiver() {
+        private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForBearingLabelUpdate();
+        private RelativeBearing.Direction lastDirection = null;
+
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)
+                    && labelBearing != null
+                    && acceptNewBearing.updateBearing(
+                        (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
+                        UiHelper.isInBackground(SegmentDetailsFragment.this),
+                        intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
+
+                RelativeBearing.Direction currentDirection = segment
+                    .getBearing().relativeToCurrentBearing().getDirection();
+                labelBearing.setText(
+                        String.format(
+                            "%1$s: %2$s, %3$s",
+                            context.getResources().getString(R.string.labelSegmentBearing),
+                            segment.getBearing(),
+                            currentDirection)
+                        );
+
+                if (currentDirection != lastDirection) {
+                    if (labelBearing.isAccessibilityFocused()) {
+                        TTSWrapper.getInstance().announce(
+                                currentDirection.toString(), MessageType.DISTANCE_OR_BEARING);
+                    }
+                    lastDirection = currentDirection;
+                }
+            }
+        }
+    };
 
 }

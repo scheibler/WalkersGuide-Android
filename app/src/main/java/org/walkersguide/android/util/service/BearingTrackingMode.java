@@ -9,6 +9,7 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.SettingsManager;
@@ -94,7 +95,8 @@ public class BearingTrackingMode {
         }
 
         if (messageList.isEmpty()) {
-            ttsWrapperInstance.stop();
+            // empty string to stop the tts without interrupting more important utterances
+            ttsWrapperInstance.announce("", MessageType.TRACKED_OBJECT_MODE_BEARING);
 
         } else {
             if (! filteredObjectList.isEmpty()) {
@@ -107,7 +109,7 @@ public class BearingTrackingMode {
             }
 
             ttsWrapperInstance.announce(
-                    TextUtils.join(", ", messageList));
+                    TextUtils.join(", ", messageList), MessageType.TRACKED_OBJECT_MODE_BEARING);
         }
 
         this.running = false;

@@ -12,7 +12,6 @@ import android.graphics.Typeface;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.util.GlobalInstance;
-import timber.log.Timber;
 import androidx.fragment.app.DialogFragment;
 import android.view.Window;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -20,9 +19,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import android.app.Dialog;
 import android.app.Activity;
-import androidx.fragment.app.FragmentActivity;
-import java.util.List;
-import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.View;
@@ -33,9 +29,7 @@ import android.text.Spanned;
 import android.os.Build;
 import android.text.Html;
 import android.text.style.URLSpan;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabItem;
-import android.widget.Spinner;
+import android.view.accessibility.AccessibilityEvent;
 
 
 public class UiHelper {
@@ -46,8 +40,20 @@ public class UiHelper {
 
 
     /**
-     * keyboard
+     * TextView and EditText
      */
+
+    public static View.AccessibilityDelegate getAccessibilityDelegateToMuteContentChangedEventsWhileFocussed() {
+        return new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+                if (host.isAccessibilityFocused()
+                        && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                    return;
+                }
+                super.onInitializeAccessibilityEvent(host, event);
+            }
+        };
+    }
 
     public static boolean isDoSomeThingEditorAction(int givenActionId, int wantedActionId, KeyEvent event) {
         if (givenActionId == wantedActionId) {
@@ -59,6 +65,11 @@ public class UiHelper {
             return false;
         }
     }
+
+
+    /**
+     * hide keyboard
+     */
 
     public static void hideKeyboard(Activity activity) {
         if (activity != null) {

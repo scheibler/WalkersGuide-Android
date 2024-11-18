@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.R;
 import org.walkersguide.android.data.object_with_id.common.Coordinates;
 import timber.log.Timber;
@@ -29,6 +30,16 @@ import android.content.Intent;
 import android.speech.RecognizerIntent;
 import android.content.ActivityNotFoundException;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import android.app.LocaleManager;
+import android.os.LocaleList;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import androidx.annotation.RawRes;
+import android.media.MediaPlayer;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.Resources;
 
 
 public class Helper {
@@ -132,7 +143,7 @@ public class Helper {
 
 
     /**
-     * date and time
+     * date, time and locale
      */
     private static final String ISO_8601_FORMAT1 = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final String ISO_8601_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -145,6 +156,18 @@ public class Helper {
             return (new SimpleDateFormat(ISO_8601_FORMAT2, Locale.ROOT)).parse(timestamp);
         } catch (Exception e) {}
         return null;
+    }
+
+    @TargetApi(Build.VERSION_CODES.TIRAMISU)
+    public static Locale getAppLocale() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            LocaleManager localeManager = (LocaleManager) GlobalInstance.getContext().getSystemService(Context.LOCALE_SERVICE);
+            LocaleList appLocales = localeManager.getApplicationLocales();
+            if (! appLocales.isEmpty()) {
+                return appLocales.get(0);
+            }
+        }
+        return Locale.getDefault();
     }
 
 
@@ -386,9 +409,29 @@ public class Helper {
 
 
     /**
-     * vibration
+     * sound and vibration
      */
-    // duration constants
+
+    public static void playSound(@RawRes int rawResId) {
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnPreparedListener(MediaPlayer::start);
+        mediaPlayer.setOnCompletionListener(MediaPlayer::reset);
+        mediaPlayer.setVolume(0.3f, 0.3f);
+
+        Resources resources = GlobalInstance.getContext().getResources();
+        try (AssetFileDescriptor afd = resources.openRawResourceFd(rawResId)) {
+            if (afd == null) return;
+            mediaPlayer.setDataSource(
+                    afd.getFileDescriptor(),
+                    afd.getStartOffset(),
+                    afd.getDeclaredLength());
+            mediaPlayer.prepareAsync();
+        } catch (IOException ignored) {
+            Timber.d("Could not play sound");
+        }
+    }
+
+    // vibration duration constants
     public static final long VIBRATION_DURATION_SHORT = 50;
     public static final long VIBRATION_DURATION_LONG = 250;
     // intensity constants
@@ -428,6 +471,35 @@ public class Helper {
             } else {
                 vibrator.vibrate(timings, -1);
             }
+        }
+    }
+
+
+    /**
+     * log to text file
+     */
+    private static SimpleDateFormat logFileDateFormat = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.ROOT);
+
+    public static void appendToLog(String fileName, String message) {
+        File file = new File(
+                GlobalInstance.getContext().getExternalFilesDir(null),
+                fileName);
+        if (! BuildConfig.DEBUG) return;
+
+        try {
+            FileWriter fw = new FileWriter(file, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(
+                    String.format(
+                        "%1$s\n%2$s\n",
+                        logFileDateFormat.format(new Date(System.currentTimeMillis())),
+                        message)
+                    );
+            bw.close();
+            fw.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

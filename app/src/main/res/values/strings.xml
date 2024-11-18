@@ -102,7 +102,6 @@
     <string name="menuItemSaveCurrentLocation">Save current location</string>
     <string name="menuItemCollections">Collections</string>
     <string name="menuItemHistory">History</string>
-    <string name="menuItemMisc">Miscellaneous:</string>
     <string name="menuItemSettings">Settings</string>
     <string name="menuItemInfo">Info</string>
     <string name="menuItemContactMe">Contact</string>
@@ -135,7 +134,6 @@
     <string name="messageObjectWithIdIncompatibleTargetPointRequired">Please select a point.</string>
     <!-- list items -->
     <string name="pointSelectFromCurrentLocation">Current location</string>
-    <string name="pointSelectFromClosestAddress">Closest address</string>
     <string name="pointSelectFromHomeAddress">Home address</string>
     <string name="pointSelectFromEnterAddress">Enter address</string>
     <string name="pointSelectFromEnterCoordinates">Enter coordinates</string>
@@ -206,9 +204,11 @@
     <!-- StartFragment -->
     <string name="fragmentStartName">Home</string>
     <string name="buttonNavigateToAddress">Navigate to address</string>
+    <string name="buttonNavigateHome">Navigate home</string>
     <string name="buttonSaveCurrentLocation">Save current location</string>
     <string name="buttonShareLocation">Share my location</string>
     <string name="buttonLoadSharedLocation">Load shared location</string>
+    <string name="buttonOpenGpxFile">Open GPX file</string>
     <string name="buttonRecordRoute">Record route</string>
     <string name="buttonCollections">Open collections</string>
     <string name="buttonHistory">Show history</string>
@@ -406,7 +406,7 @@
     -->
 
     <!-- object details tab layout fragment -->
-    <string name="labelPointDistanceAndBearing">Distance: %1$s</string>
+    <string name="labelPointDistanceAndBearing">Distance</string>
     <string name="labelSegmentDirection">Direction: %1$s</string>
     <string name="labelUserAnnotation">My annotation</string>
 
@@ -567,6 +567,7 @@
     <string name="switchAnnouncementsEnabled">Enable speech announcements</string>
     <string name="labelDistanceAnnouncementInterval">Distance announcement interval</string>
     <string name="labelDistanceAnnouncementIntervalUnit">meters</string>
+    <string name="buttonSpeechRate">Speech rate</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Keep Bluetooth headphone connection alive</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">
         Some Bluetooth headphones go to sleep after some time of inactivity and their subsequent
@@ -592,6 +593,10 @@
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
+
+    <!-- SpeechRateDialog -->
+    <string name="buttonDecreaseSpeechRate">Decrease speech rate</string>
+    <string name="buttonIncreaseSpeechRate">Increase speech rate</string>
 
     <!-- InfoDialog -->
     <string name="infoDialogTitle">Info</string>
@@ -667,6 +672,7 @@
     <string name="labelPrefixVia3">Via 3</string>
     <string name="labelPrefixDestination">Destination</string>
     <string name="labelPrefixSimulation">Simulation</string>
+    <string name="labelPrefixClosestAddress">Closest address</string>
 
     <!-- object context menu -->
     <string name="contextMenuItemObjectWithIdDepartures">Departures</string>
@@ -771,6 +777,7 @@
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogSend">Send</string>
     <string name="dialogSomethingMissing">Something missing?</string>
+    <string name="dialogTest">Test</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">and</string>
@@ -985,6 +992,7 @@
     <string name="messageArrivedAtRoutePoint">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.</string>
     <string name="messageArrivedAtRoutePointWithNextTurn">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.\nAfterwarts: %4$s.</string>
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
+    <string name="messageTestInstruction">Arrived at point 2. Now: Turn left. Then: 69 Meter on main street (primary road). Afterwards: Straight ahead.</string>
 
     <!-- RouteObject -->
     <string name="routePointInstructionStart">Start: %1$s</string>
@@ -994,6 +1002,7 @@
     <string name="routeSegmentBewareCyclists">Attention: bicycle traffic</string>
 
     <!-- WayClassSettings presets -->
+    <string name="wcwsPresetShortestRoute">Shortest route</string>
     <string name="wcwsPresetUrbanOnFoot">On foot in urban areas</string>
     <string name="wcwsPresetUrbanByCar">By car in urban areas</string>
     <string name="wcwsPresetHiking">Hiking</string>

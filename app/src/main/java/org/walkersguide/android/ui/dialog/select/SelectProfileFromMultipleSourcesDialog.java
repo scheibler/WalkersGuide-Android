@@ -308,7 +308,7 @@ public class SelectProfileFromMultipleSourcesDialog extends DialogFragment imple
 
     public static class CreateEmptyCollectionDialog extends EnterStringDialog {
         public static final String REQUEST_CREATE_EMPTY_COLLECTION_WAS_SUCCESSFUL = "requestCreateEmptyCollectionWasSuccessful";
-    public static final String EXTRA_EMPTY_COLLECTION = "emptyCollection";
+        public static final String EXTRA_EMPTY_COLLECTION = "emptyCollection";
 
 
         public static CreateEmptyCollectionDialog newInstance() {

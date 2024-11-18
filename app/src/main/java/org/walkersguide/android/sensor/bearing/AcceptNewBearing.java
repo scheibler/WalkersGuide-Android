@@ -10,22 +10,23 @@ public class AcceptNewBearing implements Serializable {
     private static final long serialVersionUID = 1l;
 
     public static AcceptNewBearing newInstanceForObjectListUpdate() {
-        return new AcceptNewBearing(45, 1);
+        return new AcceptNewBearing(45, 1000l);
     }
 
-    public static AcceptNewBearing newInstanceForDistanceLabelUpdate() {
-        return new AcceptNewBearing(23, 1);
+    public static AcceptNewBearing newInstanceForBearingLabelUpdate() {
+        return new AcceptNewBearing(4, 500l);
     }
 
 
-    private final int angleThreshold, timeThreshold;
+    private final int angleThreshold;
+    private final long timeThreshold;
 
     private Bearing lastAcceptedBearing;
     private long lastAcceptedBearingTimestamp;
 
-    public AcceptNewBearing(int angleeThresholdInDegree, int timeThresholdInSeconds) {
-        this.angleThreshold = angleeThresholdInDegree;
-        this.timeThreshold = timeThresholdInSeconds;
+    public AcceptNewBearing(int angleThresholdInDegree, long timeThresholdInMs) {
+        this.angleThreshold = angleThresholdInDegree;
+        this.timeThreshold = timeThresholdInMs;
         this.lastAcceptedBearing = DeviceSensorManager.getInstance().getCurrentBearing();
         this.lastAcceptedBearingTimestamp = 0l;
     }
@@ -62,7 +63,7 @@ public class AcceptNewBearing implements Serializable {
             return true;
         } else if (this.lastAcceptedBearing.differenceTo(newBearing) < angleThreshold) {
             return false;
-        } else if (System.currentTimeMillis() - this.lastAcceptedBearingTimestamp < this.timeThreshold * 1000l) {
+        } else if (System.currentTimeMillis() - this.lastAcceptedBearingTimestamp < this.timeThreshold) {
             return false;
         }
         return true;

@@ -54,6 +54,11 @@ public class TextViewBuilder {
         return this;
     }
 
+    public TextViewBuilder setAccessibilityDelegate(View.AccessibilityDelegate accessibilityDelegate) {
+        this.label.setAccessibilityDelegate(accessibilityDelegate);
+        return this;
+    }
+
     public TextViewBuilder setContentDescription(String description) {
         this.label.setContentDescription(description);
         return this;

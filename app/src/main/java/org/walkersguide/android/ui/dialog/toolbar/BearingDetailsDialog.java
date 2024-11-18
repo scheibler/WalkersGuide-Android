@@ -1,5 +1,7 @@
     package org.walkersguide.android.ui.dialog.toolbar;
 
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.Toast;
 import org.walkersguide.android.sensor.bearing.BearingSensor;
 import org.walkersguide.android.data.angle.Bearing;
@@ -9,6 +11,7 @@ import android.text.InputFilter;
 import android.text.Spanned;
 import java.lang.NumberFormatException;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
 import org.walkersguide.android.ui.interfaces.TextChangedListener;
 import org.walkersguide.android.ui.UiHelper;
 
@@ -100,9 +103,14 @@ public class BearingDetailsDialog extends DialogFragment {
         // compass
         labelCompassDetails = (TextView) view.findViewById(R.id.labelCompassDetails);
         radioCompass = (RadioButton) view.findViewById(R.id.radioCompass);
+        radioCompass.setAccessibilityDelegate(
+                new TtsAccessibilityDelegate(BearingSensor.COMPASS));
+
         // gps
         labelSatelliteDetails = (TextView) view.findViewById(R.id.labelSatelliteDetails);
         radioSatellite = (RadioButton) view.findViewById(R.id.radioSatellite);
+        radioSatellite.setAccessibilityDelegate(
+                new TtsAccessibilityDelegate(BearingSensor.SATELLITE));
 
         // simulated direction
 
@@ -301,6 +309,40 @@ public class BearingDetailsDialog extends DialogFragment {
                 }
             }
         });
+    }
+
+
+    private class TtsAccessibilityDelegate extends View.AccessibilityDelegate {
+        private AcceptNewBearing acceptNewBearing = new AcceptNewBearing(2, 1000l);
+        private BearingSensor sensor;
+
+        public TtsAccessibilityDelegate(BearingSensor sensor) {
+            super();
+            this.sensor = sensor;
+        }
+
+        @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+            if (host.isAccessibilityFocused()
+                    && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
+                BearingSensorValue bearingSensorValue;
+                if (this.sensor ==BearingSensor.COMPASS) {
+                    bearingSensorValue = DeviceSensorManager.getInstance().getBearingValueFromCompass();
+                } else if (this.sensor ==BearingSensor.SATELLITE) {
+                    bearingSensorValue = DeviceSensorManager.getInstance().getBearingValueFromSatellite();
+                } else {
+                    return;
+                }
+
+                if (acceptNewBearing.updateBearing(bearingSensorValue, false, false)) {
+                    TTSWrapper.getInstance().announce(
+                            bearingSensorValue.toString(), MessageType.DISTANCE_OR_BEARING);
+                }
+
+                return;
+            }
+            super.onInitializeAccessibilityEvent(host, event);
+        }
     }
 
 

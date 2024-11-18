@@ -2,6 +2,7 @@ package org.walkersguide.android.sensor;
 
 import org.walkersguide.android.R;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
 import org.walkersguide.android.util.Helper;
 import timber.log.Timber;
 import org.walkersguide.android.data.angle.Bearing;
@@ -213,8 +214,8 @@ public class DeviceSensorManager implements SensorEventListener {
                     String.format(
                         "%1$s: %2$s",
                         GlobalInstance.getStringResource(R.string.bearingSensor),
-                        getSelectedBearingSensor())
-                    );
+                        getSelectedBearingSensor()),
+                    MessageType.DISTANCE_OR_BEARING);
         }
 
         public void deviceOrientationChanged() {
@@ -293,7 +294,7 @@ public class DeviceSensorManager implements SensorEventListener {
     public static final String ACTION_NEW_BEARING_VALUE_FROM_COMPASS = "new_bearing_value_from_compass";
 
     // min time difference between compass values
-    private static final int MIN_COMPASS_VALUE_DELAY = 250;          // 250 ms
+    private static final int MIN_COMPASS_VALUE_DELAY = 250;          // in ms
 
     private BearingSensorAccuracyRating bearingSensorAccuracyRating = null;
     // accelerometer

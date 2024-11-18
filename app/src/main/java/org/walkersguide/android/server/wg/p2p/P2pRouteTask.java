@@ -1,5 +1,6 @@
 package org.walkersguide.android.server.wg.p2p;
 
+import org.walkersguide.android.server.address.AddressException;
 import org.walkersguide.android.R;
 import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
@@ -24,6 +25,9 @@ import org.walkersguide.android.database.SortMethod;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.data.object_with_id.segment.RouteSegment;
 import org.walkersguide.android.data.angle.Turn;
+import org.walkersguide.android.data.object_with_id.point.GPS;
+import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
+import org.walkersguide.android.server.address.ResolveCoordinatesTask;
 
 
 public class P2pRouteTask extends ServerTask {
@@ -41,6 +45,24 @@ public class P2pRouteTask extends ServerTask {
         Point destinationPoint = this.request.getDestinationPoint();
         if (startPoint == null || destinationPoint == null) {
             throw new WgException(WgException.RC_START_OR_DESTINATION_MISSING);
+        }
+
+        // if the start point is a nameless gps point then try to replace its name with the closest address nearby
+        if (startPoint instanceof GPS
+                && ! startPoint.hasCustomName()) {
+            Timber.d("start point gps: %1$s", startPoint.getName());
+            StreetAddress closestAddress = null;
+            try {
+                closestAddress = ResolveCoordinatesTask.getAddress(startPoint);
+            } catch (AddressException e) {}
+            if (closestAddress != null) {
+                startPoint.rename(
+                        String.format(
+                            "%1$s %2$s",
+                            GlobalInstance.getStringResource(R.string.labelNearby),
+                            closestAddress.getName()));
+                Timber.d("renamed to %1$s", startPoint.getName());
+            }
         }
 
         // create server param list

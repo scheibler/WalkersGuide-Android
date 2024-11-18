@@ -72,7 +72,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
 
         // current address
         layoutCurrentAddress = new ObjectWithIdView(
-                context, getResources().getString(R.string.pointSelectFromClosestAddress));
+                context, getResources().getString(R.string.labelPrefixClosestAddress));
         layoutCurrentAddress.setLayoutParams(
                 new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -121,7 +121,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
     // background task results
 
     private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
-        private AcceptNewPosition acceptNewPosition = new AcceptNewPosition(50, 60, null);
+        private AcceptNewPosition acceptNewPosition = new AcceptNewPosition(50, 60000l, null);
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL)

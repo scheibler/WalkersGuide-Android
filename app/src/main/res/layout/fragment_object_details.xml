@@ -13,13 +13,15 @@
         app:compact="true"
         app:includeDistanceOrBearingInformation="false" />
 
-    <TextView
+    <org.walkersguide.android.ui.view.DistanceAndBearingView
         android:id="@+id/labelDistanceAndBearing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="3dp"
         android:paddingBottom="3dp"
-        android:focusable="true" />
+        android:focusable="true"
+        app:prefix="@string/labelPointDistanceAndBearing"
+        android:visibility="gone" />
 
     <include
         layout="@layout/layout_fragment_container_view_and_tab_layout_above" />

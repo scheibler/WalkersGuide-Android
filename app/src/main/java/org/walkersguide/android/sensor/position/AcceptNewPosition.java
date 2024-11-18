@@ -12,29 +12,35 @@ public class AcceptNewPosition implements Serializable {
 
     public static AcceptNewPosition newInstanceForObjectListUpdate() {
         return new AcceptNewPosition(
-                50, 30, PositionManager.getInstance().getCurrentLocation());
+                50, 30000l, PositionManager.getInstance().getCurrentLocation());
+    }
+
+    public static AcceptNewPosition newInstanceForDistanceLabelUpdate() {
+        return new AcceptNewPosition(2, 1000l, null);
     }
 
     public static AcceptNewPosition newInstanceForTtsAnnouncement() {
         return new AcceptNewPosition(
                 SettingsManager.getInstance().getTtsSettings().getDistanceAnnouncementInterval(),
-                10,
+                10000l,
                 PositionManager.getInstance().getCurrentLocation());
     }
 
-    public static AcceptNewPosition newInstanceForDistanceLabelUpdate() {
-        return new AcceptNewPosition(3, 3, null);
+    public static AcceptNewPosition newInstanceForTtsAnnouncementOnFocus() {
+        return new AcceptNewPosition(
+                4, 3000l, PositionManager.getInstance().getCurrentLocation());
     }
 
 
-    private final int distanceThreshold, timeThreshold;
+    private final int distanceThreshold;
+    private final long timeThreshold;
 
     private Point lastAcceptedPoint;
     private long lastAcceptedPointTimestamp;
 
-    public AcceptNewPosition(int distanceThresholdInMeters, int timeThresholdInSeconds, Point initAcceptedPoint) {
+    public AcceptNewPosition(int distanceThresholdInMeters, long timeThresholdInMs, Point initAcceptedPoint) {
         this.distanceThreshold = distanceThresholdInMeters;
-        this.timeThreshold = timeThresholdInSeconds;
+        this.timeThreshold = timeThresholdInMs;
         this.lastAcceptedPoint = initAcceptedPoint;
         this.lastAcceptedPointTimestamp = 0l;
     }
@@ -71,7 +77,7 @@ public class AcceptNewPosition implements Serializable {
             return true;
         } else if (this.lastAcceptedPoint.distanceTo(newPoint) < this.distanceThreshold) {
             return false;
-        } else if (System.currentTimeMillis() - this.lastAcceptedPointTimestamp < this.timeThreshold * 1000l) {
+        } else if (System.currentTimeMillis() - this.lastAcceptedPointTimestamp < this.timeThreshold) {
             return false;
         }
         return true;

@@ -60,8 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/minHeight"
-            android:text="@string/buttonEnableBearingSimulation"
-            android:theme="@style/HeadingTextView" />
+            android:text="@string/buttonEnableBearingSimulation" />
 
         <LinearLayout
             android:layout_width="match_parent"

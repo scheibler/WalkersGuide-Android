@@ -9,6 +9,7 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.data.ObjectWithId;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.SettingsManager;
@@ -61,8 +62,8 @@ public class DistanceTrackingMode {
                         "%1$s %2$s",
                         object.formatNameAndSubType(),
                         object.formatDistanceAndRelativeBearingFromCurrentLocation(
-                            R.plurals.inMeters))
-                    );
+                            R.plurals.inMeters)),
+                    MessageType.TRACKED_OBJECT_MODE_DISTANCE);
             announcedObjectBlacklist.put(
                     object, Pair.create(currentLocation, System.currentTimeMillis()));
             return true;

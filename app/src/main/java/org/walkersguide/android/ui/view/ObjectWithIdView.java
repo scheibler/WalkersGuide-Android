@@ -439,8 +439,8 @@ public class ObjectWithIdView extends LinearLayout {
     }
 
     private BroadcastReceiver newLocationReceiver = new BroadcastReceiver() {
-        private AcceptNewPosition acceptNewPosition = new AcceptNewPosition(6, 4, null);
-        private AcceptNewBearing acceptNewBearing = new AcceptNewBearing(30, 2);
+        private AcceptNewPosition acceptNewPosition = new AcceptNewPosition(6, 4000l, null);
+        private AcceptNewBearing acceptNewBearing = new AcceptNewBearing(30, 2000l);
 
         @Override public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(RenameObjectWithIdDialog.ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL)) {

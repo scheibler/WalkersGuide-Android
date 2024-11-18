@@ -8,9 +8,6 @@
         android:id="@+id/menuItemSaveCurrentLocation"
         android:title="@string/menuItemSaveCurrentLocation" />
     <item
-        android:id="@+id/menuItemOpenWhereAmIDialog"
-        android:title="@string/whereAmIDialogTitle" />
-    <item
         android:id="@+id/menuItemCollections"
         android:title="@string/menuItemCollections" />
     <item
@@ -18,22 +15,16 @@
         android:title="@string/menuItemHistory" />
 
     <item
-        android:id="@+id/menuItemMisc"
-        android:title="@string/menuItemMisc" >
-        <menu>
-            <item
-                android:id="@+id/menuItemSettings"
-                android:title="@string/menuItemSettings" />
-            <item
-                android:id="@+id/menuItemInfo"
-                android:title="@string/menuItemInfo" />
-            <item
-                android:id="@+id/menuItemUserManual"
-                android:title="@string/menuItemUserManual" />
-            <item
-                android:id="@+id/menuItemContactMe"
-                android:title="@string/menuItemContactMe" />
-        </menu>
-    </item>
+        android:id="@+id/menuItemSettings"
+        android:title="@string/menuItemSettings" />
+    <item
+        android:id="@+id/menuItemInfo"
+        android:title="@string/menuItemInfo" />
+    <item
+        android:id="@+id/menuItemUserManual"
+        android:title="@string/menuItemUserManual" />
+    <item
+        android:id="@+id/menuItemContactMe"
+        android:title="@string/menuItemContactMe" />
 
 </menu>

@@ -30,7 +30,6 @@ import android.widget.Toast;
 
 
 
-import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.R;
 import org.walkersguide.android.sensor.PositionManager;
@@ -48,7 +47,6 @@ import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
-import timber.log.Timber;
 import org.walkersguide.android.data.ObjectWithId;
 
 
@@ -121,7 +119,7 @@ public class LocationDetailsDialog extends DialogFragment implements FragmentRes
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 if (positionManagerInstance.getSimulationEnabled() != isChecked) {
                     // check or uncheck simulation
-                    if (isChecked && positionManagerInstance.getCurrentLocation() == null) {
+                    if (isChecked && positionManagerInstance.getSimulatedLocation() == null) {
                         // no simulated point selected
                         Toast.makeText(
                                 getActivity(),

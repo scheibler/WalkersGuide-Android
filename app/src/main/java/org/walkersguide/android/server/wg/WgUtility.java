@@ -13,7 +13,6 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Locale;
 
 
 import org.json.JSONArray;
@@ -24,6 +23,7 @@ import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.server.wg.poi.PoiCategory;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
+import org.walkersguide.android.util.Helper;
 
 
 public class WgUtility {
@@ -184,7 +184,7 @@ public class WgUtility {
         requestJson.put(
                 "session_id", GlobalInstance.getInstance().getSessionId());
         requestJson.put(
-                "language", Locale.getDefault().getLanguage());
+                "language", Helper.getAppLocale().getLanguage());
         requestJson.put(
                 "prefer_translated_strings_in_osm_tags", SettingsManager.getInstance().getPreferTranslatedStrings());
         // selected map id

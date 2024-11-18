@@ -7,6 +7,7 @@ import org.walkersguide.android.R;
 import org.walkersguide.android.util.Helper;
 import android.widget.Toast;
 import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -224,8 +225,8 @@ public class IntersectionScheme extends View {
                                 GlobalInstance.getPluralResource(
                                     R.plurals.turning,
                                     intersectionSegmentRelativeToInstructionMap.size())
-                                )
-                            );
+                                ),
+                            MessageType.TOP_PRIORITY);
                     Helper.vibrateOnce(
                             100, Helper.VIBRATION_INTENSITY_WEAK);
                     this.lastAnnouncedSegment = null;
@@ -250,7 +251,7 @@ public class IntersectionScheme extends View {
                             announcement += String.format(
                                     ", %1$s", GlobalInstance.getStringResource(R.string.labelPartOfNextRouteSegment));
                         }
-                        ttsWrapperInstance.announce(announcement);
+                        ttsWrapperInstance.announce(announcement, MessageType.TOP_PRIORITY);
                         this.lastAnnouncedSegment = segment;
                         this.atSegment = true;
                     }

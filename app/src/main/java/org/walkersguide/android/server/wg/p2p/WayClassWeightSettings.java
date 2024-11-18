@@ -18,16 +18,20 @@ public class WayClassWeightSettings implements Serializable {
     private static final long serialVersionUID = 1l;
 
     public enum Preset {
-        URBAN_ON_FOOT(
+        SHORTEST_ROUTE(
                 1,
+                GlobalInstance.getStringResource(R.string.wcwsPresetShortestRoute),
+                presetShortestRoute()),
+        URBAN_ON_FOOT(
+                2,
                 GlobalInstance.getStringResource(R.string.wcwsPresetUrbanOnFoot),
                 presetUrbanOnFoot()),
         URBAN_BY_CAR(
-                2,
+                3,
                 GlobalInstance.getStringResource(R.string.wcwsPresetUrbanByCar),
                 presetUrbanByCar()),
         HIKING(
-                3,
+                4,
                 GlobalInstance.getStringResource(R.string.wcwsPresetHiking),
                 presetHiking());
 
@@ -52,6 +56,14 @@ public class WayClassWeightSettings implements Serializable {
 
         @Override public String toString() {
             return this.label.replace(" ", "\u00A0");
+        }
+
+        private static WayClassWeightSettings presetShortestRoute() {
+            LinkedHashMap<WayClassType,WayClassWeight> map = new LinkedHashMap<WayClassType,WayClassWeight>();
+            for (WayClassType type : WayClassType.values()) {
+                map.put(type, WayClassWeight.NEUTRAL);
+            }
+            return new WayClassWeightSettings(map);
         }
 
         private static WayClassWeightSettings presetUrbanOnFoot() {

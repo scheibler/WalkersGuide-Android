@@ -1,5 +1,8 @@
 package org.walkersguide.android.ui.activity;
 
+import org.walkersguide.android.server.ServerTaskExecutor;
+import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
+import java.util.Locale;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
 import org.walkersguide.android.BuildConfig;
@@ -106,6 +109,12 @@ import org.walkersguide.android.util.Helper;
 import java.util.ArrayList;
 import android.hardware.Sensor;
 import android.widget.Toast;
+import android.view.accessibility.AccessibilityEvent;
+import org.walkersguide.android.tts.TTSWrapper;
+import org.walkersguide.android.tts.TTSWrapper.MessageType;
+import org.walkersguide.android.server.address.ResolveCoordinatesTask;
+import org.walkersguide.android.ui.dialog.toolbar.LocationSensorDetailsDialog;
+import org.walkersguide.android.server.address.AddressException;
 
 
 public class MainActivity extends AppCompatActivity
@@ -174,7 +183,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Timber.d("onCreate");
+        Timber.d("onCreate, locale: %1$s / %2$s", Locale.getDefault(), Helper.getAppLocale());
         setContentView(R.layout.activity_main);
         registerFlingGestureDetector();
         AccessDatabase.getInstance();   // important for app-started-for-the-first-time detection
@@ -232,6 +241,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         buttonBearingDetails = (ImageButton) findViewById(R.id.buttonBearingDetails);
+        buttonBearingDetails.setAccessibilityDelegate(new BearingDetailsTtsAccessibilityDelegate());
         buttonBearingDetails.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 BearingDetailsDialog.newInstance()
@@ -240,12 +250,35 @@ public class MainActivity extends AppCompatActivity
         });
 
         buttonLocationDetails = (ImageButton) findViewById(R.id.buttonLocationDetails);
+        buttonLocationDetails.setAccessibilityDelegate(new LocationDetailsTtsAccessibilityDelegate());
         buttonLocationDetails.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 LocationDetailsDialog.newInstance()
                     .show(getSupportFragmentManager(), "LocationDetailsDialog");
             }
         });
+
+        // these accessibility actions for the buttonLocationDetails are always there
+        // for the rest see updateAccessibilityActionsOnLocationDetailsButton()
+        ViewCompat.addAccessibilityAction(
+                this.buttonLocationDetails,
+                GlobalInstance.getStringResource(R.string.labelPrefixClosestAddress),
+                (actionView, arguments) -> {
+                    Helper.vibrateOnce(
+                            Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+                    resolveCurrentCoordinatesForTalkbackAction.execute();
+                    return true;
+                });
+        ViewCompat.addAccessibilityAction(
+                this.buttonLocationDetails,
+                GlobalInstance.getStringResource(R.string.labelPointGPSDetailsHeading),
+                (actionView, arguments) -> {
+                    Helper.vibrateOnce(
+                            Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
+                    LocationSensorDetailsDialog.newInstance()
+                        .show(getSupportFragmentManager(), "LocationSensorDetailsDialog");
+                    return true;
+                });
 
         // navigation drawer
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -258,9 +291,6 @@ public class MainActivity extends AppCompatActivity
                 } else if (menuItem.getItemId() == R.id.menuItemSaveCurrentLocation) {
                     SaveCurrentLocationDialog.addToDatabaseProfile()
                         .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemOpenWhereAmIDialog) {
-                    WhereAmIDialog.newInstance()
-                        .show(getSupportFragmentManager(), "WhereAmIDialog");
                 } else if (menuItem.getItemId() == R.id.menuItemCollections) {
                     CollectionListFragment.newInstance()
                         .show(getSupportFragmentManager(), "CollectionListFragment");
@@ -398,7 +428,7 @@ public class MainActivity extends AppCompatActivity
         Uri uri = intent.getData();
         if (uri != null
                 && ! uri.equals(lastUri)) {
-            Timber.d("uri from intent filter: %1$s", uri.toString());
+            Timber.d("uri from intent filter: %1$s;   last uri: %2$s", uri.toString(), lastUri != null ? lastUri.toString() : "");
             if ("geo".equals(uri.getScheme())) {
                 String[] parts = uri.toString().split("\\?q=");
                 if (parts.length > 1
@@ -482,7 +512,9 @@ public class MainActivity extends AppCompatActivity
                 ? View.VISIBLE : View.GONE);
     }
 
-    private void updateBearingDetailsButton() {
+    // bearing details
+
+    private String createBearingDetailsButtonContentDescription() {
         Bearing currentBearing = deviceSensorManagerInstance.getCurrentBearing();
         StringBuilder bearingDescriptionBuilder = new StringBuilder();
 
@@ -514,7 +546,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        buttonBearingDetails.setContentDescription(bearingDescriptionBuilder.toString());
+        return bearingDescriptionBuilder.toString();
     }
 
     private void updateAccessibilityActionsOnBearingDetailsButton() {
@@ -526,7 +558,8 @@ public class MainActivity extends AppCompatActivity
         }
         bearingSourceAccessibilityActionIdList.clear();
 
-        if (! settingsManagerInstance.getAutoSwitchBearingSourceEnabled()) {
+        if (! settingsManagerInstance.getAutoSwitchBearingSourceEnabled()
+                && ! deviceSensorManagerInstance.getSimulationEnabled()) {
             for (final BearingSensor sensor : BearingSensor.values()) {
                 if (sensor.equals(settingsManagerInstance.getSelectedBearingSensor())) {
                     continue;
@@ -546,8 +579,6 @@ public class MainActivity extends AppCompatActivity
                                         getResources().getString(R.string.errorNoBearingFound),
                                         Toast.LENGTH_LONG).show();
                             } else {
-                                ViewCompat.setAccessibilityLiveRegion(
-                                        buttonBearingDetails, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                                 Helper.vibrateOnce(
                                         Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
                                 deviceSensorManagerInstance.setSelectedBearingSensor(sensor);
@@ -580,8 +611,6 @@ public class MainActivity extends AppCompatActivity
                         simulatedBearing.toString()),
 
                     (actionView, arguments) -> {
-                        ViewCompat.setAccessibilityLiveRegion(
-                                buttonBearingDetails, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                         Helper.vibrateOnce(
                                 Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
                         deviceSensorManagerInstance.setSimulationEnabled(
@@ -591,7 +620,40 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void updateLocationDetailsButton() {
+    private class BearingDetailsTtsAccessibilityDelegate extends View.AccessibilityDelegate {
+        private AcceptNewBearing acceptNewBearing = new AcceptNewBearing(2, 1000l);
+        private BearingSensor lastBearingSensor = DeviceSensorManager.getInstance().getSelectedBearingSensor();
+        private boolean lastSimulationEnabled = DeviceSensorManager.getInstance().getSimulationEnabled();
+
+        @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+            if (host.isAccessibilityFocused()
+                    && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
+                BearingSensor currentBearingSensor = DeviceSensorManager.getInstance().getSelectedBearingSensor();
+                boolean currentSimulationEnabled = DeviceSensorManager.getInstance().getSimulationEnabled();
+                Bearing currentBearing = DeviceSensorManager.getInstance().getCurrentBearing();
+
+                if (currentBearingSensor != lastBearingSensor
+                        || lastSimulationEnabled != currentSimulationEnabled) {
+                    TTSWrapper.getInstance().announce(
+                            createBearingDetailsButtonContentDescription(), MessageType.TOP_PRIORITY);
+                    lastBearingSensor = currentBearingSensor;
+                    lastSimulationEnabled = currentSimulationEnabled;
+                } else if (acceptNewBearing.updateBearing(currentBearing, false, false)) {
+                    TTSWrapper.getInstance().announce(
+                            currentBearing.toString(), MessageType.DISTANCE_OR_BEARING);
+                }
+
+                return;
+            }
+            super.onInitializeAccessibilityEvent(host, event);
+        }
+    };
+
+    // location details
+    private ResolveCurrentCoordinatesForTalkbackAction resolveCurrentCoordinatesForTalkbackAction = new ResolveCurrentCoordinatesForTalkbackAction();
+
+    private String createLocationDetailsButtonContentDescription() {
         Point currentLocation = positionManagerInstance.getCurrentLocation();
         StringBuilder locationDescriptionBuilder = new StringBuilder();
 
@@ -621,7 +683,7 @@ public class MainActivity extends AppCompatActivity
                     currentLocation.getName());
         }
 
-        buttonLocationDetails.setContentDescription(locationDescriptionBuilder.toString());
+        return locationDescriptionBuilder.toString();
     }
 
     private void updateAccessibilityActionsOnLocationDetailsButton() {
@@ -634,7 +696,6 @@ public class MainActivity extends AppCompatActivity
         // and create action to control simulation status
         Point simulatedPoint = positionManagerInstance.getSimulatedLocation();
         if (simulatedPoint != null) {
-            Timber.d("updateAccessibilityActionsOnLocationDetailsButton: set location action, sim enabled: %1$s", positionManagerInstance.getSimulationEnabled());
             controlSimulationAccessibilityActionIdForLocation = ViewCompat.addAccessibilityAction(
                     this.buttonLocationDetails,
                     String.format(
@@ -644,8 +705,6 @@ public class MainActivity extends AppCompatActivity
                         simulatedPoint.getName()),
 
                     (actionView, arguments) -> {
-                        ViewCompat.setAccessibilityLiveRegion(
-                                buttonLocationDetails, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE);
                         Helper.vibrateOnce(
                                 Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
                         positionManagerInstance.setSimulationEnabled(
@@ -654,6 +713,78 @@ public class MainActivity extends AppCompatActivity
                     });
         }
     }
+
+
+    private class ResolveCurrentCoordinatesForTalkbackAction {
+        private ServerTaskExecutor serverTaskExecutorInstance;
+        private long taskId;
+
+        public ResolveCurrentCoordinatesForTalkbackAction() {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+            serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+        }
+
+        public void execute() {
+            if (serverTaskExecutorInstance.taskInProgress(taskId)) return;
+            Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+            if (currentLocation == null) return;
+
+            IntentFilter localIntentFilter = new IntentFilter();
+            localIntentFilter.addAction(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL);
+            localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED);
+            localIntentFilter.addAction(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED);
+            LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(localIntentReceiver, localIntentFilter);
+
+            taskId = serverTaskExecutorInstance.executeTask(
+                    new ResolveCoordinatesTask(currentLocation));
+        }
+
+        private BroadcastReceiver localIntentReceiver = new BroadcastReceiver() {
+            @Override public void onReceive(Context context, Intent intent) {
+                if (taskId != intent.getLongExtra(ServerTaskExecutor.EXTRA_TASK_ID, ServerTaskExecutor.INVALID_TASK_ID)) return;
+
+                if (intent.getAction().equals(ServerTaskExecutor.ACTION_RESOLVE_COORDINATES_TASK_SUCCESSFUL)) {
+                    StreetAddress addressPoint = (StreetAddress) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_STREET_ADDRESS);
+                    if (addressPoint != null) {
+                        TTSWrapper.getInstance().screenReader(addressPoint.toString());
+                    }
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_CANCELLED)) {
+                } else if (intent.getAction().equals(ServerTaskExecutor.ACTION_SERVER_TASK_FAILED)) {
+                    AddressException addressException = (AddressException) intent.getSerializableExtra(ServerTaskExecutor.EXTRA_EXCEPTION);
+                    if (addressException != null) {
+                        TTSWrapper.getInstance().screenReader(addressException.getMessage());
+                    }
+                }
+
+                LocalBroadcastManager.getInstance(GlobalInstance.getContext()).unregisterReceiver(localIntentReceiver);
+                taskId = ServerTaskExecutor.NO_TASK_ID;
+            }
+        };
+    }
+
+
+    private class LocationDetailsTtsAccessibilityDelegate extends View.AccessibilityDelegate {
+        private boolean lastSimulationEnabled = PositionManager.getInstance().getSimulationEnabled();
+
+        @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+            if (host.isAccessibilityFocused()
+                    && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
+                boolean currentSimulationEnabled = PositionManager.getInstance().getSimulationEnabled();
+                if (lastSimulationEnabled != currentSimulationEnabled) {
+                    TTSWrapper.getInstance().announce(
+                            createLocationDetailsButtonContentDescription(), MessageType.TOP_PRIORITY);
+                    lastSimulationEnabled = currentSimulationEnabled;
+                } else {
+                    TTSWrapper.getInstance().announce(
+                            createLocationDetailsButtonContentDescription(), MessageType.DISTANCE_OR_BEARING);
+                }
+
+                return;
+            }
+            super.onInitializeAccessibilityEvent(host, event);
+        }
+    };
 
 
     /**
@@ -676,10 +807,10 @@ public class MainActivity extends AppCompatActivity
         registerBroadcastReceiver();
         displayRemainsActiveSettingChanged(
                 settingsManagerInstance.getDisplayRemainsActive());
+        buttonBearingDetails.setContentDescription(createBearingDetailsButtonContentDescription());
         updateAccessibilityActionsOnBearingDetailsButton();
-        updateBearingDetailsButton();
+        buttonLocationDetails.setContentDescription(createLocationDetailsButtonContentDescription());
         updateAccessibilityActionsOnLocationDetailsButton();
-        updateLocationDetailsButton();
         WalkersGuideService.requestServiceState();
 
         if (globalInstance.applicationWasInBackground()) {
@@ -824,13 +955,9 @@ public class MainActivity extends AppCompatActivity
 
             } else if (drawerLayout != null && ! drawerLayout.isOpen()) {
                 if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                    updateBearingDetailsButton();
-                    ViewCompat.setAccessibilityLiveRegion(
-                            buttonBearingDetails, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
+                    buttonBearingDetails.setContentDescription(createBearingDetailsButtonContentDescription());
                 } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                    updateLocationDetailsButton();
-                    ViewCompat.setAccessibilityLiveRegion(
-                            buttonLocationDetails, ViewCompat.ACCESSIBILITY_LIVE_REGION_NONE);
+                    buttonLocationDetails.setContentDescription(createLocationDetailsButtonContentDescription());
                 }
             }
         }

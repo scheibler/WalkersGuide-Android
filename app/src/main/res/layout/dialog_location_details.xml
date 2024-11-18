@@ -76,8 +76,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/minHeight"
-            android:text="@string/buttonEnableLocationSimulation"
-            android:theme="@style/HeadingTextView" />
+            android:text="@string/buttonEnableLocationSimulation" />
 
         <org.walkersguide.android.ui.view.ObjectWithIdView
             android:id="@+id/layoutSimulationPoint"

@@ -712,12 +712,11 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
     // location
     private AcceptNewPosition acceptNewValueForTrackedObjectListUpdate = AcceptNewPosition.newInstanceForObjectListUpdate();
-    private AcceptNewPosition acceptNewValueForDistanceTrackingMode = new AcceptNewPosition(5, 3, null);
+    private AcceptNewPosition acceptNewValueForDistanceTrackingMode = new AcceptNewPosition(5, 3000l, null);
 
     @Override public void newLocation(Point point, boolean isImportant) {
         if (trackingMode != TrackingMode.OFF
                 && acceptNewValueForTrackedObjectListUpdate.updatePoint(point, false, isImportant)) {
-            Helper.vibrateOnce(100, Helper.VIBRATION_INTENSITY_WEAK);
             updateTrackedObjectList();
         }
 
@@ -741,7 +740,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     }
 
     // device sensor data
-    private AcceptNewBearing acceptNewValueForBearingTrackingMode = new AcceptNewBearing(10, 0);
+    private AcceptNewBearing acceptNewValueForBearingTrackingMode = new AcceptNewBearing(10, 500l);
 
     @Override public void newBearing(Bearing bearing, boolean isImportant) {
         if (this.trackedObjectCache != null

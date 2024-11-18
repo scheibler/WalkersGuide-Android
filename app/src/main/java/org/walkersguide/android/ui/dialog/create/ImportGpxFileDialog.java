@@ -388,10 +388,10 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
                 Toast.LENGTH_LONG)
             .show();
 
+        dismiss();
         Bundle result = new Bundle();
         result.putSerializable(EXTRA_GPX_FILE_PROFILE, profileToAddObjectsTo);
         getParentFragmentManager().setFragmentResult(REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, result);
-        dismiss();
     }
 
 

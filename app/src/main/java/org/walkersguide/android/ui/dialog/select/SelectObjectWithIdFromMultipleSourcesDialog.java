@@ -42,7 +42,6 @@ import org.walkersguide.android.util.GlobalInstance;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.ui.fragment.ObjectListFragment;
-import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import timber.log.Timber;
 import org.walkersguide.android.database.SortMethod;
@@ -86,9 +85,6 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                     SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
-                    WhereAmIDialog.REQUEST_RESOLVE_COORDINATES, this, this);
-        getChildFragmentManager()
-            .setFragmentResultListener(
                     EnterAddressDialog.REQUEST_ENTER_ADDRESS, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
@@ -109,10 +105,6 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
         if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION)) {
             objectWithIdSelected(
                     (GPS) bundle.getSerializable(SaveCurrentLocationDialog.EXTRA_CURRENT_LOCATION));
-
-        } else if (requestKey.equals(WhereAmIDialog.REQUEST_RESOLVE_COORDINATES)) {
-            objectWithIdSelected(
-                    (StreetAddress) bundle.getSerializable(WhereAmIDialog.EXTRA_STREET_ADDRESS));
 
         } else if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
             objectWithIdSelected(
@@ -214,7 +206,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
             ArrayList<SourceAction> sourceActionList = new ArrayList<SourceAction>(
                     Arrays.asList(SourceAction.values()));
 
-            // remove actions "CURRENT_LOCATION" and "CLOSEST_ADDRESS"
+            // remove action "CURRENT_LOCATION"
             switch (target) {
                 case ROUTE_VIA_POINT_1:
                 case ROUTE_VIA_POINT_2:
@@ -222,7 +214,6 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                 case ROUTE_DESTINATION_POINT:
                 case SIMULATE_LOCATION:
                     sourceActionList.remove(SourceAction.CURRENT_LOCATION);
-                    sourceActionList.remove(SourceAction.CLOSEST_ADDRESS);
                     break;
             }
 
@@ -267,11 +258,10 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
     private enum SourceAction {
 
         CURRENT_LOCATION(GlobalInstance.getStringResource(R.string.pointSelectFromCurrentLocation)),
-        CLOSEST_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromClosestAddress)),
-        HOME_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromHomeAddress)),
         ENTER_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromEnterAddress)),
-        COLLECTIONS(GlobalInstance.getStringResource(R.string.pointSelectFromCollections)),
         POI(GlobalInstance.getStringResource(R.string.pointSelectFromPOI)),
+        HOME_ADDRESS(GlobalInstance.getStringResource(R.string.pointSelectFromHomeAddress)),
+        COLLECTIONS(GlobalInstance.getStringResource(R.string.pointSelectFromCollections)),
         HISTORY(GlobalInstance.getStringResource(R.string.pointSelectFromHistory)),
         FROM_COORDINATES_LINK(GlobalInstance.getStringResource(R.string.pointSelectFromCoordinatesLink)),
         ENTER_COORDINATES(GlobalInstance.getStringResource(R.string.pointSelectFromEnterCoordinates));
@@ -324,11 +314,6 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                     default:
                         objectWithIdSelected(currentLocation);
                 }
-                break;
-
-            case CLOSEST_ADDRESS:
-                WhereAmIDialog.newInstance(true)
-                    .show(getChildFragmentManager(), "WhereAmIDialog");
                 break;
 
             case HOME_ADDRESS:

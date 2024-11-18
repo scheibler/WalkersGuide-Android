@@ -1,13 +1,13 @@
 package org.walkersguide.android.ui.fragment;
 
 import android.view.accessibility.AccessibilityEvent;
-import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import java.util.concurrent.Executors;
 import android.os.Handler;
 import android.os.Looper;
 
 import timber.log.Timber;
+import org.walkersguide.android.ui.dialog.edit.SpeechRateDialog;
 import org.walkersguide.android.ui.dialog.edit.ChangeServerUrlDialog;
 import org.walkersguide.android.ui.dialog.select.SelectPublicTransportProviderDialog;
 import org.walkersguide.android.ui.dialog.select.SelectShakeIntensityDialog;
@@ -62,7 +62,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
-import androidx.fragment.app.Fragment;
 import org.walkersguide.android.util.SettingsManager;
 
 
@@ -86,9 +85,6 @@ import android.widget.TextView;
 import android.view.KeyEvent;
 import org.walkersguide.android.ui.UiHelper;
 import android.view.inputmethod.EditorInfo;
-import org.walkersguide.android.ui.activity.MainActivity;
-import android.app.Activity;
-import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
 import org.walkersguide.android.ui.view.ObjectWithIdView;
 import org.walkersguide.android.data.object_with_id.Point;
@@ -99,7 +95,6 @@ import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import androidx.fragment.app.DialogFragment;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
-import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
 import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings.Preset;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.database.profile.StaticProfile;
@@ -127,6 +122,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private Button buttonShakeIntensity;
     private SwitchCompat switchShowActionButton, switchDisplayRemainsActive, switchPreferFusedLocationProviderInsteadOfNetworkProvider;
     private SwitchCompat switchAnnouncementsEnabled, switchKeepBluetoothHeadsetConnectionAlive;
+    private Button buttonSpeechRate;
     private EditText editDistanceAnnouncementInterval;
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -160,6 +156,9 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         getChildFragmentManager()
             .setFragmentResultListener(
                     SelectShakeIntensityDialog.REQUEST_SELECT_SHAKE_INTENSITY, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    SpeechRateDialog.REQUEST_CHANGE_SPEECH_RATE, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     ImportSettingsInBackgroundDialog.REQUEST_IMPORT_OF_SETTINGS_IN_BACKGROUND_WAS_SUCCESSFUL, this, this);
@@ -212,6 +211,13 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         } else if (requestKey.equals(SelectShakeIntensityDialog.REQUEST_SELECT_SHAKE_INTENSITY)) {
             settingsManagerInstance.setSelectedShakeIntensity(
                     (ShakeIntensity) bundle.getSerializable(SelectShakeIntensityDialog.EXTRA_SHAKE_INTENSITY));
+            updateUI();
+
+        } else if (requestKey.equals(SpeechRateDialog.REQUEST_CHANGE_SPEECH_RATE)) {
+            TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
+            ttsSettings.setSpeechRate(
+                    bundle.getFloat(SpeechRateDialog.EXTRA_SPEECH_RATE));
+            settingsManagerInstance.setTtsSettings(ttsSettings);
             updateUI();
 
         } else if (requestKey.equals(ImportSettingsInBackgroundDialog.REQUEST_IMPORT_OF_SETTINGS_IN_BACKGROUND_WAS_SUCCESSFUL)) {
@@ -362,6 +368,8 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
             }
         });
 
+        // tts
+
         switchAnnouncementsEnabled = (SwitchCompat) view.findViewById(R.id.switchAnnouncementsEnabled);
         switchAnnouncementsEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
@@ -370,6 +378,15 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                     ttsSettings.setAnnouncementsEnabled(isChecked);
                     settingsManagerInstance.setTtsSettings(ttsSettings);
                 }
+            }
+        });
+
+        buttonSpeechRate = (Button) view.findViewById(R.id.buttonSpeechRate);
+        buttonSpeechRate.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                SpeechRateDialog.newInstance(
+                        settingsManagerInstance.getTtsSettings().getSpeechRate())
+                    .show(getChildFragmentManager(), "SpeechRateDialog");
             }
         });
 
@@ -522,6 +539,13 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                 );
         TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
         switchAnnouncementsEnabled.setChecked(ttsSettings.getAnnouncementsEnabled());
+        buttonSpeechRate.setText(
+                String.format(
+                    Locale.getDefault(),
+                    "%1$s: %2$.2fx",
+                    getResources().getString(R.string.buttonSpeechRate),
+                    ttsSettings.getSpeechRate())
+                );
         editDistanceAnnouncementInterval.setText(
                 String.valueOf(ttsSettings.getDistanceAnnouncementInterval()));
         editDistanceAnnouncementInterval.selectAll();

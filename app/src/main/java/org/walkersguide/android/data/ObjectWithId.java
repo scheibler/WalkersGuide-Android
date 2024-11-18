@@ -325,6 +325,22 @@ public abstract class ObjectWithId implements Serializable {
 
     public abstract Coordinates getCoordinates();
 
+    public String formatRelativeBearingFromCurrentLocation(boolean showPreciseBearingValues) {
+        RelativeBearing relativeBearing = relativeBearingFromCurrentLocation();
+        if (relativeBearing != null) {
+            String output = relativeBearing.getDirection().toString();
+            if (showPreciseBearingValues) {
+                output += " ";
+                output += String.format(
+                        Locale.ROOT,
+                        GlobalInstance.getStringResource(R.string.preciseBearingValues),
+                        relativeBearing.getDegree());
+            }
+            return output;
+        }
+        return "";
+    }
+
     public String formatDistanceAndRelativeBearingFromCurrentLocation(int distancePluralResourceId) {
         return formatDistanceAndRelativeBearingFromCurrentLocation(distancePluralResourceId, false);
     }
@@ -332,24 +348,14 @@ public abstract class ObjectWithId implements Serializable {
     public String formatDistanceAndRelativeBearingFromCurrentLocation(
             int distancePluralResourceId, boolean showPreciseBearingValues) {
         Integer distance = distanceFromCurrentLocation();
-        Bearing bearing = bearingFromCurrentLocation();
-        if (distance != null && bearing != null) {
-            RelativeBearing relativeBearing = bearing.relativeToCurrentBearing();
-            if (relativeBearing != null) {
-                String output = String.format(
-                        Locale.getDefault(),
-                        "%1$s, %2$s",
-                        GlobalInstance.getPluralResource(distancePluralResourceId, distance),
-                        relativeBearing.getDirection());
-                if (showPreciseBearingValues) {
-                    output += " ";
-                    output += String.format(
-                            Locale.ROOT,
-                            GlobalInstance.getStringResource(R.string.preciseBearingValues),
-                            relativeBearing.getDegree());
-                }
-                return output;
-            }
+        String relativeBearingFromCurrentLocationFormatted = formatRelativeBearingFromCurrentLocation(showPreciseBearingValues);
+        if (distance != null
+                && ! TextUtils.isEmpty(relativeBearingFromCurrentLocationFormatted)) {
+            return String.format(
+                    Locale.getDefault(),
+                    "%1$s, %2$s",
+                    GlobalInstance.getPluralResource(distancePluralResourceId, distance),
+                    relativeBearingFromCurrentLocationFormatted);
         }
         return "";
     }
@@ -373,6 +379,14 @@ public abstract class ObjectWithId implements Serializable {
         Point currentLocation = PositionManager.getInstance().getCurrentLocation();
         if (currentLocation != null) {
             return currentLocation.bearingTo(this);
+        }
+        return null;
+    }
+
+    public RelativeBearing relativeBearingFromCurrentLocation() {
+        Bearing bearing = bearingFromCurrentLocation();
+        if (bearing != null) {
+            return bearing.relativeToCurrentBearing();
         }
         return null;
     }

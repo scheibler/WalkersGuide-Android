@@ -42,28 +42,17 @@ public class WhereAmIDialog extends DialogFragment implements OnCurrentAddressRe
     // instance constructors
 
     public static WhereAmIDialog newInstance() {
-        return WhereAmIDialog.newInstance(false);
-    }
-
-    public static WhereAmIDialog newInstance(boolean onlyResolveAddressAndCloseDialogImmediately) {
         WhereAmIDialog dialog = new WhereAmIDialog();
-        Bundle args = new Bundle();
-        args.putBoolean(KEY_ONLY_RESOLVE_ADDRESS, onlyResolveAddressAndCloseDialogImmediately);
-        dialog.setArguments(args);
         return dialog;
     }
 
 
     // dialog
     private static final String KEY_TASK_ID = "taskId";
-    private static final String KEY_ONLY_RESOLVE_ADDRESS = "onlyResolveAddressAndCloseDialogImmediately";
 
-    private boolean onlyResolveAddressAndCloseDialogImmediately;
     private ResolveCurrentAddressView layoutClosestAddress;
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        onlyResolveAddressAndCloseDialogImmediately = getArguments().getBoolean(KEY_ONLY_RESOLVE_ADDRESS);
-
         layoutClosestAddress = new ResolveCurrentAddressView(WhereAmIDialog.this.getContext());
         layoutClosestAddress.setLayoutParams(
                 new LinearLayout.LayoutParams(
@@ -75,27 +64,21 @@ public class WhereAmIDialog extends DialogFragment implements OnCurrentAddressRe
                 : ServerTaskExecutor.NO_TASK_ID);
 
         // create dialog
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity())
+        return new AlertDialog.Builder(getActivity())
             .setView(layoutClosestAddress)
             .setNegativeButton(
-                    onlyResolveAddressAndCloseDialogImmediately
-                    ? getResources().getString(R.string.dialogCancel)
-                    : getResources().getString(R.string.dialogClose),
+                    getResources().getString(R.string.dialogClose),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
-                    });
-
-        if (! onlyResolveAddressAndCloseDialogImmediately) {
-            dialogBuilder.setNeutralButton(
-                        getResources().getString(R.string.dialogRefresh),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        });
-        }
-
-        return dialogBuilder.create();
+                    })
+            .setNeutralButton(
+                    getResources().getString(R.string.dialogRefresh),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+            .create();
     }
 
     @Override public void onStart() {
@@ -138,15 +121,7 @@ public class WhereAmIDialog extends DialogFragment implements OnCurrentAddressRe
     }
 
     @Override public void onCurrentAddressResolved(StreetAddress addressPoint) {
-        if (onlyResolveAddressAndCloseDialogImmediately) {
-            Bundle result = new Bundle();
-            result.putSerializable(EXTRA_STREET_ADDRESS, addressPoint);
-            getParentFragmentManager().setFragmentResult(REQUEST_RESOLVE_COORDINATES, result);
-            dismiss();
-        } else {
-            // announce
-            TTSWrapper.getInstance().screenReader(addressPoint.toString());
-        }
+        TTSWrapper.getInstance().screenReader(addressPoint.toString());
     }
 
     @Override public void onDestroy() {

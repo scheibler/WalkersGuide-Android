@@ -9,16 +9,18 @@ public class TtsSettings implements Serializable {
     private static final long serialVersionUID = 1l;
 
     public static TtsSettings getDefault() {
-        return new TtsSettings(true, 30);
+        return new TtsSettings(true, 30, 1.0f);
     }
 
 
     private boolean announcementsEnabled;
     private int distanceAnnouncementInterval;
+    private float speechRate;
 
-    public TtsSettings(boolean announcementsEnabled, int distanceAnnouncementInterval) {
+    public TtsSettings(boolean announcementsEnabled, int distanceAnnouncementInterval, float speechRate) {
         this.announcementsEnabled = announcementsEnabled;
         this.distanceAnnouncementInterval = distanceAnnouncementInterval;
+        this.speechRate = speechRate;
     }
 
     public boolean getAnnouncementsEnabled() {
@@ -33,10 +35,24 @@ public class TtsSettings implements Serializable {
         return this.distanceAnnouncementInterval;
     }
 
-    public void setDistanceAnnouncementInterval(int newInterval) {
+    public boolean setDistanceAnnouncementInterval(int newInterval) {
         if (newInterval > 0) {
             this.distanceAnnouncementInterval = newInterval;
+            return true;
         }
+        return false;
+    }
+
+    public float getSpeechRate() {
+        return this.speechRate;
+    }
+
+    public boolean setSpeechRate(float newSpeechRate) {
+        if (newSpeechRate > 0) {
+            this.speechRate = newSpeechRate;
+            return true;
+        }
+        return false;
     }
 
 }

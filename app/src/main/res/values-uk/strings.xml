@@ -96,7 +96,6 @@
     <string name="menuItemSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
     <string name="menuItemCollections">Бази</string>
     <string name="menuItemHistory">Історія</string>
-    <string name="menuItemMisc">Різне:</string>
     <string name="menuItemSettings">Налаштування</string>
     <string name="menuItemInfo">Інформація</string>
     <string name="menuItemContactMe">Зворотний зв\'язок</string>
@@ -129,7 +128,6 @@
     <string name="messageObjectWithIdIncompatibleTargetPointRequired">Будь ласка, виберіть точку.</string>
     <!-- list items -->
     <string name="pointSelectFromCurrentLocation">Поточне місцезнаходження</string>
-    <string name="pointSelectFromClosestAddress">Найближча адреса</string>
     <string name="pointSelectFromHomeAddress">Домашня адреса</string>
     <string name="pointSelectFromEnterAddress">Ввести адресу</string>
     <string name="pointSelectFromEnterCoordinates">Ввести координати</string>
@@ -202,9 +200,12 @@
     <!-- translate me -->
     <string name="fragmentStartName">Home</string>
     <string name="buttonNavigateToAddress">Navigate to address</string>
+    <string name="buttonNavigateHome">Navigate home</string>
     <string name="buttonSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
     <string name="buttonShareLocation">Share my location</string>
     <string name="buttonLoadSharedLocation">Load shared location</string>
+    <!-- translate me -->
+    <string name="buttonOpenGpxFile">Open GPX file</string>
     <string name="buttonRecordRoute">Record route</string>
     <string name="buttonCollections">Open collections</string>
     <string name="buttonHistory">Show history</string>
@@ -401,7 +402,7 @@
     -->
 
     <!-- object details tab layout fragment -->
-    <string name="labelPointDistanceAndBearing">Відстань: %1$s</string>
+    <string name="labelPointDistanceAndBearing">Відстань</string>
     <string name="labelSegmentDirection">Напрямок: %1$s</string>
     <string name="labelUserAnnotation">Моя примітка</string>
 
@@ -557,6 +558,8 @@
     <string name="switchAnnouncementsEnabled">Голосові сповіщення.</string>
     <string name="labelDistanceAnnouncementInterval">Інтервал сповіщень (за відстанню)</string>
     <string name="labelDistanceAnnouncementIntervalUnit">метрів</string>
+    <!-- translate me -->
+    <string name="buttonSpeechRate">Speech rate</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Підтримувати активним підключення Bluetooth-гарнітури</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Деякі Bluetooth-гарнітури переходять у режим сну після певного часу бездіяльності, а їх подальше пробудження викликає помітну затримку, що може спричинити пропуск частини наступного сповіщення.</string>
     <string name="labelImportAndExportSettingsHeader">Імпорт та експорт налаштувань програми:</string>
@@ -579,6 +582,11 @@
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Виберіть інтенсивність:</string>
+
+    <!-- SpeechRateDialog -->
+    <!-- translate me -->
+    <string name="buttonDecreaseSpeechRate">Decrease speech rate</string>
+    <string name="buttonIncreaseSpeechRate">Increase speech rate</string>
 
     <!-- InfoDialog -->
     <string name="infoDialogTitle">Інформація</string>
@@ -649,6 +657,7 @@
     <string name="labelPrefixVia3">Проміжна 3</string>
     <string name="labelPrefixDestination">Кінець</string>
     <string name="labelPrefixSimulation">Імітація</string>
+    <string name="labelPrefixClosestAddress">Найближча адреса</string>
 
     <!-- object context menu -->
     <string name="contextMenuItemObjectWithIdDepartures">Відправлення</string>
@@ -756,6 +765,8 @@
     <string name="dialogRefresh">Оновити</string>
     <string name="dialogSend">Надіслати</string>
     <string name="dialogSomethingMissing">Щось пропущено?</string>
+    <!-- translate me -->
+    <string name="dialogTest">Test</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">і</string>
@@ -971,6 +982,8 @@
     <string name="messageArrivedAtRoutePoint">Ви прибули до точки %1$d.\nТеперр: %2$s.\nПотім: %3$s.</string>
     <string name="messageArrivedAtRoutePointWithNextTurn">Ви прибули до точки %1$d.\nТепер: %2$s.\nПотім: %3$s.\nПісля чого: %4$s.</string>
     <string name="messageArrivedAtRouteDestination">Ви прибули до кінцевої точки.</string>
+    <!-- translate me -->
+    <string name="messageTestInstruction">Arrived at point 2. Now: Turn left. Then: 69 Meter on main street (primary road). Afterwards: Straight ahead.</string>
 
     <!-- RouteObject -->
     <string name="routePointInstructionStart">Початок: %1$s</string>
@@ -981,6 +994,7 @@
 
     <!-- WayClassSettings presets -->
     <!-- translate me -->
+    <string name="wcwsPresetShortestRoute">Shortest route</string>
     <string name="wcwsPresetUrbanOnFoot">On foot in urban areas</string>
     <string name="wcwsPresetUrbanByCar">By car in urban areas</string>
     <string name="wcwsPresetHiking">Hiking</string>

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.overview;
 
+import org.walkersguide.android.ui.dialog.create.ImportGpxFileDialog;
 import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -61,6 +62,8 @@ import android.widget.Toast;
 import org.walkersguide.android.util.SettingsManager;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 
 
 public class StartFragment extends BaseOverviewFragment
@@ -80,6 +83,9 @@ public class StartFragment extends BaseOverviewFragment
         getChildFragmentManager()
             .setFragmentResultListener(
                     PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK, this, this);
+        getChildFragmentManager()
+            .setFragmentResultListener(
+                    ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
@@ -92,10 +98,18 @@ public class StartFragment extends BaseOverviewFragment
                 mainActivityController.addFragment(
                         ObjectDetailsTabLayoutFragment.details(sharedLocation));
             }
+        } else if (requestKey.equals(ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL)) {
+            DatabaseProfile profileFromGpxFileImport = (DatabaseProfile) bundle.getSerializable(ImportGpxFileDialog.EXTRA_GPX_FILE_PROFILE);
+            if (profileFromGpxFileImport != null) {
+                mainActivityController.addFragment(
+                        CollectionListFragment.newInstance());
+                mainActivityController.addFragment(
+                        ObjectListFromDatabaseFragment.newInstance(profileFromGpxFileImport));
+            }
         }
     }
 
-    private void prepareRequestAndCalculateRoute(StreetAddress destination) {
+    private void prepareRequestAndCalculateRoute(Point destination) {
         P2pRouteRequest p2pRouteRequest = P2pRouteRequest.getDefault();
 
         // start point
@@ -147,6 +161,22 @@ public class StartFragment extends BaseOverviewFragment
             }
         });
 
+        Button buttonNavigateHome = (Button) view.findViewById(R.id.buttonNavigateHome);
+        buttonNavigateHome.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                Point homeAddress = SettingsManager.getInstance().getHomeAddress();
+                if (homeAddress == null) {
+                    Toast.makeText(
+                            getActivity(),
+                            GlobalInstance.getStringResource(R.string.errorNoHomeAddressSet),
+                            Toast.LENGTH_LONG)
+                        .show();
+                } else {
+                    prepareRequestAndCalculateRoute(homeAddress);
+                }
+            }
+        });
+
         Button buttonSaveCurrentLocation = (Button) view.findViewById(R.id.buttonSaveCurrentLocation);
         buttonSaveCurrentLocation.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -173,6 +203,14 @@ public class StartFragment extends BaseOverviewFragment
             @Override public void onClick(View v) {
                 PointFromCoordinatesLinkDialog.newInstance()
                     .show(getChildFragmentManager(), "PointFromCoordinatesLinkDialog");
+            }
+        });
+
+        Button buttonOpenGpxFile = (Button) view.findViewById(R.id.buttonOpenGpxFile);
+        buttonOpenGpxFile.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                ImportGpxFileDialog.newInstance(null, false)
+                    .show(getChildFragmentManager(), "ImportGpxFileDialog");
             }
         });
 

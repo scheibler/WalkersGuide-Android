@@ -427,30 +427,4 @@ public class PositionManager implements android.location.LocationListener {
         }
     }
 
-
-    /**
-     * log to text file
-     */
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.ROOT);
-
-    private static void appendToLog(String fileName, String message) {
-        File file = new File(
-                GlobalInstance.getContext().getExternalFilesDir(null),
-                String.format("%1$s.log", fileName));
-        try {
-            FileWriter fw = new FileWriter(file, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(
-                    String.format(
-                        "%1$s\t%2$s\n",
-                        message,
-                        sdf.format(new Date(System.currentTimeMillis())))
-                    );
-            bw.close();
-            fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

@@ -2,25 +2,15 @@
 
 import androidx.core.view.ViewCompat;
 import org.walkersguide.android.ui.dialog.edit.UserAnnotationForObjectWithIdDialog;
-import timber.log.Timber;
 import org.walkersguide.android.R;
-import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 import android.widget.LinearLayout;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.os.Bundle;
 import android.content.IntentFilter;
-import org.walkersguide.android.server.ServerTaskExecutor;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.walkersguide.android.util.GlobalInstance;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.server.address.ResolveCoordinatesTask;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
-import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
-import org.walkersguide.android.data.object_with_id.Point;
-import org.walkersguide.android.server.address.AddressException;
-import org.walkersguide.android.sensor.position.AcceptNewPosition;
 import org.walkersguide.android.data.ObjectWithId;
 import android.widget.TextView;
 import android.view.View;

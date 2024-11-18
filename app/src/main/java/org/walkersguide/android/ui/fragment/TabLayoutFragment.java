@@ -104,9 +104,12 @@ public abstract class TabLayoutFragment extends RootFragment implements OnTabSel
         }
 
         // prepare tab layout
+        tabLayout.clearOnTabSelectedListeners();
+        tabLayout.removeAllTabs();
         for (int i=0; i<tabAdapter.getTabList().size(); i++) {
             TabLayout.Tab tabLayoutTab = tabLayout.newTab();
             tabLayoutTab.setText(tabAdapter.getFragmentName(i));
+            tabLayoutTab.setContentDescription(tabAdapter.getFragmentDescription(i));
             tabLayout.addTab(tabLayoutTab);
         }
 
@@ -206,6 +209,10 @@ public abstract class TabLayoutFragment extends RootFragment implements OnTabSel
                 return tabIndex;
             }
             return 0;
+        }
+
+        public String getFragmentDescription(int position) {
+            return getFragmentName(position);
         }
     }
 

@@ -35,6 +35,14 @@
                 android:text="@string/buttonNavigateToAddress" />
 
             <Button
+                android:id="@+id/buttonNavigateHome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="@string/buttonNavigateHome" />
+
+            <Button
                 android:id="@+id/buttonSaveCurrentLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,6 +65,14 @@
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
                 android:text="@string/buttonLoadSharedLocation" />
+
+            <Button
+                android:id="@+id/buttonOpenGpxFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="@string/buttonOpenGpxFile" />
 
             <Button
                 android:id="@+id/buttonRecordRoute"

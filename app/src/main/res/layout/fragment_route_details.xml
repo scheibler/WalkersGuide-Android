@@ -10,7 +10,8 @@
         android:id="@+id/labelDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:focusable="true" />
+        android:focusable="true"
+        android:textSize="@dimen/smallTextSize" />
 
     <org.walkersguide.android.ui.view.UserAnnotationView
         android:id="@+id/layoutUserAnnotation"
