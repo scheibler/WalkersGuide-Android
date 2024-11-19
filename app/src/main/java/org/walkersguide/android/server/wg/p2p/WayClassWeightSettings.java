@@ -35,7 +35,16 @@ public class WayClassWeightSettings implements Serializable {
                 GlobalInstance.getStringResource(R.string.wcwsPresetHiking),
                 presetHiking());
 
-        public static Preset matches(WayClassWeightSettings settings) {
+        public static Preset matchesId(int presetId) {
+            for (Preset preset : values()) {
+                if (preset.id == presetId) {
+                    return preset;
+                }
+            }
+            return null;
+        }
+
+        public static Preset matchesSettings(WayClassWeightSettings settings) {
             for (Preset preset : values()) {
                 if (preset.settings.equals(settings)) {
                     return preset;

@@ -220,7 +220,7 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
         }
         optionsMenu.getMenu().setGroupCheckable(MENU_GROUP_PRESET, true, true);
 
-        Preset matchingPreset = Preset.matches(wayClassWeightSettings);
+        Preset matchingPreset = Preset.matchesSettings(wayClassWeightSettings);
         if (matchingPreset != null) {
             MenuItem matchingPresetMenuItem = optionsMenu.getMenu().findItem(matchingPreset.id);
             if (matchingPresetMenuItem != null) {
@@ -230,12 +230,9 @@ public class ConfigureWayClassWeightsDialog extends DialogFragment
 
         optionsMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == Preset.URBAN_ON_FOOT.id) {
-                    wayClassWeightSettings = Preset.URBAN_ON_FOOT.settings;
-                } else if (item.getItemId() == Preset.URBAN_BY_CAR.id) {
-                    wayClassWeightSettings = Preset.URBAN_BY_CAR.settings;
-                } else if (item.getItemId() == Preset.HIKING.id) {
-                    wayClassWeightSettings = Preset.HIKING.settings;
+                Preset matchingPreset = Preset.matchesId(item.getItemId());
+                if (matchingPreset != null) {
+                    wayClassWeightSettings = matchingPreset.settings;
                 } else {
                     return false;
                 }

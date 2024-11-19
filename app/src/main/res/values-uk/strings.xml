@@ -190,25 +190,22 @@
     <string name="mainTabNameRoutes">Маршрути</string>
     <string name="mainTabNamePoints">Точки</string>
     <!-- accessibility actions in the toolbar -->
-    <!-- translate me -->
-    <string name="accessibilityActionUseBearingSource">Use bearing source: %1$s</string>
-    <string name="accessibilityActionStartSimulationBearing">Simulate bearing: %1$s</string>
-    <string name="accessibilityActionStartSimulationLocation">Simulate location: %1$s</string>
-    <string name="accessibilityActionEndSimulation">End simulation of %1$s</string>
+    <string name="accessibilityActionUseBearingSource">Використовувати %1$s для визначення азимуту</string>
+    <string name="accessibilityActionStartSimulationBearing">Імітувати азимут: %1$s</string>
+    <string name="accessibilityActionStartSimulationLocation">Імітувати місцезнаходження: %1$s</string>
+    <string name="accessibilityActionEndSimulation">Вимкнути імітацію %1$s</string>
 
     <!-- StartFragment -->
-    <!-- translate me -->
-    <string name="fragmentStartName">Home</string>
-    <string name="buttonNavigateToAddress">Navigate to address</string>
-    <string name="buttonNavigateHome">Navigate home</string>
+    <string name="fragmentStartName">Інструменти</string>
+    <string name="buttonNavigateToAddress">Маршрут до адреси</string>
+    <string name="buttonNavigateHome">Маршрут додому</string>
     <string name="buttonSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
-    <string name="buttonShareLocation">Share my location</string>
-    <string name="buttonLoadSharedLocation">Load shared location</string>
-    <!-- translate me -->
-    <string name="buttonOpenGpxFile">Open GPX file</string>
-    <string name="buttonRecordRoute">Record route</string>
-    <string name="buttonCollections">Open collections</string>
-    <string name="buttonHistory">Show history</string>
+    <string name="buttonShareLocation">Поділитися поточним місцезнаходженням</string>
+    <string name="buttonLoadSharedLocation">Імпортувати посилання з координатами</string>
+    <string name="buttonOpenGpxFile">Імпортувати файл GPX</string>
+    <string name="buttonRecordRoute">Записати маршрут</string>
+    <string name="buttonCollections">Переглянути бази</string>
+    <string name="buttonHistory">Переглянути історію</string>
 
     <!-- pin fragment -->
     <string name="fragmentPinName">Закріплені</string>
@@ -248,8 +245,7 @@
     <string name="messageNextSegmentInstructionAndTurn">%1$s. після чого %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Перебудувати</string>
-    <!-- translate me -->
-    <string name="menuItemJumpToNearestPoint">Jump to nearest point</string>
+    <string name="menuItemJumpToNearestPoint">Перейти до найближчої точки</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Автоматично переходити до наступної точки</string>
     <string name="menuItemShowPreciseBearingValues">Показувати точні азимути</string>
     <string name="menuItemShowIntersectionLayoutDetails">Показувати схеми перехресть</string>
@@ -558,8 +554,7 @@
     <string name="switchAnnouncementsEnabled">Голосові сповіщення.</string>
     <string name="labelDistanceAnnouncementInterval">Інтервал сповіщень (за відстанню)</string>
     <string name="labelDistanceAnnouncementIntervalUnit">метрів</string>
-    <!-- translate me -->
-    <string name="buttonSpeechRate">Speech rate</string>
+    <string name="buttonSpeechRate">Темп мовлення</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Підтримувати активним підключення Bluetooth-гарнітури</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Деякі Bluetooth-гарнітури переходять у режим сну після певного часу бездіяльності, а їх подальше пробудження викликає помітну затримку, що може спричинити пропуск частини наступного сповіщення.</string>
     <string name="labelImportAndExportSettingsHeader">Імпорт та експорт налаштувань програми:</string>
@@ -584,9 +579,8 @@
     <string name="selectShakeIntensityDialogTitle">Виберіть інтенсивність:</string>
 
     <!-- SpeechRateDialog -->
-    <!-- translate me -->
-    <string name="buttonDecreaseSpeechRate">Decrease speech rate</string>
-    <string name="buttonIncreaseSpeechRate">Increase speech rate</string>
+    <string name="buttonDecreaseSpeechRate">Зменшити темп мовлення</string>
+    <string name="buttonIncreaseSpeechRate">Збільшити темп мовлення</string>
 
     <!-- InfoDialog -->
     <string name="infoDialogTitle">Інформація</string>
@@ -605,10 +599,9 @@
     <string name="labelSelectedMapName">Карта</string>
     <string name="labelSelectedMapCreated">Створено</string>
     <!-- public transport data -->
-    <!-- translate me -->
-    <string name="labelPublicTransportHeading">Public transport data</string>
-    <string name="labelPublicTransportMessage">The public transport data is provided by the library &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
-        Here you can find the &lt;a href="%2$s"&gt;list of all supported providers&lt;/a&gt;.</string>
+    <string name="labelPublicTransportHeading">Інформація про громадський транспорт</string>
+    <string name="labelPublicTransportMessage">Для отримання інформації про рух громадського транспорту використовується бібліотека &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
+        Тут ви можете знайти &lt;a href="%2$s"&gt;список всих доступних постачальників даних&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
     <string name="sendFeedbackDialogTitle">Надіслати відгук:</string>
@@ -668,8 +661,7 @@
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">Виключити з маршрутизації</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Імітувати місцезнаходження</string>
     <string name="contextMenuItemObjectWithIdSimulateBearing">Імітувати напрямок</string>
-    <!-- translate me -->
-    <string name="contextMenuItemObjectWithIdNavigateToThisPoint">Navigate to this point</string>
+    <string name="contextMenuItemObjectWithIdNavigateToThisPoint">Маршрут до цієї точки</string>
     <string name="contextMenuItemObjectWithIdCollections">Додати до бази</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Побудувати маршрут</string>
     <string name="contextMenuItemObjectWithIdShareCoordinates">Поділитися координатами</string>
@@ -740,8 +732,7 @@
     <string name="contextMenuItemOverviewTrack">Відстежувати</string>
     <string name="contextMenuItemUserAnnotationAdd">Додати примітку</string>
     <string name="contextMenuItemUserAnnotationEdit">Редагувати примітку</string>
-    <!-- translate me -->
-    <string name="contextMenuItemEdit">Edit</string>
+    <string name="contextMenuItemEdit">Редагувати</string>
     <string name="contextMenuItemRename">Перейменувати</string>
     <string name="contextMenuItemRemove">видалити</string>
 
@@ -760,18 +751,16 @@
     <string name="dialogDefault">Стандартні параметри</string>
     <string name="dialogNow">Зараз</string>
     <string name="dialogOptions">Параметри</string>
-    <!-- translate me -->
-    <string name="dialogPresets">Presets</string>
+    <string name="dialogPresets">Шаблони пріоритетів</string>
     <string name="dialogRefresh">Оновити</string>
     <string name="dialogSend">Надіслати</string>
     <string name="dialogSomethingMissing">Щось пропущено?</string>
-    <!-- translate me -->
-    <string name="dialogTest">Test</string>
+    <string name="dialogTest">Прослухати приклад</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">і</string>
     <!-- translate me -->
-    <string name="fillingWordCustom">custom</string>
+    <string name="fillingWordCustom">Персоналізовано</string>
     <string name="fillingWordHas">має</string>
     <string name="stateCollapsed">згорнуто</string>
     <string name="stateExpanded">розгорнуто</string>
@@ -841,10 +830,10 @@
     <string name="sidewalkNo">Ні</string>
     <string name="sidewalkLeft">Ліворуч</string>
     <string name="sidewalkRight">Праворуч</string>
-    <string name="sidewalkBoth">З обох боків</string>
+<string name="sidewalkBoth">З обох боків</string>
 
     <!-- route segment -->
-    <string name="routeSegmentNameUnknown">Відрізок шляху</string>
+<string name="routeSegmentNameUnknown">Відрізок шляху</string>
     <string name="routeSegmentToString">Рухайтесь %1$s по %2$s</string>
 
 
@@ -982,8 +971,7 @@
     <string name="messageArrivedAtRoutePoint">Ви прибули до точки %1$d.\nТеперр: %2$s.\nПотім: %3$s.</string>
     <string name="messageArrivedAtRoutePointWithNextTurn">Ви прибули до точки %1$d.\nТепер: %2$s.\nПотім: %3$s.\nПісля чого: %4$s.</string>
     <string name="messageArrivedAtRouteDestination">Ви прибули до кінцевої точки.</string>
-    <!-- translate me -->
-    <string name="messageTestInstruction">Arrived at point 2. Now: Turn left. Then: 69 Meter on main street (primary road). Afterwards: Straight ahead.</string>
+    <string name="messageTestInstruction">Ви прибули у точку 2. Зараз: Поверніть ліворуч. Потім: Рухайтесь 69 метрів по проспекту Сагайдачного (головна дорога). Після чого: Рухайтесь прямо.</string>
 
     <!-- RouteObject -->
     <string name="routePointInstructionStart">Початок: %1$s</string>
@@ -993,11 +981,10 @@
     <string name="routeSegmentBewareCyclists">Увага: велосипедний рух</string>
 
     <!-- WayClassSettings presets -->
-    <!-- translate me -->
-    <string name="wcwsPresetShortestRoute">Shortest route</string>
-    <string name="wcwsPresetUrbanOnFoot">On foot in urban areas</string>
-    <string name="wcwsPresetUrbanByCar">By car in urban areas</string>
-    <string name="wcwsPresetHiking">Hiking</string>
+    <string name="wcwsPresetShortestRoute">Найкоротший маршрут</string>
+    <string name="wcwsPresetUrbanOnFoot">Пішохідний маршрут містом</string>
+    <string name="wcwsPresetUrbanByCar">Автомобільний маршрут містом</string>
+    <string name="wcwsPresetHiking">Пішохідний маршрут пересіченою місцевістю</string>
 
     <!-- WayClassType -->
     <string name="wayClassTypeBigStreets">Головні вулиці</string>
@@ -1136,10 +1123,9 @@
     <string name="errorAddrReqNoAddressForCoordinates">Не знайдено адреси для цих координат.</string>
 
     <!-- other errors -->
-    <!-- translate me -->
     <string name="errorSavePointFailed">Помилка створення точки.</string>
     <string name="errorNoHomeAddressSet">Ви ще не вибрали свою домашню адресу. Це можна зробити в налаштуваннях програми.</string>
-    <string name="errorNoSpeechRecognition">The speech input feature is not available.</string>
+    <string name="errorNoSpeechRecognition">Функція розпізнавання мовлення недоступна на цьому пристрої.</string>
     <string name="errorNoLocationFound">Дані про місцезнаходження недоступні.</string>
     <string name="errorNoBearingFound">Дані про азимут недоступні.</string>
 

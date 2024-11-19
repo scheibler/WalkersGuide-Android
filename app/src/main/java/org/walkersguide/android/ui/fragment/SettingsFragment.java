@@ -499,7 +499,7 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
 
         switchPreferTranslatedStrings.setChecked(settingsManagerInstance.getPreferTranslatedStrings());
 
-        Preset matchingWcwsPreset = Preset.matches(settingsManagerInstance.getWayClassWeightSettings());
+        Preset matchingWcwsPreset = Preset.matchesSettings(settingsManagerInstance.getWayClassWeightSettings());
         buttonRoutingWayClasses.setText(
                 String.format(
                     "%1$s: %2$s",
