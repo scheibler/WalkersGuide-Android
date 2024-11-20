@@ -320,11 +320,19 @@
     <string name="labelImportResult">%1$s:\n%2$s gefunden.</string>
     <string name="radioButtonNewCollection">Neue Sammlung anlegen</string>
     <string name="radioButtonExistingDatabaseProfile">Zu bestehender Sammlung hinzufügen</string>
+
+    <!-- ExportGpxFileDialog -->
+    <string name="exportGpxFileDialogTitle">In GPX Datei speichern</string>
+    <string name="shareGpxFileDialogTitle">GPX Datei teilen</string>
+    <string name="suggestedNameForRouteInGpxFile">Route nach %1$s</string>
+
     <!-- gpx import messages -->
     <string name="messageExtractGpxFileNameFailed">Konnte den Namen der ausgewählten GPX Datei nicht ermitteln.</string>
     <string name="messageOpenGpxFileFailed">Die ausgewählte GPX Datei konnte nicht geöffnet werden.</string>
     <string name="messageInvalidGpxFileContents">Die ausgewählte Datei ist nicht im GPX Format.</string>
     <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s wurde zu %2$s hinzugefügt.</string>
+    <string name="messageGpxFileExportSuccessful">Das Anlegen der GPX Datei %1$s war erfolgreich.</string>
+    <string name="messageGpxFileExportFailed">Beim Anlegen der GPX Datei %1$s ist ein Fehler aufgetreten.</string>
 
     <!-- PoiProfileListFragment -->
     <string name="fragmentPoiProfileListName">Punktprofile</string>
@@ -778,6 +786,7 @@
     <string name="dialogRefresh">Aktualisieren</string>
     <string name="dialogSend">Senden</string>
     <string name="dialogSomethingMissing">Fehlt etwas?</string>
+    <string name="dialogShare">Teilen</string>
     <string name="dialogTest">Testen</string>
 
     <!-- other common labels and messages -->

@@ -60,7 +60,7 @@ public class P2pRouteTask extends ServerTask {
                         String.format(
                             "%1$s %2$s",
                             GlobalInstance.getStringResource(R.string.labelNearby),
-                            closestAddress.getName()));
+                            closestAddress.formatAddressShortLength()));
                 Timber.d("renamed to %1$s", startPoint.getName());
             }
         }

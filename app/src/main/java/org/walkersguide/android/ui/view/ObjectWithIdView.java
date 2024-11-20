@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.dialog.create.export_gpx.ExportRouteToGpxFileDialog;
 import org.walkersguide.android.ui.dialog.edit.UserAnnotationForObjectWithIdDialog;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
@@ -495,10 +496,8 @@ public class ObjectWithIdView extends LinearLayout {
     private static final int MENU_ITEM_EXCLUDE_FROM_ROUTING = 14;
     private static final int MENU_ITEM_NAVIGATE_TO_THIS_POINT = 15;
     private static final int MENU_ITEM_COLLECTIONS = 16;
-    private static final int MENU_ITEM_EDIT = 17;
-    private static final int MENU_ITEM_REMOVE = 18;
-    private static final int MENU_ITEM_ROUTE_PLANNER = 19;
-    private static final int MENU_ITEM_SHARE_COORDINATES = 20;
+    private static final int MENU_ITEM_REMOVE = 17;
+    private static final int MENU_ITEM_EXPORT_TO_GPX_FILE = 18;
 
     private static final int MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION = 50;
     private static final int MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION = 51;
@@ -653,6 +652,10 @@ public class ObjectWithIdView extends LinearLayout {
             SubMenu shareCoordinatesSubMenu = contextMenu.getMenu().addSubMenu(
                     MENU_GROUP_4, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdShareCoordinates));
             Point.populateShareCoordinatesSubMenuEntries(shareCoordinatesSubMenu);
+        } else if (object instanceof Route) {
+            contextMenu.getMenu().add(
+                    MENU_GROUP_4, MENU_ITEM_EXPORT_TO_GPX_FILE, orderId++,
+                    GlobalInstance.getStringResource(R.string.exportGpxFileDialogTitle));
         }
 
         contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
@@ -810,6 +813,10 @@ public class ObjectWithIdView extends LinearLayout {
             }
             mainActivityController.closeAllOpenDialogs();
             MainActivity.loadRoute(context, reversedRoute);
+
+        } else if (menuItemId == MENU_ITEM_EXPORT_TO_GPX_FILE) {
+            ExportRouteToGpxFileDialog.newInstance(route)
+                .show(mainActivityController.getFragmentManagerInstance(), "ExportRouteToGpxFileDialog");
 
         } else {
             return false;

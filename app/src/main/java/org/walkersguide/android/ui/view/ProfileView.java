@@ -1,5 +1,6 @@
         package org.walkersguide.android.ui.view;
 
+import org.walkersguide.android.ui.dialog.create.export_gpx.ExportDatabaseProfileToGpxFileDialog;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.dialog.template.SelectMultipleObjectsFromListDialog;
 import org.walkersguide.android.ui.dialog.select.SelectCollectionsDialog;
@@ -314,8 +315,9 @@ public class ProfileView extends LinearLayout {
     private static final int MENU_ITEM_POI_CATEGORIES = 4;
     private static final int MENU_ITEM_COLLECTIONS = 5;
     private static final int MENU_ITEM_PIN_SHORTCUT = 6;
-    private static final int MENU_ITEM_RENAME = 7;
-    private static final int MENU_ITEM_REMOVE = 8;
+    private static final int MENU_ITEM_EXPORT_TO_GPX_FILE = 7;
+    private static final int MENU_ITEM_RENAME = 8;
+    private static final int MENU_ITEM_REMOVE = 9;
 
 
     public void showContextMenu(final View view, final Profile profile) {
@@ -354,6 +356,13 @@ public class ProfileView extends LinearLayout {
                     && PinnedShortcutUtility.isPinShortcutsSupported()) {
                 contextMenu.getMenu().add(
                         Menu.NONE, MENU_ITEM_PIN_SHORTCUT, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemProfilePinShortcut));
+            }
+
+            // gpx export
+            if (profile instanceof DatabaseProfile) {
+                contextMenu.getMenu().add(
+                        Menu.NONE, MENU_ITEM_EXPORT_TO_GPX_FILE, orderId++,
+                        GlobalInstance.getStringResource(R.string.exportGpxFileDialogTitle));
             }
 
             // rename and remove profile
@@ -416,6 +425,10 @@ public class ProfileView extends LinearLayout {
         } else if (menuItemId == MENU_ITEM_PIN_SHORTCUT) {
             AddPoiProfileToHomeScreenDialog.newInstance((PoiProfile) selectedProfile)
                 .show(mainActivityController.getFragmentManagerInstance(), "AddPoiProfileToHomeScreenDialog");
+
+        } else if (menuItemId == MENU_ITEM_EXPORT_TO_GPX_FILE) {
+            ExportDatabaseProfileToGpxFileDialog.newInstance((DatabaseProfile) selectedProfile)
+                .show(mainActivityController.getFragmentManagerInstance(), "ExportDatabaseProfileToGpxFileDialog");
 
         } else if (menuItemId == MENU_ITEM_RENAME) {
             RenameProfileDialog.newInstance((MutableProfile) selectedProfile)

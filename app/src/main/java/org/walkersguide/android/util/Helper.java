@@ -148,12 +148,20 @@ public class Helper {
     private static final String ISO_8601_FORMAT1 = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final String ISO_8601_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
-    public static Date parseTimestamp(String timestamp) {
+    public static Date parseTimestampInIso8601Format(String timestamp) {
         try {
             return (new SimpleDateFormat(ISO_8601_FORMAT1, Locale.ROOT)).parse(timestamp);
         } catch (Exception e) {}
         try {
             return (new SimpleDateFormat(ISO_8601_FORMAT2, Locale.ROOT)).parse(timestamp);
+        } catch (Exception e) {}
+        return null;
+    }
+
+    public static String formatTimestampInIso8601Format(long timestamp) {
+        try {
+            return (new SimpleDateFormat(ISO_8601_FORMAT1, Locale.ROOT))
+                .format(new Date(timestamp));
         } catch (Exception e) {}
         return null;
     }

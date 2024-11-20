@@ -21,6 +21,9 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.content.ContentResolver;
 import androidx.core.content.FileProvider;
+import android.database.Cursor;
+import android.text.TextUtils;
+import android.provider.OpenableColumns;
 
 
 public class FileUtility {
@@ -34,6 +37,24 @@ public class FileUtility {
             }
             fileOrDirectory.delete();
         }
+    }
+
+    public static String extractFileNameFrom(Uri uri) {
+        if (uri == null) return null;
+        String fileName = null;
+        Cursor returnCursor = null;
+        try {
+            returnCursor = GlobalInstance.getContext().getContentResolver()
+                .query(uri, null, null, null, null);
+            if (returnCursor != null && returnCursor.moveToFirst()) {
+                fileName = returnCursor.getString(
+                        returnCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+            }
+        } catch (Exception e) {}
+        if (returnCursor != null) {
+            returnCursor.close();
+        }
+        return fileName;
     }
 
 

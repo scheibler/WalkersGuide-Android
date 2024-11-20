@@ -311,11 +311,21 @@
     <string name="labelImportResult">%1$s:\n%2$s знайдено.</string>
     <string name="radioButtonNewCollection">Створити нову базу</string>
     <string name="radioButtonExistingDatabaseProfile">Додати до існуючої бази</string>
+
+    <!-- ExportGpxFileDialog -->
+    <!-- translate me -->
+    <string name="exportGpxFileDialogTitle">Save to GPX file</string>
+    <string name="shareGpxFileDialogTitle">Share GPX file</string>
+    <string name="suggestedNameForRouteInGpxFile">Route to %1$s</string>
+
     <!-- gpx import messages -->
     <string name="messageExtractGpxFileNameFailed">Не вдалося визначити ім\'я вибраного файлу GPX.</string>
     <string name="messageOpenGpxFileFailed">Не вдалося відкрити вибраний файл GPX.</string>
     <string name="messageInvalidGpxFileContents">Вибраний файл GPX має неправильний формат.</string>
     <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s було додано до %2$s.</string>
+    <!-- translate me -->
+    <string name="messageGpxFileExportSuccessful">The GPX file %1$s was created successfully.</string>
+    <string name="messageGpxFileExportFailed">The GPX file %1$s couldn\'t be created.</string>
 
     <!-- PoiProfileListFragment -->
     <string name="fragmentPoiProfileListName">Профілі точок</string>
@@ -755,6 +765,8 @@
     <string name="dialogRefresh">Оновити</string>
     <string name="dialogSend">Надіслати</string>
     <string name="dialogSomethingMissing">Щось пропущено?</string>
+    <!-- translate me -->
+    <string name="dialogShare">Share</string>
     <string name="dialogTest">Прослухати приклад</string>
 
     <!-- other common labels and messages -->

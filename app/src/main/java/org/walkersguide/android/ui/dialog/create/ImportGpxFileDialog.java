@@ -1,6 +1,8 @@
 package org.walkersguide.android.ui.dialog.create;
 
-import java.util.Locale;
+import org.walkersguide.android.util.gpx.GpxFileReader;
+import org.walkersguide.android.util.gpx.GpxFileReader.GpxFileParseResult;
+import org.walkersguide.android.util.gpx.GpxFileReader.GpxFileParseException;
 import androidx.core.view.ViewCompat;
 import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
 import org.walkersguide.android.database.profile.Collection;
@@ -39,23 +41,12 @@ import android.text.TextUtils;
 
 import android.content.Intent;
 import android.net.Uri;
-import timber.log.Timber;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import java.io.InputStream;
 import org.walkersguide.android.util.GlobalInstance;
-import java.io.IOException;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import android.util.Xml;
-import android.database.Cursor;
-import android.provider.OpenableColumns;
-import org.json.JSONException;
-import org.walkersguide.android.data.object_with_id.point.GPS;
 import java.util.concurrent.Executors;
 import android.os.Handler;
 import android.os.Looper;
-import org.walkersguide.android.data.object_with_id.Route;
 
 import androidx.fragment.app.FragmentResultListener;
 import androidx.annotation.NonNull;
@@ -63,10 +54,6 @@ import org.walkersguide.android.data.ObjectWithId;
 import android.widget.RadioButton;
 import org.walkersguide.android.data.Profile;
 import android.widget.CompoundButton;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.walkersguide.android.util.Helper;
-import androidx.core.util.Pair;
 
 
 public class ImportGpxFileDialog extends DialogFragment implements FragmentResultListener {
@@ -417,303 +404,29 @@ public class ImportGpxFileDialog extends DialogFragment implements FragmentResul
 
         Executors.newSingleThreadExecutor().execute(() -> {
 
+            GpxFileReader gpxFileReader = new GpxFileReader(uri);
             try {
-                final String extractedFileName = extractFileNameFrom(uri);
-                final Pair<ArrayList<ObjectWithId>,String> extractedFileContents = parseGpxFile(uri);
+                final GpxFileParseResult parseResult = gpxFileReader.read();
                 (new Handler(Looper.getMainLooper())).post(() -> {
                     if (isAdded()) {
-                        this.gpxFileName = extractedFileName;
-                        this.objectList = extractedFileContents.first;
-                        this.layoutNewCollectionName.setInputText(
-                                TextUtils.isEmpty(extractedFileContents.second)
-                                ? extractedFileName
-                                : extractedFileContents.second);
+                        this.gpxFileName = parseResult.gpxFileName;
+                        this.objectList = parseResult.objectList;
+                        this.layoutNewCollectionName.setInputText(parseResult.getCollectionName());
                         updateUI();
                     }
                 });
 
             } catch (GpxFileParseException e) {
-                final GpxFileParseException routeParseException = e;
+                final GpxFileParseException parseException = e;
                 (new Handler(Looper.getMainLooper())).post(() -> {
                     if (isAdded()) {
                         this.gpxFileName = null;
                         this.objectList = null;
-                        this.labelImportResult.setText(routeParseException.getMessage());
+                        this.labelImportResult.setText(parseException.getMessage());
                     }
                 });
             }
         });
-    }
-
-    private String extractFileNameFrom(Uri uri) throws GpxFileParseException {
-        String fileName = null;
-        Cursor returnCursor = null;
-        try {
-            if (uri != null) {
-                returnCursor = GlobalInstance.getContext().getContentResolver().query(uri, null, null, null, null);
-                if (returnCursor != null && returnCursor.moveToFirst()) {
-                    try {
-                        fileName = returnCursor.getString(
-                                returnCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
-                    } catch (IllegalArgumentException e) {}
-                }
-            }
-        } catch (Exception e) {
-            Timber.e("extractFileNameFrom: %1$s", e.getMessage());
-        } finally {
-            if (returnCursor != null) {
-                returnCursor.close();
-            }
-        }
-        if (TextUtils.isEmpty(fileName)) {
-            throw new GpxFileParseException(
-                    GlobalInstance.getStringResource(R.string.messageExtractGpxFileNameFailed));
-        }
-        return fileName;
-    }
-
-
-    /**
-     * xml parser
-     * GPX format documentation: https://www.topografix.com/GPX/1/1/
-     */
-
-    private Pair<ArrayList<ObjectWithId>,String> parseGpxFile(Uri uri) throws GpxFileParseException {
-        ArrayList<ObjectWithId> objectList = new ArrayList<ObjectWithId>();
-        String collectionName = null;
-        int routeIndex = 0;
-        GpxFileParseException parseException = null;
-
-        InputStream in = null;
-        try {
-            in = GlobalInstance.getContext().getContentResolver().openInputStream(uri);
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(in, null);
-            parser.nextTag();
-
-            parser.require(XmlPullParser.START_TAG, null, "gpx");
-            while (parser.nextTag() == XmlPullParser.START_TAG) {
-
-                if (parser.getName().equals("metadata")) {
-                    parser.require(XmlPullParser.START_TAG, null, "metadata");
-                    while (parser.nextTag() == XmlPullParser.START_TAG) {
-                        if (parser.getName().equals("name")) {
-                            parser.require(XmlPullParser.START_TAG, null, "name");
-                            collectionName = parser.nextText();
-                            parser.require(XmlPullParser.END_TAG, null, "name");
-                        } else {
-                            skipTag(parser);
-                        }
-                    }
-                    parser.require(XmlPullParser.END_TAG, null, "metadata");
-
-                } else if (parser.getName().equals("wpt")) {
-                    parser.require(XmlPullParser.START_TAG, null, "wpt");
-                    try {
-                        objectList.add(parsePoint(parser, null));
-                    } catch (JSONException e) {}
-                    parser.require(XmlPullParser.END_TAG, null, "wpt");
-
-                } else if (parser.getName().equals("rte")) {
-                    Route route = null;
-                    try {
-                        String routeName = null, routeDescription = null;
-                        ArrayList<GPS> routePointList = new ArrayList<GPS>();
-
-                        parser.require(XmlPullParser.START_TAG, null, "rte");
-                        while (parser.nextTag() == XmlPullParser.START_TAG) {
-                            if (parser.getName().equals("name")) {
-                                parser.require(XmlPullParser.START_TAG, null, "name");
-                                routeName = parser.nextText();
-                                parser.require(XmlPullParser.END_TAG, null, "name");
-                            } else if (parser.getName().equals("desc")) {
-                                parser.require(XmlPullParser.START_TAG, null, "desc");
-                                routeDescription = parser.nextText();
-                                parser.require(XmlPullParser.END_TAG, null, "desc");
-                            } else if (parser.getName().equals("rtept")) {
-                                parser.require(XmlPullParser.START_TAG, null, "rtept");
-                                routePointList.add(
-                                        parsePoint(
-                                            parser, String.valueOf(routePointList.size()+1)));
-                                parser.require(XmlPullParser.END_TAG, null, "rtept");
-                            } else {
-                                skipTag(parser);
-                            }
-                        }
-                        parser.require(XmlPullParser.END_TAG, null, "rte");
-
-                        route = createRoute(routeIndex, routeName, routeDescription, routePointList, false);
-                    } catch (JSONException e) {}
-                    if (route != null) {
-                        objectList.add(route);
-                        routeIndex += 1;
-                    }
-
-                } else if (parser.getName().equals("trk")) {
-                    Route route = null;
-                    try {
-                        String routeName = null, routeDescription = null;
-                        ArrayList<GPS> routePointList = new ArrayList<GPS>();
-
-                        parser.require(XmlPullParser.START_TAG, null, "trk");
-                        while (parser.nextTag() == XmlPullParser.START_TAG) {
-                            if (parser.getName().equals("name")) {
-                                parser.require(XmlPullParser.START_TAG, null, "name");
-                                routeName = parser.nextText();
-                                parser.require(XmlPullParser.END_TAG, null, "name");
-                            } else if (parser.getName().equals("desc")) {
-                                parser.require(XmlPullParser.START_TAG, null, "desc");
-                                routeDescription = parser.nextText();
-                                parser.require(XmlPullParser.END_TAG, null, "desc");
-                            } else if (parser.getName().equals("trkseg")) {
-                                parser.require(XmlPullParser.START_TAG, null, "trkseg");
-                                while (parser.nextTag() == XmlPullParser.START_TAG) {
-                                    if (parser.getName().equals("trkpt")) {
-                                        parser.require(XmlPullParser.START_TAG, null, "trkpt");
-                                        routePointList.add(
-                                                parsePoint(
-                                                    parser, String.valueOf(routePointList.size()+1)));
-                                        parser.require(XmlPullParser.END_TAG, null, "trkpt");
-                                    } else {
-                                        skipTag(parser);
-                                    }
-                                }
-                                parser.require(XmlPullParser.END_TAG, null, "trkseg");
-                            } else {
-                                skipTag(parser);
-                            }
-                        }
-                        parser.require(XmlPullParser.END_TAG, null, "trk");
-
-                        route = createRoute(routeIndex, routeName, routeDescription, routePointList, true);
-                    } catch (JSONException e) {}
-                    if (route != null) {
-                        objectList.add(route);
-                        routeIndex += 1;
-                    }
-
-                } else {
-                    skipTag(parser);
-                }
-            }
-            parser.require(XmlPullParser.END_TAG, null, "gpx");
-
-        } catch (IOException e) {
-            Timber.e("IOException: %1$s", e.getMessage());
-            parseException = new GpxFileParseException(
-                    GlobalInstance.getStringResource(R.string.messageOpenGpxFileFailed));
-        } catch (XmlPullParserException e) {
-            Timber.e("XmlPullParserException: %1$s", e.getMessage());
-            parseException = new GpxFileParseException(
-                    GlobalInstance.getStringResource(R.string.messageInvalidGpxFileContents));
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {}
-            }
-        }
-
-        if (parseException != null) {
-            throw parseException;
-        }
-        return Pair.create(objectList, collectionName);
-    }
-
-    private GPS parsePoint(XmlPullParser parser, String defaultName)
-            throws XmlPullParserException, IOException, JSONException {
-        GPS.Builder gpsBuilder = new GPS.Builder(
-                Double.valueOf(parser.getAttributeValue(null, "lat")),
-                Double.valueOf(parser.getAttributeValue(null, "lon")));
-        if (! TextUtils.isEmpty(defaultName)) {
-            gpsBuilder.setName(defaultName);
-        }
-
-        // parse optional attributes
-        while (parser.nextTag() == XmlPullParser.START_TAG) {
-
-            if (parser.getName().equals("ele")) {
-                parser.require(XmlPullParser.START_TAG, null, "ele");
-                Double altitude = null;
-                try {
-                    altitude = Double.valueOf(
-                            parser.nextText());
-                } catch (NumberFormatException | NullPointerException e) {}
-                if (altitude != null) {
-                    gpsBuilder.setAltitude(altitude);
-                }
-                parser.require(XmlPullParser.END_TAG, null, "ele");
-
-            } else if (parser.getName().equals("name")) {
-                parser.require(XmlPullParser.START_TAG, null, "name");
-                String name = parser.nextText();
-                if (! TextUtils.isEmpty(name)) {
-                    gpsBuilder.setName(name);
-                }
-                parser.require(XmlPullParser.END_TAG, null, "name");
-
-            } else if (parser.getName().equals("desc")) {
-                parser.require(XmlPullParser.START_TAG, null, "desc");
-                String description = parser.nextText();
-                if (! TextUtils.isEmpty(description)) {
-                    gpsBuilder.setDescription(description);
-                }
-                parser.require(XmlPullParser.END_TAG, null, "desc");
-
-            } else if (parser.getName().equals("time")) {
-                parser.require(XmlPullParser.START_TAG, null, "time");
-                Date createdDate = Helper.parseTimestamp(parser.nextText());
-                if (createdDate != null) {
-                    gpsBuilder.setTime(createdDate.getTime());
-                }
-                parser.require(XmlPullParser.END_TAG, null, "time");
-
-            } else {
-                skipTag(parser);
-            }
-        }
-
-        return gpsBuilder.build();
-    }
-
-    private void skipTag(XmlPullParser parser) throws XmlPullParserException, IOException {
-        int depth = 1;
-        if (parser.getEventType() != XmlPullParser.START_TAG) {
-            throw new IllegalStateException();
-        }
-        while (depth != 0) {
-            switch (parser.next()) {
-                case XmlPullParser.START_TAG:
-                    depth++;
-                    break;
-                case XmlPullParser.END_TAG:
-                    depth--;
-                    break;
-            }
-        }
-    }
-
-    private static Route createRoute(int routeIndex, String routeName, String routeDescription,
-            ArrayList<GPS> routePointList, boolean isTrack) throws JSONException {
-        return Route.fromPointList(
-                Route.Type.GPX_TRACK,
-                TextUtils.isEmpty(routeName)
-                ? String.format(
-                    Locale.getDefault(), "%1$s %2$d", ObjectWithId.Icon.ROUTE, routeIndex+1)
-                : routeName,
-                routeDescription,
-                false,
-                isTrack
-                ? Helper.filterPointListByTurnValueAndImportantIntersections(routePointList, true)
-                : routePointList);
-    }
-
-
-    private class GpxFileParseException extends Exception {
-        public GpxFileParseException(String message) {
-            super(message);
-        }
     }
 
 }

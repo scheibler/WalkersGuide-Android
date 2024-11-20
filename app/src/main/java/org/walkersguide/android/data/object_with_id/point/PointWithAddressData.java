@@ -181,12 +181,8 @@ public abstract class PointWithAddressData extends Point implements Serializable
 
     public String formatAddressShortLength() {
         if (this.hasAddress()) {
-            ArrayList<String> addressComponentList = new ArrayList<String>();
-            addressComponentList.add(
-                    this.formatRoadAndHouseNumber(
-                        this.road, this.houseNumber, this.extraName));
-            addressComponentList.add(this.city);
-            return TextUtils.join(", ", addressComponentList);
+            return this.formatRoadAndHouseNumber(
+                    this.road, this.houseNumber, this.extraName);
         }
         return super.getOriginalName();
     }
