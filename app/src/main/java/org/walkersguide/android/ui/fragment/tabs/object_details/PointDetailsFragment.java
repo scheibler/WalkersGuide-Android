@@ -278,7 +278,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                             @Override public void onClick(View view) {
                                 if (getActivity() instanceof MainActivity) {
                                     ((MainActivityController) getActivity())
-                                        .addFragment(
+                                        .embeddFragmentIfPossibleElseOpenAsDialog(
                                                 ObjectDetailsTabLayoutFragment.details((POI) view.getTag()));
                                 }
                             }

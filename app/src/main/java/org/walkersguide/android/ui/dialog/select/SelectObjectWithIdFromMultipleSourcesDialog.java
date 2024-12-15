@@ -82,7 +82,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
         super.onCreate(savedInstanceState);
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION, this, this);
+                    SaveCurrentLocationDialog.REQUEST_GET_CURRENT_LOCATION, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     EnterAddressDialog.REQUEST_ENTER_ADDRESS, this, this);
@@ -102,7 +102,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: %1$s", requestKey);
-        if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION)) {
+        if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_GET_CURRENT_LOCATION)) {
             objectWithIdSelected(
                     (GPS) bundle.getSerializable(SaveCurrentLocationDialog.EXTRA_CURRENT_LOCATION));
 
@@ -294,20 +294,20 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
 
                 switch (target) {
                     case ADD_TO_COLLECTION:
-                        SaveCurrentLocationDialog.sendResultBundle(
+                        SaveCurrentLocationDialog.newInstance(
                                 getResources().getString(R.string.saveCurrentLocationDialogTitleCollection))
                             .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                         break;
                     case ADD_TO_PINNED_POINTS_AND_ROUTES:
                     case ADD_TO_TRACKED_OBJECTS:
-                        SaveCurrentLocationDialog.sendResultBundle(
+                        SaveCurrentLocationDialog.newInstance(
                                 target == Target.ADD_TO_PINNED_POINTS_AND_ROUTES
                                 ? getResources().getString(R.string.saveCurrentLocationDialogTitlePin)
                                 : getResources().getString(R.string.saveCurrentLocationDialogTitleTrack))
                             .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                         break;
                     case USE_AS_HOME_ADDRESS:
-                        SaveCurrentLocationDialog.sendResultBundle(
+                        SaveCurrentLocationDialog.newInstance(
                                 getResources().getString(R.string.saveCurrentLocationDialogTitleHome))
                             .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
                         break;

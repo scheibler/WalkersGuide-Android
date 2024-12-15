@@ -31,6 +31,9 @@ import org.walkersguide.android.data.ObjectWithId;
 import java.util.Date;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.FileUtility;
+import java.io.Serializable;
+import org.walkersguide.android.data.object_with_id.Point;
+import org.walkersguide.android.database.util.AccessDatabase;
 
 
 public class GpxFileReader {
@@ -44,6 +47,7 @@ public class GpxFileReader {
     public GpxFileParseResult read() throws GpxFileParseException {
         GpxFileParseResult result = new GpxFileParseResult(
                 FileUtility.extractFileNameFrom(this.uri));
+        ArrayList<Point> pointList = new ArrayList<Point>();
         int routeIndex = 0;
         GpxFileParseException parseException = null;
 
@@ -74,7 +78,7 @@ public class GpxFileReader {
                 } else if (parser.getName().equals("wpt")) {
                     parser.require(XmlPullParser.START_TAG, null, "wpt");
                     try {
-                        result.objectList.add(parsePoint(parser, null));
+                        pointList.add(parsePoint(parser, null));
                     } catch (JSONException e) {}
                     parser.require(XmlPullParser.END_TAG, null, "wpt");
 
@@ -161,6 +165,17 @@ public class GpxFileReader {
                 }
             }
             parser.require(XmlPullParser.END_TAG, null, "gpx");
+
+            // look up wpt in database
+            if (! pointList.isEmpty()) {
+                result.objectList.addAll(
+                        AccessDatabase.getInstance().lookUpPointsInDatabaseByCoornates(pointList));
+            }
+
+            if (result.objectList.isEmpty()) {
+                parseException = new GpxFileParseException(
+                        GlobalInstance.getStringResource(R.string.messageGpxFileIsEmpty));
+            }
 
         } catch (IOException e) {
             Timber.e("IOException: %1$s", e.getMessage());
@@ -268,12 +283,12 @@ public class GpxFileReader {
                 routeDescription,
                 false,
                 isTrack
-                ? Helper.filterPointListByTurnValueAndImportantIntersections(routePointList, true)
+                ? Helper.filterPointListByTurnValueAndImportantIntersections(routePointList, false)
                 : routePointList);
     }
 
 
-    public class GpxFileParseResult {
+    public class GpxFileParseResult implements Serializable {
         public ArrayList<ObjectWithId> objectList;
         public String collectionName;
         public String gpxFileName;

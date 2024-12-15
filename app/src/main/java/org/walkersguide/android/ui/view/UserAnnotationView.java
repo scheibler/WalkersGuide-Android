@@ -49,8 +49,8 @@ public class UserAnnotationView extends LinearLayout {
         labelUserAnnotation.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 if (mainActivityController != null && objectWithId != null) {
-                    UserAnnotationForObjectWithIdDialog.newInstance(objectWithId)
-                        .show(mainActivityController.getFragmentManagerInstance(), "UserAnnotationForObjectWithIdDialog");
+                    mainActivityController.openDialog(
+                            UserAnnotationForObjectWithIdDialog.newInstance(objectWithId));
                 }
             }
         });

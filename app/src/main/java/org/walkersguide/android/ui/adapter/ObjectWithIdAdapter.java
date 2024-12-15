@@ -32,19 +32,26 @@ public class ObjectWithIdAdapter extends BaseAdapter {
     private ArrayList<? extends ObjectWithId> objectList, filteredObjectList;
     private OnDefaultObjectActionListener onDefaultObjectActionListener;
     private Profile profile;
-    private boolean autoUpdate, viewingDirectionFilter;
+    private boolean autoUpdate, viewingDirectionFilter, alwaysShowIcon;
 
     public ObjectWithIdAdapter(Context context, ArrayList<? extends ObjectWithId> objectList,
             OnDefaultObjectActionListener listener, Profile profile,
             boolean autoUpdate, boolean viewingDirectionFilter) {
+
         this.context = context;
         this.objectList = objectList;
         this.onDefaultObjectActionListener = listener;
         this.profile = profile;
         this.autoUpdate = autoUpdate;
         this.viewingDirectionFilter = viewingDirectionFilter;
+        this.alwaysShowIcon = false;
+
         // must come after setting viewingDirectionFilter
         this.filteredObjectList = populateFilteredObjectList();
+    }
+
+    public void setAlwaysShowIcon() {
+        this.alwaysShowIcon = true;
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -78,7 +85,9 @@ public class ObjectWithIdAdapter extends BaseAdapter {
 
         ObjectWithId objectWithId = getItem(position);
         boolean showIcon = false;
-        if (this.profile != null && this.profile instanceof DatabaseProfile) {
+        if (this.alwaysShowIcon) {
+            showIcon = true;
+        } else if (this.profile != null && this.profile instanceof DatabaseProfile) {
             if (((DatabaseProfile) this.profile).getPluralResId() == R.plurals.pointAndRoute) {
                 showIcon = true;
             }
@@ -90,6 +99,7 @@ public class ObjectWithIdAdapter extends BaseAdapter {
                 }
             }
         }
+
 
         layoutObject.configureAsListItem(objectWithId, showIcon);
         return layoutObject;
@@ -121,6 +131,10 @@ public class ObjectWithIdAdapter extends BaseAdapter {
         return this.filteredObjectList.isEmpty();
     }
 
+    public ArrayList<? extends ObjectWithId> getObjectList() {
+        return this.objectList;
+    }
+
     protected void updateObjectList(ArrayList<? extends ObjectWithId> updatedObjectList) {
         this.objectList = updatedObjectList;
     }
@@ -139,4 +153,5 @@ public class ObjectWithIdAdapter extends BaseAdapter {
     private class EntryHolder {
         public ObjectWithIdView layoutObject;
     }
+
 }

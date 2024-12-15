@@ -1,5 +1,6 @@
-package org.walkersguide.android.ui.fragment.tabs.overview;
+package org.walkersguide.android.ui.fragment.tabs.points;
 
+import org.walkersguide.android.ui.fragment.ViewChangedListenerFragment;
 import timber.log.Timber;
 import org.walkersguide.android.ui.adapter.AnnouncementRadiusAdapter;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
@@ -56,7 +57,7 @@ import android.view.MenuItem;
 import androidx.lifecycle.Lifecycle;
 
 
-public class TrackFragment extends BaseOverviewFragment implements FragmentResultListener, MenuProvider {
+public class TrackFragment extends ViewChangedListenerFragment implements FragmentResultListener, MenuProvider {
 
     public static TrackFragment newInstance() {
         TrackFragment fragment = new TrackFragment();

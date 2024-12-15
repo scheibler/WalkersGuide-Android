@@ -21,6 +21,8 @@ import androidx.fragment.app.Fragment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
+import org.walkersguide.android.ui.fragment.tabs.points.TrackFragment;
 
 
 public class PointsTabLayoutFragment extends TabLayoutFragment {
@@ -45,7 +47,8 @@ public class PointsTabLayoutFragment extends TabLayoutFragment {
      */
 
     public enum Tab {
-        NEARBY(GlobalInstance.getStringResource(R.string.fragmentPoiProfileListNameEmbedded));
+        NEARBY(GlobalInstance.getStringResource(R.string.fragmentPoiProfileListNameEmbedded)),
+        TRACK(GlobalInstance.getStringResource(R.string.fragmentTrackName));
 
         public String label;
         private Tab(String label) {
@@ -74,6 +77,8 @@ public class PointsTabLayoutFragment extends TabLayoutFragment {
                 switch (tab) {
                     case NEARBY:
                         return PoiProfileListFragment.embedded();
+                    case TRACK:
+                        return TrackFragment.newInstance();
                 }
             }
             return null;

@@ -48,7 +48,8 @@ import org.walkersguide.android.data.Profile;
 
 
 public class SaveCurrentLocationDialog extends DialogFragment implements FragmentResultListener {
-    public static final String REQUEST_SAVE_CURRENT_LOCATION = "saveCurrentLocation";
+    public static final String REQUEST_ADD_CURRENT_LOCATION_TO_DATABASE_PROFILE_SUCCESSFUL = "request.addCurrentLocationToDatabaseProfileSuccessful";
+    public static final String REQUEST_GET_CURRENT_LOCATION = "request.getCurrentLocation";
     public static final String EXTRA_CURRENT_LOCATION = "currentLocation";
 
 
@@ -56,16 +57,16 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
         SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
         Bundle args = new Bundle();
         args.putSerializable(KEY_DIALOG_TITLE, GlobalInstance.getStringResource(R.string.saveCurrentLocationDialogTitle));
-        args.putSerializable(KEY_SEND_RESULT_BUNDLE, false);
+        args.putSerializable(KEY_ADD_TO_DATABASE_PROFILE, true);
         dialog.setArguments(args);
         return dialog;
     }
 
-    public static SaveCurrentLocationDialog sendResultBundle(String dialogTitle) {
+    public static SaveCurrentLocationDialog newInstance(String dialogTitle) {
         SaveCurrentLocationDialog dialog = new SaveCurrentLocationDialog();
         Bundle args = new Bundle();
         args.putSerializable(KEY_DIALOG_TITLE, dialogTitle);
-        args.putSerializable(KEY_SEND_RESULT_BUNDLE, true);
+        args.putSerializable(KEY_ADD_TO_DATABASE_PROFILE, false);
         dialog.setArguments(args);
         return dialog;
     }
@@ -73,10 +74,8 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
 
     // dialog
     private static final String KEY_DIALOG_TITLE = "dialogTitle";
-    private static final String KEY_SEND_RESULT_BUNDLE = "sendResultBundle";
+    private static final String KEY_ADD_TO_DATABASE_PROFILE = "addToDatabaseProfile";
     private static final String KEY_TARGET_DATABASE_PROFILE = "targetDatabaseProfile";
-
-    private boolean sendResultBundle;
 
     private EditTextAndClearInputButton layoutName;
     private TextView labelGPSSignal;
@@ -103,8 +102,6 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        sendResultBundle = getArguments().getBoolean(KEY_SEND_RESULT_BUNDLE);
-
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -256,39 +253,40 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
         }
         currentLocation.rename(name);
 
-        if (sendResultBundle) {
-            Bundle result = new Bundle();
-            result.putSerializable(EXTRA_CURRENT_LOCATION, currentLocation);
-            getParentFragmentManager().setFragmentResult(REQUEST_SAVE_CURRENT_LOCATION, result);
-            dismiss();
-
-        } else {
+        if (getArguments().getBoolean(KEY_ADD_TO_DATABASE_PROFILE)) {
             Profile selectedProfile = layoutTargetDatabaseProfile.getProfile();
-
-            if (selectedProfile instanceof DatabaseProfile
-                    && ((DatabaseProfile) selectedProfile).addObject(currentLocation)) {
-                String message;
-                if (selectedProfile.equals(StaticProfile.pinnedObjectsWithId())) {
-                    message = getResources().getString(R.string.messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful);
-                } else if (selectedProfile.equals(StaticProfile.trackedObjectsWithId())) {
-                    message = getResources().getString(R.string.messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful);
-                } else {
-                    message = String.format(
-                            getResources().getString(R.string.messageCurrentLocationAddedToCollectionSuccessful),
-                            selectedProfile.getName());
-                }
-                Toast.makeText(
-                        getActivity(), message, Toast.LENGTH_LONG).show();
-                ViewChangedListener.sendObjectWithIdListChangedBroadcast();
-                dismiss();
-
-            } else {
+            if (! (selectedProfile instanceof DatabaseProfile)
+                    || ! ((DatabaseProfile) selectedProfile).addObject(currentLocation)) {
                 Toast.makeText(
                         getActivity(),
                         getResources().getString(R.string.errorSavePointFailed),
                         Toast.LENGTH_LONG).show();
+                return;
             }
+
+            String message;
+            if (selectedProfile.equals(StaticProfile.pinnedObjectsWithId())) {
+                message = getResources().getString(R.string.messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful);
+            } else if (selectedProfile.equals(StaticProfile.trackedObjectsWithId())) {
+                message = getResources().getString(R.string.messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful);
+            } else {
+                message = String.format(
+                        getResources().getString(R.string.messageCurrentLocationAddedToCollectionSuccessful),
+                        selectedProfile.getName());
+            }
+            Toast.makeText(
+                    getActivity(), message, Toast.LENGTH_LONG).show();
+            Bundle result = new Bundle();
+            getParentFragmentManager().setFragmentResult(REQUEST_ADD_CURRENT_LOCATION_TO_DATABASE_PROFILE_SUCCESSFUL, result);
+            ViewChangedListener.sendObjectWithIdListChangedBroadcast();
+
+        } else {
+            Bundle result = new Bundle();
+            result.putSerializable(EXTRA_CURRENT_LOCATION, currentLocation);
+            getParentFragmentManager().setFragmentResult(REQUEST_GET_CURRENT_LOCATION, result);
         }
+
+        dismiss();
     }
 
 }

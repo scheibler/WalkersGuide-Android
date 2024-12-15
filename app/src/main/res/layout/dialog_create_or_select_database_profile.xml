@@ -10,15 +10,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/labelImportResult"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="true" />
-
-
-        <!-- new collection -->
-
         <RadioButton
             android:id="@+id/radioButtonNewCollection"
             android:layout_width="match_parent"

@@ -1,6 +1,6 @@
-package org.walkersguide.android.ui.dialog.create.export_gpx;
+package org.walkersguide.android.ui.dialog.create.gpx.export;
 
-import org.walkersguide.android.ui.dialog.create.ExportGpxFileDialog;
+import org.walkersguide.android.ui.dialog.gpx.ExportGpxFileDialog;
 import org.walkersguide.android.util.gpx.GpxFileWriter;
 import java.util.Locale;
 import androidx.core.view.ViewCompat;

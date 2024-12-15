@@ -364,6 +364,50 @@ public class AccessDatabase {
      * objects
      */
 
+    public ArrayList<Point> lookUpPointsInDatabaseByCoornates(ArrayList<Point> inputList) {
+        Timber.d("inputList: \n  %1$s", TextUtils.join("\n  ", inputList));
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
+                    null, null, null, null, null);
+        } catch (Exception e) {
+            return inputList;
+        }
+
+        ArrayList<Point> outputList = new ArrayList<Point>();
+        while (cursor.moveToNext() && ! inputList.isEmpty()) {
+            Point pointFromDatabase = null;
+            try {
+                ObjectWithId objectWithId = createObjectWithIdFrom(cursor);
+                if (objectWithId instanceof Point) {
+                    pointFromDatabase = (Point) objectWithId;
+                }
+            } catch (IllegalArgumentException | JSONException e) {}
+            if (pointFromDatabase == null) continue;
+
+            ListIterator<Point> inputListIterator = inputList.listIterator();
+            while(inputListIterator.hasNext()){
+                Point pointFromInputList = inputListIterator.next();
+                if (pointFromDatabase.getCoordinates().equals(pointFromInputList.getCoordinates())) {
+                    Timber.d("coordinate match found: replace %1$s with %2$s from db", pointFromInputList.toString(), pointFromDatabase.toString());
+                    // update point name with that from the gpx file
+                    if (pointFromInputList.hasCustomName()) {
+                        pointFromDatabase.rename(pointFromInputList.getCustomName());
+                    }
+                    outputList.add(pointFromDatabase);
+                    inputListIterator.remove();
+                    break;
+                }
+            }
+        }
+
+        cursor.close();
+        outputList.addAll(inputList);
+        Timber.d("outputList: \n  %1$s", TextUtils.join("\n  ", outputList));
+        return outputList;
+    }
+
     public ObjectWithId getObjectWithId(long id) {
         ObjectWithId objectWithId = null;
         Cursor cursor = null;

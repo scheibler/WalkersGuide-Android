@@ -92,14 +92,28 @@
     <string name="whereAmIDialogTitle">де я?</string>
 
     <!-- main menu -->
-    <string name="menuItemPlanRoute">Побудувати маршрут</string>
-    <string name="menuItemSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
-    <string name="menuItemCollections">Бази</string>
-    <string name="menuItemHistory">Історія</string>
-    <string name="menuItemSettings">Налаштування</string>
-    <string name="menuItemInfo">Інформація</string>
-    <string name="menuItemContactMe">Зворотний зв\'язок</string>
-    <string name="menuItemUserManual">Посібник користувача</string>
+    <!-- translate me -->
+    <string name="mainMenuFragmentTitle">Main menu</string>
+    <!-- new route -->
+    <string name="labelMainMenuSectionNewRoute">New route</string>
+    <string name="mainMenuItemNavigateToAddress">Navigate to address</string>
+    <string name="mainMenuItemNavigateHome">Navigate home</string>
+    <string name="mainMenuItemPlanRoute">Plan route</string>
+    <string name="mainMenuItemRecordRoute">Record route</string>
+    <string name="mainMenuItemOpenGpxFile">Open GPX file</string>
+    <!-- current location -->
+    <string name="labelMainMenuSectionCurrentLocation">Current location</string>
+    <string name="mainMenuItemSaveCurrentLocation">Save current location</string>
+    <string name="mainMenuItemShareCurrentLocation">Share current location</string>
+    <string name="mainMenuItemOpenSharedLocation">Open shared location</string>
+    <!-- Miscellaneous -->
+    <string name="labelMainMenuSectionMisc">Miscellaneous</string>
+    <string name="mainMenuItemCollections">Collections</string>
+    <string name="mainMenuItemHistory">History</string>
+    <string name="mainMenuItemSettings">Settings</string>
+    <string name="mainMenuItemInfo">Info</string>
+    <string name="mainMenuItemContactMe">Contact</string>
+    <string name="mainMenuItemUserManual">User manual</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Побудова маршруту</string>
@@ -145,6 +159,11 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Введіть координати:</string>
+    <!-- translate me -->
+    <string name="radioButtonCoordinatesInputFormatDecimal">Decimal</string>
+    <string name="radioButtonCoordinatesInputFormatDecimalCd">Decimal degrees</string>
+    <string name="radioButtonCoordinatesInputFormatDms">DMS</string>
+    <string name="radioButtonCoordinatesInputFormatDmsCd">Degrees, minutes and seconds</string>
     <string name="labelOptionalName">Назва (необов\'язково):</string>
     <string name="messageLatitudeMissing">Відсутнє або неправильне значення широти.</string>
     <string name="messageLongitudeMissing">Відсутнє або неправильне значення довготи.</string>
@@ -182,7 +201,9 @@
     -->
 
     <!-- main activity -->
-    <string name="mainMenu">Головне меню</string>
+    <!-- translate me -->
+    <string name="openMainMenu">Open menu</string>
+    <string name="closeMainMenu">Close menu</string>
     <string name="navigateUp">Перейти вгору</string>
     <string name="errorAddressStringFromIntentEmpty">Адреса порожня.</string>
     <!-- main tab names -->
@@ -195,20 +216,9 @@
     <string name="accessibilityActionStartSimulationLocation">Імітувати місцезнаходження: %1$s</string>
     <string name="accessibilityActionEndSimulation">Вимкнути імітацію %1$s</string>
 
-    <!-- StartFragment -->
-    <string name="fragmentStartName">Інструменти</string>
-    <string name="buttonNavigateToAddress">Маршрут до адреси</string>
-    <string name="buttonNavigateHome">Маршрут додому</string>
-    <string name="buttonSaveCurrentLocation">Зберегти поточне місцезнаходження</string>
-    <string name="buttonShareLocation">Поділитися поточним місцезнаходженням</string>
-    <string name="buttonLoadSharedLocation">Імпортувати посилання з координатами</string>
-    <string name="buttonOpenGpxFile">Імпортувати файл GPX</string>
-    <string name="buttonRecordRoute">Записати маршрут</string>
-    <string name="buttonCollections">Переглянути бази</string>
-    <string name="buttonHistory">Переглянути історію</string>
-
     <!-- pin fragment -->
-    <string name="fragmentPinName">Закріплені</string>
+    <!-- translate me -->
+    <string name="fragmentPinName">Pinned</string>
     <string name="menuItemClearPinnedObjects">Скинути</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Тільки профілі</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Тільки точки і маршрути</string>
@@ -282,22 +292,19 @@
 
     <!-- SelectProfileFromMultipleSourcesDialog -->
     <string name="selectProfileFromMultipleSourcesDialogTitle">Виберіть профіль:</string>
-    <string name="selectProfileFromMultipleSourcesDialogTitleCreate">Створити базу:</string>
     <string name="selectProfileFromMultipleSourcesDialogTitlePin">Закріпити профіль:</string>
     <string name="selectProfileFromMultipleSourcesDialogTitleTrack">Відстежувати профіль:</string>
     <string name="profileSelectFromCollections">База</string>
     <string name="profileSelectFromPoiProfiles">Профіль точок</string>
-    <string name="profileSelectFromEmptyCollection">Порожня база</string>
-    <string name="profileSelectFromGpxFile">файл GPX</string>
     <string name="messageNoProfileSelected">Профіль не вибрано.</string>
     <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Можна закріпити лише бази та профілі точок.</string>
     <string name="messageProfileIncompatibleTargetSaveCurrentLocation">Поточне місцезнаходження можна лише закріпити чи додати до бази.</string>
-    <string name="messageProfileIncompatibleTargetGpxFileImport">Імпортовані об\'єкти можна лише закріпити або додати до бази.</string>
 
     <!-- CollectionListFragment -->
     <string name="fragmentCollectionListName">Бази</string>
     <string name="fragmentCollectionListNameSelect">Виберіть базу:</string>
-    <string name="buttonAddCollection">Нова база</string>
+    <!-- translate me -->
+    <string name="buttonAddCollection">Add collection</string>
     <string name="labelEmptyCollectionList">Додайте бази, щоб упорядкувати ваші збережені точки та маршрути.</string>
 
     <!-- create collections -->
@@ -305,12 +312,9 @@
     <string name="messageCollectionNameMissing">Будь ласка, введіть назву бази.</string>
     <string name="messageCouldNotCreateCollection">Не вдалося створити базу.</string>
 
-    <!-- ImportGpxFileDialog -->
-    <string name="importGpxFileDialogTitle">Імпорт файлу GPX</string>
-    <string name="importGpxFileDialogTitlePinned">Закріпити файл GPX</string>
-    <string name="labelImportResult">%1$s:\n%2$s знайдено.</string>
-    <string name="radioButtonNewCollection">Створити нову базу</string>
-    <string name="radioButtonExistingDatabaseProfile">Додати до існуючої бази</string>
+    <!-- OpenGpxFileDialog -->
+    <!-- translate me -->
+    <string name="openGpxFileDialogTitle">Open GPX file</string>
 
     <!-- ExportGpxFileDialog -->
     <!-- translate me -->
@@ -322,8 +326,8 @@
     <string name="messageExtractGpxFileNameFailed">Не вдалося визначити ім\'я вибраного файлу GPX.</string>
     <string name="messageOpenGpxFileFailed">Не вдалося відкрити вибраний файл GPX.</string>
     <string name="messageInvalidGpxFileContents">Вибраний файл GPX має неправильний формат.</string>
-    <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s було додано до %2$s.</string>
     <!-- translate me -->
+    <string name="messageGpxFileIsEmpty">The GPX file is empty.</string>
     <string name="messageGpxFileExportSuccessful">The GPX file %1$s was created successfully.</string>
     <string name="messageGpxFileExportFailed">The GPX file %1$s couldn\'t be created.</string>
 
@@ -409,7 +413,6 @@
 
     <!-- object details tab layout fragment -->
     <string name="labelPointDistanceAndBearing">Відстань</string>
-    <string name="labelSegmentDirection">Напрямок: %1$s</string>
     <string name="labelUserAnnotation">Моя примітка</string>
 
     <!-- PointDetailsFragment -->
@@ -592,8 +595,8 @@
     <string name="buttonDecreaseSpeechRate">Зменшити темп мовлення</string>
     <string name="buttonIncreaseSpeechRate">Збільшити темп мовлення</string>
 
-    <!-- InfoDialog -->
-    <string name="infoDialogTitle">Інформація</string>
+    <!-- InfoFragment -->
+    <string name="fragmentInfoName">Інформація</string>
     <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Версія</string>
     <string name="labelInfoLastChangelog">Останні зміни</string>
@@ -724,6 +727,10 @@
     <!--
          other dialogs and layouts
     -->
+
+    <!-- CreateOrSelectCollectionDialog -->
+    <string name="radioButtonNewCollection">Створити нову базу</string>
+    <string name="radioButtonExistingDatabaseProfile">Додати до існуючої бази</string>
 
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Очистити</string>

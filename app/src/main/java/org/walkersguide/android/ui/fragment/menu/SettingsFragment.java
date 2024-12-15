@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.menu;
 
 import android.view.accessibility.AccessibilityEvent;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;

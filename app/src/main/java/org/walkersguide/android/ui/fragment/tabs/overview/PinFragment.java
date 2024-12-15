@@ -42,9 +42,10 @@ import android.content.Intent;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
 import org.walkersguide.android.sensor.DeviceSensorManager;
+import org.walkersguide.android.ui.fragment.ViewChangedListenerFragment;
 
 
-public class PinFragment extends BaseOverviewFragment
+public class PinFragment extends ViewChangedListenerFragment
         implements FragmentResultListener, MenuProvider, OnAddButtonClick {
     private final static String KEY_GROUP_PROFILES_EXPANDED = "groupProfilesExpanded";
     private final static String KEY_GROUP_OBJECTS_WITH_ID_EXPANDED = "groupObjectsWithIdExpanded";

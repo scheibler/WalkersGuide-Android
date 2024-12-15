@@ -1,14 +1,14 @@
 package org.walkersguide.android.ui.activity;
 
+
+import org.walkersguide.android.ui.fragment.menu.MainMenuFragment;
 import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.sensor.bearing.AcceptNewBearing;
 import java.util.Locale;
 import org.walkersguide.android.ui.dialog.WhereAmIDialog;
 import org.walkersguide.android.ui.dialog.create.EnterAddressDialog;
-import org.walkersguide.android.BuildConfig;
 import java.util.List;
 
-import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener;
 import com.google.android.material.tabs.TabLayout;
 
@@ -47,11 +47,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.util.Pair;
 import androidx.core.view.ViewCompat;
 
-import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentResultListener;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -70,26 +68,19 @@ import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.sensor.bearing.BearingSensor;
 import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
-import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.shortcut.StaticShortcutAction;
 import org.walkersguide.android.ui.dialog.ChangelogDialog;
-import org.walkersguide.android.ui.dialog.InfoDialog;
 import org.walkersguide.android.ui.dialog.PlanRouteDialog;
-import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.create.SaveCurrentLocationDialog;
 import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;
 import org.walkersguide.android.ui.dialog.toolbar.LocationDetailsDialog;
-import org.walkersguide.android.ui.fragment.HistoryFragment;
-import org.walkersguide.android.ui.fragment.SettingsFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.object_list.extended.PoiListFromServerFragment;
-import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.OverviewTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.PointsTabLayoutFragment;
 import org.walkersguide.android.ui.fragment.tabs.RoutesTabLayoutFragment;
-import org.walkersguide.android.ui.fragment.tabs.routes.NavigateFragment;
 import org.walkersguide.android.ui.view.builder.TextViewBuilder;
 import org.walkersguide.android.util.GlobalInstance;
 import org.walkersguide.android.util.SettingsManager;
@@ -97,17 +88,14 @@ import org.walkersguide.android.util.WalkersGuideService.ServiceState;
 import org.walkersguide.android.util.WalkersGuideService.StartServiceFailure;
 import org.walkersguide.android.util.WalkersGuideService;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
-import org.walkersguide.android.database.DatabaseProfile;
-import org.walkersguide.android.ui.dialog.create.ImportGpxFileDialog;
+import org.walkersguide.android.ui.dialog.gpx.OpenGpxFileDialog;
 import android.text.TextUtils;
 import java.nio.charset.StandardCharsets;
 import java.net.URLDecoder;
 import java.io.UnsupportedEncodingException;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
-import org.walkersguide.android.server.wg.p2p.P2pRouteRequest;
 import org.walkersguide.android.util.Helper;
 import java.util.ArrayList;
-import android.hardware.Sensor;
 import android.widget.Toast;
 import android.view.accessibility.AccessibilityEvent;
 import org.walkersguide.android.tts.TTSWrapper;
@@ -115,10 +103,13 @@ import org.walkersguide.android.tts.TTSWrapper.MessageType;
 import org.walkersguide.android.server.address.ResolveCoordinatesTask;
 import org.walkersguide.android.ui.dialog.toolbar.LocationSensorDetailsDialog;
 import org.walkersguide.android.server.address.AddressException;
+import org.walkersguide.android.database.profile.Collection;
+import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
+import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 
 
 public class MainActivity extends AppCompatActivity
-        implements FragmentResultListener, MainActivityController, OnTabSelectedListener {
+        implements MainActivityController, OnTabSelectedListener, FragmentResultListener {
     private static String EXTRA_NEW_TAB = "newTab";
     private static String EXTRA_NEW_SUB_TAB = "newSubTab";
 
@@ -158,6 +149,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     // activity
+    private static String KEY_MAIN_MENU_IS_OPEN = "mainMenuIsOpen";
     private static String KEY_CONTROL_SIMULATION_ACCESSIBILITY_ACTION_ID_FOR_BEARING = "controlSimulationAccessibilityActionIdForBearing";
     private static String KEY_CONTROL_SIMULATION_ACCESSIBILITY_ACTION_ID_FOR_LOCATION = "controlSimulationAccessibilityActionIdForLocation";
     private static String KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME = "skipPositionManagerInitialisationDuringOnResume";
@@ -168,6 +160,7 @@ public class MainActivity extends AppCompatActivity
     private PositionManager positionManagerInstance;
     private SettingsManager settingsManagerInstance;
 
+    private boolean mainMenuIsOpen;
     private ArrayList<Integer> bearingSourceAccessibilityActionIdList = new ArrayList<Integer>();;
     private int controlSimulationAccessibilityActionIdForBearing, controlSimulationAccessibilityActionIdForLocation;
     private boolean broadcastReceiverAlreadyRegistered, skipPositionManagerInitialisationDuringOnResume;
@@ -175,10 +168,8 @@ public class MainActivity extends AppCompatActivity
 
     private Toolbar toolbar;
     private TextView labelToolbarTitle, labelWalkersGuideServiceNotRunningWarning;
-    private ImageButton buttonNavigateUp, buttonBearingDetails, buttonLocationDetails;
-
-    private DrawerLayout drawerLayout;
-    private NavigationView navigationView;
+    private ImageButton buttonNavigateUp, buttonMainMenu;
+    private ImageButton buttonBearingDetails, buttonLocationDetails;
     private TabLayout tabLayout;
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -193,29 +184,38 @@ public class MainActivity extends AppCompatActivity
         positionManagerInstance = PositionManager.getInstance();
         settingsManagerInstance = SettingsManager.getInstance();
         broadcastReceiverAlreadyRegistered = false;
-        controlSimulationAccessibilityActionIdForBearing =
-            savedInstanceState != null
+
+        mainMenuIsOpen = savedInstanceState != null
+            ? savedInstanceState.getBoolean(KEY_MAIN_MENU_IS_OPEN)
+            : false;
+        controlSimulationAccessibilityActionIdForBearing = savedInstanceState != null
             ? savedInstanceState.getInt(KEY_CONTROL_SIMULATION_ACCESSIBILITY_ACTION_ID_FOR_BEARING)
             : View.NO_ID;
-        controlSimulationAccessibilityActionIdForLocation =
-            savedInstanceState != null
+        controlSimulationAccessibilityActionIdForLocation = savedInstanceState != null
             ? savedInstanceState.getInt(KEY_CONTROL_SIMULATION_ACCESSIBILITY_ACTION_ID_FOR_LOCATION)
             : View.NO_ID;
-        skipPositionManagerInitialisationDuringOnResume =
-            savedInstanceState != null
+        skipPositionManagerInitialisationDuringOnResume = savedInstanceState != null
             ? savedInstanceState.getBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME)
             : false;
-        lastUri =
-            savedInstanceState != null
+        lastUri = savedInstanceState != null
             ? savedInstanceState.getParcelable(KEY_LAST_URI)
             : null;
 
         getSupportFragmentManager()
             .setFragmentResultListener(
-                    ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL, this, this);
+                    SaveCurrentLocationDialog.REQUEST_ADD_CURRENT_LOCATION_TO_DATABASE_PROFILE_SUCCESSFUL, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    SendFeedbackDialog.REQUEST_MESSAGE_SENT_SUCCESSFUL, this, this);
         getSupportFragmentManager()
             .setFragmentResultListener(
                     EnterAddressDialog.REQUEST_ENTER_ADDRESS, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK, this, this);
+        getSupportFragmentManager()
+            .setFragmentResultListener(
+                    OpenGpxFileDialog.REQUEST_IMPORT_INTO_COLLECTION_SUCCESSFUL, this, this);
 
         // toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -232,11 +232,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        ImageButton buttonMainMenu = (ImageButton) findViewById(R.id.buttonMainMenu);
+        buttonMainMenu = (ImageButton) findViewById(R.id.buttonMainMenu);
         buttonMainMenu.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                // open main menu
-                drawerLayout.open();
+                if (mainMenuIsOpen) {
+                    closeMainMenu();
+                } else {
+                    openMainMenu();
+                }
             }
         });
 
@@ -280,46 +283,6 @@ public class MainActivity extends AppCompatActivity
                     return true;
                 });
 
-        // navigation drawer
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-        navigationView = (NavigationView) findViewById(R.id.navigationView);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override public boolean onNavigationItemSelected(MenuItem menuItem) {
-                drawerLayout.closeDrawers();
-                if (menuItem.getItemId() == R.id.menuItemPlanRoute) {
-                    openPlanRouteDialog(false);
-                } else if (menuItem.getItemId() == R.id.menuItemSaveCurrentLocation) {
-                    SaveCurrentLocationDialog.addToDatabaseProfile()
-                        .show(getSupportFragmentManager(), "SaveCurrentLocationDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemCollections) {
-                    CollectionListFragment.newInstance()
-                        .show(getSupportFragmentManager(), "CollectionListFragment");
-                } else if (menuItem.getItemId() == R.id.menuItemHistory) {
-                    HistoryFragment.newInstance()
-                        .show(getSupportFragmentManager(), "HistoryFragment");
-                } else if (menuItem.getItemId() == R.id.menuItemSettings) {
-                    SettingsFragment.newInstance()
-                        .show(getSupportFragmentManager(), "SettingsFragment");
-                } else if (menuItem.getItemId() == R.id.menuItemInfo) {
-                    InfoDialog.newInstance()
-                        .show(getSupportFragmentManager(), "InfoDialog");
-                } else if (menuItem.getItemId() == R.id.menuItemUserManual) {
-                    Intent openBrowserIntent = new Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(
-                                getResources().getString(R.string.variableUserManualUrl)));
-                    startActivity(openBrowserIntent);
-                } else if (menuItem.getItemId() == R.id.menuItemContactMe) {
-                    SendFeedbackDialog.newInstance(
-                            SendFeedbackDialog.FeedbackToken.QUESTION)
-                        .show(getSupportFragmentManager(), "SendFeedbackDialog");
-                } else {
-                    return false;
-                }
-                return true;
-            }
-        });
-
         // tab layout
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
@@ -343,7 +306,9 @@ public class MainActivity extends AppCompatActivity
 
         tabLayout.selectTab(null);
         tabLayout.addOnTabSelectedListener(this);
-        openTab(getIntent());
+        if (! mainMenuIsOpen) {
+            openTab(getIntent());
+        }
     }
 
     private TextView createTabLayoutTabCustomView(final Tab tab, final Enum<?>[] subTabs) {
@@ -404,6 +369,9 @@ public class MainActivity extends AppCompatActivity
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Timber.d("onNewIntent");
+        if (mainMenuIsOpen) {
+            closeMainMenu();
+        }
         openTab(intent);
     }
 
@@ -448,19 +416,19 @@ public class MainActivity extends AppCompatActivity
                         .show(getSupportFragmentManager(), "SimpleMessageDialog");
                 }
             } else {
-                ImportGpxFileDialog.newInstance(uri, false)
-                    .show(getSupportFragmentManager(), "ImportGpxFileDialog");
+                OpenGpxFileDialog.newInstance(uri)
+                    .show(getSupportFragmentManager(), "OpenGpxFileDialog");
             }
             lastUri = uri;
         }
     }
 
     @Override public void onBackPressed() {
-        if (drawerLayout.isOpen()) {
-            drawerLayout.closeDrawers();
-        } else if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
             super.onBackPressed();
             updateToolbarNavigateUpButtonVisibility();
+        } else if (mainMenuIsOpen) {
+            closeMainMenu();
         } else {
             finish();
         }
@@ -468,24 +436,43 @@ public class MainActivity extends AppCompatActivity
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         Timber.d("onFragmentResult: requestKey=%1$s", requestKey);
+        if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_ADD_CURRENT_LOCATION_TO_DATABASE_PROFILE_SUCCESSFUL)
+                || requestKey.equals(SendFeedbackDialog.REQUEST_MESSAGE_SENT_SUCCESSFUL)) {
+            closeMainMenu();
+            return;
+        }
+
+        DialogFragment dialogFragment = null;
         if (requestKey.equals(EnterAddressDialog.REQUEST_ENTER_ADDRESS)) {
             StreetAddress newRouteDestination = (StreetAddress) bundle.getSerializable(EnterAddressDialog.EXTRA_STREET_ADDRESS);
             if (newRouteDestination != null) {
-                ObjectDetailsTabLayoutFragment.details(newRouteDestination)
-                    .show(getSupportFragmentManager(), "Details");
+                dialogFragment = ObjectDetailsTabLayoutFragment.details(newRouteDestination);
             }
+        } else if (requestKey.equals(PointFromCoordinatesLinkDialog.REQUEST_FROM_COORDINATES_LINK)) {
+            Point sharedLocation = (Point) bundle.getSerializable(PointFromCoordinatesLinkDialog.EXTRA_COORDINATES);
+            if (sharedLocation != null) {
+                dialogFragment = ObjectDetailsTabLayoutFragment.details(sharedLocation);
+            }
+        } else if (requestKey.equals(OpenGpxFileDialog.REQUEST_IMPORT_INTO_COLLECTION_SUCCESSFUL)) {
+            Collection collectionFromGpxFileImport = (Collection) bundle.getSerializable(OpenGpxFileDialog.EXTRA_COLLECTION);
+            if (collectionFromGpxFileImport != null) {
+                dialogFragment = ObjectListFromDatabaseFragment.newInstance(collectionFromGpxFileImport);
+            }
+        }
 
-        } else if (requestKey.equals(ImportGpxFileDialog.REQUEST_IMPORT_OF_GPX_FILE_WAS_SUCCESSFUL)) {
-            DatabaseProfile importedGpxFileCollection = (DatabaseProfile) bundle.getSerializable(ImportGpxFileDialog.EXTRA_GPX_FILE_PROFILE);
-            if (importedGpxFileCollection != null) {
-                ObjectListFromDatabaseFragment.newInstance(importedGpxFileCollection)
-                    .show(getSupportFragmentManager(), "ImportedGpxFileCollection");
+        Timber.d("onFragmentResult: mainMenuIsOpen=%1$s, dialogFragment=%2$s", mainMenuIsOpen, dialogFragment);
+        if (dialogFragment != null) {
+            if (mainMenuIsOpen) {
+                embeddFragment(dialogFragment);
+            } else {
+                openDialog(dialogFragment);
             }
         }
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(KEY_MAIN_MENU_IS_OPEN, mainMenuIsOpen);
         savedInstanceState.putInt(KEY_CONTROL_SIMULATION_ACCESSIBILITY_ACTION_ID_FOR_BEARING, controlSimulationAccessibilityActionIdForBearing);
         savedInstanceState.putInt(KEY_CONTROL_SIMULATION_ACCESSIBILITY_ACTION_ID_FOR_LOCATION, controlSimulationAccessibilityActionIdForLocation);
         savedInstanceState.putBoolean(KEY_SKIP_POSITION_MANAGER_INITIALISATION_DURING_ON_RESUME, skipPositionManagerInitialisationDuringOnResume);
@@ -507,10 +494,78 @@ public class MainActivity extends AppCompatActivity
 
     private void updateToolbarNavigateUpButtonVisibility() {
         getSupportFragmentManager().executePendingTransactions();
+        boolean showNavigateUpButton = ! mainMenuIsOpen
+            && getSupportFragmentManager().getBackStackEntryCount() > 1;
         buttonNavigateUp.setVisibility(
-                getSupportFragmentManager().getBackStackEntryCount() > 1
-                ? View.VISIBLE : View.GONE);
+                showNavigateUpButton ? View.VISIBLE : View.GONE);
+
+        // debugging information
+        Timber.d("updateToolbarNavigateUpButtonVisibility: %1$s = ! %2$s && %3$d > 1", showNavigateUpButton, mainMenuIsOpen, getSupportFragmentManager().getBackStackEntryCount());
+        for (int i=0; i<getSupportFragmentManager().getBackStackEntryCount(); i++) {
+            Timber.d("  backstack entry: %1$s", getSupportFragmentManager().getBackStackEntryAt(i).toString());
+        }
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            Timber.d("  fragment: %1$s", fragment.toString());
+        }
     }
+
+
+    // main menu
+    private static String BACKSTACK_MAIN_MENU = "BACKSTACK_MAIN_MENU";
+
+    @Override public void openMainMenu() {
+        if (mainMenuIsOpen) return;
+
+        // save the backstack of the current tab
+        Timber.d("openMainMenu before restore, getBackStackEntryCount(): %1$d", getSupportFragmentManager().getBackStackEntryCount());
+        getSupportFragmentManager().saveBackStack(getCurrentTab().name());
+        getSupportFragmentManager().clearBackStack(BACKSTACK_MAIN_MENU);
+        getSupportFragmentManager().executePendingTransactions();
+
+        // and add the main menu fragment
+        getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.fragmentContainerView, MainMenuFragment.newInstance(), "MAIN_MENU")
+            .setReorderingAllowed(true)
+            .addToBackStack(BACKSTACK_MAIN_MENU)
+            .commit();
+        mainMenuIsOpen = true;
+        updateToolbarNavigateUpButtonVisibility();
+        updateMainMenuOpenState();
+    }
+
+    @Override public void closeMainMenu() {
+        if (! mainMenuIsOpen) return;
+
+        // clear the main menu backstack
+        Timber.d("closeMainMenu before clear, getBackStackEntryCount(): %1$d", getSupportFragmentManager().getBackStackEntryCount());
+        for (int i=0; i<getSupportFragmentManager().getBackStackEntryCount(); i++) {
+            getSupportFragmentManager().popBackStack();
+        }
+        getSupportFragmentManager().executePendingTransactions();
+
+        // and restore the backstack of the current tab again
+        getSupportFragmentManager().restoreBackStack(getCurrentTab().name());
+        mainMenuIsOpen = false;
+        updateToolbarNavigateUpButtonVisibility();
+        updateMainMenuOpenState();
+    }
+
+    private void updateMainMenuOpenState() {
+        buttonMainMenu.setImageResource(
+                mainMenuIsOpen ? R.drawable.clear : R.drawable.image_main_menu);
+        buttonMainMenu.setContentDescription(
+                mainMenuIsOpen
+                ? getResources().getString(R.string.closeMainMenu)
+                : getResources().getString(R.string.openMainMenu));
+        buttonBearingDetails.setVisibility(
+                mainMenuIsOpen ? View.GONE : View.VISIBLE);
+        buttonLocationDetails.setVisibility(
+                mainMenuIsOpen ? View.GONE : View.VISIBLE);
+        tabLayout.setVisibility(
+                mainMenuIsOpen ? View.GONE : View.VISIBLE);
+    }
+
 
     // bearing details
 
@@ -807,6 +862,8 @@ public class MainActivity extends AppCompatActivity
         registerBroadcastReceiver();
         displayRemainsActiveSettingChanged(
                 settingsManagerInstance.getDisplayRemainsActive());
+
+        updateMainMenuOpenState();
         buttonBearingDetails.setContentDescription(createBearingDetailsButtonContentDescription());
         updateAccessibilityActionsOnBearingDetailsButton();
         buttonLocationDetails.setContentDescription(createLocationDetailsButtonContentDescription());
@@ -953,12 +1010,10 @@ public class MainActivity extends AppCompatActivity
                     || intent.getAction().equals(PositionManager.ACTION_NEW_SIMULATED_LOCATION)) {
                 updateAccessibilityActionsOnLocationDetailsButton();
 
-            } else if (drawerLayout != null && ! drawerLayout.isOpen()) {
-                if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
-                    buttonBearingDetails.setContentDescription(createBearingDetailsButtonContentDescription());
-                } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
-                    buttonLocationDetails.setContentDescription(createLocationDetailsButtonContentDescription());
-                }
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
+                buttonBearingDetails.setContentDescription(createBearingDetailsButtonContentDescription());
+            } else if (intent.getAction().equals(PositionManager.ACTION_NEW_LOCATION)) {
+                buttonLocationDetails.setContentDescription(createLocationDetailsButtonContentDescription());
             }
         }
     };
@@ -1126,7 +1181,7 @@ public class MainActivity extends AppCompatActivity
         settingsManagerInstance.setSelectedTabForMainActivity(newTab);
 
         if (newTab == Tab.POINTS && openLastPointProfileInPointsTab) {
-            addFragment(
+            embeddFragment(
                     PoiListFromServerFragment.newInstance(
                         settingsManagerInstance.getSelectedPoiProfile()));
         }
@@ -1153,7 +1208,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (openLastPointProfileInPointsTab && sameTab == Tab.POINTS) {
-            addFragment(
+            embeddFragment(
                     PoiListFromServerFragment.newInstance(
                         settingsManagerInstance.getSelectedPoiProfile()));
         }
@@ -1170,19 +1225,29 @@ public class MainActivity extends AppCompatActivity
 
     // MainActivityController
 
-    @Override public void openPlanRouteDialog(boolean startRouteCalculationImmediately) {
-        // close, if already open
-        List<Fragment> fragments = getSupportFragmentManager().getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment instanceof PlanRouteDialog) {
-                    ((PlanRouteDialog) fragment).dismiss();
-                }
-            }
+    @Override public void embeddFragmentIfPossibleElseOpenAsDialog(DialogFragment fragment) {
+        Timber.d("embeddFragmentIfPossibleElseOpenAsDialog: embedd=%1$s, mainMenuIsOpen=%2$s", (! hasOpenDialog()), mainMenuIsOpen);
+        if (! hasOpenDialog()) {
+            embeddFragment(fragment);
+        } else {
+            openDialog(fragment);
         }
-        // open on top
-        PlanRouteDialog.newInstance(startRouteCalculationImmediately)
-            .show(getSupportFragmentManager(), "PlanRouteDialog");
+    }
+
+    private void embeddFragment(DialogFragment fragment) {
+        getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.fragmentContainerView, fragment, null)
+            .setReorderingAllowed(true)
+            .addToBackStack(
+                    mainMenuIsOpen ? BACKSTACK_MAIN_MENU : getCurrentTab().name())
+            .commit();
+        updateToolbarNavigateUpButtonVisibility();
+    }
+
+    @Override public void openDialog(DialogFragment dialog) {
+        Timber.d("openDialog: %1$s", dialog.getClass().getName());
+        dialog.show(getSupportFragmentManager(), dialog.getClass().getName());
     }
 
     @Override public void closeAllOpenDialogs() {
@@ -1199,38 +1264,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override public FragmentManager getFragmentManagerInstance() {
-        return getSupportFragmentManager();
-    }
-
-    @Override public void addFragment(DialogFragment fragment) {
-        if (hasOpenDialog()) {
-            Timber.d("addFragment: fragment wants to be a dialog");
-            fragment.show(getSupportFragmentManager(), null);
-        } else {
-            Timber.d("addFragment: want to be embedded");
-            getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragmentContainerView, fragment, null)
-                .setReorderingAllowed(true)
-                .addToBackStack(getCurrentTab().name())
-                .commit();
-            updateToolbarNavigateUpButtonVisibility();
-        }
-    }
-
-    private boolean hasOpenDialog() {
+    @Override public void openPlanRouteDialog(boolean startRouteCalculationImmediately) {
+        // close, if already open
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         if (fragments != null) {
             for (Fragment fragment : fragments) {
-                if (fragment instanceof DialogFragment) {
-                    if (((DialogFragment) fragment).getShowsDialog()) {
-                        return true;
-                    }
+                if (fragment instanceof PlanRouteDialog) {
+                    ((PlanRouteDialog) fragment).dismiss();
                 }
             }
         }
-        return false;
+        // open on top
+        openDialog(PlanRouteDialog.newInstance(startRouteCalculationImmediately));
     }
 
 
@@ -1256,15 +1301,15 @@ public class MainActivity extends AppCompatActivity
                         if (Math.abs(velocityX) > Math.abs(velocityY)){
                             if (velocityX >= 0) {
                                 // if velocityX is positive, then it's towards right
-                                if (drawerLayout != null && drawerLayout.isOpen()) {
+                                if (mainMenuIsOpen) {
                                     // do nothing
                                 } else if (! hasOpenDialog()) {
                                     previousFragment();
                                 }
                             } else {
                                 // if velocityX is negative, then it's towards left
-                                if (drawerLayout != null && drawerLayout.isOpen()) {
-                                    drawerLayout.closeDrawers();
+                                if (mainMenuIsOpen) {
+                                    closeMainMenu();
                                 } else if (! hasOpenDialog()) {
                                     nextFragment();
                                 }
@@ -1282,6 +1327,22 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         return super.dispatchTouchEvent(event);
+    }
+
+    private boolean hasOpenDialog() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                Timber.d("  %1$s: %2$s", fragment.toString(),
+                        (fragment instanceof DialogFragment && ((DialogFragment) fragment).getShowsDialog()));
+                if (fragment instanceof DialogFragment) {
+                    if (((DialogFragment) fragment).getShowsDialog()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void previousFragment() {

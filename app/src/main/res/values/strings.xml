@@ -98,14 +98,27 @@
     <string name="whereAmIDialogTitle">Where am I?</string>
 
     <!-- main menu -->
-    <string name="menuItemPlanRoute">Plan route</string>
-    <string name="menuItemSaveCurrentLocation">Save current location</string>
-    <string name="menuItemCollections">Collections</string>
-    <string name="menuItemHistory">History</string>
-    <string name="menuItemSettings">Settings</string>
-    <string name="menuItemInfo">Info</string>
-    <string name="menuItemContactMe">Contact</string>
-    <string name="menuItemUserManual">User manual</string>
+    <string name="mainMenuFragmentTitle">Main menu</string>
+    <!-- new route -->
+    <string name="labelMainMenuSectionNewRoute">New route</string>
+    <string name="mainMenuItemNavigateToAddress">Navigate to address</string>
+    <string name="mainMenuItemNavigateHome">Navigate home</string>
+    <string name="mainMenuItemPlanRoute">Plan route</string>
+    <string name="mainMenuItemRecordRoute">Record route</string>
+    <string name="mainMenuItemOpenGpxFile">Open GPX file</string>
+    <!-- current location -->
+    <string name="labelMainMenuSectionCurrentLocation">Current location</string>
+    <string name="mainMenuItemSaveCurrentLocation">Save current location</string>
+    <string name="mainMenuItemShareCurrentLocation">Share current location</string>
+    <string name="mainMenuItemOpenSharedLocation">Open shared location</string>
+    <!-- Miscellaneous -->
+    <string name="labelMainMenuSectionMisc">Miscellaneous</string>
+    <string name="mainMenuItemCollections">Collections</string>
+    <string name="mainMenuItemHistory">History</string>
+    <string name="mainMenuItemSettings">Settings</string>
+    <string name="mainMenuItemInfo">Info</string>
+    <string name="mainMenuItemContactMe">Contact</string>
+    <string name="mainMenuItemUserManual">User manual</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
@@ -151,6 +164,10 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Enter Coordinates:</string>
+    <string name="radioButtonCoordinatesInputFormatDecimal">Decimal</string>
+    <string name="radioButtonCoordinatesInputFormatDecimalCd">Decimal degrees</string>
+    <string name="radioButtonCoordinatesInputFormatDms">DMS</string>
+    <string name="radioButtonCoordinatesInputFormatDmsCd">Degrees, minutes and seconds</string>
     <string name="labelOptionalName">Name is optional:</string>
     <string name="messageLatitudeMissing">Missing or invalid latitude value.</string>
     <string name="messageLongitudeMissing">Missing or invalid longitude value.</string>
@@ -188,7 +205,8 @@
     -->
 
     <!-- main activity -->
-    <string name="mainMenu">Main menu</string>
+    <string name="openMainMenu">Open menu</string>
+    <string name="closeMainMenu">Close menu</string>
     <string name="navigateUp">Navigate up</string>
     <string name="errorAddressStringFromIntentEmpty">The shared address is empty.</string>
     <!-- main tab names -->
@@ -201,20 +219,8 @@
     <string name="accessibilityActionStartSimulationLocation">Simulate location: %1$s</string>
     <string name="accessibilityActionEndSimulation">End simulation of %1$s</string>
 
-    <!-- StartFragment -->
-    <string name="fragmentStartName">Home</string>
-    <string name="buttonNavigateToAddress">Navigate to address</string>
-    <string name="buttonNavigateHome">Navigate home</string>
-    <string name="buttonSaveCurrentLocation">Save current location</string>
-    <string name="buttonShareLocation">Share my location</string>
-    <string name="buttonLoadSharedLocation">Load shared location</string>
-    <string name="buttonOpenGpxFile">Open GPX file</string>
-    <string name="buttonRecordRoute">Record route</string>
-    <string name="buttonCollections">Open collections</string>
-    <string name="buttonHistory">Show history</string>
-
     <!-- pin fragment -->
-    <string name="fragmentPinName">Pin</string>
+    <string name="fragmentPinName">Pinned</string>
     <string name="menuItemClearPinnedObjects">Reset</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Only profiles</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only points and routes</string>
@@ -290,22 +296,18 @@
 
     <!-- SelectProfileFromMultipleSourcesDialog -->
     <string name="selectProfileFromMultipleSourcesDialogTitle">Select profile:</string>
-    <string name="selectProfileFromMultipleSourcesDialogTitleCreate">Create collection:</string>
     <string name="selectProfileFromMultipleSourcesDialogTitlePin">Pin profile:</string>
     <string name="selectProfileFromMultipleSourcesDialogTitleTrack">Track profile:</string>
     <string name="profileSelectFromCollections">Collection</string>
     <string name="profileSelectFromPoiProfiles">Point profile</string>
-    <string name="profileSelectFromEmptyCollection">Empty collection</string>
-    <string name="profileSelectFromGpxFile">GPX file</string>
     <string name="messageNoProfileSelected">No profile selected.</string>
     <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Only collections and point profiles are pinnable.</string>
     <string name="messageProfileIncompatibleTargetSaveCurrentLocation">The current location may only be pinned or added to a collection.</string>
-    <string name="messageProfileIncompatibleTargetGpxFileImport">The imported objects may only be pinned or added to a collection.</string>
 
     <!-- CollectionListFragment -->
     <string name="fragmentCollectionListName">Collections</string>
     <string name="fragmentCollectionListNameSelect">Select collection:</string>
-    <string name="buttonAddCollection">New collection</string>
+    <string name="buttonAddCollection">Add collection</string>
     <string name="labelEmptyCollectionList">Add collections to assist you in managing your collected points and routes.</string>
 
     <!-- create collections -->
@@ -313,12 +315,8 @@
     <string name="messageCollectionNameMissing">Please enter a name for the collection.</string>
     <string name="messageCouldNotCreateCollection">The collection could not be created.</string>
 
-    <!-- ImportGpxFileDialog -->
-    <string name="importGpxFileDialogTitle">Import GPX file</string>
-    <string name="importGpxFileDialogTitlePinned">Pin GPX file</string>
-    <string name="labelImportResult">%1$s:\n%2$s found.</string>
-    <string name="radioButtonNewCollection">Create new collection</string>
-    <string name="radioButtonExistingDatabaseProfile">Add to existing collection</string>
+    <!-- OpenGpxFileDialog -->
+    <string name="openGpxFileDialogTitle">Open GPX file</string>
 
     <!-- ExportGpxFileDialog -->
     <string name="exportGpxFileDialogTitle">Save to GPX file</string>
@@ -329,7 +327,7 @@
     <string name="messageExtractGpxFileNameFailed">Couldn\'t get the name of the selected GPX file.</string>
     <string name="messageOpenGpxFileFailed">Couldn\'t open the selected GPX file.</string>
     <string name="messageInvalidGpxFileContents">The selected GPX file is invalid.</string>
-    <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s was added to %2$s.</string>
+    <string name="messageGpxFileIsEmpty">The GPX file is empty.</string>
     <string name="messageGpxFileExportSuccessful">The GPX file %1$s was created successfully.</string>
     <string name="messageGpxFileExportFailed">The GPX file %1$s couldn\'t be created.</string>
 
@@ -415,7 +413,6 @@
 
     <!-- object details tab layout fragment -->
     <string name="labelPointDistanceAndBearing">Distance</string>
-    <string name="labelSegmentDirection">Direction: %1$s</string>
     <string name="labelUserAnnotation">My annotation</string>
 
     <!-- PointDetailsFragment -->
@@ -606,8 +603,8 @@
     <string name="buttonDecreaseSpeechRate">Decrease speech rate</string>
     <string name="buttonIncreaseSpeechRate">Increase speech rate</string>
 
-    <!-- InfoDialog -->
-    <string name="infoDialogTitle">Info</string>
+    <!-- InfoFragment -->
+    <string name="fragmentInfoName">Info</string>
     <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Version</string>
     <string name="labelInfoLastChangelog">Last changes</string>
@@ -744,6 +741,10 @@
     <!--
          other dialogs and layouts
     -->
+
+    <!-- CreateOrSelectCollectionDialog -->
+    <string name="radioButtonNewCollection">Create new collection</string>
+    <string name="radioButtonExistingDatabaseProfile">Add to existing collection</string>
 
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Clear</string>

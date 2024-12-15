@@ -172,7 +172,7 @@ public class DistanceAndBearingView extends AppCompatTextView {
         private AcceptNewPosition acceptNewPositionTtsFocus = AcceptNewPosition.newInstanceForTtsAnnouncementOnFocus();
 
         private AcceptNewBearing acceptNewBearing = AcceptNewBearing.newInstanceForBearingLabelUpdate();
-        private AcceptNewBearing acceptNewBearingSatellite = AcceptNewBearing.newInstanceForBearingLabelUpdate();
+        private AcceptNewBearing acceptNewBearingTts = AcceptNewBearing.newInstanceForTtsAnnouncement();
         private RelativeBearing.Direction lastDirection = null;
 
         @Override public void onReceive(Context context, Intent intent) {
@@ -214,7 +214,7 @@ public class DistanceAndBearingView extends AppCompatTextView {
                     updateDistanceAndBearingLabel();
                 }
                 if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE)
-                        && acceptNewBearingSatellite.updateBearing(
+                        && acceptNewBearingTts.updateBearing(
                             (BearingSensorValue) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
                             false, intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
                     announce = true;

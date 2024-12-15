@@ -1,6 +1,6 @@
         package org.walkersguide.android.ui.view;
 
-import org.walkersguide.android.ui.dialog.create.export_gpx.ExportDatabaseProfileToGpxFileDialog;
+import org.walkersguide.android.ui.dialog.gpx.export.ExportDatabaseProfileToGpxFileDialog;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.dialog.template.SelectMultipleObjectsFromListDialog;
 import org.walkersguide.android.ui.dialog.select.SelectCollectionsDialog;
@@ -400,7 +400,7 @@ public class ProfileView extends LinearLayout {
                 profileDetailsFragment = PoiListFromServerFragment.newInstance((PoiProfile) selectedProfile);
             }
             if (profileDetailsFragment != null) {
-                mainActivityController.addFragment(profileDetailsFragment);
+                mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(profileDetailsFragment);
             }
 
         } else if (menuItemId == MENU_ITEM_OVERVIEW_PIN
@@ -415,24 +415,24 @@ public class ProfileView extends LinearLayout {
             ViewChangedListener.sendProfileListChangedBroadcast();
 
         } else if (menuItemId == MENU_ITEM_POI_CATEGORIES) {
-            UpdatePoiProfileSelectedPoiCategoriesDialog.newInstance((PoiProfile) selectedProfile)
-                .show(mainActivityController.getFragmentManagerInstance(), "UpdatePoiProfileSelectedPoiCategoriesDialog");
+            mainActivityController.openDialog(
+                    UpdatePoiProfileSelectedPoiCategoriesDialog.newInstance((PoiProfile) selectedProfile));
 
         } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
-            UpdatePoiProfileSelectedCollectionsDialog.newInstance((PoiProfile) selectedProfile)
-                .show(mainActivityController.getFragmentManagerInstance(), "UpdatePoiProfileSelectedCollectionsDialog");
+            mainActivityController.openDialog(
+                    UpdatePoiProfileSelectedCollectionsDialog.newInstance((PoiProfile) selectedProfile));
 
         } else if (menuItemId == MENU_ITEM_PIN_SHORTCUT) {
-            AddPoiProfileToHomeScreenDialog.newInstance((PoiProfile) selectedProfile)
-                .show(mainActivityController.getFragmentManagerInstance(), "AddPoiProfileToHomeScreenDialog");
+            mainActivityController.openDialog(
+                    AddPoiProfileToHomeScreenDialog.newInstance((PoiProfile) selectedProfile));
 
         } else if (menuItemId == MENU_ITEM_EXPORT_TO_GPX_FILE) {
-            ExportDatabaseProfileToGpxFileDialog.newInstance((DatabaseProfile) selectedProfile)
-                .show(mainActivityController.getFragmentManagerInstance(), "ExportDatabaseProfileToGpxFileDialog");
+            mainActivityController.openDialog(
+                    ExportDatabaseProfileToGpxFileDialog.newInstance((DatabaseProfile) selectedProfile));
 
         } else if (menuItemId == MENU_ITEM_RENAME) {
-            RenameProfileDialog.newInstance((MutableProfile) selectedProfile)
-                .show(mainActivityController.getFragmentManagerInstance(), "RenameProfileDialog");
+            mainActivityController.openDialog(
+                    RenameProfileDialog.newInstance((MutableProfile) selectedProfile));
 
         } else if (menuItemId == MENU_ITEM_REMOVE) {
             new AlertDialog.Builder(context)

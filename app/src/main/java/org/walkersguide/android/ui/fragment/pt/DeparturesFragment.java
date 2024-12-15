@@ -289,7 +289,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 final Departure departure = (Departure) parent.getItemAtPosition(position);
                 if (station != null && departure != null) {
-                    mainActivityController.addFragment(
+                    mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                             TripDetailsFragment.newInstance(station, departure));
                 }
             }

@@ -23,8 +23,8 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 43
-        versionName '3.2.0-b5'
+        versionCode 45
+        versionName '3.2.0-b7'
         minSdkVersion 21
         targetSdkVersion 35
         multiDexEnabled true
@@ -101,6 +101,7 @@ android {
 
     lintOptions {
         disable "GoogleAppIndexingWarning", "Autofill", "IconLauncherShape", "ButtonStyle"
+        enable "NewerVersionAvailable"
         abortOnError true
         baseline file("lint-baseline.xml")
     }
@@ -130,6 +131,9 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'org.slf4j:slf4j-api:2.0.16'
+
+    // test environment
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // open the APK on your Android Device

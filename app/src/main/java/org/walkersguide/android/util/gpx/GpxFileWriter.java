@@ -38,12 +38,14 @@ public class GpxFileWriter {
         destinationFileOutputStream = new FileOutputStream(destinationFileDescriptor.getFileDescriptor());
         serializer = Xml.newSerializer();
         serializer.setOutput(destinationFileOutputStream, "UTF-8");
+        serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
         // Start gpx tag
         serializer.startDocument("UTF-8", true);
         serializer.startTag(null, "gpx");
         serializer.attribute(null, "version", "1.1");
         serializer.attribute(null, "creator", GlobalInstance.getStringResource(R.string.app_name));
+        serializer.attribute("", "xmlns", "http://www.topografix.com/GPX/1/1");
 
         // <metadata>
         serializer.startTag(null, "metadata");
@@ -87,7 +89,11 @@ public class GpxFileWriter {
                 null, "lat", String.valueOf(point.getCoordinates().getLatitude()));
         serializer.attribute(
                 null, "lon", String.valueOf(point.getCoordinates().getLongitude()));
-        addName(point.getName());
+
+        if (tagName.equals("wpt") || point.hasCustomName()) {
+            addName(point.getName());
+        }
+
         if (point instanceof GPS) {
             GPS gps = (GPS) point;
             addTime(gps.getTimestamp());
@@ -99,6 +105,7 @@ public class GpxFileWriter {
                 serializer.endTag(null, "ele");
             }
         }
+
         serializer.endTag(null, tagName);
     }
 

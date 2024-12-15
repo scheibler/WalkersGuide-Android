@@ -17,6 +17,10 @@ public class AcceptNewBearing implements Serializable {
         return new AcceptNewBearing(4, 500l);
     }
 
+    public static AcceptNewBearing newInstanceForTtsAnnouncement() {
+        return new AcceptNewBearing(8, 2000l);
+    }
+
 
     private final int angleThreshold;
     private final long timeThreshold;

@@ -168,7 +168,7 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
             @Override public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 final Stop selectedStop = (Stop) parent.getItemAtPosition(position);
                 if (selectedStop != null) {
-                    mainActivityController.addFragment(
+                    mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                             DeparturesFragment.newInstance(
                                 selectedStop.location,
                                 PtUtility.getDepartureTime(selectedStop)));

@@ -173,7 +173,7 @@ public class IntersectionScheme extends View {
     private void onIntersectionSegmentClicked(IntersectionSegment segment) {
         if (getContext() instanceof MainActivity) {
             ((MainActivityController) getContext())
-                .addFragment(
+                .embeddFragmentIfPossibleElseOpenAsDialog(
                         ObjectDetailsTabLayoutFragment.details(segment));
         }
     }

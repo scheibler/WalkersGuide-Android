@@ -70,39 +70,6 @@ public abstract class ObjectWithId implements Serializable {
     }
 
 
-    public static String summarizeObjectListContents(ArrayList<ObjectWithId> objectList) {
-        // count
-        int points = 0, segments = 0, routes = 0;
-        for (ObjectWithId object : objectList) {
-            if (object instanceof Point) {
-                points++;
-            } else if (object instanceof Segment) {
-                segments++;
-            } else if (object instanceof Route) {
-                routes++;
-            }
-        }
-        // format strings
-        ArrayList<String> stringList = new ArrayList<String>();
-        if (segments > 0) {
-            stringList.add(
-                    GlobalInstance.getPluralResource(R.plurals.way, segments));
-        }
-        if (routes > 0) {
-            stringList.add(
-                    GlobalInstance.getPluralResource(R.plurals.route, routes));
-        }
-        if (points > 0                      // must come last
-                || stringList.isEmpty()) {  // special case for the empty list: return string "0 points"
-            stringList.add(
-                    0,      // put on top of the stringList
-                    GlobalInstance.getPluralResource(R.plurals.point, points));
-        }
-        // concatenate and return
-        return Helper.formatStringListWithFillWordAnd(stringList);
-    }
-
-
     /**
      * object creation helpers
      */

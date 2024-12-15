@@ -5,7 +5,7 @@
     <shortcut
         android:shortcutId="shortcutPlanRoute"
         android:icon="@drawable/ic_launcher"
-        android:shortcutShortLabel="@string/menuItemPlanRoute"
+        android:shortcutShortLabel="@string/mainMenuItemPlanRoute"
         tools:ignore="UnusedAttribute" >
 
         <intent
@@ -17,7 +17,7 @@
     <shortcut
         android:shortcutId="shortcutSaveCurrentLocation"
         android:icon="@drawable/ic_launcher"
-        android:shortcutShortLabel="@string/menuItemSaveCurrentLocation"
+        android:shortcutShortLabel="@string/mainMenuItemSaveCurrentLocation"
         tools:ignore="UnusedAttribute" >
 
         <intent

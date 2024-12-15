@@ -72,7 +72,7 @@ public class ResolveCurrentAddressView extends LinearLayout {
 
         // current address
         layoutCurrentAddress = new ObjectWithIdView(
-                context, getResources().getString(R.string.labelPrefixClosestAddress));
+                context, getResources().getString(R.string.labelPrefixClosestAddress), true, false);
         layoutCurrentAddress.setLayoutParams(
                 new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));

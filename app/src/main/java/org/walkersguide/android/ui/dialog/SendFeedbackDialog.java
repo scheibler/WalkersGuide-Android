@@ -39,14 +39,16 @@ import android.content.Context;
 
 
 public class SendFeedbackDialog extends DialogFragment implements FragmentResultListener {
-    private static final String KEY_TOKEN = "token";
-    private static final String KEY_TASK_ID = "taskId";
-    private static final String KEY_CLOSE_DIALOG = "closeDialog";
+    public static final String REQUEST_MESSAGE_SENT_SUCCESSFUL = "request.messageSentSuccessful";
 
     public enum FeedbackToken {
         QUESTION, MAP_REQUEST, PT_PROVIDER_REQUEST
     }
 
+
+    private static final String KEY_TOKEN = "token";
+    private static final String KEY_TASK_ID = "taskId";
+    private static final String KEY_CLOSE_DIALOG = "closeDialog";
 
     private ServerTaskExecutor serverTaskExecutorInstance;
     private long taskId;
@@ -76,6 +78,7 @@ public class SendFeedbackDialog extends DialogFragment implements FragmentResult
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
         if (requestKey.equals(SimpleMessageDialog.REQUEST_DIALOG_CLOSED)) {
             if (closeDialog) {
+                getParentFragmentManager().setFragmentResult(REQUEST_MESSAGE_SENT_SUCCESSFUL, new Bundle());
                 dismiss();
             }
         }

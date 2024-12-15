@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.view;
 
-import org.walkersguide.android.ui.dialog.create.export_gpx.ExportRouteToGpxFileDialog;
+import org.walkersguide.android.ui.dialog.create.gpx.export.ExportRouteToGpxFileDialog;
 import org.walkersguide.android.ui.dialog.edit.UserAnnotationForObjectWithIdDialog;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
 import org.walkersguide.android.ui.fragment.tabs.ObjectDetailsTabLayoutFragment;
@@ -81,8 +81,8 @@ public class ObjectWithIdView extends LinearLayout {
     private SettingsManager settingsManagerInstance;
 
     private String prefix = null;
-    private boolean includeDistanceOrBearingInformation = true;
     private boolean compact = false;
+    private boolean includeDistanceOrBearingInformation = true;
 
     private ObjectWithId objectWithId;
     private boolean autoUpdate, showObjectIcon;
@@ -97,9 +97,11 @@ public class ObjectWithIdView extends LinearLayout {
         this.initUi(context);
     }
 
-    public ObjectWithIdView(Context context, String prefix) {
+    public ObjectWithIdView(Context context, String prefix, boolean compact, boolean includeDistanceOrBearingInformation) {
         super(context);
         this.prefix = prefix;
+        this.compact = compact;
+        this.includeDistanceOrBearingInformation = includeDistanceOrBearingInformation;
         this.initUi(context);
     }
 
@@ -397,19 +399,19 @@ public class ObjectWithIdView extends LinearLayout {
 
     private boolean executeAccessibilityMenuAction(int menuItemId) {
         if (menuItemId == MENU_ITEM_DETAILS) {
-            mainActivityController.addFragment(
+            mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                         ObjectDetailsTabLayoutFragment.details(this.objectWithId));
         } else if (menuItemId == MENU_ITEM_DEPARTURES) {
-            mainActivityController.addFragment(
+            mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                     ObjectDetailsTabLayoutFragment.departures((Station) this.objectWithId));
         } else if (menuItemId == MENU_ITEM_ENTRANCES) {
-            mainActivityController.addFragment(
+            mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                     ObjectDetailsTabLayoutFragment.entrances((POI) this.objectWithId));
         } else if (menuItemId == MENU_ITEM_PEDESTRIAN_CROSSINGS) {
-            mainActivityController.addFragment(
+            mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                     ObjectDetailsTabLayoutFragment.pedestrianCrossings((Intersection) this.objectWithId));
         } else if (menuItemId == MENU_ITEM_STREET_COURSE) {
-            mainActivityController.addFragment(
+            mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                     ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) this.objectWithId));
         } else {
             return false;
@@ -705,16 +707,16 @@ public class ObjectWithIdView extends LinearLayout {
             ViewChangedListener.sendProfileListChangedBroadcast();
 
         } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
-            UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object)
-                .show(mainActivityController.getFragmentManagerInstance(), "UpdateObjectWithIdSelectedCollectionsDialog");
+            mainActivityController.openDialog(
+                    UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object));
 
         } else if (menuItemId == MENU_ITEM_EDIT_USER_ANNOTATION) {
-            UserAnnotationForObjectWithIdDialog.newInstance(object)
-                .show(mainActivityController.getFragmentManagerInstance(), "UserAnnotationForObjectWithIdDialog");
+            mainActivityController.openDialog(
+                    UserAnnotationForObjectWithIdDialog.newInstance(object));
 
         } else if (menuItemId == MENU_ITEM_EDIT_RENAME) {
-            RenameObjectWithIdDialog.newInstance(object)
-                .show(mainActivityController.getFragmentManagerInstance(), "RenameObjectWithIdDialog");
+            mainActivityController.openDialog(
+                    RenameObjectWithIdDialog.newInstance(object));
 
         } else if (menuItemId == MENU_ITEM_REMOVE) {
             if (onRemoveObjectActionListener != null) {
@@ -815,8 +817,8 @@ public class ObjectWithIdView extends LinearLayout {
             MainActivity.loadRoute(context, reversedRoute);
 
         } else if (menuItemId == MENU_ITEM_EXPORT_TO_GPX_FILE) {
-            ExportRouteToGpxFileDialog.newInstance(route)
-                .show(mainActivityController.getFragmentManagerInstance(), "ExportRouteToGpxFileDialog");
+            mainActivityController.openDialog(
+                    ExportRouteToGpxFileDialog.newInstance(route));
 
         } else {
             return false;

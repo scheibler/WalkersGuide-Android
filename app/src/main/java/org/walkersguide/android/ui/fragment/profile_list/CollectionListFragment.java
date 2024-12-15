@@ -1,6 +1,6 @@
 package org.walkersguide.android.ui.fragment.profile_list;
 
-import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
+import android.widget.Toast;
 
 
 
@@ -26,6 +26,10 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.Profile;
 import org.walkersguide.android.ui.fragment.ProfileListFragment;
 import android.view.View;
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
+import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.ui.dialog.create.CreateOrSelectCollectionDialog;
+import org.walkersguide.android.database.profile.Collection;
 
 
 public class CollectionListFragment extends ProfileListFragment implements FragmentResultListener {
@@ -53,17 +57,13 @@ public class CollectionListFragment extends ProfileListFragment implements Fragm
 
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE, this, this);
+                    CreateOrSelectCollectionDialog.REQUEST_SUCCESSFUL, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SelectProfileFromMultipleSourcesDialog.REQUEST_SELECT_PROFILE)) {
-            SelectProfileFromMultipleSourcesDialog.Target profileTarget = (SelectProfileFromMultipleSourcesDialog.Target)
-                bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_TARGET);
-            Profile selectedProfile = (Profile) bundle.getSerializable(SelectProfileFromMultipleSourcesDialog.EXTRA_PROFILE);
-            if (profileTarget == SelectProfileFromMultipleSourcesDialog.Target.CREATE_COLLECTION
-                    && selectedProfile != null) {
-                // the newly created profile was already inserted into the database in the CreateEmptyCollectionDialog or ImportGpxFileDialog
+        if (requestKey.equals(CreateOrSelectCollectionDialog.REQUEST_SUCCESSFUL)) {
+            if (bundle.getSerializable(CreateOrSelectCollectionDialog.EXTRA_SELECTED_COLLECTION) instanceof Collection) {
+                // the newly created profile was already inserted into the database in the CreateOrSelectCollectionDialog
                 // so just refresh the ui
                 requestUiUpdate();
             }
@@ -89,9 +89,8 @@ public class CollectionListFragment extends ProfileListFragment implements Fragm
     }
 
     @Override public void addProfileButtonClicked(View view) {
-        SelectProfileFromMultipleSourcesDialog.newInstance(
-                SelectProfileFromMultipleSourcesDialog.Target.CREATE_COLLECTION)
-            .show(getChildFragmentManager(), "SelectProfileFromMultipleSourcesDialog");
+        CreateOrSelectCollectionDialog.newInstance(null, true)
+            .show(getChildFragmentManager(), "CreateOrSelectCollectionDialog");
     }
 
     @Override public void prepareRequest() {

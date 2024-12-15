@@ -10,15 +10,79 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
-        <org.walkersguide.android.ui.view.EditTextAndClearInputButton
-            android:id="@+id/layoutLatitude"
+        <RadioGroup
+            android:id="@+id/radioGroupCoordinatesInputFormat"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
 
-        <org.walkersguide.android.ui.view.EditTextAndClearInputButton
-            android:id="@+id/layoutLongitude"
+            <RadioButton
+                android:id="@+id/radioButtonCoordinatesInputFormatDecimal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:text="@string/radioButtonCoordinatesInputFormatDecimal"
+                android:contentDescription="@string/radioButtonCoordinatesInputFormatDecimalCd" />
+
+            <RadioButton
+                android:id="@+id/radioButtonCoordinatesInputFormatDms"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:text="@string/radioButtonCoordinatesInputFormatDms"
+                android:contentDescription="@string/radioButtonCoordinatesInputFormatDmsCd" />
+        </RadioGroup>
+
+        <TableLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:labelFor="@+id/editLatitude"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:paddingEnd="8dp"
+                    android:focusable="true"
+                    android:text="@string/labelGPSLatitude" />
+
+                <EditText
+                    android:id="@+id/editLatitude"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:digits="0123456789,.-°′&quot;’″'nNsS "
+                    android:imeOptions="actionNext" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:labelFor="@+id/editLongitude"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:paddingEnd="8dp"
+                    android:focusable="true"
+                    android:text="@string/labelGPSLongitude" />
+
+                <EditText
+                    android:id="@+id/editLongitude"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:digits="0123456789,.-°′&quot;’″'eEoOwW "
+                    android:imeOptions="actionNext" />
+            </TableRow>
+        </TableLayout>
 
         <org.walkersguide.android.ui.view.EditTextAndClearInputButton
             android:id="@+id/layoutOptionalName"

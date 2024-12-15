@@ -1,5 +1,6 @@
-package org.walkersguide.android.ui.dialog;
+package org.walkersguide.android.ui.fragment.menu;
 
+import org.walkersguide.android.ui.fragment.RootFragment;
 import org.walkersguide.android.ui.dialog.ChangelogDialog;
 import androidx.fragment.app.DialogFragment;
 import android.text.format.DateFormat;
@@ -49,12 +50,12 @@ import android.text.method.LinkMovementMethod;
 import android.net.Uri;
 
 
-public class InfoDialog extends DialogFragment {
+public class InfoFragment extends RootFragment {
     private static final String KEY_TASK_ID = "taskId";
 
-    public static InfoDialog newInstance() {
-        InfoDialog dialog = new InfoDialog();
-        return dialog;
+    public static InfoFragment newInstance() {
+        InfoFragment fragment = new InfoFragment();
+        return fragment;
     }
 
 
@@ -66,19 +67,25 @@ public class InfoDialog extends DialogFragment {
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
+        taskId = savedInstanceState != null
+            ? savedInstanceState.getLong(KEY_TASK_ID)
+            : ServerTaskExecutor.NO_TASK_ID;
     }
 
-    @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-        } else {
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-        }
 
-        final ViewGroup nullParent = null;
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_info, nullParent);
+    /**
+     * create view
+     */
 
+    @Override public String getTitle() {
+        return getResources().getString(R.string.fragmentInfoName);
+    }
+
+    @Override public int getLayoutResourceId() {
+        return R.layout.fragment_info;
+    }
+
+    @Override public View configureView(View view, Bundle savedInstanceState) {
         TextView labelProgramVersion = (TextView) view.findViewById(R.id.labelProgramVersion);
         labelProgramVersion.setText(
                 String.format(
@@ -167,30 +174,16 @@ public class InfoDialog extends DialogFragment {
         labelPublicTransportMessage.setText(
                 UiHelper.getPublicTransportDataSourceText());
 
-        return new AlertDialog.Builder(getActivity())
-            .setTitle(GlobalInstance.getStringResource(R.string.infoDialogTitle))
-            .setView(view)
-            .setPositiveButton(
-                    getResources().getString(R.string.dialogClose),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
-            .create();
+        return view;
     }
 
-    @Override public void onStart() {
-        super.onStart();
+    @Override public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
+    }
 
-        final AlertDialog dialog = (AlertDialog)getDialog();
-        if (dialog != null) {
-            Button buttonPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            buttonPositive.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    dismiss();
-                }
-            });
-        }
+    @Override public void onResume() {
+        super.onResume();
 
         labelServerName.setVisibility(View.GONE);
         labelServerVersion.setVisibility(View.GONE);
@@ -206,11 +199,6 @@ public class InfoDialog extends DialogFragment {
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
             taskId = serverTaskExecutorInstance.executeTask(new ServerStatusTask());
         }
-    }
-
-    @Override public void onStop() {
-        super.onStop();
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(localIntentReceiver);
     }
 
     @Override public void onSaveInstanceState(Bundle savedInstanceState) {

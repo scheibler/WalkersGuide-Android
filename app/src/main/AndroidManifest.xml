@@ -45,7 +45,7 @@
             <!-- gpx files -->
 
 			<intent-filter
-                android:label="@string/importGpxFileDialogTitle"
+                android:label="@string/openGpxFileDialogTitle"
                 tools:ignore="IntentFilterUniqueDataAttributes" >
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -55,7 +55,7 @@
 
             <intent-filter
                 tools:ignore="AppLinkUrlError"
-                android:label="@string/importGpxFileDialogTitle" >
+                android:label="@string/openGpxFileDialogTitle" >
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT"/>
 				<data android:mimeType="text/plain" />

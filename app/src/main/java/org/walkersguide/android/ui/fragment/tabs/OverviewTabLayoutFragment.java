@@ -1,9 +1,8 @@
 package org.walkersguide.android.ui.fragment.tabs;
 
 import android.widget.ImageButton;
-import org.walkersguide.android.ui.fragment.tabs.overview.StartFragment;
 import org.walkersguide.android.ui.fragment.tabs.overview.PinFragment;
-import org.walkersguide.android.ui.fragment.tabs.overview.TrackFragment;
+import org.walkersguide.android.ui.fragment.tabs.points.TrackFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment;
 import org.walkersguide.android.ui.fragment.TabLayoutFragment.AbstractTabAdapter;
 import org.walkersguide.android.R;
@@ -26,7 +25,7 @@ import java.util.Arrays;
 import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
 import android.widget.Button;
 import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
-import org.walkersguide.android.ui.fragment.HistoryFragment;
+import org.walkersguide.android.ui.fragment.tabs.overview.HistoryFragment;
 import timber.log.Timber;
 import org.walkersguide.android.util.GlobalInstance;
 
@@ -53,9 +52,9 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
      */
 
     public enum Tab {
-        START(GlobalInstance.getStringResource(R.string.fragmentStartName)),
         PIN(GlobalInstance.getStringResource(R.string.fragmentPinName)),
-        TRACK(GlobalInstance.getStringResource(R.string.fragmentTrackName));
+        COLLECTIONS(GlobalInstance.getStringResource(R.string.fragmentCollectionListName)),
+        HISTORY(GlobalInstance.getStringResource(R.string.fragmentHistoryName));
 
         public String label;
         private Tab(String label) {
@@ -75,7 +74,7 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
         }
 
         @Override public Enum<?> getDefaultTab() {
-            return Tab.START;
+            return Tab.PIN;
         }
 
         @Override public Fragment getFragment(int position) {
@@ -83,12 +82,12 @@ public class OverviewTabLayoutFragment extends TabLayoutFragment {
             Timber.d("createFragment: position=%1$d, tab=%2$s", position, tab);
             if (tab != null) {
                 switch (tab) {
-                    case START:
-                        return StartFragment.newInstance();
                     case PIN:
                         return PinFragment.newInstance();
-                    case TRACK:
-                        return TrackFragment.newInstance();
+                    case COLLECTIONS:
+                        return CollectionListFragment.newInstance();
+                    case HISTORY:
+                        return HistoryFragment.newInstance();
                 }
             }
             return null;

@@ -93,14 +93,14 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
 
         getChildFragmentManager()
             .setFragmentResultListener(
-                    SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION, this, this);
+                    SaveCurrentLocationDialog.REQUEST_GET_CURRENT_LOCATION, this, this);
         getChildFragmentManager()
             .setFragmentResultListener(
                     EnterRouteNameDialog.REQUEST_ENTER_ROUTE_NAME, this, this);
     }
 
     @Override public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-        if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_SAVE_CURRENT_LOCATION)) {
+        if (requestKey.equals(SaveCurrentLocationDialog.REQUEST_GET_CURRENT_LOCATION)) {
             WalkersGuideService.addPointToRecordedRoute(
                     (GPS) bundle.getSerializable(SaveCurrentLocationDialog.EXTRA_CURRENT_LOCATION));
         } else if (requestKey.equals(EnterRouteNameDialog.REQUEST_ENTER_ROUTE_NAME)) {
@@ -140,7 +140,7 @@ public class RecordRouteFragment extends Fragment implements FragmentResultListe
         Button buttonAddPointManually = (Button) view.findViewById(R.id.buttonAddPointManually);
         buttonAddPointManually.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                SaveCurrentLocationDialog.sendResultBundle(
+                SaveCurrentLocationDialog.newInstance(
                         getResources().getString(R.string.buttonAddPointManuallyCD))
                     .show(getChildFragmentManager(), "SaveCurrentLocationDialog");
             }

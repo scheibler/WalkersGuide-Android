@@ -1,4 +1,4 @@
-package org.walkersguide.android.ui.fragment;
+package org.walkersguide.android.ui.fragment.tabs.overview;
 
 import org.walkersguide.android.ui.adapter.HistoryProfileAdapter;
 import org.walkersguide.android.R;
@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.util.Helper;
+import org.walkersguide.android.ui.fragment.RootFragment;
 
 
 public class HistoryFragment extends RootFragment {

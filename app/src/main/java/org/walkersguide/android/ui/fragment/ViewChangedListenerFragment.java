@@ -1,58 +1,21 @@
-package org.walkersguide.android.ui.fragment.tabs.overview;
+package org.walkersguide.android.ui.fragment;
 
-import org.walkersguide.android.util.Helper;
-import timber.log.Timber;
 import org.walkersguide.android.ui.interfaces.ViewChangedListener;
-import org.walkersguide.android.data.profile.MutableProfile;
-import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter;
-import org.walkersguide.android.ui.adapter.PinnedObjectsAdapter.OnAddButtonClick;
-import org.walkersguide.android.database.profile.StaticProfile;
-import org.walkersguide.android.ui.fragment.profile_list.CollectionListFragment;
-import org.walkersguide.android.ui.fragment.HistoryFragment;
-import org.walkersguide.android.R;
 
 import android.os.Bundle;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
-import android.widget.TextView;
-import android.widget.AbsListView;
-import java.util.concurrent.Executors;
-import org.walkersguide.android.data.ObjectWithId;
-import java.util.ArrayList;
-import org.walkersguide.android.database.util.AccessDatabase;
-import org.walkersguide.android.database.DatabaseProfileRequest;
-import android.os.Handler;
-import android.os.Looper;
-import org.walkersguide.android.ui.dialog.select.SelectProfileFromMultipleSourcesDialog;
-import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
-import androidx.annotation.NonNull;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.MainActivityController;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentResultListener;
 import android.content.Context;
-import android.widget.Button;
-import androidx.lifecycle.Lifecycle;
-import org.walkersguide.android.ui.view.ResolveCurrentAddressView;
-import android.widget.ExpandableListView;
 import android.content.BroadcastReceiver;
-import org.walkersguide.android.data.Profile;
-import android.widget.BaseExpandableListAdapter;
 import android.content.Intent;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import android.content.IntentFilter;
-import org.walkersguide.android.sensor.DeviceSensorManager;
 
 
-public abstract class BaseOverviewFragment extends Fragment implements ViewChangedListener {
+public abstract class ViewChangedListenerFragment extends Fragment implements ViewChangedListener {
     private final static String KEY_LIST_POSITION = "listPosition";
 
     public abstract void requestUiUpdate();

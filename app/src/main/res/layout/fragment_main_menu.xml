@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+        <!-- section new route -->
+
+        <TextView
+            android:theme="@style/HeadingTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/labelMainMenuSectionNewRoute" />
+
+        <Button
+            android:id="@+id/mainMenuItemNavigateToAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemNavigateToAddress" />
+
+        <Button
+            android:id="@+id/mainMenuItemNavigateHome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemNavigateHome" />
+
+        <Button
+            android:id="@+id/mainMenuItemPlanRoute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemPlanRoute" />
+
+        <Button
+            android:id="@+id/mainMenuItemRecordRoute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemRecordRoute" />
+
+        <Button
+            android:id="@+id/mainMenuItemOpenGpxFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemOpenGpxFile" />
+
+
+        <!-- section current location -->
+
+        <TextView
+            android:theme="@style/HeadingTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/labelMainMenuSectionCurrentLocation" />
+
+        <org.walkersguide.android.ui.view.ResolveCurrentAddressView
+            android:id="@+id/layoutClosestAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/mainMenuItemSaveCurrentLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemSaveCurrentLocation" />
+
+        <Button
+            android:id="@+id/mainMenuItemShareCurrentLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemShareCurrentLocation" />
+
+
+        <Button
+            android:id="@+id/mainMenuItemOpenSharedLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemOpenSharedLocation" />
+
+
+        <!-- section miscellaneous -->
+
+        <TextView
+            android:theme="@style/HeadingTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/labelMainMenuSectionMisc" />
+
+        <Button
+            android:id="@+id/mainMenuItemCollections"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemCollections" />
+
+        <Button
+            android:id="@+id/mainMenuItemHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemHistory" />
+
+        <Button
+            android:id="@+id/mainMenuItemSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemSettings" />
+
+        <Button
+            android:id="@+id/mainMenuItemInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemInfo" />
+
+        <Button
+            android:id="@+id/mainMenuItemContactMe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemContactMe" />
+
+        <Button
+            android:id="@+id/mainMenuItemUserManual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:text="@string/mainMenuItemUserManual" />
+
+    </LinearLayout>
+</ScrollView>

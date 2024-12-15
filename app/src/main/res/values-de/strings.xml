@@ -99,14 +99,27 @@
     <string name="whereAmIDialogTitle">Wo bin ich?</string>
 
     <!-- main menu -->
-    <string name="menuItemPlanRoute">Route planen</string>
-    <string name="menuItemSaveCurrentLocation">Aktuelle Position sichern</string>
-    <string name="menuItemCollections">Sammlungen</string>
-    <string name="menuItemHistory">Verlauf</string>
-    <string name="menuItemSettings">Einstellungen</string>
-    <string name="menuItemInfo">Info</string>
-    <string name="menuItemContactMe">Kontakt</string>
-    <string name="menuItemUserManual">Bedienungsanleitung</string>
+    <string name="mainMenuFragmentTitle">Hauptmenü</string>
+    <!-- new route -->
+    <string name="labelMainMenuSectionNewRoute">Neue Route</string>
+    <string name="mainMenuItemNavigateToAddress">Zu Adresse navigieren</string>
+    <string name="mainMenuItemNavigateHome">Nach Hause navigieren</string>
+    <string name="mainMenuItemPlanRoute">Route planen</string>
+    <string name="mainMenuItemRecordRoute">Route aufzeichnen</string>
+    <string name="mainMenuItemOpenGpxFile">GPX Datei öffnen</string>
+    <!-- current location -->
+    <string name="labelMainMenuSectionCurrentLocation">Aktuelle Position</string>
+    <string name="mainMenuItemSaveCurrentLocation">Aktuelle Position sichern</string>
+    <string name="mainMenuItemShareCurrentLocation">Aktuelle Position teilen</string>
+    <string name="mainMenuItemOpenSharedLocation">Geteilte Position öffnen</string>
+    <!-- Miscellaneous -->
+    <string name="labelMainMenuSectionMisc">Verschiedenes</string>
+    <string name="mainMenuItemCollections">Sammlungen</string>
+    <string name="mainMenuItemHistory">Verlauf</string>
+    <string name="mainMenuItemSettings">Einstellungen</string>
+    <string name="mainMenuItemInfo">Info</string>
+    <string name="mainMenuItemContactMe">Kontakt</string>
+    <string name="mainMenuItemUserManual">Bedienungsanleitung</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Route planen</string>
@@ -152,6 +165,10 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Koordinaten eingeben:</string>
+    <string name="radioButtonCoordinatesInputFormatDecimal">Dezimal</string>
+    <string name="radioButtonCoordinatesInputFormatDecimalCd">Dezimalgrad</string>
+    <string name="radioButtonCoordinatesInputFormatDms">DMS</string>
+    <string name="radioButtonCoordinatesInputFormatDmsCd">Grad, Minuten und Sekunden</string>
     <string name="labelOptionalName">Name ist optional:</string>
     <string name="messageLatitudeMissing">Breitengrad fehlt oder ist ungültig.</string>
     <string name="messageLongitudeMissing">Längengrad fehlt oder ist ungültig.</string>
@@ -189,7 +206,8 @@
     -->
 
     <!-- main activity -->
-    <string name="mainMenu">Hauptmenü</string>
+    <string name="openMainMenu">Menü öffnen</string>
+    <string name="closeMainMenu">Menü schließen</string>
     <string name="navigateUp">Nach oben</string>
     <string name="errorAddressStringFromIntentEmpty">Die geteilte Adresse ist leer.</string>
     <!-- main tab names -->
@@ -202,20 +220,8 @@
     <string name="accessibilityActionStartSimulationLocation">Simuliere Standort: %1$s</string>
     <string name="accessibilityActionEndSimulation">Simulation von %1$s beenden</string>
 
-    <!-- StartFragment -->
-    <string name="fragmentStartName">Start</string>
-    <string name="buttonNavigateToAddress">Zu Adresse navigieren</string>
-    <string name="buttonNavigateHome">Nach Hause navigieren</string>
-    <string name="buttonSaveCurrentLocation">Aktuelle Position sichern</string>
-    <string name="buttonShareLocation">Meinen Standort teilen</string>
-    <string name="buttonLoadSharedLocation">Geteilten Standort laden</string>
-    <string name="buttonOpenGpxFile">GPX Datei öffnen</string>
-    <string name="buttonRecordRoute">Route aufzeichnen</string>
-    <string name="buttonCollections">Sammlungen öffnen</string>
-    <string name="buttonHistory">Verlauf anzeigen</string>
-
     <!-- pin fragment -->
-    <string name="fragmentPinName">Anheften</string>
+    <string name="fragmentPinName">Angeheftet</string>
     <string name="menuItemClearPinnedObjects">Zurücksetzen</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Nur Profile</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Nur Punkte und Routen</string>
@@ -291,22 +297,18 @@
 
     <!-- SelectProfileFromMultipleSourcesDialog -->
     <string name="selectProfileFromMultipleSourcesDialogTitle">Profil auswählen:</string>
-    <string name="selectProfileFromMultipleSourcesDialogTitleCreate">Sammlung anlegen:</string>
     <string name="selectProfileFromMultipleSourcesDialogTitlePin">Profil anheften:</string>
     <string name="selectProfileFromMultipleSourcesDialogTitleTrack">Profil verfolgen:</string>
     <string name="profileSelectFromCollections">Sammlung</string>
     <string name="profileSelectFromPoiProfiles">Punktprofil</string>
-    <string name="profileSelectFromEmptyCollection">Leere Sammlung</string>
-    <string name="profileSelectFromGpxFile">GPX Datei</string>
     <string name="messageNoProfileSelected">Kein Profil ausgewählt.</string>
     <string name="messageProfileIncompatibleTargetAddToPinnedProfiles">Es können nur Sammlungen und Punktprofile angeheftet werden.</string>
     <string name="messageProfileIncompatibleTargetSaveCurrentLocation">Die aktuelle Position kann nur angeheftet oder zu einer Sammlung hinzugefügt werden.</string>
-    <string name="messageProfileIncompatibleTargetGpxFileImport">Die importierten Objekte können nur angeheftet oder zu einer Sammlung hinzugefügt werden.</string>
 
     <!-- CollectionListFragment -->
     <string name="fragmentCollectionListName">Sammlungen</string>
     <string name="fragmentCollectionListNameSelect">Sammlung auswählen:</string>
-    <string name="buttonAddCollection">Neue Sammlung</string>
+    <string name="buttonAddCollection">Sammlung hinzufügen</string>
     <string name="labelEmptyCollectionList">Hier kannst du Sammlungen anlegen, um deine Punkte und Routen noch besser gruppieren zu können.</string>
 
     <!-- create collections -->
@@ -314,12 +316,8 @@
     <string name="messageCollectionNameMissing">Bitte gib einen Namen für die Sammlung ein.</string>
     <string name="messageCouldNotCreateCollection">Die Sammlung konnte nicht angelegt werden.</string>
 
-    <!-- ImportGpxFileDialog -->
-    <string name="importGpxFileDialogTitle">GPX Datei importieren</string>
-    <string name="importGpxFileDialogTitlePinned">GPX Datei anheften</string>
-    <string name="labelImportResult">%1$s:\n%2$s gefunden.</string>
-    <string name="radioButtonNewCollection">Neue Sammlung anlegen</string>
-    <string name="radioButtonExistingDatabaseProfile">Zu bestehender Sammlung hinzufügen</string>
+    <!-- OpenGpxFileDialog -->
+    <string name="openGpxFileDialogTitle">GPX Datei öffnen</string>
 
     <!-- ExportGpxFileDialog -->
     <string name="exportGpxFileDialogTitle">In GPX Datei speichern</string>
@@ -330,7 +328,7 @@
     <string name="messageExtractGpxFileNameFailed">Konnte den Namen der ausgewählten GPX Datei nicht ermitteln.</string>
     <string name="messageOpenGpxFileFailed">Die ausgewählte GPX Datei konnte nicht geöffnet werden.</string>
     <string name="messageInvalidGpxFileContents">Die ausgewählte Datei ist nicht im GPX Format.</string>
-    <string name="messageAddObjectsToDatabaseProfileWasSuccessful">%1$s wurde zu %2$s hinzugefügt.</string>
+    <string name="messageGpxFileIsEmpty">Die GPX Datei ist leer.</string>
     <string name="messageGpxFileExportSuccessful">Das Anlegen der GPX Datei %1$s war erfolgreich.</string>
     <string name="messageGpxFileExportFailed">Beim Anlegen der GPX Datei %1$s ist ein Fehler aufgetreten.</string>
 
@@ -416,7 +414,6 @@
 
     <!-- object details tab layout fragment -->
     <string name="labelPointDistanceAndBearing">Entfernung</string>
-    <string name="labelSegmentDirection">Richtung: %1$s</string>
     <string name="labelUserAnnotation">Meine Notiz</string>
 
     <!-- PointDetailsFragment -->
@@ -607,8 +604,8 @@
     <string name="buttonDecreaseSpeechRate">Geschwindigkeit verringern</string>
     <string name="buttonIncreaseSpeechRate">Geschwindigkeit erhöhen</string>
 
-    <!-- InfoDialog -->
-    <string name="infoDialogTitle">Info</string>
+    <!-- InfoFragment -->
+    <string name="fragmentInfoName">Info</string>
     <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Version</string>
     <string name="labelInfoLastChangelog">Letzte Änderungen</string>
@@ -745,6 +742,10 @@
     <!--
          other dialogs and layouts
     -->
+
+    <!-- CreateOrSelectCollectionDialog -->
+    <string name="radioButtonNewCollection">Neue Sammlung anlegen</string>
+    <string name="radioButtonExistingDatabaseProfile">Zu bestehender Sammlung hinzufügen</string>
 
     <!-- layout_edit_text_and_clear_input_button -->
     <string name="buttonClearInput">Löschen</string>

@@ -192,9 +192,7 @@ public class Route extends ObjectWithId implements Serializable {
 
         public Route build() throws JSONException {
             inputData.put(
-                    KEY_ID,
-                    SQLiteHelper.createDatabaseV10RouteId(
-                        inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST)));
+                    KEY_ID, generateId(inputData.getJSONArray(KEY_ROUTE_OBJECT_LIST)));
             if (inputData.isNull(ObjectWithId.KEY_DESCRIPTION)) {
                 setDescription(
                         String.format(
@@ -209,6 +207,10 @@ public class Route extends ObjectWithId implements Serializable {
             }
             return new Route(inputData);
         }
+    }
+
+    public static long generateId(JSONArray jsonRouteObjectList) throws JSONException {
+        return SQLiteHelper.createDatabaseV10RouteId(jsonRouteObjectList);
     }
 
 
@@ -532,7 +534,7 @@ public class Route extends ObjectWithId implements Serializable {
                         jsonCurrentRouteSegment.getJSONObject(Segment.KEY_END));
 
             } catch (JSONException e) {
-                Timber.d("coordinates missing");
+                //Timber.d("coordinates missing");
 
                 startCoordinates = Point.fromJson(
                         jsonPreviousRouteObject.getJSONObject(RouteObject.KEY_POINT))
