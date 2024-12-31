@@ -84,6 +84,8 @@
                 android:minHeight="@dimen/minHeight"
                 android:gravity="center_vertical"
                 android:accessibilityLiveRegion="polite"
+                android:singleLine="true"
+                android:ellipsize="marquee"
                 android:textSize="@dimen/bigTextSize" />
         </androidx.appcompat.widget.Toolbar>
 

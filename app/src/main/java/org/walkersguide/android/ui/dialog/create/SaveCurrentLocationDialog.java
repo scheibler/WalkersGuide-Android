@@ -251,7 +251,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
                     Toast.LENGTH_LONG).show();
             return;
         }
-        currentLocation.rename(name);
+        currentLocation.setOriginalName(name);
 
         if (getArguments().getBoolean(KEY_ADD_TO_DATABASE_PROFILE)) {
             Profile selectedProfile = layoutTargetDatabaseProfile.getProfile();

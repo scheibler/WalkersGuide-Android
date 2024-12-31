@@ -40,6 +40,7 @@ import androidx.annotation.RawRes;
 import android.media.MediaPlayer;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
+import org.walkersguide.android.data.object_with_id.Route.PointListItem;
 
 
 public class Helper {
@@ -57,17 +58,17 @@ public class Helper {
         return filteredObjectList;
     }
 
-    public static ArrayList<Point> filterPointListByTurnValueAndImportantIntersections(
-            ArrayList<? extends Point> pointList, boolean enumeratePointsWithoutName) {
-        ArrayList<Point> filteredPointList = new ArrayList<Point>();
+    public static ArrayList<PointListItem> filterPointListItemsByTurnValueAndImportantIntersections(
+            ArrayList<PointListItem> pointListItems, boolean enumeratePointsWithoutName) {
+        ArrayList<PointListItem> filteredPointListItems = new ArrayList<PointListItem>();
 
         // first point must always be added
-        filteredPointList.add(pointList.get(0));
+        filteredPointListItems.add(pointListItems.get(0));
 
-        for (int i=1; i<pointList.size()-1; i++) {
-            Point previous = filteredPointList.get(filteredPointList.size()-1);
-            Point current = pointList.get(i);
-            Point next = pointList.get(i+1);
+        for (int i=1; i<pointListItems.size()-1; i++) {
+            Point previous = filteredPointListItems.get(filteredPointListItems.size()-1).point;
+            Point current = pointListItems.get(i).point;
+            Point next = pointListItems.get(i+1).point;
 
             // get bearings between segments
             Bearing bearingFromPreviousToCurrent = previous.bearingTo(current);
@@ -76,16 +77,15 @@ public class Helper {
             // calculate turn between these two segments
             Turn turn = bearingFromPreviousToCurrent.turnTo(bearingFromCurrentToNext);
 
-            // current is an important intersection
-            boolean isImportantIntersection = false;
-            if (current instanceof Intersection) {
-                isImportantIntersection = ((Intersection) current).isImportant();
-            }
-            Timber.d("%1$s - %2$s = %3$s, isImportant=%4$s", bearingFromPreviousToCurrent, bearingFromCurrentToNext, turn, isImportantIntersection);
+            boolean currentIsImportant = pointListItems.get(i).isImportant;
+            boolean currentIsImportantIntersection = 
+                   current instanceof Intersection
+                && ((Intersection) current).isImportant();
+            Timber.d("%1$s - %2$s = %3$s, isImportant=%4$s", bearingFromPreviousToCurrent, bearingFromCurrentToNext, turn, currentIsImportantIntersection);
 
             boolean addPoint = false;
-            if (       current.hasCustomName()      // hack to determine, if the point was added by the user
-                    || isImportantIntersection
+            if (       currentIsImportant
+                    || currentIsImportantIntersection
                     || previous.distanceTo(current) > 100) {
                 addPoint = true;
             } else if (turn.getInstruction() != Turn.Instruction.CROSS
@@ -93,19 +93,19 @@ public class Helper {
                 addPoint = true;
             }
             if (addPoint) {
-                filteredPointList.add(current);
+                filteredPointListItems.add(pointListItems.get(i));
             }
         }
 
         // and the last point must always be added too
-        filteredPointList.add(pointList.get(pointList.size()-1));
+        filteredPointListItems.add(pointListItems.get(pointListItems.size()-1));
 
-        // rename point list
+        // rename point list items
         if (enumeratePointsWithoutName) {
             int pointNumber = 1;
-            for (Point point : filteredPointList) {
-                if (! point.hasCustomName()) {         // don't rename points, who were added by the user
-                    point.rename(
+            for (PointListItem item : filteredPointListItems) {
+                if (! item.isImportant) {
+                    item.point.setOriginalName(
                             String.format(
                                 GlobalInstance.getStringResource(R.string.labelRecordedPointName),
                                 pointNumber)
@@ -115,7 +115,7 @@ public class Helper {
             }
         }
 
-        return filteredPointList;
+        return filteredPointListItems;
     }
 
 

@@ -22,15 +22,16 @@ import org.walkersguide.android.data.ObjectWithId;
 public class RouteObject implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    private boolean isFirstRouteObject, isLastRouteObject;
+    private boolean isFirstRouteObject, isLastRouteObject, isImportant;
     private RouteSegment segment;
     private Point point;
     private Turn turn;
 
-    public RouteObject(boolean isFirstRouteObject, boolean isLastRouteObject,
+    public RouteObject(boolean isFirstRouteObject, boolean isLastRouteObject, boolean isImportant,
             RouteSegment segment, Point point, Turn turn) {
         this.isFirstRouteObject = isFirstRouteObject;
         this.isLastRouteObject = isLastRouteObject;
+        this.isImportant = isImportant;
         this.segment = segment;
         this.point = point;
         this.turn = turn;
@@ -39,6 +40,7 @@ public class RouteObject implements Serializable {
     public RouteObject(JSONObject inputData) throws JSONException {
         this.isFirstRouteObject = inputData.getBoolean(KEY_IS_FIRST_ROUTE_OBJECT);
         this.isLastRouteObject = inputData.getBoolean(KEY_IS_LAST_ROUTE_OBJECT);
+        this.isImportant = inputData.optBoolean(KEY_IS_IMPORTANT, false);
 
         // segment and point
         if (this.isFirstRouteObject) {
@@ -62,6 +64,10 @@ public class RouteObject implements Serializable {
 
     public boolean getIsLastRouteObject() {
         return this.isLastRouteObject;
+    }
+
+    public boolean getIsImportant() {
+        return this.isImportant;
     }
 
     public RouteSegment getSegment() {
@@ -135,6 +141,7 @@ public class RouteObject implements Serializable {
 
     public static final String KEY_IS_FIRST_ROUTE_OBJECT = "is_first_route_object";
     public static final String KEY_IS_LAST_ROUTE_OBJECT = "is_last_route_object";
+    public static final String KEY_IS_IMPORTANT = "is_important";
     public static final String KEY_POINT = "point";
     public static final String KEY_SEGMENT = "segment";
     public static final String KEY_TURN = "turn";
@@ -143,6 +150,7 @@ public class RouteObject implements Serializable {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(KEY_IS_FIRST_ROUTE_OBJECT, this.isFirstRouteObject);
         jsonObject.put(KEY_IS_LAST_ROUTE_OBJECT, this.isLastRouteObject);
+        jsonObject.put(KEY_IS_IMPORTANT, this.isImportant);
         if (this.segment != null) {
             jsonObject.put(KEY_SEGMENT, this.segment.toJson());
         }

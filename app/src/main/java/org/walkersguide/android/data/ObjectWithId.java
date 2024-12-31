@@ -219,7 +219,7 @@ public abstract class ObjectWithId implements Serializable {
     public abstract String formatNameAndSubType();
 
     public String getName() {
-        String customName = getCustomName();
+        String customName = getCustomNameFromDatabase();
         if (! TextUtils.isEmpty(customName)) {
             return customName;
         }
@@ -230,7 +230,11 @@ public abstract class ObjectWithId implements Serializable {
         return this.name;
     }
 
-    public String getCustomName() {
+    public void setOriginalName(String newName) {
+        this.name = newName;
+    }
+
+    public String getCustomNameFromDatabase() {
         ObjectWithIdParams params = AccessDatabase.getInstance().getObjectWithIdParams(getId());
         if (params != null) {
             return params.customName;
@@ -238,11 +242,11 @@ public abstract class ObjectWithId implements Serializable {
         return null;
     }
 
-    public boolean hasCustomName() {
-        return ! TextUtils.isEmpty(getCustomName());
+    public boolean hasCustomNameInDatabase() {
+        return ! TextUtils.isEmpty(getCustomNameFromDatabase());
     }
 
-    public boolean rename(String newName) {
+    public boolean setCustomNameInDatabase(String newName) {
         ObjectWithIdParams params = null;
         try {
             params = createParams();
@@ -388,7 +392,7 @@ public abstract class ObjectWithId implements Serializable {
         ObjectWithIdParams params = new ObjectWithIdParams();
         params.id = getId();
         params.data = toJson().toString();
-        String customName = getCustomName();
+        String customName = getCustomNameFromDatabase();
         params.customName = customName != null ? customName : "";
         String userAnnotation = getUserAnnotation();
         params.userAnnotation = userAnnotation != null ? userAnnotation : "";

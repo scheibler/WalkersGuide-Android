@@ -5,6 +5,7 @@
          language specific string variables
     -->
 
+    <string name="variableChangeLogUrl">https://www.walkersguide.org/de/downloads/#versionsverlauf-der-app</string>
     <string name="variableUserManualUrl">https://www.walkersguide.org/de/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/de/privacy/</string>
 
@@ -637,27 +638,44 @@
     <string name="messageFeedbackMessageIsEmpty">Bitte gib eine Nachricht ein.</string>
 
     <!-- ChangelogDialog -->
-    <string name="changelogDialogTitle">Änderungen in der Version 3.0.0:</string>
-    <string name="buttonOpenUserManual">Bedienungsanleitung</string>
-    <!-- new features -->
-    <string name="labelNewFeaturesHeading">Neue Funktionen</string>
-    <string name="labelNewFeatures1">- Punkte und Routen anheften und verfolgen</string>
-    <string name="labelNewFeatures2">- Eigene Routen aufzeichnen</string>
-    <string name="labelNewFeatures3">- Sammlungen, um Punkte und Routen gruppieren und verwalten zu können</string>
-    <string name="labelNewFeatures4">- Verbesserter GPX Dateiimport</string>
-    <string name="labelNewFeatures5">- Die App unterstützt nun Android 14</string>
-    <!-- additional changes -->
-    <string name="labelAdditionalChangesHeading">Weitere Änderungen</string>
-    <string name="labelAdditionalChanges1">Der Aufbau der App hat sich ebenfalls geändert. Der Tab "Favoriten" wurde durch den Tab "Übersicht"
-        ersetzt. Deine bisherigen Favoriten wurden in eine Sammlung überführt und sind nun in der Übersicht
-        unter den angehefteten Profilen zu finden.</string>
-    <string name="labelAdditionalChanges2">Die Tableiste am unteren Bildschirmrand ist nun dauerhaft sichtbar,
-        um flexibler zwischen den Hauptansichten der App wechseln zu können.</string>
-    <string name="labelAdditionalChanges3">Manche Tabs besitzen nun selbst noch eine Tableiste. Diese befindet sich, wenn verfügbar, im oberen
-        Bereich des Bildschirms. So hat der Tab "Übersicht" zwei Subtabs namens "Anheften" und "Verfolgen".
-        Der ebenfalls neu benannte Tab "Routen", rechts daneben, teilt sich in die Subtabs "Navigieren" und "Aufzeichnen" auf.</string>
-    <string name="labelAdditionalChanges4">Du kannst auch aus anderen Teilen der App heraus schnell auf alle Subtabs zugreifen. Setze dazu den
-        Fokus auf den entsprechenden Tab am unteren Bildschirmrand und führe einen langen Klick aus oder wische durch die Talkback Aktionen.</string>
+    <string name="changelogDialogTitle">Änderungen in der Version %1$s</string>
+    <string name="buttonOpenAllChanges">Alle Änderungen</string>
+    <string-array name="changesList">
+        <item>Datum: 31.12.2024</item>
+        <item>Neue Einträge im überarbeiteten Hauptmenü der App:</item>
+        <item>- Zu einer Adresse navigieren</item>
+        <item>- Nach Hause navigieren</item>
+        <item>- Eine Route planen oder aufzeichnen</item>
+        <item>- Eine GPX-Datei öffnen</item>
+        <item>- Deinen Standort teilen und einen von anderen geteilten Standortlink öffnen</item>
+        <item>Subtab-Neuorganisation:</item>
+        <item>- Der Verfolgen-Subtab wurde vom Übersicht-Tab zu Punkte verschoben.</item>
+        <item>- Der Übersicht-Tab enthält jetzt die zusätzlichen Subtabs Sammlungen und Verlauf.</item>
+        <item>Sprachausgabe:</item>
+        <item>- Die Sprechgeschwindigkeit kann in den App-Einstellungen angepasst werden.</item>
+        <item>- Eine Nachrichtenwarteschlange wurde implementiert, um Unterbrechungen bei Navigationsanweisungen zu vermeiden.</item>
+        <item>- Ansagen während der Navigation enthalten jetzt zusätzlich zu den bisherigen Informationen genauere Richtungsangaben zum nächsten Routenpunkt.</item>
+        <item>- Ein Fehler wurde behoben, bei dem Talkback die Entfernungs- und Richtungsansagen der App unterbrach, wenn das Textfeld fokussiert war.</item>
+        <item>Routen:</item>
+        <item>- Neue Presets für Wegeklassen-Gewichtung bei der Routenberechnung. Wähle zwischen Innerstädtisch zu Fuß, Innerstädtisch mit dem Auto und Wandern, um eine optimale Route für die jeweilige Situation zu bekommen.</item>
+        <item>- GPX-Datei-Export hinzugefügt</item>
+        <item>- Aktuelle Koordinaten werden jetzt automatisch auf ihre nächste Adresse aufgelöst, wenn sie als Ausgangspunkt für die Routenberechnung verwendet werden.</item>
+        <item>- Behoben: Die Routenberechnung schlug zuvor fehl, wenn ein oder mehrere Zwischenziele enthalten waren.</item>
+        <item>Weitere UI Verbesserungen:</item>
+        <item>- Neue Talkback-Aktionen für die Richtungs- und Standortbuttons in der Toolbar:</item>
+        <item>    - Richtung: Zwischen Werten vom Kompass oder Satellit wechseln, Simulation ein-/ausschalten</item>
+        <item>    - Standort: Aktuelle Adresse ansagen, GPS-Details anzeigen, Simulation ein-/ausschalten</item>
+        <item>- Punkt-Kontextmenü:</item>
+        <item>    - Neuer Eintrag: Direkt zu diesem Punkt navigieren</item>
+        <item>    - Umbenennen und Notiz hinzufügen wurden ins Bearbeiten-Untermenü verschoben</item>
+        <item>- Präzise Richtungsangabe in Grad wurde zum Entfernungs-Textfeld in den Punktdetails hinzugefügt (siehe den bereits vorhandenen Menüeintrag mit dem gleichen Namen im Navigations-Tab)</item>
+        <item>- Kompakteres Layout für den Verfolgen-Tab</item>
+        <item>- Ein Fehler in der Tab-Leiste unter der Toolbar wurde behoben: Tabs wurden manchmal dupliziert.</item>
+        <item>Sonstiges:</item>
+        <item>- Du kannst Koordinaten nun auch im DMS-Format eingeben (Grad, Minuten, Sekunden)</item>
+        <item>- Unterstützung für Android 15</item>
+        <item>- Ukr\'ainische Übersetzung hinzugefügt</item>
+    </string-array>
 
 
     <!--

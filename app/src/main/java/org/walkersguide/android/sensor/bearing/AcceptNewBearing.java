@@ -18,7 +18,7 @@ public class AcceptNewBearing implements Serializable {
     }
 
     public static AcceptNewBearing newInstanceForTtsAnnouncement() {
-        return new AcceptNewBearing(8, 2000l);
+        return new AcceptNewBearing(10, 2000l);
     }
 
 

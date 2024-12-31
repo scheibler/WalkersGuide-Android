@@ -1,5 +1,6 @@
 package org.walkersguide.android.util.gpx;
 
+import org.walkersguide.android.data.object_with_id.Route.PointListItem;
 import java.util.Locale;
 
 
@@ -47,7 +48,7 @@ public class GpxFileReader {
     public GpxFileParseResult read() throws GpxFileParseException {
         GpxFileParseResult result = new GpxFileParseResult(
                 FileUtility.extractFileNameFrom(this.uri));
-        ArrayList<Point> pointList = new ArrayList<Point>();
+        ArrayList<PointListItem> pointListItems = new ArrayList<PointListItem>();
         int routeIndex = 0;
         GpxFileParseException parseException = null;
 
@@ -78,7 +79,7 @@ public class GpxFileReader {
                 } else if (parser.getName().equals("wpt")) {
                     parser.require(XmlPullParser.START_TAG, null, "wpt");
                     try {
-                        pointList.add(parsePoint(parser, null));
+                        pointListItems.add(parsePoint(parser, null));
                     } catch (JSONException e) {}
                     parser.require(XmlPullParser.END_TAG, null, "wpt");
 
@@ -86,7 +87,7 @@ public class GpxFileReader {
                     Route route = null;
                     try {
                         String routeName = null, routeDescription = null;
-                        ArrayList<GPS> routePointList = new ArrayList<GPS>();
+                        ArrayList<PointListItem> routePointListItems = new ArrayList<PointListItem>();
 
                         parser.require(XmlPullParser.START_TAG, null, "rte");
                         while (parser.nextTag() == XmlPullParser.START_TAG) {
@@ -100,9 +101,9 @@ public class GpxFileReader {
                                 parser.require(XmlPullParser.END_TAG, null, "desc");
                             } else if (parser.getName().equals("rtept")) {
                                 parser.require(XmlPullParser.START_TAG, null, "rtept");
-                                routePointList.add(
+                                routePointListItems.add(
                                         parsePoint(
-                                            parser, String.valueOf(routePointList.size()+1)));
+                                            parser, String.valueOf(routePointListItems.size()+1)));
                                 parser.require(XmlPullParser.END_TAG, null, "rtept");
                             } else {
                                 skipTag(parser);
@@ -110,7 +111,8 @@ public class GpxFileReader {
                         }
                         parser.require(XmlPullParser.END_TAG, null, "rte");
 
-                        route = createRoute(routeIndex, routeName, routeDescription, routePointList, false);
+                        route = createRoute(
+                                routeIndex, routeName, routeDescription, routePointListItems, false);
                     } catch (JSONException e) {}
                     if (route != null) {
                         result.objectList.add(route);
@@ -121,7 +123,7 @@ public class GpxFileReader {
                     Route route = null;
                     try {
                         String routeName = null, routeDescription = null;
-                        ArrayList<GPS> routePointList = new ArrayList<GPS>();
+                        ArrayList<PointListItem> routePointListItems = new ArrayList<PointListItem>();
 
                         parser.require(XmlPullParser.START_TAG, null, "trk");
                         while (parser.nextTag() == XmlPullParser.START_TAG) {
@@ -138,9 +140,9 @@ public class GpxFileReader {
                                 while (parser.nextTag() == XmlPullParser.START_TAG) {
                                     if (parser.getName().equals("trkpt")) {
                                         parser.require(XmlPullParser.START_TAG, null, "trkpt");
-                                        routePointList.add(
+                                        routePointListItems.add(
                                                 parsePoint(
-                                                    parser, String.valueOf(routePointList.size()+1)));
+                                                    parser, String.valueOf(routePointListItems.size()+1)));
                                         parser.require(XmlPullParser.END_TAG, null, "trkpt");
                                     } else {
                                         skipTag(parser);
@@ -153,7 +155,8 @@ public class GpxFileReader {
                         }
                         parser.require(XmlPullParser.END_TAG, null, "trk");
 
-                        route = createRoute(routeIndex, routeName, routeDescription, routePointList, true);
+                        route = createRoute(
+                                routeIndex, routeName, routeDescription, routePointListItems, true);
                     } catch (JSONException e) {}
                     if (route != null) {
                         result.objectList.add(route);
@@ -167,9 +170,10 @@ public class GpxFileReader {
             parser.require(XmlPullParser.END_TAG, null, "gpx");
 
             // look up wpt in database
-            if (! pointList.isEmpty()) {
-                result.objectList.addAll(
-                        AccessDatabase.getInstance().lookUpPointsInDatabaseByCoornates(pointList));
+            if (! pointListItems.isEmpty()) {
+                for (PointListItem item : AccessDatabase.getInstance().lookUpPointsInDatabaseByCoornates(pointListItems)) {
+                    result.objectList.add(item.point);
+                }
             }
 
             if (result.objectList.isEmpty()) {
@@ -199,7 +203,7 @@ public class GpxFileReader {
         return result;
     }
 
-    private GPS parsePoint(XmlPullParser parser, String defaultName)
+    private PointListItem parsePoint(XmlPullParser parser, String defaultName)
             throws XmlPullParserException, IOException, JSONException {
         GPS.Builder gpsBuilder = new GPS.Builder(
                 Double.valueOf(parser.getAttributeValue(null, "lat")),
@@ -207,6 +211,7 @@ public class GpxFileReader {
         if (! TextUtils.isEmpty(defaultName)) {
             gpsBuilder.setName(defaultName);
         }
+        boolean isImportant = false;
 
         // parse optional attributes
         while (parser.nextTag() == XmlPullParser.START_TAG) {
@@ -228,6 +233,7 @@ public class GpxFileReader {
                 String name = parser.nextText();
                 if (! TextUtils.isEmpty(name)) {
                     gpsBuilder.setName(name);
+                    isImportant = true;
                 }
                 parser.require(XmlPullParser.END_TAG, null, "name");
 
@@ -252,7 +258,7 @@ public class GpxFileReader {
             }
         }
 
-        return gpsBuilder.build();
+        return new PointListItem(gpsBuilder.build(), isImportant);
     }
 
     private void skipTag(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -273,7 +279,7 @@ public class GpxFileReader {
     }
 
     private static Route createRoute(int routeIndex, String routeName, String routeDescription,
-            ArrayList<GPS> routePointList, boolean isTrack) throws JSONException {
+            ArrayList<PointListItem> routePointListItems, boolean isTrack) throws JSONException {
         return Route.fromPointList(
                 Route.Type.GPX_TRACK,
                 TextUtils.isEmpty(routeName)
@@ -283,8 +289,8 @@ public class GpxFileReader {
                 routeDescription,
                 false,
                 isTrack
-                ? Helper.filterPointListByTurnValueAndImportantIntersections(routePointList, false)
-                : routePointList);
+                ? Helper.filterPointListItemsByTurnValueAndImportantIntersections(routePointListItems, true)
+                : routePointListItems);
     }
 
 

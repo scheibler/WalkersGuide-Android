@@ -75,6 +75,10 @@ import java.util.Map;
 
 public class ObjectWithIdView extends LinearLayout {
 
+    public enum ShowIcon {
+        NO, IN_DATABASE, ALWAYS
+    }
+
     private MainActivityController mainActivityController;
     private DeviceSensorManager deviceSensorManagerInstance;
     private PositionManager positionManagerInstance;
@@ -85,7 +89,8 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean includeDistanceOrBearingInformation = true;
 
     private ObjectWithId objectWithId;
-    private boolean autoUpdate, showObjectIcon;
+    private boolean autoUpdate;
+    private ShowIcon showObjectIcon;
     private String emptyLabelText, staticLabelText;
 
     private ImageView imageViewObjectIcon;
@@ -242,7 +247,7 @@ public class ObjectWithIdView extends LinearLayout {
         updateLabelAndButtonText();
     }
 
-    public void configureAsListItem(ObjectWithId object, boolean showObjectIcon) {
+    public void configureAsListItem(ObjectWithId object, ShowIcon showObjectIcon) {
         this.reset();
         if (mainActivityController != null && object != null) {
             this.objectWithId = object;
@@ -256,7 +261,7 @@ public class ObjectWithIdView extends LinearLayout {
         if (mainActivityController != null && object != null) {
             this.objectWithId = object;
             this.staticLabelText = staticLabelText;
-            this.showObjectIcon = false;
+            this.showObjectIcon = ShowIcon.NO;
             updateLabelAndButtonText();
         }
     }
@@ -270,7 +275,7 @@ public class ObjectWithIdView extends LinearLayout {
         if (mainActivityController != null && object != null) {
             this.objectWithId = object;
             this.staticLabelText = staticLabelText;
-            this.showObjectIcon = false;
+            this.showObjectIcon = ShowIcon.NO;
             ViewCompat.setAccessibilityDelegate(
                     this.label, UiHelper.getAccessibilityDelegateViewClassButton());
             updateLabelAndButtonText();
@@ -279,7 +284,7 @@ public class ObjectWithIdView extends LinearLayout {
 
     public void reset() {
         this.objectWithId = null;
-        this.showObjectIcon = false;
+        this.showObjectIcon = ShowIcon.NO;
         this.staticLabelText = null;
 
         // remove previously added accessibility actions
@@ -322,17 +327,22 @@ public class ObjectWithIdView extends LinearLayout {
             }
 
             // object icon and label content description
-            if (this.showObjectIcon) {
-                if (this.objectWithId.isInDatabase()) {
-                    this.imageViewObjectIcon.setImageResource(this.objectWithId.getIcon().resId);
-                    this.imageViewObjectIcon.setVisibility(View.VISIBLE);
-                    labelContentDescription = String.format(
-                            "%1$s: %2$s",
-                            this.objectWithId.getIcon().name,
-                            labelContentDescription);
-                } else {
-                    this.imageViewObjectIcon.setVisibility(View.INVISIBLE);
-                }
+            boolean iconVisible = false;
+            if (this.showObjectIcon == ShowIcon.ALWAYS) {
+                iconVisible = true;
+            } else if (this.showObjectIcon == ShowIcon.IN_DATABASE
+                    && this.objectWithId.isInDatabase()) {
+                iconVisible = true;
+            }
+            if (iconVisible) {
+                this.imageViewObjectIcon.setImageResource(this.objectWithId.getIcon().resId);
+                this.imageViewObjectIcon.setVisibility(View.VISIBLE);
+                labelContentDescription = String.format(
+                        "%1$s: %2$s",
+                        this.objectWithId.getIcon().name,
+                        labelContentDescription);
+            } else {
+                this.imageViewObjectIcon.setVisibility(View.INVISIBLE);
             }
 
             // accessibility actions
@@ -892,7 +902,7 @@ public class ObjectWithIdView extends LinearLayout {
         }
 
         @Override public void execute(String input) {
-            if (objectWithId.rename(input)) {
+            if (objectWithId.setCustomNameInDatabase(input)) {
                 Intent intent = new Intent(ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL);
                 LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
                 dismiss();

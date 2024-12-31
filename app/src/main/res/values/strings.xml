@@ -5,6 +5,7 @@
          language specific string variables
     -->
 
+    <string name="variableChangeLogUrl">https://www.walkersguide.org/en/downloads/#apps-change-log</string>
     <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
 
@@ -636,27 +637,44 @@
     <string name="messageFeedbackMessageIsEmpty">Please enter a message.</string>
 
     <!-- ChangelogDialog -->
-    <string name="changelogDialogTitle">Changes in version 3.0.0:</string>
-    <string name="buttonOpenUserManual">User manual</string>
-    <!-- new features -->
-    <string name="labelNewFeaturesHeading">New features</string>
-    <string name="labelNewFeatures1">- Pin and track points and routes</string>
-    <string name="labelNewFeatures2">- Record your own routes</string>
-    <string name="labelNewFeatures3">- Collections to group and manage your points and routes</string>
-    <string name="labelNewFeatures4">- Improved GPX file import</string>
-    <string name="labelNewFeatures5">- The app now supports Android 14</string>
-    <!-- additional changes -->
-    <string name="labelAdditionalChangesHeading">Additional changes</string>
-    <string name="labelAdditionalChanges1">The structure of the app has also changed. The "Favorites" tab has been
-        replaced by the "Overview" tab. Your existing favorites were transferred to a collection
-        and can now be found in the overview tab under the pinned profiles section.</string>
-    <string name="labelAdditionalChanges2">The tab bar at the bottom of the screen is now permanently visible,
-        allowing for easier switching between the main views of the app.</string>
-    <string name="labelAdditionalChanges3">Some tabs now have their own tab bar. If available, this is located
-        in the top area of the screen. For example, the "Overview" tab has two subtabs called "Pin" and "Track".
-        The newly named "Routes" tab, next to it, is divided into the subtabs "Navigate" and "Record".</string>
-    <string name="labelAdditionalChanges4">You can also quickly access all sub-tabs from other parts of the app. To do this, focus on the corresponding
-        tab at the bottom of the screen and perform a long click or swipe through the Talkback actions.</string>
+    <string name="changelogDialogTitle">Changes in version %1$s</string>
+    <string name="buttonOpenAllChanges">All changes</string>
+    <string-array name="changesList">
+        <item>Date: December 31, 2024</item>
+        <item>New entries in the redesigned apps main menu:</item>
+        <item>- Navigate to a street address</item>
+        <item>- Navigate home</item>
+        <item>- Plan or record a route</item>
+        <item>- Open a GPX file</item>
+        <item>- Share your location and open a shared location link from others</item>
+        <item>Sub tab reorganization:</item>
+        <item>- The Track subtab moved from the Overview tab to Points</item>
+        <item>- The Overview tab now includes the additional subtabs Collections and History.</item>
+        <item>Text to speech:</item>
+        <item>- Speech rate can be adjusted in the app\'s settings</item>
+        <item>- A message queue has been implemented to prevent navigation instruction interruptions.</item>
+        <item>- Announcements now include bearing updates to the next route point, in addition to continuous distance updates while navigating.</item>
+        <item>- Fixed a bug where Talkback would take precedence over the distance and bearing announcements from the app\'s TTS, frequently interrupting them.</item>
+        <item>Routes:</item>
+        <item>- New presets for way class weights. Makes it easier to calculate routes for different use cases like hiking or walking in urban areas.</item>
+        <item>- GPX file export added</item>
+        <item>- Current coordinates are now automatically resolved to their closest address when used as the starting point for route calculation.</item>
+        <item>- Fixed: Route calculation previously failed if one or more via points were included.</item>
+        <item>Additional user interface changes:</item>
+        <item>- New talkback actions for the bearing and location buttons in the toolbar</item>
+        <item>    - Bearing: Switch between values from compass or satellite, Enable/disable simulation</item>
+        <item>    - Location: Speak current address, Show GPS details, Enable/disable simulation</item>
+        <item>- Point context menu:</item>
+        <item>    - New entry: Navigate directly to this point</item>
+        <item>    - Rename and add annotation entries were moved into the edit sub menu</item>
+        <item>- Precise bearing in degrees was added to the distance and bearing label in the point details (see the already existing menu item with the same name in the navigate tab for details)</item>
+        <item>- More compact layout for the track tab</item>
+        <item>- Fixed a bug in the tab bar below the toolbar: Tabs were sometimes duplicated.</item>
+        <item>Other:</item>
+        <item>- Enter latitude/longitude using the DMS input format (degrees, minutes, seconds)</item>
+        <item>- Support for Android 15</item>
+        <item>- Ukrainian translation added</item>
+    </string-array>
 
 
     <!--

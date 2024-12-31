@@ -1,5 +1,6 @@
 package org.walkersguide.android.util;
 
+import org.walkersguide.android.data.object_with_id.Route.PointListItem;
 import org.walkersguide.android.util.service.BearingTrackingMode;
 import org.walkersguide.android.util.service.DistanceTrackingMode;
 import org.walkersguide.android.sensor.position.AcceptNewPosition;
@@ -378,7 +379,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         } else if (intent.getAction().equals(ACTION_START_ROUTE_RECORDING)) {
             switch (routeRecordingState) {
                 case OFF:
-                    recordedPointList.clear();
+                    recordedPointListItems.clear();
                     // show warning dialog
                     if (settingsManagerInstance.showRouteRecordingOnlyInForegroundMessage()) {
                         settingsManagerInstance.setShowRouteRecordingOnlyInForegroundMessage(false);
@@ -415,7 +416,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                                 getResources().getString(R.string.messageRecordedRouteNameIsMissing));
                         break;
                     }
-                    if (recordedPointList.size() < 2) {
+                    if (recordedPointListItems.size() < 2) {
                         sendRouteRecordingFailedBroadcast(
                                 getResources().getString(R.string.messageRecordedRouteTooFewPoints));
                         break;
@@ -425,7 +426,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                     if (route != null
                             && StaticProfile.recordedRoutes().addObject(route)) {
                         routeRecordingState = RouteRecordingState.OFF;
-                        recordedPointList.clear();
+                        recordedPointListItems.clear();
                         sendRouteRecordingChangedBroadcast();
                         updateServiceNotification();
                         Toast.makeText(
@@ -445,7 +446,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 case RUNNING:
                 case PAUSED:
                     routeRecordingState = RouteRecordingState.OFF;
-                    recordedPointList.clear();
+                    recordedPointListItems.clear();
                     sendRouteRecordingChangedBroadcast();
                     updateServiceNotification();
                     break;
@@ -460,7 +461,8 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 case PAUSED:
                     GPS pointToAdd = (GPS) intent.getSerializableExtra(EXTRA_POINT_TO_ADD);
                     if (pointToAdd != null) {
-                        recordedPointList.add(pointToAdd);
+                        recordedPointListItems.add(
+                                new PointListItem(pointToAdd, true));
                         sendRouteRecordingChangedBroadcast();
                     }
                     break;
@@ -510,7 +512,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 trackingMode = TrackingMode.OFF;
                 disableTrackingHandler.removeCallbacks(disableTrackingRunnable);
                 routeRecordingState = RouteRecordingState.OFF;
-                recordedPointList.clear();
+                recordedPointListItems.clear();
                 unregisterReceiver(sensorIntentReceiver);
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(serverTaskResultReceiver);
                 break;
@@ -731,7 +733,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     @Override public void newGPSLocation(GPS gps) {
         if (routeRecordingState == RouteRecordingState.RUNNING
                 && shouldPointBeAddedToTheRecordedRoute(gps)) {
-            recordedPointList.add(gps);
+            recordedPointListItems.add(new PointListItem(gps, false));
             sendRouteRecordingChangedBroadcast();
         }
     }
@@ -902,7 +904,7 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
      */
     private static final int RECORDED_POINTS_MIN_DISTANCE_IN_METERS = 5;
 
-    private ArrayList<GPS> recordedPointList = new ArrayList<GPS>();
+    private ArrayList<PointListItem> recordedPointListItems = new ArrayList<PointListItem>();
     private RouteRecordingState routeRecordingState = RouteRecordingState.OFF;
 
     public enum RouteRecordingState {
@@ -1012,30 +1014,23 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
     }
 
 
-    public ArrayList<GPS> getRecordedPointList() {
-        return this.recordedPointList;
-    }
-
     public int getNumberOfRecordedPoints() {
-        return this.recordedPointList.size();
+        return this.recordedPointListItems.size();
     }
-
 
     public int getNumberOfRecordedPointsByUser() {
         int numberOfAddedPointsByUser = 0;
-        for (GPS gps : recordedPointList) {
-            if (gps.hasCustomName()) {
-                numberOfAddedPointsByUser++;
-            }
+        for (PointListItem item : recordedPointListItems) {
+            if (item.isImportant) numberOfAddedPointsByUser++;
         }
         return numberOfAddedPointsByUser;
     }
 
     public int getDistanceBetweenRecordedPoints() {
         int distance = 0;
-        for (int i=0; i<this.recordedPointList.size()-1; i++) {
-            distance += this.recordedPointList.get(i)
-                .distanceTo(this.recordedPointList.get(i+1));
+        for (int i=0; i<this.recordedPointListItems.size()-1; i++) {
+            distance += this.recordedPointListItems.get(i).point
+                .distanceTo(this.recordedPointListItems.get(i+1).point);
         }
         return distance;
     }
@@ -1046,22 +1041,27 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
                 || pointToAdd.getBearing() == null
                 || pointToAdd.getAccuracy() == null) {
             return false;
-        } else if (recordedPointList.isEmpty()) {
+        } else if (recordedPointListItems.isEmpty()) {
             return true;
         }
 
-        GPS previousPoint = recordedPointList.get(recordedPointList.size()-1);
-        if (previousPoint.distanceTo(pointToAdd) < RECORDED_POINTS_MIN_DISTANCE_IN_METERS) {
+        Point previousPoint = recordedPointListItems.get(recordedPointListItems.size()-1).point;
+        if (! (previousPoint instanceof GPS)) {
+            return true;
+        }
+
+        GPS previousGpsPoint = (GPS) previousPoint;
+        if (previousGpsPoint.distanceTo(pointToAdd) < RECORDED_POINTS_MIN_DISTANCE_IN_METERS) {
             return false;
-        } else if (previousPoint.getAccuracy() > 20.0
-                && previousPoint.getMillisecondsElapsedSinceCreation() < 10*1000) {
+        } else if (previousGpsPoint.getAccuracy() > 20.0
+                && previousGpsPoint.getMillisecondsElapsedSinceCreation() < 10*1000) {
             return false;
-        } else if (previousPoint.getAccuracy() > 10.0
-                && previousPoint.getMillisecondsElapsedSinceCreation() < 5*1000) {
+        } else if (previousGpsPoint.getAccuracy() > 10.0
+                && previousGpsPoint.getMillisecondsElapsedSinceCreation() < 5*1000) {
             return false;
         }
 
-        return previousPoint
+        return previousGpsPoint
             .bearingTo(pointToAdd)
             .relativeTo(pointToAdd.getBearing())
             .getDirection() != RelativeBearing.Direction.STRAIGHT_AHEAD;
@@ -1071,24 +1071,18 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         // add destination point, if not automatically done
         GPS destination = positionManagerInstance.getGPSLocation();
         if (destination != null
-                && destination.distanceTo(recordedPointList.get(recordedPointList.size()-1)) > RECORDED_POINTS_MIN_DISTANCE_IN_METERS
-                && recordedPointList.get(recordedPointList.size()-1).getMillisecondsElapsedSinceCreation() > 10*60*1000) {
-            recordedPointList.add(destination);
-        }
-
-        // filter redundant points
-        ArrayList<GPS> filteredRecordedPointList = new ArrayList<GPS>();
-        for (Point point : Helper.filterPointListByTurnValueAndImportantIntersections(recordedPointList, true)) {
-            if (point instanceof GPS) {
-                filteredRecordedPointList.add((GPS) point);
-            }
+                && destination.distanceTo(
+                        recordedPointListItems.get(recordedPointListItems.size()-1).point) > RECORDED_POINTS_MIN_DISTANCE_IN_METERS) {
+            recordedPointListItems.add(new PointListItem(destination, false));
         }
 
         // create route
         Route route = null;
         try {
             route = Route.fromPointList(
-                    Route.Type.RECORDED_ROUTE, routeName, filteredRecordedPointList);
+                    Route.Type.RECORDED_ROUTE,
+                    routeName,
+                    Helper.filterPointListItemsByTurnValueAndImportantIntersections(recordedPointListItems, true));
         } catch (JSONException e) {}
         return route;
     }

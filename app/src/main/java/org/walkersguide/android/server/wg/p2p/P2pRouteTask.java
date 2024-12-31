@@ -49,14 +49,14 @@ public class P2pRouteTask extends ServerTask {
 
         // if the start point is a nameless gps point then try to replace its name with the closest address nearby
         if (startPoint instanceof GPS
-                && ! startPoint.hasCustomName()) {
+                && ! startPoint.hasCustomNameInDatabase()) {
             Timber.d("start point gps: %1$s", startPoint.getName());
             StreetAddress closestAddress = null;
             try {
                 closestAddress = ResolveCoordinatesTask.getAddress(startPoint);
             } catch (AddressException e) {}
             if (closestAddress != null) {
-                startPoint.rename(
+                startPoint.setCustomNameInDatabase(
                         String.format(
                             "%1$s %2$s",
                             GlobalInstance.getStringResource(R.string.labelNearby),
@@ -137,17 +137,21 @@ public class P2pRouteTask extends ServerTask {
                 }
 
                 if (i == 0) {
-                    routeBuilder.addFirstRouteObject(current);
+                    routeBuilder.addFirstRouteObject(current, true);
                     continue;
                 }
 
                 RouteSegment betweenPreviousAndCurrent = new RouteSegment(
                         jsonFlatRouteObjectList.getJSONObject(i-1));
                 if (i == jsonFlatRouteObjectList.length() - 1) {
-                    routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current);
+                    routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current, true);
                 } else {
                     Turn turn = new Turn(jsonCurrent.getInt("turn"));
-                    routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
+                    boolean isImportant =
+                           current.equals(this.request.getViaPoint1())
+                        || current.equals(this.request.getViaPoint2())
+                        || current.equals(this.request.getViaPoint3());
+                    routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn, isImportant);
                 }
             }
 

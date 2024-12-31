@@ -1,5 +1,6 @@
 package org.walkersguide.android.database.util;
 
+import org.walkersguide.android.data.object_with_id.Route.PointListItem;
 import org.walkersguide.android.server.wg.poi.PoiCategory;
 import org.walkersguide.android.server.wg.poi.PoiProfile;
 import org.walkersguide.android.server.wg.poi.PoiProfile.PoiProfileParams;
@@ -37,6 +38,9 @@ import org.walkersguide.android.data.object_with_id.Route;
 import org.walkersguide.android.data.object_with_id.Segment;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import org.walkersguide.android.database.profile.StaticProfile;
+import java.util.Map;
+import java.util.HashMap;
+import org.walkersguide.android.data.object_with_id.common.Coordinates;
 
 
 public class AccessDatabase {
@@ -364,19 +368,19 @@ public class AccessDatabase {
      * objects
      */
 
-    public ArrayList<Point> lookUpPointsInDatabaseByCoornates(ArrayList<Point> inputList) {
-        Timber.d("inputList: \n  %1$s", TextUtils.join("\n  ", inputList));
+    public ArrayList<PointListItem> lookUpPointsInDatabaseByCoornates(ArrayList<PointListItem> inputListItems) {
+        Timber.d("inputList: \n  %1$s", TextUtils.join("\n  ", inputListItems));
         Cursor cursor = null;
         try {
             cursor = database.query(
                     SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
                     null, null, null, null, null);
         } catch (Exception e) {
-            return inputList;
+            return inputListItems;
         }
 
-        ArrayList<Point> outputList = new ArrayList<Point>();
-        while (cursor.moveToNext() && ! inputList.isEmpty()) {
+        ArrayList<PointListItem> outputListItems = new ArrayList<PointListItem>();
+        while (cursor.moveToNext() && ! inputListItems.isEmpty()) {
             Point pointFromDatabase = null;
             try {
                 ObjectWithId objectWithId = createObjectWithIdFrom(cursor);
@@ -386,26 +390,32 @@ public class AccessDatabase {
             } catch (IllegalArgumentException | JSONException e) {}
             if (pointFromDatabase == null) continue;
 
-            ListIterator<Point> inputListIterator = inputList.listIterator();
-            while(inputListIterator.hasNext()){
-                Point pointFromInputList = inputListIterator.next();
-                if (pointFromDatabase.getCoordinates().equals(pointFromInputList.getCoordinates())) {
-                    Timber.d("coordinate match found: replace %1$s with %2$s from db", pointFromInputList.toString(), pointFromDatabase.toString());
+            ListIterator<PointListItem> inputListItemsIterator = inputListItems.listIterator();
+            while(inputListItemsIterator.hasNext()){
+                PointListItem inputListItem = inputListItemsIterator.next();
+                Point pointFromInputListItem = inputListItem.point;
+                if (pointFromDatabase.getCoordinates().equals(pointFromInputListItem.getCoordinates())) {
+                    Timber.d("coordinate match found: replace %1$s with %2$s from db", pointFromInputListItem.toString(), pointFromDatabase.toString());
                     // update point name with that from the gpx file
-                    if (pointFromInputList.hasCustomName()) {
-                        pointFromDatabase.rename(pointFromInputList.getCustomName());
+                    if (! pointFromDatabase.getName().equals(pointFromInputListItem.getName())
+                            && ! TextUtils.isEmpty(pointFromInputListItem.getName())
+                            && inputListItem.isImportant) {
+                        pointFromDatabase.setCustomNameInDatabase(pointFromInputListItem.getName());
+                        Timber.d("set name to %1$s", pointFromDatabase.getName());
                     }
-                    outputList.add(pointFromDatabase);
-                    inputListIterator.remove();
+                    outputListItems.add(
+                            new PointListItem(
+                                pointFromDatabase, inputListItem.isImportant));
+                    inputListItemsIterator.remove();
                     break;
                 }
             }
         }
 
         cursor.close();
-        outputList.addAll(inputList);
-        Timber.d("outputList: \n  %1$s", TextUtils.join("\n  ", outputList));
-        return outputList;
+        outputListItems.addAll(inputListItems);
+        Timber.d("outputList: \n  %1$s", TextUtils.join("\n  ", outputListItems));
+        return outputListItems;
     }
 
     public ObjectWithId getObjectWithId(long id) {
@@ -487,6 +497,44 @@ public class AccessDatabase {
                     new String[] { String.valueOf(object.getId()) });
         }
         return numberOfRemovedRows > 0 ? true : false;
+    }
+
+    private void showPointsWithSameCoordinates() {
+        Cursor cursor = null;
+        try {
+            cursor = database.query(
+                    SQLiteHelper.TABLE_OBJECTS, SQLiteHelper.TABLE_OBJECTS_ALL_COLUMNS,
+                    null, null, null, null, null);
+        } catch (Exception e) {
+            return;
+        }
+
+        HashMap<Integer,ArrayList<Point>> map = new HashMap<Integer,ArrayList<Point>>();
+        while (cursor.moveToNext()) {
+            Point pointFromDatabase = null;
+            try {
+                ObjectWithId objectWithId = createObjectWithIdFrom(cursor);
+                if (objectWithId instanceof Point) {
+                    pointFromDatabase = (Point) objectWithId;
+                }
+            } catch (IllegalArgumentException | JSONException e) {}
+            if (pointFromDatabase == null) continue;
+
+            ArrayList<Point> pointListForCoordinates = map.get(pointFromDatabase.getCoordinates().hashCode());
+            if (pointListForCoordinates == null) pointListForCoordinates = new ArrayList<Point>();
+            pointListForCoordinates.add(pointFromDatabase);
+            map.put(pointFromDatabase.getCoordinates().hashCode(), pointListForCoordinates);
+        }
+        cursor.close();
+
+        int collisions = 0;
+        for (Map.Entry<Integer,ArrayList<Point>> entry : map.entrySet()) {
+            if (entry.getValue().size() > 1) {
+                Timber.d("Coordinates %1$s:\n  - %2$s", entry.getKey(), TextUtils.join("\n  - ", entry.getValue()));
+                collisions++;
+            }
+        }
+        Timber.d("%1$d collisions", collisions);
     }
 
 

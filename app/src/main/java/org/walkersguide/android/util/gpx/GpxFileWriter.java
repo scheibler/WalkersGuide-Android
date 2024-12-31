@@ -54,7 +54,7 @@ public class GpxFileWriter {
     }
 
     public void addPoint(Point point) throws IOException {
-        addPoint(point, "wpt");
+        addPoint(point, "wpt", true);
     }
 
     public void addRoute(Route route) throws IOException {
@@ -62,7 +62,7 @@ public class GpxFileWriter {
         addName(route.getName());
         serializer.startTag(null, "trkseg");
         for (RouteObject routeObject : route.getRouteObjectList()) {
-            addPoint(routeObject.getPoint(), "trkpt");
+            addPoint(routeObject.getPoint(), "trkpt", routeObject.getIsImportant());
         }
         serializer.endTag(null, "trkseg");
         serializer.endTag(null, "trk");
@@ -83,20 +83,15 @@ public class GpxFileWriter {
         }
     }
 
-    private void addPoint(Point point, String tagName) throws IOException {
+    private void addPoint(Point point, String tagName, boolean isImportant) throws IOException {
         serializer.startTag(null, tagName);
         serializer.attribute(
                 null, "lat", String.valueOf(point.getCoordinates().getLatitude()));
         serializer.attribute(
                 null, "lon", String.valueOf(point.getCoordinates().getLongitude()));
 
-        if (tagName.equals("wpt") || point.hasCustomName()) {
-            addName(point.getName());
-        }
-
         if (point instanceof GPS) {
             GPS gps = (GPS) point;
-            addTime(gps.getTimestamp());
             // altitude
             Double altitude = gps.getAltitude();
             if (altitude != null) {
@@ -104,6 +99,12 @@ public class GpxFileWriter {
                 serializer.text(String.format(Locale.ROOT, "%1$.2f", altitude));
                 serializer.endTag(null, "ele");
             }
+            // timestamp must come after ele
+            addTime(gps.getTimestamp());
+        }
+
+        if (isImportant) {
+            addName(point.getName());
         }
 
         serializer.endTag(null, tagName);

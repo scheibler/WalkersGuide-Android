@@ -1,5 +1,6 @@
 package org.walkersguide.android.server.wg.street_course;
 
+import org.walkersguide.android.data.object_with_id.Route.PointListItem;
 import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.server.wg.WgException;
 import org.walkersguide.android.server.ServerUtility;
@@ -44,13 +45,14 @@ public class StreetCourseTask extends ServerTask {
         Route route = null;
         try {
             // parse json point list
-            ArrayList<Point> pointList = new ArrayList<Point>();
+            ArrayList<PointListItem> pointListItems = new ArrayList<PointListItem>();
             JSONArray jsonPointList = jsonServerResponse.getJSONArray("next_intersections");
             for (int i=0; i<jsonPointList.length(); i++) {
-                pointList.add(
-                        Point.fromJson(jsonPointList.getJSONObject(i)));
+                pointListItems.add(
+                        new PointListItem(
+                            Point.fromJson(jsonPointList.getJSONObject(i)), false));
             }
-            if (pointList.size() <= 1) {
+            if (pointListItems.size() <= 1) {
                 throw new WgException(WgException.RC_BAD_RESPONSE);
             }
 
@@ -59,7 +61,7 @@ public class StreetCourseTask extends ServerTask {
                     request.getStreetCourseName(),
                     request.getStreetCourseDescription(),
                     false,
-                    Helper.filterPointListByTurnValueAndImportantIntersections(pointList, false));
+                    Helper.filterPointListItemsByTurnValueAndImportantIntersections(pointListItems, false));
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_RESPONSE);
         }

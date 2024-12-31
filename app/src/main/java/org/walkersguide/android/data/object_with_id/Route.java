@@ -53,29 +53,45 @@ public class Route extends ObjectWithId implements Serializable {
         return objectWithId instanceof Route ? (Route) objectWithId : null;
     }
 
-    public static Route fromPointList(Type routeType, String routeName, ArrayList<? extends Point> pointList) throws JSONException {
-        return fromPointList(routeType, routeName, null, false, pointList);
+
+    // from a list of points (gpx track, recorded route, street course)
+
+    public static class PointListItem implements Serializable {
+        public Point point;
+        public boolean isImportant;
+        public PointListItem(Point point, boolean isImportant) {
+            this.point = point;
+            this.isImportant = isImportant;
+        }
+    }
+
+    public static Route fromPointList(Type routeType, String routeName, ArrayList<PointListItem> pointListItems) throws JSONException {
+        return fromPointList(routeType, routeName, null, false, pointListItems);
     }
 
     public static Route fromPointList(Type routeType, String routeName, String routeDescription,
-            boolean reversed, ArrayList<? extends Point> pointList) throws JSONException {
+            boolean reversed, ArrayList<PointListItem> pointListItems) throws JSONException {
         Route.Builder routeBuilder = new Route.Builder(
-                routeType, routeName, pointList.get(0), pointList.get(pointList.size()-1))
+                routeType,
+                routeName,
+                pointListItems.get(0).point,
+                pointListItems.get(pointListItems.size()-1).point)
             .setReversed(reversed);
         if (! TextUtils.isEmpty(routeDescription)) {
             routeBuilder.setDescription(routeDescription);
         }
 
         IntersectionSegment cachedSourceSegment = null;
-        for (int i=0; i<pointList.size(); i++) {
+        for (int i=0; i<pointListItems.size(); i++) {
 
-            Point current = pointList.get(i);
+            Point current = pointListItems.get(i).point;
+            boolean isImportant = pointListItems.get(i).isImportant;
             if (i == 0) {
-                routeBuilder.addFirstRouteObject(current);
+                routeBuilder.addFirstRouteObject(current, isImportant);
                 continue;
             }
 
-            Point previous = pointList.get(i-1);
+            Point previous = pointListItems.get(i-1).point;
             if (previous instanceof Intersection) {
                 Intersection previousIntersection = (Intersection) previous;
                 // update cached source segment
@@ -89,12 +105,12 @@ public class Route extends ObjectWithId implements Serializable {
             }
 
             RouteSegment betweenPreviousAndCurrent = RouteSegment.create(cachedSourceSegment, previous, current);
-            if (i == pointList.size() - 1) {
-                routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current);
+            if (i == pointListItems.size() - 1) {
+                routeBuilder.addLastRouteObject(betweenPreviousAndCurrent, current, isImportant);
             } else {
                 Turn turn = betweenPreviousAndCurrent.getBearing().turnTo(
-                        current.bearingTo(pointList.get(i+1)));
-                routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn);
+                        current.bearingTo(pointListItems.get(i+1).point));
+                routeBuilder.addRouteObject(betweenPreviousAndCurrent, current, turn, isImportant);
             }
         }
 
@@ -107,17 +123,18 @@ public class Route extends ObjectWithId implements Serializable {
         }
 
         // extract points and reverse list
-        ArrayList<Point> reversedPointList = new ArrayList<Point>();
+        ArrayList<PointListItem> reversedPointListItems = new ArrayList<PointListItem>();
         for (RouteObject routeObject : route.getRouteObjectList()) {
-            reversedPointList.add(routeObject.getPoint());
+            reversedPointListItems.add(
+                    new PointListItem(routeObject.getPoint(), routeObject.getIsImportant()));
         }
-        Collections.reverse(reversedPointList);
+        Collections.reverse(reversedPointListItems);
 
         Route reversedRoute = Route.fromPointList(
-                route.getType(), route.getOriginalName(), null, ! route.isReversed(), reversedPointList);
+                route.getType(), route.getOriginalName(), null, ! route.isReversed(), reversedPointListItems);
         Timber.d("reversed route with custom name %1$s and id=%2$d / %3$d", route.getOriginalName(), route.getId(), reversedRoute.getId());
-        if (route.hasCustomName()) {
-            reversedRoute.rename(route.getCustomName());
+        if (route.hasCustomNameInDatabase()) {
+            reversedRoute.setCustomNameInDatabase(route.getCustomNameFromDatabase());
         }
         return reversedRoute;
     }
@@ -164,17 +181,18 @@ public class Route extends ObjectWithId implements Serializable {
             return this;
         }
 
-        public Builder addFirstRouteObject(final Point point) throws JSONException {
+        public Builder addFirstRouteObject(final Point point, boolean isImportant) throws JSONException {
             inputData
                 .getJSONArray(KEY_ROUTE_OBJECT_LIST)
-                .put((new RouteObject(true, false, null, point, null)).toJson());
+                .put((new RouteObject(true, false, isImportant, null, point, null)).toJson());
             return this;
         }
 
-        public Builder addRouteObject(RouteSegment segment, Point point, Turn turn) throws JSONException {
+        public Builder addRouteObject(RouteSegment segment, Point point,
+                Turn turn, boolean isImportant) throws JSONException {
             inputData
                 .getJSONArray(KEY_ROUTE_OBJECT_LIST)
-                .put((new RouteObject(false, false, segment, point, turn)).toJson());
+                .put((new RouteObject(false, false, isImportant, segment, point, turn)).toJson());
             this.totalDistance += segment.getDistance();
             if (point instanceof Intersection) {
                 this.numberOfIntersections += 1;
@@ -182,10 +200,10 @@ public class Route extends ObjectWithId implements Serializable {
             return this;
         }
 
-        public Builder addLastRouteObject(RouteSegment segment, Point point) throws JSONException {
+        public Builder addLastRouteObject(RouteSegment segment, Point point, boolean isImportant) throws JSONException {
             inputData
                 .getJSONArray(KEY_ROUTE_OBJECT_LIST)
-                .put((new RouteObject(false, true, segment, point, null)).toJson());
+                .put((new RouteObject(false, true, isImportant, segment, point, null)).toJson());
             this.totalDistance += segment.getDistance();
             return this;
         }

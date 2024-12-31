@@ -5,6 +5,7 @@
          language specific string variables
     -->
 
+    <string name="variableChangeLogUrl">https://www.walkersguide.org/en/downloads/#apps-change-log</string>
     <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
 
@@ -92,28 +93,27 @@
     <string name="whereAmIDialogTitle">де я?</string>
 
     <!-- main menu -->
-    <!-- translate me -->
-    <string name="mainMenuFragmentTitle">Main menu</string>
+    <string name="mainMenuFragmentTitle">Головне меню</string>
     <!-- new route -->
-    <string name="labelMainMenuSectionNewRoute">New route</string>
-    <string name="mainMenuItemNavigateToAddress">Navigate to address</string>
-    <string name="mainMenuItemNavigateHome">Navigate home</string>
-    <string name="mainMenuItemPlanRoute">Plan route</string>
-    <string name="mainMenuItemRecordRoute">Record route</string>
-    <string name="mainMenuItemOpenGpxFile">Open GPX file</string>
+    <string name="labelMainMenuSectionNewRoute">Новий маршрут</string>
+    <string name="mainMenuItemNavigateToAddress">Маршрут до адреси</string>
+    <string name="mainMenuItemNavigateHome">Маршрут додому</string>
+    <string name="mainMenuItemPlanRoute">Побудувати маршрут</string>
+    <string name="mainMenuItemRecordRoute">Записати маршрут</string>
+    <string name="mainMenuItemOpenGpxFile">Відкрити файл GPX</string>
     <!-- current location -->
-    <string name="labelMainMenuSectionCurrentLocation">Current location</string>
-    <string name="mainMenuItemSaveCurrentLocation">Save current location</string>
-    <string name="mainMenuItemShareCurrentLocation">Share current location</string>
-    <string name="mainMenuItemOpenSharedLocation">Open shared location</string>
+    <string name="labelMainMenuSectionCurrentLocation">Поточне місцезнаходження</string>
+    <string name="mainMenuItemSaveCurrentLocation">Зберегти місцезнаходження</string>
+    <string name="mainMenuItemShareCurrentLocation">Поділитися місцезнаходженням</string>
+    <string name="mainMenuItemOpenSharedLocation">Імпортувати посилання з координатами</string>
     <!-- Miscellaneous -->
-    <string name="labelMainMenuSectionMisc">Miscellaneous</string>
-    <string name="mainMenuItemCollections">Collections</string>
-    <string name="mainMenuItemHistory">History</string>
-    <string name="mainMenuItemSettings">Settings</string>
-    <string name="mainMenuItemInfo">Info</string>
-    <string name="mainMenuItemContactMe">Contact</string>
-    <string name="mainMenuItemUserManual">User manual</string>
+    <string name="labelMainMenuSectionMisc">Різне</string>
+    <string name="mainMenuItemCollections">Бази</string>
+    <string name="mainMenuItemHistory">Історія</string>
+    <string name="mainMenuItemSettings">Налаштування</string>
+    <string name="mainMenuItemInfo">Інформація</string>
+    <string name="mainMenuItemContactMe">Зворотний зв\'язок</string>
+    <string name="mainMenuItemUserManual">Посібник користувача</string>
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Побудова маршруту</string>
@@ -159,11 +159,10 @@
 
     <!-- enter coordinates dialog -->
     <string name="enterCoordinatesDialogName">Введіть координати:</string>
-    <!-- translate me -->
-    <string name="radioButtonCoordinatesInputFormatDecimal">Decimal</string>
-    <string name="radioButtonCoordinatesInputFormatDecimalCd">Decimal degrees</string>
-    <string name="radioButtonCoordinatesInputFormatDms">DMS</string>
-    <string name="radioButtonCoordinatesInputFormatDmsCd">Degrees, minutes and seconds</string>
+    <string name="radioButtonCoordinatesInputFormatDecimal">Десятковий</string>
+    <string name="radioButtonCoordinatesInputFormatDecimalCd">Десяткові градуси</string>
+    <string name="radioButtonCoordinatesInputFormatDms">ГМС</string>
+    <string name="radioButtonCoordinatesInputFormatDmsCd">Градуси, мінути та секунди</string>
     <string name="labelOptionalName">Назва (необов\'язково):</string>
     <string name="messageLatitudeMissing">Відсутнє або неправильне значення широти.</string>
     <string name="messageLongitudeMissing">Відсутнє або неправильне значення довготи.</string>
@@ -201,9 +200,8 @@
     -->
 
     <!-- main activity -->
-    <!-- translate me -->
-    <string name="openMainMenu">Open menu</string>
-    <string name="closeMainMenu">Close menu</string>
+    <string name="openMainMenu">Відкрити меню</string>
+    <string name="closeMainMenu">Закрити меню</string>
     <string name="navigateUp">Перейти вгору</string>
     <string name="errorAddressStringFromIntentEmpty">Адреса порожня.</string>
     <!-- main tab names -->
@@ -217,8 +215,7 @@
     <string name="accessibilityActionEndSimulation">Вимкнути імітацію %1$s</string>
 
     <!-- pin fragment -->
-    <!-- translate me -->
-    <string name="fragmentPinName">Pinned</string>
+    <string name="fragmentPinName">Закріплені</string>
     <string name="menuItemClearPinnedObjects">Скинути</string>
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Тільки профілі</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Тільки точки і маршрути</string>
@@ -303,8 +300,7 @@
     <!-- CollectionListFragment -->
     <string name="fragmentCollectionListName">Бази</string>
     <string name="fragmentCollectionListNameSelect">Виберіть базу:</string>
-    <!-- translate me -->
-    <string name="buttonAddCollection">Add collection</string>
+    <string name="buttonAddCollection">Додати базу</string>
     <string name="labelEmptyCollectionList">Додайте бази, щоб упорядкувати ваші збережені точки та маршрути.</string>
 
     <!-- create collections -->
@@ -313,21 +309,18 @@
     <string name="messageCouldNotCreateCollection">Не вдалося створити базу.</string>
 
     <!-- OpenGpxFileDialog -->
-    <!-- translate me -->
-    <string name="openGpxFileDialogTitle">Open GPX file</string>
+    <string name="openGpxFileDialogTitle">Відкрити файл GPX</string>
 
     <!-- ExportGpxFileDialog -->
-    <!-- translate me -->
-    <string name="exportGpxFileDialogTitle">Save to GPX file</string>
-    <string name="shareGpxFileDialogTitle">Share GPX file</string>
-    <string name="suggestedNameForRouteInGpxFile">Route to %1$s</string>
+    <string name="exportGpxFileDialogTitle">Зберегти у файлі GPX</string>
+    <string name="shareGpxFileDialogTitle">Поділитися файлом GPX</string>
+    <string name="suggestedNameForRouteInGpxFile">Маршрут до %1$s</string>
 
     <!-- gpx import messages -->
     <string name="messageExtractGpxFileNameFailed">Не вдалося визначити ім\'я вибраного файлу GPX.</string>
     <string name="messageOpenGpxFileFailed">Не вдалося відкрити вибраний файл GPX.</string>
     <string name="messageInvalidGpxFileContents">Вибраний файл GPX має неправильний формат.</string>
-    <!-- translate me -->
-    <string name="messageGpxFileIsEmpty">The GPX file is empty.</string>
+    <string name="messageGpxFileIsEmpty">Файл GPX не містить точок.</string>
     <string name="messageGpxFileExportSuccessful">The GPX file %1$s was created successfully.</string>
     <string name="messageGpxFileExportFailed">The GPX file %1$s couldn\'t be created.</string>
 
@@ -628,21 +621,44 @@
     <string name="messageFeedbackMessageIsEmpty">Будь ласка, введіть повідомлення.</string>
 
     <!-- ChangelogDialog -->
-    <string name="changelogDialogTitle">Зміни у версії 3.0.0:</string>
-    <string name="buttonOpenUserManual">Посібник користувача</string>
-    <!-- new features -->
-    <string name="labelNewFeaturesHeading">Нові функції</string>
-    <string name="labelNewFeatures1">- Закріплення та відстежування точок і маршрутів</string>
-    <string name="labelNewFeatures2">- Запис ваших власних маршрутів</string>
-    <string name="labelNewFeatures3">- Бази для групування та керування точками та маршрутами</string>
-    <string name="labelNewFeatures4">— Покращено імпорт файлів GPX</string>
-    <string name="labelNewFeatures5">- Програма тепер підтримує Android 14</string>
-    <!-- additional changes -->
-    <string name="labelAdditionalChangesHeading">Інші зміни  </string>
-    <string name="labelAdditionalChanges1">Структура програми змінилася. Вкладку Обрані» замінено на вкладку Головна». Ваші наявні обрані перенесено до бази, і тепер їх можна знайти на вкладці Головна в розділі закріплених профілів.</string>
-    <string name="labelAdditionalChanges2">Панель вкладок у нижній частині екрана тепер постійно видима, що дозволяє легше перемикатися між основними розділами програми.</string>
-    <string name="labelAdditionalChanges3">Деякі вкладки тепер мають власну панель вкладок, , вона розташована у верхній частині екрана. Наприклад, вкладка Головна» має дві підвкладки Закріплені» та Відстежування». Нова вкладка «Маршрути» розділена на підвкладки «Навігація» та «Запис».</string>
-    <string name="labelAdditionalChanges4">Ви можете швидко отримати доступ до всіх підвкладок з інших частин програми. Для цього встановіть фокус на відповідній вкладці в нижній частині екрана та натисніть з утриманням або скористайтеся діями TalkBack.</string>
+    <string name="changelogDialogTitle">Зміни у версії %1$s</string>
+    <string name="buttonOpenAllChanges">Всі зміни</string>
+    <string-array name="changesList">
+        <item>Дата: 31 грудня 2024</item>
+        <item>Нові пункти в оновленому головному меню програми:</item>
+        <item>- Побудова маршруту до вказаної адреси</item>
+        <item>- Побудова маршруту до домашньої адреси</item>
+        <item>- Планування чи запис маршруту</item>
+        <item>- Відкриття файлу GPX</item>
+        <item>- Можливість поділитися своїм місцезнаходженням або імпортувати посилання з координатами</item>
+        <item>Перевпорядкування додаткових вкладок:</item>
+        <item>- Підвкладку Відстежування перенесено з вкладки Головна на вкладку Точки</item>
+        <item>- На вкладку Головна додано підвкладки Бази та Історія.</item>
+        <item>Синтез мовлення:</item>
+        <item>- Можливість змінити темп мовлення у налаштуваннях програми</item>
+        <item>- Реалізовано чергу сповіщень, що запобігає перериванню навігаційних інструкцій.</item>
+        <item>- Окрім відстані навігаційні інструкції тепер також містять інформацію про напрямок до наступної маршрутної точки.</item>
+        <item>- Виправлено помилку, внаслідок якої TalkBack часто переривав оповіщення програми про відстань і напрямок.</item>
+        <item>Маршрути:</item>
+        <item>- Додано шаблони категорій доріг, що дозволяє зручніше будувати маршрути різного призначення, наприклад, для пішої прогулянки міськими вулицями чи гірського туризму.</item>
+        <item>- Додано можливість експорту у файл GPX</item>
+        <item>- Тепер, коли поточні координати використовуються, як початкова точка маршруту, для них автоматично визначається найближча адреса.</item>
+        <item>- Виправлено помилку, внаслідок якої неможливо було побудувати маршрут з проміжними точками.</item>
+        <item>Інші зміни у інтерфейсі програми:</item>
+        <item>- Нові дії talkback для кнопок напрямку та місцезнаходження на панелі інструментів</item>
+        <item>    - Напрямок: перемикання між електронним компасом та супутниками, увімкнення чи вимкнення режиму імітації</item>
+        <item>    - Місцезнаходження: оповіщення про поточну адресу, відображення докладної інформації GPS, увімкнення чи вимкнення режиму імітації</item>
+        <item>- Контекстне меню точки:</item>
+        <item>    - Новий пункт: побудова маршруту до вибраної точки</item>
+        <item>    - Пункти меню для роботи з примітками користувача переміщено у підменю Редагувати</item>
+        <item>- На екрані інформації про точку додано точний напрямок у градусах (Цей параметр раніше був доступний лише під час навігації)</item>
+        <item>- Компактніший дизайн вкладки Відстежування</item>
+        <item>- Виправлено помилку, внаслідок якої іноді дублювалися елементи на панелі додаткових вкладок.</item>
+        <item>Інше:</item>
+        <item>- Можливість задавати координати у форматі ГМС (градуси, мінути, секунди)</item>
+        <item>- Підтримка Android 15</item>
+        <item>- Додано українську локалізацію.</item>
+    </string-array>
 
 
     <!--
@@ -772,13 +788,11 @@
     <string name="dialogRefresh">Оновити</string>
     <string name="dialogSend">Надіслати</string>
     <string name="dialogSomethingMissing">Щось пропущено?</string>
-    <!-- translate me -->
-    <string name="dialogShare">Share</string>
+    <string name="dialogShare">Поділитися</string>
     <string name="dialogTest">Прослухати приклад</string>
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">і</string>
-    <!-- translate me -->
     <string name="fillingWordCustom">Персоналізовано</string>
     <string name="fillingWordHas">має</string>
     <string name="stateCollapsed">згорнуто</string>

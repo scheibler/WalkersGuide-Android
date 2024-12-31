@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.adapter;
 
+    import org.walkersguide.android.ui.view.ObjectWithIdView.ShowIcon;
 import org.walkersguide.android.ui.view.ProfileView;
 import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.R;
@@ -131,7 +132,7 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
             objectView.setLayoutParams(
                     new LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            objectView.configureAsListItem((ObjectWithId) childObject, true);
+            objectView.configureAsListItem((ObjectWithId) childObject, ShowIcon.IN_DATABASE);
             return objectView;
 
         } else {

@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import org.walkersguide.android.data.ObjectWithId;
     import org.walkersguide.android.ui.view.ObjectWithIdView;
+    import org.walkersguide.android.ui.view.ObjectWithIdView.ShowIcon;
     import org.walkersguide.android.ui.view.ObjectWithIdView.OnDefaultObjectActionListener;
 
 
@@ -84,17 +85,17 @@ public class ObjectWithIdAdapter extends BaseAdapter {
         }
 
         ObjectWithId objectWithId = getItem(position);
-        boolean showIcon = false;
+        ShowIcon showIcon = ShowIcon.NO;
         if (this.alwaysShowIcon) {
-            showIcon = true;
+            showIcon = ShowIcon.ALWAYS;
         } else if (this.profile != null && this.profile instanceof DatabaseProfile) {
             if (((DatabaseProfile) this.profile).getPluralResId() == R.plurals.pointAndRoute) {
-                showIcon = true;
+                showIcon = ShowIcon.IN_DATABASE;
             }
         } else if (this.profile != null && this.profile instanceof PoiProfile) {
             for (Collection collection : ((PoiProfile) this.profile).getCollectionList()) {
                 if (collection.containsObject(objectWithId)) {
-                    showIcon = true;
+                    showIcon = ShowIcon.IN_DATABASE;
                     break;
                 }
             }

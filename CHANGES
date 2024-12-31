@@ -3,6 +3,52 @@ Change Log
 
 
 
+v3.2.0: 2024-12-31
+------------------
+
+New entries in the redesigned apps main menu:
+- Navigate to a street address
+- Navigate home
+- Plan or record a route
+- Open a GPX file
+- Share your location and open a shared location link from others
+
+Sub tab reorganization:
+- The Track subtab moved from the Overview tab to Points
+- The Overview tab now includes the additional subtabs Collections and History.
+
+Text to speech:
+- Speech rate can be adjusted in the app's settings
+- A message queue has been implemented to prevent navigation instruction interruptions (#6).
+- Announcements now include bearing updates to the next route point, in addition to continuous distance updates while navigating.
+- Fixed a bug where Talkback would take precedence over the distance and bearing announcements from the app's TTS, frequently interrupting them (#5).
+
+Routes:
+- New presets for way class weights. Makes it easier to calculate routes for
+  different use cases like hiking or walking in urban areas.
+- GPX file export added
+- Current coordinates are now automatically resolved to their closest address when used as the starting point for route calculation.
+- Fixed: Route calculation previously failed if one or more via points were included.
+
+Additional user interface changes:
+- New talkback actions for the bearing and location buttons in the toolbar
+    - Bearing: Switch between values from compass or satellite, Enable/disable simulation
+    - Location: Speak current address, Show GPS details, Enable/disable simulation
+- Point context menu:
+    - New entry: Navigate directly to this point
+    - Rename and add annotation entries were moved into the edit sub menu
+- Precise bearing in degrees was added to the distance and bearing label in the point details
+  (see the already existing menu item with the same name in the navigate tab for details)
+- More compact layout for the track tab (#4)
+- Fixed a bug in the tab bar below the toolbar: Tabs were sometimes duplicated.
+
+Other:
+- Enter latitude/longitude using the DMS input format (degrees, minutes, seconds)
+- Support for Android 15
+- Ukrainian translation added
+
+
+
 v3.1.0: 2024-07-08
 ------------------
 

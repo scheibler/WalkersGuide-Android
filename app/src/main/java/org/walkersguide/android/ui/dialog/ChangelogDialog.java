@@ -1,8 +1,10 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.ui.view.builder.TextViewBuilder;
+import android.widget.LinearLayout;
+import org.walkersguide.android.BuildConfig;
 import org.walkersguide.android.util.WalkersGuideService;
 import org.walkersguide.android.R;
-import org.walkersguide.android.BuildConfig;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -19,7 +21,7 @@ import android.widget.Button;
 
 
 public class ChangelogDialog extends DialogFragment {
-    public static final int VERSION_CODE = 27;
+    public static final int VERSION_CODE = 47;
 
     public static ChangelogDialog newInstance() {
         ChangelogDialog dialog = new ChangelogDialog();
@@ -27,13 +29,17 @@ public class ChangelogDialog extends DialogFragment {
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final ViewGroup nullParent = null;
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_changelog, nullParent);
-
         return new AlertDialog.Builder(getActivity())
-            .setTitle(getResources().getString(R.string.changelogDialogTitle))
-            .setView(view)
+            .setTitle(
+                    String.format(
+                        getResources().getString(R.string.changelogDialogTitle),
+                        BuildConfig.VERSION_NAME))
+            .setItems(
+                    R.array.changesList,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
             .setPositiveButton(
                     getResources().getString(R.string.dialogOK),
                     new DialogInterface.OnClickListener() {
@@ -41,7 +47,7 @@ public class ChangelogDialog extends DialogFragment {
                         }
                     })
             .setNeutralButton(
-                    getResources().getString(R.string.buttonOpenUserManual),
+                    getResources().getString(R.string.buttonOpenAllChanges),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -69,7 +75,7 @@ public class ChangelogDialog extends DialogFragment {
                     Intent i = new Intent(Intent.ACTION_VIEW);
                     i.setData(
                             Uri.parse(
-                                getResources().getString(R.string.variableUserManualUrl)));
+                                getResources().getString(R.string.variableChangeLogUrl)));
                     getActivity().startActivity(i);
                 }
             });
