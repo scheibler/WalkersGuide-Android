@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+            import android.view.ViewGroup.MarginLayoutParams;
 
 import org.walkersguide.android.ui.fragment.menu.MainMenuFragment;
 import org.walkersguide.android.server.ServerTaskExecutor;
@@ -106,6 +107,9 @@ import org.walkersguide.android.server.address.AddressException;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.ui.dialog.create.PointFromCoordinatesLinkDialog;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
+import android.widget.RelativeLayout;
+import androidx.core.graphics.Insets;
+import androidx.core.view.WindowInsetsCompat;
 
 
 public class MainActivity extends AppCompatActivity
@@ -217,6 +221,18 @@ public class MainActivity extends AppCompatActivity
             .setFragmentResultListener(
                     OpenGpxFileDialog.REQUEST_IMPORT_INTO_COLLECTION_SUCCESSFUL, this, this);
 
+        // margin for system bars at the top and bottom of the screen
+        RelativeLayout rootView = (RelativeLayout) findViewById(R.id.rootView);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Timber.d("insets: %1$s", insets);
+            MarginLayoutParams mlp = (MarginLayoutParams) v.getLayoutParams();
+            mlp.topMargin = insets.top;
+            mlp.bottomMargin = insets.bottom;
+            v.setLayoutParams(mlp);
+            return WindowInsetsCompat.CONSUMED;
+        });
+
         // toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
@@ -289,19 +305,19 @@ public class MainActivity extends AppCompatActivity
         TabLayout.Tab tabOverview = tabLayout.newTab();
         tabOverview.setCustomView(
                 createTabLayoutTabCustomView(
-                Tab.OVERVIEW, OverviewTabLayoutFragment.Tab.values()));
+                    Tab.OVERVIEW, OverviewTabLayoutFragment.Tab.values()));
         tabLayout.addTab(tabOverview);
 
         TabLayout.Tab tabRoutes = tabLayout.newTab();
         tabRoutes.setCustomView(
                 createTabLayoutTabCustomView(
-                Tab.ROUTES, RoutesTabLayoutFragment.Tab.values()));
+                    Tab.ROUTES, RoutesTabLayoutFragment.Tab.values()));
         tabLayout.addTab(tabRoutes);
 
         TabLayout.Tab tabPoints = tabLayout.newTab();
         tabPoints.setCustomView(
                 createTabLayoutTabCustomView(
-                Tab.POINTS, PointsTabLayoutFragment.Tab.values()));
+                    Tab.POINTS, PointsTabLayoutFragment.Tab.values()));
         tabLayout.addTab(tabPoints);
 
         tabLayout.selectTab(null);

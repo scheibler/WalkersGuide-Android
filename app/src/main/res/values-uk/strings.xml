@@ -590,7 +590,6 @@
 
     <!-- InfoFragment -->
     <string name="fragmentInfoName">Інформація</string>
-    <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Версія</string>
     <string name="labelInfoLastChangelog">Останні зміни</string>
     <string name="labelContactDataHeader">Контактна інформація</string>
@@ -614,16 +613,20 @@
     <string name="sendFeedbackDialogTitleMissingMap">Запит: карта OSM</string>
     <string name="sendFeedbackDialogTitleMissingPtProvider">Запит: Постачальник даних громадського транспорту</string>
     <string name="labelSenderEmailAddress">Ваша електронна адреса (необов\'язково):</string>
-    <string name="labelMessage">Ваше повідомлення:</string>
+    <string name="labelMessage">Ваше повідомлення (Англійська чи німецька):</string>
     <string name="labelMessageMissingMap">Карта якої країни відсутня?</string>
     <string name="labelMessageMissingPtProvider">Який постачальник даних громадського транспорту відсутній?</string>
     <string name="messageSendFeedbackSuccessful">Повідомлення успішно надіслано.</string>
     <string name="messageFeedbackMessageIsEmpty">Будь ласка, введіть повідомлення.</string>
 
     <!-- ChangelogDialog -->
-    <string name="changelogDialogTitle">Зміни у версії %1$s</string>
     <string name="buttonOpenAllChanges">Всі зміни</string>
     <string-array name="changesList">
+        <item>Зміни у версії 3.2.1</item>
+        <item>Дата: 12 Січень 2025</item>
+        <item>Виправлено: Панель вкладок додатка могла бути перекрита навігаційними кнопками Android в нижній частині екрана.</item>
+        <item></item>
+        <item>Зміни у версії 3.2.0</item>
         <item>Дата: 31 грудня 2024</item>
         <item>Нові пункти в оновленому головному меню програми:</item>
         <item>- Побудова маршруту до вказаної адреси</item>

@@ -3,6 +3,14 @@ Change Log
 
 
 
+v3.2.1: 2025-01-12
+------------------
+
+- Fixed: The app's tab bar was potentially being overlapped by Android's navigation buttons at the bottom of the screen.
+- Updated the public transport enabler library: DbProvider doesn't need credentials any longer
+
+
+
 v3.2.0: 2024-12-31
 ------------------
 

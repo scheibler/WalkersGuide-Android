@@ -71,17 +71,11 @@ public class PtUtility {
 
         // germany
         ArrayList<AbstractNetworkProvider> germanyProviderList = new ArrayList<AbstractNetworkProvider>();
-        // DB
-        DbProviderCredentials dbProviderCredentials = getDbProviderCredentials();
-        if (dbProviderCredentials != null) {
-            germanyProviderList.add(
-                    new DbProvider(
-                        dbProviderCredentials.apiAuthorization,
-                        dbProviderCredentials.salt.getBytes(Charsets.UTF_8)));
-        }
-        // vgn
+        // Deutsche Bahn
+        germanyProviderList.add(new DbProvider());
+        // verkehrsverbund großraum nürnberg
         germanyProviderList.add(new VgnProvider());
-        // vvo
+        // verkehrsverbund oberelbe
         germanyProviderList.add(new VvoProvider());
 
         // create country, provider_list map
@@ -116,7 +110,7 @@ public class PtUtility {
                 // germany
                 case DB:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderDB);
-        case VGN:
+                case VGN:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderVGN);
                 case VVO:
                     return GlobalInstance.getStringResource(R.string.publicTransportProviderVVO);
@@ -130,9 +124,29 @@ public class PtUtility {
     }
 
 
-    // credentials
-    //
-    // folder
+    /**
+     * provider credentials
+     *
+     * example for DbProvider
+     * - not longer requires credentials
+     * - but the code remains here for future provider implementations which still require authentication
+     *
+     * use like this in the code above:
+     *
+     *  public static final Map<Country,ArrayList<AbstractNetworkProvider>> supportedNetworkProviderMap;
+     *  static {
+     *      ArrayList<AbstractNetworkProvider> germanyProviderList = new ArrayList<AbstractNetworkProvider>();
+     *      DbProviderCredentials dbProviderCredentials = getDbProviderCredentials();
+     *      if (dbProviderCredentials != null) {
+     *          germanyProviderList.add(
+     *              new DbProvider(
+     *                      dbProviderCredentials.apiAuthorization,
+     *                      dbProviderCredentials.salt.getBytes(Charsets.UTF_8)));
+     *      }
+     *  }
+     */
+
+    // credentials folder
     private static final String PT_PROVIDER_CREDENTIALS_FOLDER_NAME = "pt_provider_credentials";
     private static File getPtProviderCredentialsFolder() {
         return new File(
@@ -140,7 +154,7 @@ public class PtUtility {
                 PT_PROVIDER_CREDENTIALS_FOLDER_NAME);
     }
 
-    // deutsche bahn
+    // credentials for provider: Deutsche Bahn (DB)
     private static final String DB_PROVIDER_API_CREDENTIALS_FILE_NAME = "db_provider_api_credentials.json";
 
     private static DbProviderCredentials getDbProviderCredentials() {

@@ -32,6 +32,9 @@ For more information visit the [public-transport-enabler website](https://github
 
 ### Deutsche Bahn
 
+This provider doesn't require credentials any longer but the documentation remains here for
+future provider implementations which still require them.
+
 Create `db_provider_api_credentials.json` in the following format:
 
 ~~~

@@ -23,8 +23,8 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 47
-        versionName '3.2.0'
+        versionCode 51
+        versionName '3.2.1'
         minSdkVersion 21
         targetSdkVersion 35
         multiDexEnabled true
@@ -127,7 +127,7 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:5.0.1'
 
     // public transport enabler
-    implementation 'de.schildbach.pte:public-transport-enabler-2024-12-22@jar'
+    implementation 'de.schildbach.pte:public-transport-enabler-2025-01-12@jar'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'org.slf4j:slf4j-api:2.0.16'

@@ -607,7 +607,6 @@
 
     <!-- InfoFragment -->
     <string name="fragmentInfoName">Info</string>
-    <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Version</string>
     <string name="labelInfoLastChangelog">Letzte Änderungen</string>
     <string name="labelContactDataHeader">Kontaktdaten</string>
@@ -631,16 +630,20 @@
     <string name="sendFeedbackDialogTitleMissingMap">Anfrage: OSM Karte</string>
     <string name="sendFeedbackDialogTitleMissingPtProvider">Anfrage: ÖPNV Provider</string>
     <string name="labelSenderEmailAddress">Deine E-Mail Adresse (optional):</string>
-    <string name="labelMessage">Zu sendende Nachricht:</string>
+    <string name="labelMessage">Zu sendende Nachricht (Deutsch oder Englisch):</string>
     <string name="labelMessageMissingMap">Die Karte welches Landes fehlt?</string>
     <string name="labelMessageMissingPtProvider">Welcher ÖPNV Provider fehlt?</string>
     <string name="messageSendFeedbackSuccessful">Nachricht erfolgreich versendet.</string>
     <string name="messageFeedbackMessageIsEmpty">Bitte gib eine Nachricht ein.</string>
 
     <!-- ChangelogDialog -->
-    <string name="changelogDialogTitle">Änderungen in der Version %1$s</string>
     <string name="buttonOpenAllChanges">Alle Änderungen</string>
     <string-array name="changesList">
+        <item>Änderungen in der Version 3.2.1</item>
+        <item>Datum: 12.01.2025</item>
+        <item>Behoben: Die Tableiste der App wurde unter Umständen von Androids Navigationsbuttons am unteren Bildschirmrand überlagert.</item>
+        <item></item>
+        <item>Änderungen in der Version 3.2.0</item>
         <item>Datum: 31.12.2024</item>
         <item>Neue Einträge im überarbeiteten Hauptmenü der App:</item>
         <item>- Zu einer Adresse navigieren</item>

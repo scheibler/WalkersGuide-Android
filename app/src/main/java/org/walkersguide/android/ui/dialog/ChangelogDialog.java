@@ -21,7 +21,7 @@ import android.widget.Button;
 
 
 public class ChangelogDialog extends DialogFragment {
-    public static final int VERSION_CODE = 47;
+    public static final int VERSION_CODE = 51;
 
     public static ChangelogDialog newInstance() {
         ChangelogDialog dialog = new ChangelogDialog();
@@ -31,9 +31,7 @@ public class ChangelogDialog extends DialogFragment {
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         return new AlertDialog.Builder(getActivity())
             .setTitle(
-                    String.format(
-                        getResources().getString(R.string.changelogDialogTitle),
-                        BuildConfig.VERSION_NAME))
+                    getResources().getString(R.string.labelInfoLastChangelog))
             .setItems(
                     R.array.changesList,
                     new DialogInterface.OnClickListener() {

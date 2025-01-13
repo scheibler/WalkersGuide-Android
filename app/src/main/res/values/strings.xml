@@ -606,7 +606,6 @@
 
     <!-- InfoFragment -->
     <string name="fragmentInfoName">Info</string>
-    <string name="labelAppInformationHeader">WalkersGuide</string>
     <string name="labelInfoProgramVersion">Version</string>
     <string name="labelInfoLastChangelog">Last changes</string>
     <string name="labelContactDataHeader">Contact data</string>
@@ -630,16 +629,20 @@
     <string name="sendFeedbackDialogTitleMissingMap">Request: OSM map</string>
     <string name="sendFeedbackDialogTitleMissingPtProvider">Request: Public transport provider</string>
     <string name="labelSenderEmailAddress">Your email address (optional):</string>
-    <string name="labelMessage">Message to send:</string>
+    <string name="labelMessage">Message to send (English or German):</string>
     <string name="labelMessageMissingMap">The map of which country is missing?</string>
     <string name="labelMessageMissingPtProvider">Which public transport provider is missing?</string>
     <string name="messageSendFeedbackSuccessful">Message sent successfully.</string>
     <string name="messageFeedbackMessageIsEmpty">Please enter a message.</string>
 
     <!-- ChangelogDialog -->
-    <string name="changelogDialogTitle">Changes in version %1$s</string>
     <string name="buttonOpenAllChanges">All changes</string>
     <string-array name="changesList">
+        <item>Changes in version 3.2.1</item>
+        <item>Date: January 12, 2025</item>
+        <item>Fixed: The app\'s tab bar was potentially being overlapped by Android\'s navigation buttons at the bottom of the screen.</item>
+        <item></item>
+        <item>Changes in version 3.2.0</item>
         <item>Date: December 31, 2024</item>
         <item>New entries in the redesigned apps main menu:</item>
         <item>- Navigate to a street address</item>
