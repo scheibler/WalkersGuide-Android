@@ -52,6 +52,12 @@ public abstract class EnterStringDialog extends DialogFragment {
         this.missingInputMessage = missingInputMessage;
     }
 
+    private String neutralButtonLabel = "", newTextToBeInsertedOnNeutralButtonClick = "";
+    public void setNeutralButton(String buttonLabel, String newTextToBeInsertedOnClick) {
+        this.neutralButtonLabel = buttonLabel;
+        this.newTextToBeInsertedOnNeutralButtonClick = newTextToBeInsertedOnClick;
+    }
+
 
     // dialog
     private static final String KEY_INPUT = "input";
@@ -76,7 +82,7 @@ public abstract class EnterStringDialog extends DialogFragment {
                     }
                 });
 
-        return new AlertDialog.Builder(getActivity())
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity())
             .setTitle(dialogTitle)
             .setView(layoutInput)
             .setPositiveButton(
@@ -90,8 +96,18 @@ public abstract class EnterStringDialog extends DialogFragment {
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
-                    })
-            .create();
+                    });
+
+        if (! TextUtils.isEmpty(neutralButtonLabel)) {
+            dialogBuilder.setNeutralButton(
+                    neutralButtonLabel,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+        }
+
+        return dialogBuilder.create();
     }
 
     @Override public void onStart() {
@@ -104,6 +120,14 @@ public abstract class EnterStringDialog extends DialogFragment {
             buttonPositive.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     checkInput();
+                }
+            });
+
+            // neutral button
+            Button buttonNeutral = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            buttonNeutral.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    layoutInput.setInputText(newTextToBeInsertedOnNeutralButtonClick);
                 }
             });
 

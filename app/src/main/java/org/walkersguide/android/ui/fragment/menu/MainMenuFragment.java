@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.menu;
 
+import android.content.ActivityNotFoundException;
 import org.walkersguide.android.ui.dialog.SendFeedbackDialog;
 import org.walkersguide.android.ui.fragment.menu.InfoFragment;
 import org.walkersguide.android.ui.fragment.menu.SettingsFragment;
@@ -69,10 +70,15 @@ public class MainMenuFragment extends RootFragment implements FragmentResultList
         Button mainMenuItemNavigateToAddress = (Button) view.findViewById(R.id.mainMenuItemNavigateToAddress);
         mainMenuItemNavigateToAddress.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                Helper.startSpeechRecognition(
-                        MainMenuFragment.this,
-                        SPEECH_INPUT_REQUEST_ENTER_ADDRESS,
-                        GlobalInstance.getStringResource(R.string.enterAddressDialogName));
+                try {
+                    MainMenuFragment.this.startActivityForResult(
+                            Helper.getSpeechRecognitionIntent(
+                                GlobalInstance.getStringResource(R.string.enterAddressDialogName)),
+                            SPEECH_INPUT_REQUEST_ENTER_ADDRESS);
+                } catch (ActivityNotFoundException a) {
+                    EnterAddressDialog.newInstance()
+                        .show(getChildFragmentManager(), "EnterAddressDialog");
+                }
             }
         });
 

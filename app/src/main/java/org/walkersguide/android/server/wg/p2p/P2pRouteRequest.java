@@ -1,8 +1,10 @@
 package org.walkersguide.android.server.wg.p2p;
 
+import org.walkersguide.android.sensor.PositionManager;
 import java.io.Serializable;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.database.util.AccessDatabase;
+import org.walkersguide.android.data.object_with_id.point.GPS;
 
 
 public class P2pRouteRequest implements Serializable {
@@ -15,6 +17,7 @@ public class P2pRouteRequest implements Serializable {
 
     private Long startPointId, destinationPointId;
     private Long viaPoint1Id, viaPoint2Id, viaPoint3Id;
+    private boolean replaceNameOfStartPointWithClosestAddress;
 
     public P2pRouteRequest(Long startPointId, Long destinationPointId,
             Long viaPoint1Id, Long viaPoint2Id, Long viaPoint3Id) {
@@ -23,14 +26,21 @@ public class P2pRouteRequest implements Serializable {
         this.viaPoint1Id = viaPoint1Id;
         this.viaPoint2Id = viaPoint2Id;
         this.viaPoint3Id = viaPoint3Id;
+        this.replaceNameOfStartPointWithClosestAddress = false;
     }
 
     public Point getStartPoint() {
         return getPoint(startPointId);
     }
 
+    public boolean getReplaceNameOfStartPointWithClosestAddress() {
+        return this.replaceNameOfStartPointWithClosestAddress;
+    }
+
     public void setStartPoint(Point newStartPoint) {
         this.startPointId = setPoint(newStartPoint);
+        this.replaceNameOfStartPointWithClosestAddress = newStartPoint instanceof GPS
+            && newStartPoint.equals(PositionManager.getInstance().getGPSLocation());
     }
 
     public Point getDestinationPoint() {

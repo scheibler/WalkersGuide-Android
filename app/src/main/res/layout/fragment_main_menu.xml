@@ -10,6 +10,11 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <org.walkersguide.android.ui.view.ResolveCurrentAddressView
+            android:id="@+id/layoutClosestAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
 
         <!-- section new route -->
 
@@ -68,11 +73,6 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="@string/labelMainMenuSectionCurrentLocation" />
-
-        <org.walkersguide.android.ui.view.ResolveCurrentAddressView
-            android:id="@+id/layoutClosestAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/mainMenuItemSaveCurrentLocation"

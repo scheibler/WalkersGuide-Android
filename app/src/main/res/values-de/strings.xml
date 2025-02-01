@@ -733,6 +733,7 @@
 
     <!-- RenameObjectWithIdDialog -->
     <string name="renameObjectWithIdDialogTitle">%1$s umbenennen:</string>
+    <string name="renameObjectWithIdDialogNeutralButton">Originalname</string>
 
     <!-- UpdateObjectWithIdSelectedCollectionsDialog -->
     <string name="updateObjectWithIdSelectedCollectionsDialogTitle">Zu Sammlungen hinzufügen:</string>

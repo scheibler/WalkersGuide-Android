@@ -896,12 +896,19 @@ public class ObjectWithIdView extends LinearLayout {
                 setMissingInputMessage(
                         getResources().getString(R.string.messageNameIsMissing));
 
+                if (objectWithId.hasCustomNameInDatabase()) {
+                    setNeutralButton(
+                            getResources().getString(R.string.renameObjectWithIdDialogNeutralButton),
+                            objectWithId.getOriginalName());
+                }
+
                 return super.onCreateDialog(savedInstanceState);
             }
             return null;
         }
 
         @Override public void execute(String input) {
+            if (input.equals(objectWithId.getOriginalName())) input = null;
             if (objectWithId.setCustomNameInDatabase(input)) {
                 Intent intent = new Intent(ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL);
                 LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);

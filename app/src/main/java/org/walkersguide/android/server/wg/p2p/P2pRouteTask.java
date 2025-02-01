@@ -3,8 +3,6 @@ package org.walkersguide.android.server.wg.p2p;
 import org.walkersguide.android.server.address.AddressException;
 import org.walkersguide.android.R;
 import org.walkersguide.android.database.profile.StaticProfile;
-import org.walkersguide.android.server.wg.poi.PoiProfile;
-import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.server.wg.WgException;
 import org.walkersguide.android.server.ServerUtility;
@@ -48,8 +46,7 @@ public class P2pRouteTask extends ServerTask {
         }
 
         // if the start point is a nameless gps point then try to replace its name with the closest address nearby
-        if (startPoint instanceof GPS
-                && ! startPoint.hasCustomNameInDatabase()) {
+        if (this.request.getReplaceNameOfStartPointWithClosestAddress()) {
             Timber.d("start point gps: %1$s", startPoint.getName());
             StreetAddress closestAddress = null;
             try {

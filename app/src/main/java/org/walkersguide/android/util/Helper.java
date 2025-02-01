@@ -25,11 +25,8 @@ import java.util.Date;
 import org.walkersguide.android.data.ObjectWithId;
 import java.util.Locale;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
-import android.content.ActivityNotFoundException;
-import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import android.app.LocaleManager;
 import android.os.LocaleList;
 import java.io.FileWriter;
@@ -357,31 +354,7 @@ public class Helper {
      * speech recognition
      */
 
-    public static void startSpeechRecognition(AppCompatActivity activity, int requestCode, String label) {
-        try {
-            activity.startActivityForResult(
-                    getSpeechRecognitionIntent(label),
-                    requestCode);
-        } catch (ActivityNotFoundException a) {
-            SimpleMessageDialog.newInstance(
-                    GlobalInstance.getStringResource(R.string.errorNoSpeechRecognition))
-                .show(activity.getSupportFragmentManager(), "SimpleMessageDialog");
-        }
-    }
-
-    public static void startSpeechRecognition(Fragment fragment, int requestCode, String label) {
-        try {
-            fragment.startActivityForResult(
-                    getSpeechRecognitionIntent(label),
-                    requestCode);
-        } catch (ActivityNotFoundException a) {
-            SimpleMessageDialog.newInstance(
-                    GlobalInstance.getStringResource(R.string.errorNoSpeechRecognition))
-                .show(fragment.getChildFragmentManager(), "SimpleMessageDialog");
-        }
-    }
-
-    private static Intent getSpeechRecognitionIntent(String label) {
+    public static Intent getSpeechRecognitionIntent(String label) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(
                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,

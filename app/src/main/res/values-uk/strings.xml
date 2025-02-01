@@ -716,6 +716,7 @@
 
     <!-- RenameObjectWithIdDialog -->
     <string name="renameObjectWithIdDialogTitle">Перейменувати %1$s:</string>
+    <string name="renameObjectWithIdDialogNeutralButton">оригінальна назва</string>
 
     <!-- UpdateObjectWithIdSelectedCollectionsDialog -->
     <string name="updateObjectWithIdSelectedCollectionsDialogTitle">Додати до бази</string>
