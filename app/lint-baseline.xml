@@ -35,39 +35,17 @@
     </issue>
 
     <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.okhttp3:okhttp than 3.12.13 is available: 4.12.0"
-        errorLine1="    implementation &apos;com.squareup.okhttp3:okhttp:3.12.13&apos;"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="131"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.okhttp3:logging-interceptor than 3.12.13 is available: 4.12.0"
-        errorLine1="    implementation &apos;com.squareup.okhttp3:logging-interceptor:3.12.13&apos;"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="132"
-            column="20"/>
-    </issue>
-
-    <issue
         id="TrustAllX509TrustManager"
         message="`checkClientTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
         <location
-            file="libs/public-transport-enabler-2025-01-12.jar"/>
+            file="$HOME/programming/source/WalkersGuide-Android/public-transport-enabler/build/libs/public-transport-enabler.jar"/>
     </issue>
 
     <issue
         id="TrustAllX509TrustManager"
         message="`checkServerTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
         <location
-            file="libs/public-transport-enabler-2025-01-12.jar"/>
+            file="$HOME/programming/source/WalkersGuide-Android/public-transport-enabler/build/libs/public-transport-enabler.jar"/>
     </issue>
 
     <issue
@@ -79,17 +57,6 @@
             file="src/main/java/org/walkersguide/android/ui/view/IntersectionScheme.java"
             line="68"
             column="29"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Float.valueOf(nullableAndPositiveDouble)` instead"
-        errorLine1="            return new Float(nullableAndPositiveDouble);"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/org/walkersguide/android/util/Helper.java"
-            line="221"
-            column="20"/>
     </issue>
 
     <issue

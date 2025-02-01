@@ -1178,7 +1178,6 @@
     <!-- other errors -->
     <string name="errorSavePointFailed">Point creation failed.</string>
     <string name="errorNoHomeAddressSet">You didn\'t select your home address yet. You may do so in the app settings.</string>
-    <string name="errorNoSpeechRecognition">The speech input feature is not available.</string>
     <string name="errorNoLocationFound">No location available.</string>
     <string name="errorNoBearingFound">No bearing available.</string>
 

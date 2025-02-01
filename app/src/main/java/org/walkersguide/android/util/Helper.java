@@ -214,10 +214,8 @@ public class Helper {
 
     public static Float getNullableAndPositiveFloatFromJsonObject(JSONObject jsonObject, String key) {
         Double nullableAndPositiveDouble = getNullableAndPositiveDoubleFromJsonObject(jsonObject, key);
-        if (nullableAndPositiveDouble != null) {
-            return new Float(nullableAndPositiveDouble);
-        }
-        return null;
+        return nullableAndPositiveDouble == null
+            ? null : nullableAndPositiveDouble.floatValue();
     }
 
     public static Double getNullableAndPositiveDoubleFromJsonObject(JSONObject jsonObject, String key) {

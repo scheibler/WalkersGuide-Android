@@ -12,16 +12,14 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
-        // include local libs directory
-        flatDir {
-            dirs 'app/libs'
-        }
     }
 }
 
 // root project
 rootProject.name = 'WalkersGuide'
+
+// public transport library as a composid build
+includeBuild('public-transport-enabler')
 
 include ':WalkersGuide'
 project(":WalkersGuide").projectDir = file("app")

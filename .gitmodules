@@ -1,0 +1,3 @@
+[submodule "public-transport-enabler"]
+	path = public-transport-enabler
+	url = https://github.com/schildbach/public-transport-enabler

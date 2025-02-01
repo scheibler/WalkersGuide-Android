@@ -1162,7 +1162,6 @@
     <!-- other errors -->
     <string name="errorSavePointFailed">Помилка створення точки.</string>
     <string name="errorNoHomeAddressSet">Ви ще не вибрали свою домашню адресу. Це можна зробити в налаштуваннях програми.</string>
-    <string name="errorNoSpeechRecognition">Функція розпізнавання мовлення недоступна на цьому пристрої.</string>
     <string name="errorNoLocationFound">Дані про місцезнаходження недоступні.</string>
     <string name="errorNoBearingFound">Дані про азимут недоступні.</string>
 

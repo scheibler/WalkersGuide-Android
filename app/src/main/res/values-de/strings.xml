@@ -1183,7 +1183,6 @@
     <!-- other errors -->
     <string name="errorSavePointFailed">Fehler beim Anlegen des Punktes.</string>
     <string name="errorNoHomeAddressSet">Du hast dein Zuhause noch nicht festgelegt. Dies kannst du in den Einstellungen der App erledigen.</string>
-    <string name="errorNoSpeechRecognition">Die Spracheingabe ist nicht verfügbar.</string>
     <string name="errorNoLocationFound">Keine position verfügbar</string>
     <string name="errorNoBearingFound">Keine Richtungsangabe verfügbar</string>
 

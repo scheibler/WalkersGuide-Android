@@ -7,40 +7,40 @@ and a server component. The latter performs the route calculation. The map data 
 [OpenStreetMap](https://www.openstreetmap.org), a project to create a free map of the world.
 
 This repository contains the client application. It's written in Java and supports the Android
-operating system since version 4.1. The application is fully accessible with Android's screen reader
-Talkback.
+operating system since version 5.1.
+
+The application is fully compatible with the screen reader Talkback.
 
 Please visit https://www.walkersguide.org for more information about the project.
 
 
 
-## Public transport api credentials
+## Build and install
 
-Some public transport providers require api credentials for usage. Put the credentials file into the
-following folder if you want to use one of them (create if necessary):
+You need the [Android SDK](https://developer.android.com/studio) to build this app.
 
-~~~
-/sdcard/Android/data/org.walkersguide.android/files/pt_provider_credentials/
-~~~
+```
+git clone https://github.com/scheibler/WalkersGuide-Android
+cd WalkersGuide-Android
 
-Then create the credentials file (see below). Afterwards close WalkersGuide from the recent apps
-screen and restart again. You will find the respective provider in the app settings under "public
-transport provider".
+# checkout the public transport-enabler library submodule which is required as a project dependency
+# for more information about the library visit https://github.com/schildbach/public-transport-enabler
+git submodule update --init --recursive
 
-For more information visit the [public-transport-enabler website](https://github.com/schildbach/public-transport-enabler).
+# create the .apk for the debug build types
+./gradlew assembleDebug
+
+# open the app on an attached Android device with usb debugging enabled
+./gradlew openProdDebug
+```
 
 
-### Deutsche Bahn
 
-This provider doesn't require credentials any longer but the documentation remains here for
-future provider implementations which still require them.
+## Unit tests
 
-Create `db_provider_api_credentials.json` in the following format:
+```
+./gradlew test
+```
 
-~~~
-{
-    "apiAuthorization" : "YOUR_API_AUTHORIZATION_KEY",
-    "salt" : "YOUR_SALT"
-}
-~~~
+Please have a look into `app/build/reports/tests/testProdDebugUnitTest/index.html` for results.
 
