@@ -133,19 +133,9 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-// open the APK on your Android Device
-android.applicationVariants.all { variant ->
-    if (variant.install) {
-        tasks.create(name: "open${variant.name.capitalize()}", type: Exec,
-                dependsOn: variant.install) {
-            group = 'Open'
-            description "Installs and opens the APK for ${variant.description}."
-            doFirst {
-                String activityClass = "org.walkersguide.android.ui.activity.MainActivity"
-                commandLine android.adbExe, 'shell', 'am', 'start', '-n',
-                        "${variant.applicationId}/${activityClass}"
-            }
-        }
-    }
+// Open the APK on your Android Device
+ext {
+    mainActivityClass = 'org.walkersguide.android.ui.activity.MainActivity'
 }
+apply from: 'gradle-scripts/openApkTask.gradle'
 
