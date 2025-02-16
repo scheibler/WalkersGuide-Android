@@ -1,5 +1,7 @@
 package org.walkersguide.android.ui;
 
+import timber.log.Timber;
+
 import org.walkersguide.android.BuildConfig;
 import androidx.core.view.AccessibilityDelegateCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
@@ -30,6 +32,8 @@ import android.os.Build;
 import android.text.Html;
 import android.text.style.URLSpan;
 import android.view.accessibility.AccessibilityEvent;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 
 
 public class UiHelper {
@@ -127,6 +131,18 @@ public class UiHelper {
                 info.setClassName(Button.class.getName());
             }
         };
+    }
+
+
+    /**
+     * images
+     */
+
+    public static Bitmap rotateImage(Bitmap source, int angleInDegrees) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate((float) angleInDegrees);
+        return Bitmap.createBitmap(
+                source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
 

@@ -23,8 +23,8 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 52
-        versionName '3.2.2-b1'
+        versionCode 58
+        versionName '3.2.2-b2'
         minSdkVersion 21
         targetSdkVersion 35
         multiDexEnabled true
@@ -93,6 +93,10 @@ android {
         }
     }
 
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+    }
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
             outputFileName = "WalkersGuide-${variant.flavorName}-${variant.versionName}-${variant.buildType.name}.apk"

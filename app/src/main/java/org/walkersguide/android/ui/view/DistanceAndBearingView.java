@@ -81,6 +81,11 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import androidx.appcompat.widget.AppCompatTextView;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.BitmapDrawable;
+import androidx.core.content.ContextCompat;
 
 
 public class DistanceAndBearingView extends AppCompatTextView {
@@ -92,6 +97,7 @@ public class DistanceAndBearingView extends AppCompatTextView {
 
     private String prefix = null;
     private ObjectWithId objectWithId = null;
+    private Bitmap bearingIndicator = null;
 
     public DistanceAndBearingView(Context context) {
         super(context);
@@ -121,7 +127,7 @@ public class DistanceAndBearingView extends AppCompatTextView {
 
     public void setObjectWithId(ObjectWithId object) {
         this.objectWithId = object;
-        updateDistanceAndBearingLabel();
+        updateDistanceAndBearingLabelText();
     }
 
     private void initUi(Context context) {
@@ -132,6 +138,8 @@ public class DistanceAndBearingView extends AppCompatTextView {
 
         setAccessibilityDelegate(
                 UiHelper.getAccessibilityDelegateToMuteContentChangedEventsWhileFocussed());
+        bearingIndicator = BitmapFactory.decodeResource(
+                context.getResources(), R.drawable.bearing_indicator);
     }
 
 
@@ -183,7 +191,8 @@ public class DistanceAndBearingView extends AppCompatTextView {
 
                 if (acceptNewPosition.updatePoint(
                             currentLocation, false, intent.getBooleanExtra(PositionManager.EXTRA_IS_IMPORTANT, false))) {
-                    updateDistanceAndBearingLabel();
+                    updateDistanceAndBearingLabelText();
+                    updateBearingIndicator(context);
                 }
 
                 boolean announce = false;
@@ -211,7 +220,8 @@ public class DistanceAndBearingView extends AppCompatTextView {
                             (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
                             false, intent.getBooleanExtra(DeviceSensorManager.EXTRA_IS_IMPORTANT, false))) {
                     announce = isAccessibilityFocused();
-                    updateDistanceAndBearingLabel();
+                    updateDistanceAndBearingLabelText();
+                    updateBearingIndicator(context);
                 }
                 if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE)
                         && acceptNewBearingTts.updateBearing(
@@ -221,7 +231,8 @@ public class DistanceAndBearingView extends AppCompatTextView {
                 }
 
                 RelativeBearing.Direction currentDirection = objectWithId
-                    .relativeBearingFromCurrentLocation().getDirection();
+                    .relativeBearingFromCurrentLocation()
+                    .getDirection();
                 if (announce && currentDirection != lastDirection) {
                     ttsWrapperInstance.announce(
                             objectWithId.formatRelativeBearingFromCurrentLocation(
@@ -234,7 +245,7 @@ public class DistanceAndBearingView extends AppCompatTextView {
     };
 
 
-    private void updateDistanceAndBearingLabel() {
+    private void updateDistanceAndBearingLabelText() {
         String text = "";
         if (prefix != null) {
             text += String.format("%1$s: ", prefix);
@@ -244,6 +255,27 @@ public class DistanceAndBearingView extends AppCompatTextView {
                     R.plurals.meter, settingsManagerInstance.getShowPreciseBearingValues());
         }
         setText(text);
+    }
+
+    private void updateBearingIndicator(Context context) {
+        if (bearingIndicator == null || prefix != null) return;
+
+        RelativeBearing relativeBearing = objectWithId.relativeBearingFromCurrentLocation();
+        if (relativeBearing == null) {
+            setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+            return;
+        }
+
+        // rotate
+        Bitmap rotatedBearingIndicator = UiHelper.rotateImage(
+                bearingIndicator, relativeBearing.getDegree());
+        Drawable drawableRotatedBearingIndicator = new BitmapDrawable(
+                context.getResources(), rotatedBearingIndicator);
+
+        // show it on the left side of the text view
+        setCompoundDrawablesWithIntrinsicBounds(
+                drawableRotatedBearingIndicator, null, null, null);
+        invalidate();
     }
 
 }
