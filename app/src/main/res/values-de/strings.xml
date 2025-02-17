@@ -262,8 +262,9 @@
     <string name="menuItemRecalculate">Neu berechnen</string>
     <string name="menuItemJumpToNearestPoint">Zum nächstgelegenen Punkt springen</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. weiterschalten</string>
-    <string name="menuItemShowPreciseBearingValues">Präzise Richtungsangaben anzeigen</string>
     <string name="menuItemShowIntersectionLayoutDetails">Kreuzungsaufbau anzeigen</string>
+    <string name="menuItemShowPreciseBearingValues">Präzise Richtungsangaben anzeigen</string>
+    <string name="menuItemShowBearingIndicator">Richtungspfeil anzeigen</string>
 
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Aufzeichnen</string>
@@ -639,6 +640,14 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Alle Änderungen</string>
     <string-array name="changesList">
+        <item>Änderungen in der Version 3.2.2</item>
+        <item>Datum: 16.02.2025</item>
+        <item>- Richtungspfeil im Navigieren-Tab hinzugefügt.</item>
+        <item>- Behoben: Der ursprüngliche Name von Objekten konnte nicht wiederhergestellt werden, nachdem er mindestens einmal umbenannt wurde.</item>
+        <item>- Behoben: Wenn die Standortsimulation aktiviert war und der simulierte Punkt ein GPS-Punkt war, dann
+            wurde dessen Name bei der Routenberechnung durch die nächstgelegene Adresse überschrieben.</item>
+        <item>- Behoben: Wenn dein Gerät keine Spracheingabe unterstützt, konntest du nicht über das Hauptmenü zu
+            einer Adresse navigieren. Jetzt kannst du die Adresse stattdessen manuell eingeben.</item>
         <item>Änderungen in der Version 3.2.1</item>
         <item>Datum: 12.01.2025</item>
         <item>Behoben: Die Tableiste der App wurde unter Umständen von Androids Navigationsbuttons am unteren Bildschirmrand überlagert.</item>

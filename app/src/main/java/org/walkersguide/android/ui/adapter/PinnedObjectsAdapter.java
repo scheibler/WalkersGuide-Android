@@ -59,7 +59,10 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
             holder.buttonAdd = (ImageButton) convertView.findViewById(R.id.buttonAdd);
             // set padding
             holder.layoutHeadingAndAddButton.setPadding(
-                    0, UiHelper.convertDpToPx(5), 0, UiHelper.convertDpToPx(5));
+                    UiHelper.convertDpToPx(25),     // left
+                    UiHelper.convertDpToPx(5),      // top
+                    0,                              // right
+                    UiHelper.convertDpToPx(5));     // bottom
             convertView.setTag(holder);
         } else {
             holder = (EntryHolderParent) convertView.getTag();

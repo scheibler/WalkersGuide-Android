@@ -15,12 +15,16 @@
         android:title="@string/menuItemAutoSkipToNextRoutePoint"
         android:checkable="true" />
     <item
-        android:id="@+id/menuItemShowPreciseBearingValues"
-        android:title="@string/menuItemShowPreciseBearingValues"
-        android:checkable="true" />
-    <item
         android:id="@+id/menuItemShowIntersectionLayoutDetails"
         android:title="@string/menuItemShowIntersectionLayoutDetails"
+        android:checkable="true" />
+    <item
+        android:id="@+id/menuItemShowBearingIndicator"
+        android:title="@string/menuItemShowBearingIndicator"
+        android:checkable="true" />
+    <item
+        android:id="@+id/menuItemShowPreciseBearingValues"
+        android:title="@string/menuItemShowPreciseBearingValues"
         android:checkable="true" />
 
 </menu>

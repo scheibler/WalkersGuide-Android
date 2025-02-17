@@ -21,7 +21,6 @@ import android.widget.Button;
 
 
 public class ChangelogDialog extends DialogFragment {
-    public static final int VERSION_CODE = 51;
 
     public static ChangelogDialog newInstance() {
         ChangelogDialog dialog = new ChangelogDialog();

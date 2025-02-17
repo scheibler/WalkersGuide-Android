@@ -19,6 +19,7 @@ import android.widget.ExpandableListView;
 import org.walkersguide.android.tts.TTSWrapper;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.ui.fragment.RootFragment;
+import android.os.Build;
 
 
 public class HistoryFragment extends RootFragment {
@@ -56,7 +57,8 @@ public class HistoryFragment extends RootFragment {
                 // negate that boolean, cause the isGroupExpanded function returns the state before click / toggle
                 boolean expanded = ! expandableListView.isGroupExpanded(groupPosition);
                 HistoryProfileAdapter.Group group = adapter.getGroup(groupPosition);
-                if (group != null) {
+                if (group != null
+                        && Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                     TTSWrapper.getInstance().screenReader(
                             String.format(
                                 "%1$s %2$s",

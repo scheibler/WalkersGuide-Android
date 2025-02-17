@@ -140,6 +140,7 @@ public class DistanceAndBearingView extends AppCompatTextView {
                 UiHelper.getAccessibilityDelegateToMuteContentChangedEventsWhileFocussed());
         bearingIndicator = BitmapFactory.decodeResource(
                 context.getResources(), R.drawable.bearing_indicator);
+        setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
     }
 
 
@@ -258,7 +259,11 @@ public class DistanceAndBearingView extends AppCompatTextView {
     }
 
     private void updateBearingIndicator(Context context) {
-        if (bearingIndicator == null || prefix != null) return;
+        if (bearingIndicator == null
+                || prefix != null
+                || ! settingsManagerInstance.getShowBearingIndicator()) {
+            return;
+        }
 
         RelativeBearing relativeBearing = objectWithId.relativeBearingFromCurrentLocation();
         if (relativeBearing == null) {

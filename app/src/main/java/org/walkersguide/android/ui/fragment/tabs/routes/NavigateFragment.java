@@ -134,12 +134,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             menuItemAutoSkipToNextRoutePoint.setChecked(
                     settingsManagerInstance.getAutoSkipToNextRoutePoint());
         }
-        // precise bearings
-        MenuItem menuItemShowPreciseBearingValues = menu.findItem(R.id.menuItemShowPreciseBearingValues);
-        if (menuItemShowPreciseBearingValues != null) {
-            menuItemShowPreciseBearingValues.setChecked(
-                    settingsManagerInstance.getShowPreciseBearingValues());
-        }
         // intersection layout details
         MenuItem menuItemShowIntersectionLayoutDetails = menu.findItem(R.id.menuItemShowIntersectionLayoutDetails);
         if (menuItemShowIntersectionLayoutDetails != null) {
@@ -149,6 +143,18 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             // due to stream() method in "updateUi"
             menuItemShowIntersectionLayoutDetails.setVisible(
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.N);
+        }
+        // precise bearings
+        MenuItem menuItemShowPreciseBearingValues = menu.findItem(R.id.menuItemShowPreciseBearingValues);
+        if (menuItemShowPreciseBearingValues != null) {
+            menuItemShowPreciseBearingValues.setChecked(
+                    settingsManagerInstance.getShowPreciseBearingValues());
+        }
+        // bearing indicator
+        MenuItem menuItemShowBearingIndicator = menu.findItem(R.id.menuItemShowBearingIndicator);
+        if (menuItemShowBearingIndicator != null) {
+            menuItemShowBearingIndicator.setChecked(
+                    settingsManagerInstance.getShowBearingIndicator());
         }
     }
 
@@ -219,6 +225,13 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             settingsManagerInstance.setAutoSkipToNextRoutePoint(
                     ! settingsManagerInstance.getAutoSkipToNextRoutePoint());
 
+        } else if (item.getItemId() == R.id.menuItemShowIntersectionLayoutDetails) {
+            settingsManagerInstance.setShowIntersectionLayoutDetails(
+                    ! settingsManagerInstance.getShowIntersectionLayoutDetails());
+            if (route != null) {
+                updateUi();
+            }
+
         } else if (item.getItemId() == R.id.menuItemShowPreciseBearingValues) {
             settingsManagerInstance.setShowPreciseBearingValues(
                     ! settingsManagerInstance.getShowPreciseBearingValues());
@@ -226,9 +239,9 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                 updateUi();
             }
 
-        } else if (item.getItemId() == R.id.menuItemShowIntersectionLayoutDetails) {
-            settingsManagerInstance.setShowIntersectionLayoutDetails(
-                    ! settingsManagerInstance.getShowIntersectionLayoutDetails());
+        } else if (item.getItemId() == R.id.menuItemShowBearingIndicator) {
+            settingsManagerInstance.setShowBearingIndicator(
+                    ! settingsManagerInstance.getShowBearingIndicator());
             if (route != null) {
                 updateUi();
             }

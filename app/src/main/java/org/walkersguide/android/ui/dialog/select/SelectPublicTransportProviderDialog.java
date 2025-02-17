@@ -33,6 +33,7 @@ import android.widget.CheckedTextView;
 import de.schildbach.pte.NetworkId;
 import java.util.Locale;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
+import org.walkersguide.android.ui.UiHelper;
 
 
 public class SelectPublicTransportProviderDialog extends DialogFragment {
@@ -212,12 +213,17 @@ public class SelectPublicTransportProviderDialog extends DialogFragment {
                 holder = new EntryHolderChild();
                 convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_checkbox, parent, false);
                 holder.labelProvider = (CheckedTextView) convertView.findViewById(R.id.label);
+                // set padding
+                holder.labelProvider.setPadding(
+                        UiHelper.convertDpToPx(25),     // left
+                        UiHelper.convertDpToPx(5),      // top
+                        0,                              // right
+                        UiHelper.convertDpToPx(5));     // bottom
                 convertView.setTag(holder);
             } else {
                 holder = (EntryHolderChild) convertView.getTag();
             }
-            holder.labelProvider.setPadding(
-                    context.getResources().getDimensionPixelOffset(R.dimen.smallPadding), 0, 0, 0);
+
             holder.labelProvider.setText(
                     PtUtility.getNameForNetworkId(
                         getChild(groupPosition, childPosition).id()));

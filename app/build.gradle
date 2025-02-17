@@ -23,12 +23,15 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 58
-        versionName '3.2.2-b2'
+        versionCode 59
+        versionName '3.2.2'
         minSdkVersion 21
         targetSdkVersion 35
         multiDexEnabled true
         resConfigs "en", "de", "uk"
+        // when to show the ChangelogDialog
+        // see the 'versionCode' variable above
+        buildConfigField 'Integer', 'CHANGELOG_VERSION_CODE', '59'
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
@@ -97,6 +100,7 @@ android {
         // Disables dependency metadata when building APKs.
         includeInApk = false
     }
+
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
             outputFileName = "WalkersGuide-${variant.flavorName}-${variant.versionName}-${variant.buildType.name}.apk"
@@ -116,7 +120,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core:1.15.0'
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
-    implementation 'androidx.fragment:fragment:1.8.5'
+    implementation 'androidx.fragment:fragment:1.8.6'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // material design

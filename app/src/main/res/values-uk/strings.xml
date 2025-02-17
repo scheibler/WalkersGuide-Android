@@ -254,8 +254,9 @@
     <string name="menuItemRecalculate">Перебудувати</string>
     <string name="menuItemJumpToNearestPoint">Перейти до найближчої точки</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Автоматично переходити до наступної точки</string>
-    <string name="menuItemShowPreciseBearingValues">Показувати точні азимути</string>
     <string name="menuItemShowIntersectionLayoutDetails">Показувати схеми перехресть</string>
+    <string name="menuItemShowPreciseBearingValues">Показувати точні азимути</string>
+    <string name="menuItemShowBearingIndicator">Показати стрілку напрямку</string>
 
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Запис</string>
@@ -622,6 +623,12 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Всі зміни</string>
     <string-array name="changesList">
+        <item>Зміни у версії 3.2.2</item>
+        <item>Дата: 16 лютий 2025</item>
+        <item>Стрілку напрямку додано на вкладку навігації.</item>
+        <item>- Виправлено: Неможливо було відновити оригінальну назву об\'єкта після того, як вона була змінена хоча б один раз.</item>
+        <item>- Виправлено: Якщо була увімкнена симуляція місцезнаходження і симульована точка була GPS-точкою, її назва замінювалася найближчою адресою під час розрахунку маршруту.</item>
+        <item>- Виправлено: Якщо ваш пристрій не підтримує голосовий ввід, ви не могли навігувати до адреси з головного меню. Тепер ви можете ввести адресу вручну.</item>
         <item>Зміни у версії 3.2.1</item>
         <item>Дата: 12 Січень 2025</item>
         <item>Виправлено: Панель вкладок додатка могла бути перекрита навігаційними кнопками Android в нижній частині екрана.</item>

@@ -59,14 +59,15 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
 
     // instance constructors
 
-    public static EnterAddressDialog newInstance() {
-        return newInstance(null);
+    public static EnterAddressDialog newInstance(boolean nearbyCurrentLocationIsChecked) {
+        return newInstance(null, nearbyCurrentLocationIsChecked);
     }
 
-    public static EnterAddressDialog newInstance(String addressString) {
+    public static EnterAddressDialog newInstance(String addressString, boolean nearbyCurrentLocationIsChecked) {
         EnterAddressDialog dialog = new EnterAddressDialog();
         Bundle args = new Bundle();
         args.putString(KEY_ADDRESS_STRING, addressString);
+        args.putBoolean(KEY_NEARBY_CURRENT_LOCATION_IS_CHECKED, nearbyCurrentLocationIsChecked);
         dialog.setArguments(args);
         return dialog;
     }
@@ -129,6 +130,10 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
                 });
 
         buttonNearbyCurrentLocation = (SwitchCompat) view.findViewById(R.id.buttonNearbyCurrentLocation);
+        buttonNearbyCurrentLocation.setChecked(
+                savedInstanceState != null
+                ? savedInstanceState.getBoolean(KEY_NEARBY_CURRENT_LOCATION_IS_CHECKED)
+                : getArguments().getBoolean(KEY_NEARBY_CURRENT_LOCATION_IS_CHECKED));
         buttonNearbyCurrentLocation.setVisibility(View.GONE);
 
         // create dialog
@@ -203,6 +208,7 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putString(KEY_ADDRESS_STRING, layoutAddress.getInputText());
+        savedInstanceState.putBoolean(KEY_NEARBY_CURRENT_LOCATION_IS_CHECKED, buttonNearbyCurrentLocation.isChecked());
         savedInstanceState.putBoolean(KEY_TRIED_TO_RESOLVE_ADDRESS_AUTOMATICALLY, triedToResolveAddressAutomatically);
     }
 

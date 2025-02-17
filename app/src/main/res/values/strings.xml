@@ -261,8 +261,9 @@
     <string name="menuItemRecalculate">Recalculate</string>
     <string name="menuItemJumpToNearestPoint">Jump to nearest point</string>
     <string name="menuItemAutoSkipToNextRoutePoint">Autom. skip to next</string>
-    <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
     <string name="menuItemShowIntersectionLayoutDetails">Show intersection structure</string>
+    <string name="menuItemShowPreciseBearingValues">Show precise bearings</string>
+    <string name="menuItemShowBearingIndicator">Show direction arrow</string>
 
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Record</string>
@@ -638,6 +639,14 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">All changes</string>
     <string-array name="changesList">
+        <item>Changes in version 3.2.2</item>
+        <item>Date: February 16, 2025</item>
+        <item>- Direction arrow added in the navigate tab.</item>
+        <item>- Fixed: Couldn\'t restore the objects original name after it was renamed at least once.</item>
+        <item>- Fixed: If the location simulation was enabled and the simulated point was a GPS point
+            then its name was overwritten with its closest address on route calculation.</item>
+        <item>- Fixed: If your device doesn\'t support speech input you couldn\'t navigate to an address from the
+            main menu. Now you can enter the address manually instead.</item>
         <item>Changes in version 3.2.1</item>
         <item>Date: January 12, 2025</item>
         <item>Fixed: The app\'s tab bar was potentially being overlapped by Android\'s navigation buttons at the bottom of the screen.</item>

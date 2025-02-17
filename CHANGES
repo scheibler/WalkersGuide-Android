@@ -3,6 +3,20 @@ Change Log
 
 
 
+v3.2.2: 2025-02-16
+------------------
+
+- Direction arrow added in the navigate tab.
+- Fixed: Couldn't restore the objects original name after it was renamed at least once.
+- Fixed: If the location simulation was enabled and the simulated point
+  was a GPS point, then its name was overwritten with its closest
+  address on route calculation.
+- Fixed: If your device doesn't support speech input you couldn't navigate to an address from the
+  main menu. Now you can enter the address manually instead.
+- Smaller bug fixes and ui improvements
+
+
+
 v3.2.1: 2025-01-12
 ------------------
 

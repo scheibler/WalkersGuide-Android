@@ -330,7 +330,7 @@ public class SelectObjectWithIdFromMultipleSourcesDialog extends DialogFragment 
                 break;
 
             case ENTER_ADDRESS:
-                EnterAddressDialog.newInstance()
+                EnterAddressDialog.newInstance(false)
                     .show(getChildFragmentManager(), "EnterAddressDialog");
                 break;
 

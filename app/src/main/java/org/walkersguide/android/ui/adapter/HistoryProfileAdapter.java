@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import android.widget.BaseExpandableListAdapter;
 import java.util.LinkedHashMap;
+import org.walkersguide.android.ui.UiHelper;
 
 
 public class HistoryProfileAdapter extends BaseExpandableListAdapter {
@@ -59,6 +60,12 @@ public class HistoryProfileAdapter extends BaseExpandableListAdapter {
             holder = new EntryHolderParent();
             convertView = LayoutInflater.from(context).inflate(R.layout.layout_single_text_view_heading, parent, false);
             holder.label = (TextView) convertView.findViewById(R.id.labelHeading);
+            // set padding
+            holder.label.setPadding(
+                    UiHelper.convertDpToPx(25),     // left
+                    UiHelper.convertDpToPx(5),      // top
+                    0,                              // right
+                    UiHelper.convertDpToPx(5));     // bottom
             convertView.setTag(holder);
         } else {
             holder = (EntryHolderParent) convertView.getTag();

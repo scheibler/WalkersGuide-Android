@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity
                     } catch (UnsupportedEncodingException e) {
                         addressString = parts[1];
                     }
-                    EnterAddressDialog.newInstance(addressString)
+                    EnterAddressDialog.newInstance(addressString, false)
                         .show(getSupportFragmentManager(), "EnterAddressDialog");
                 } else {
                     SimpleMessageDialog.newInstance(

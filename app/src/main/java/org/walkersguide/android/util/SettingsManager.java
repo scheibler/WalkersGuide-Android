@@ -75,8 +75,9 @@ public class SettingsManager {
     // p2p route settings
     public static final int DEFAULT_SELECTED_ROUTE_ID = 1;
     public static final boolean DEFAULT_AUTO_SKIP_TO_NEXT_ROUTE_POINT = true;
-    public static final boolean DEFAULT_SHOW_PRECISE_BEARING_VALUES = false;
     public static final boolean DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS = true;
+    public static final boolean DEFAULT_SHOW_PRECISE_BEARING_VALUES = false;
+    public static final boolean DEFAULT_SHOW_BEARING_INDICATOR = true;
 
     // keys
     private static final String KEY_SELECTED_TAB_MAIN_ACTIVITY = "selectedTabMainActivity";
@@ -117,8 +118,9 @@ public class SettingsManager {
     private static final String KEY_WAY_CLASS_SETTINGS = "wayClassWeightSettings";
     private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
     private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
-    private static final String KEY_SHOW_PRECISE_BEARING_VALUES = "showPreciseBearingValues";
     private static final String KEY_SHOW_INTERSECTION_LAYOUT_DETAILS = "showIntersectionLayoutDetails";
+    private static final String KEY_SHOW_PRECISE_BEARING_VALUES = "showPreciseBearingValues";
+    private static final String KEY_SHOW_BEARING_INDICATOR = "bearingIndicator";
 
 
     // class variables
@@ -214,7 +216,7 @@ public class SettingsManager {
 
     public boolean showChangelogDialog() {
         int changelogVersionCode = settings.getInt(KEY_CHANGELOG_VERSION_CODE, 1);
-        return changelogVersionCode < ChangelogDialog.VERSION_CODE;
+        return changelogVersionCode < BuildConfig.CHANGELOG_VERSION_CODE;
     }
 
     public void setChangelogDialogVersionCode() {
@@ -716,6 +718,16 @@ public class SettingsManager {
         editor.apply();
     }
 
+    public boolean getShowIntersectionLayoutDetails() {
+        return settings.getBoolean(KEY_SHOW_INTERSECTION_LAYOUT_DETAILS, DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS);
+    }
+
+    public void setShowIntersectionLayoutDetails(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(KEY_SHOW_INTERSECTION_LAYOUT_DETAILS, newValue);
+        editor.apply();
+    }
+
     public boolean getShowPreciseBearingValues() {
         return settings.getBoolean(KEY_SHOW_PRECISE_BEARING_VALUES, DEFAULT_SHOW_PRECISE_BEARING_VALUES);
     }
@@ -726,13 +738,13 @@ public class SettingsManager {
         editor.apply();
     }
 
-    public boolean getShowIntersectionLayoutDetails() {
-        return settings.getBoolean(KEY_SHOW_INTERSECTION_LAYOUT_DETAILS, DEFAULT_SHOW_INTERSECTION_LAYOUT_DETAILS);
+    public boolean getShowBearingIndicator() {
+        return settings.getBoolean(KEY_SHOW_BEARING_INDICATOR, DEFAULT_SHOW_BEARING_INDICATOR);
     }
 
-    public void setShowIntersectionLayoutDetails(boolean newValue) {
+    public void setShowBearingIndicator(boolean newValue) {
         Editor editor = settings.edit();
-        editor.putBoolean(KEY_SHOW_INTERSECTION_LAYOUT_DETAILS, newValue);
+        editor.putBoolean(KEY_SHOW_BEARING_INDICATOR, newValue);
         editor.apply();
     }
 

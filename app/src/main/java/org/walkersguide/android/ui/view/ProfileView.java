@@ -82,6 +82,7 @@ import org.walkersguide.android.server.wg.poi.PoiCategory;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
 import org.walkersguide.android.database.util.AccessDatabase;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public class ProfileView extends LinearLayout {
@@ -255,7 +256,8 @@ public class ProfileView extends LinearLayout {
             }
 
             // action button
-            if (settingsManagerInstance.getShowActionButton()) {
+            if (settingsManagerInstance.getShowActionButton()
+                    && ! (profile instanceof StaticProfile)) {
                 this.buttonActionFor.setContentDescription(
                         String.format(
                             "%1$s %2$s",

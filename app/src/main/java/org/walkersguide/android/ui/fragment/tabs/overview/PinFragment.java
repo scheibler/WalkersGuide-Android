@@ -43,6 +43,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.IntentFilter;
 import org.walkersguide.android.sensor.DeviceSensorManager;
 import org.walkersguide.android.ui.fragment.ViewChangedListenerFragment;
+import android.os.Build;
 
 
 public class PinFragment extends ViewChangedListenerFragment
@@ -129,7 +130,8 @@ public class PinFragment extends ViewChangedListenerFragment
                         break;
                 }
 
-                if (groupName != null) {
+                if (groupName != null
+                        && Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                     TTSWrapper.getInstance().screenReader(
                             String.format(
                                 "%1$s %2$s",

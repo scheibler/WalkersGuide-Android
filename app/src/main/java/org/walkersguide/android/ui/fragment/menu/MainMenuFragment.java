@@ -76,7 +76,7 @@ public class MainMenuFragment extends RootFragment implements FragmentResultList
                                 GlobalInstance.getStringResource(R.string.enterAddressDialogName)),
                             SPEECH_INPUT_REQUEST_ENTER_ADDRESS);
                 } catch (ActivityNotFoundException a) {
-                    EnterAddressDialog.newInstance()
+                    EnterAddressDialog.newInstance(true)
                         .show(getChildFragmentManager(), "EnterAddressDialog");
                 }
             }
@@ -272,7 +272,7 @@ public class MainMenuFragment extends RootFragment implements FragmentResultList
         if (requestCode == SPEECH_INPUT_REQUEST_ENTER_ADDRESS) {
             String addressString = Helper.extractSpeechRecognitionResult(resultCode, resultData);
             if (addressString != null) {
-                EnterAddressDialog.newInstance(addressString)
+                EnterAddressDialog.newInstance(addressString, true)
                     .show(getChildFragmentManager(), "EnterAddressDialog");
             }
         } else {
