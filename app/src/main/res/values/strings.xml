@@ -1128,11 +1128,13 @@
     -->
 
     <!-- ServerRequestException -->
-    <string name="errorReqRequestFailed">The server request failed.</string>
     <string name="errorReqNoInternetConnection">No internet connection available.</string>
-    <string name="errorReqBadRequest">Server request could not be created. Invalid parameters.</string>
+    <string name="errorReqUnknownHost">Either there is no internet connection available or the server address could not be resolved.</string>
+    <string name="errorReqServerConnectionFailed">The server is not accessible.</string>
+    <string name="errorReqServerConnectionTimeout">The server took too long to respond.</string>
     <string name="errorReqBadResponse">Server response could not be processed.</string>
     <string name="errorReqRequestCancelled">Server request cancelled</string>
+    <string name="errorReqUnknownIOException">Unknown error during server connection.</string>
     <string name="errorReqUnknownReturnCode">Unknown error: %1$d</string>
 
     <!-- WgRequestException -->
@@ -1172,7 +1174,8 @@
     <string name="errorPtReqNoStation">No station selected.</string>
     <string name="errorPtReqNoDepartureDate">No departure date selected.</string>
     <string name="errorPtReqNoCoordinates">The current position is not available.</string>
-    <string name="errorPtReqPTServiceDown">The public transport provider is not accessibile.</string>
+    <string name="errorPtReqServerRequestFailed">The request to the server of the public transport provider failed. Either a missing internet connection or the provider is not accessible.</string>
+    <string name="errorPtReqPTServiceDown">The public transport provider is not accessible.</string>
     <string name="errorPtReqInvalidProvider">Invalid public transport provider.</string>
     <string name="errorPtReqInvalidStation">Invalid station.</string>
     <string name="errorPtReqNoDepartures">No departures found.</string>

@@ -32,6 +32,9 @@ import java.net.CookieHandler;
 import timber.log.Timber;
 import java.nio.charset.StandardCharsets;
 import java.lang.Object;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.net.SocketTimeoutException;
 
 
 public class ServerUtility {
@@ -105,28 +108,29 @@ public class ServerUtility {
                 os.write(postParameters.toString().getBytes("UTF-8"));
                 os.close();
             }
-        } catch (IOException e) {
-            cleanUp(connection, null);
-            throw createException(exceptionClass, ServerException.RC_BAD_REQUEST);
-        }
 
-        // connect
-        try {
+            // connect
             connection.connect();
             int returnCode = connection.getResponseCode();
             Timber.d("%1$d -- Request: %2$s", returnCode, queryURL);
             if (returnCode != HttpsURLConnection.HTTP_OK) {
                 cleanUp(connection, null);
-                if (returnCode == HttpsURLConnection.HTTP_BAD_GATEWAY) {
-                    throw createException(exceptionClass, ServerException.RC_REQUEST_FAILED);
-                } else {
-                    throw createException(exceptionClass, returnCode);
-                }
+                throw createException(exceptionClass, returnCode);
             }
-        } catch (IOException e) {
-            Timber.e("Server connection failed: %1$s", e.getMessage());
+
+        } catch (UnknownHostException e) {
             cleanUp(connection, null);
-            throw createException(exceptionClass, ServerException.RC_REQUEST_FAILED);
+            throw createException(exceptionClass, ServerException.RC_UNKNOWN_HOST);
+        } catch (ConnectException e) {
+            cleanUp(connection, null);
+            throw createException(exceptionClass, ServerException.RC_SERVER_CONNECTION_FAILED);
+        } catch (SocketTimeoutException e) {
+            cleanUp(connection, null);
+            throw createException(exceptionClass, ServerException.RC_SERVER_CONNECTION_TIMEOUT);
+        } catch (IOException e) {
+            Timber.e("Server connection failed: %1$s", e.toString());
+            cleanUp(connection, null);
+            throw createException(exceptionClass, ServerException.RC_SERVER_CONNECTION_UNKNOWN_IO_EXCEPTION);
         }
 
         // get response

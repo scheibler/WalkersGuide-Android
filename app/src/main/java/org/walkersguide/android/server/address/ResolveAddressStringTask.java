@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import java.net.URLEncoder;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 
 public class ResolveAddressStringTask extends ServerTask {
@@ -31,10 +33,11 @@ public class ResolveAddressStringTask extends ServerTask {
                     Locale.ROOT,
                     "%1$s/search?format=jsonv2&q=%2$s&accept-language=%3$s&addressdetails=1&limit=10",
                     AddressUtility.ADDRESS_RESOLVER_URL,
-                    URLEncoder.encode(this.addressString, "UTF-8"),
+                    URLEncoder.encode(
+                        this.addressString, StandardCharsets.UTF_8.toString()),
                     Locale.getDefault().getLanguage());
-        } catch (IOException e) {
-            throw new AddressException(AddressException.RC_BAD_REQUEST);
+        } catch (UnsupportedEncodingException e) {
+            // since java 7 utf-8 is guaranteed to be there
         }
         // add current location if required
         if (nearbyCurrentLocation != null) {

@@ -1110,11 +1110,13 @@
     -->
 
     <!-- ServerRequestException -->
-    <string name="errorReqRequestFailed">Помилка запиту на сервер.</string>
     <string name="errorReqNoInternetConnection">Немає підключення до Інтернету.</string>
-    <string name="errorReqBadRequest">Не вдалося створити запит на сервер. Недійсні параметри.</string>
+    <string name="errorReqUnknownHost">Можливо, відсутнє підключення до інтернету або не вдалося визначити адресу сервера.</string>
+    <string name="errorReqServerConnectionFailed">Сервер недоступний.</string>
+    <string name="errorReqServerConnectionTimeout">Сервер занадто довго не відповідає.</string>
     <string name="errorReqBadResponse">Не вдалося обробити відповідь сервера.</string>
     <string name="errorReqRequestCancelled">Запит на сервер скасовано</string>
+    <string name="errorReqUnknownIOException">Невідома помилка під час з\'єднання з сервером.</string>
     <string name="errorReqUnknownReturnCode">Невідома помилка: %1$d</string>
 
     <!-- WgRequestException -->
@@ -1154,6 +1156,7 @@
     <string name="errorPtReqNoStation">Станцію не вибрано.</string>
     <string name="errorPtReqNoDepartureDate">Дата відправлення не вибрана.</string>
     <string name="errorPtReqNoCoordinates">Поточне місцезнаходження недоступно.</string>
+    <string name="errorPtReqServerRequestFailed">Запит до сервера постачальника громадського транспорту не вдався. Можливо, відсутнє підключення до інтернету або постачальник недоступний.</string>
     <string name="errorPtReqPTServiceDown">Постачальник даних громадського транспорту недоступний.</string>
     <string name="errorPtReqInvalidProvider">Недійсний постачальник даних громадського транспорту.</string>
     <string name="errorPtReqInvalidStation">Недійсна станція.</string>

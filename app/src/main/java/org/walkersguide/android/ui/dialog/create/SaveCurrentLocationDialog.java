@@ -136,6 +136,9 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
                 savedInstanceState != null
                 ? (DatabaseProfile) savedInstanceState.getSerializable(KEY_TARGET_DATABASE_PROFILE)
                 : StaticProfile.pinnedObjectsWithId());
+        layoutTargetDatabaseProfile.setVisibility(
+                getArguments().getBoolean(KEY_ADD_TO_DATABASE_PROFILE)
+                ? View.VISIBLE : View.GONE);
 
         // create dialog
         return new AlertDialog.Builder(getActivity())

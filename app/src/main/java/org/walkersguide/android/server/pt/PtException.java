@@ -14,13 +14,14 @@ public class PtException extends ServerException {
     public static final int RC_NO_DEPARTURE_DATE = 3003;
 
     // responses
-    public static final int RC_SERVICE_DOWN = 3010;
-    public static final int RC_INVALID_PROVIDER = 3011;
-    public static final int RC_INVALID_STATION = 3012;
-    public static final int RC_NO_DEPARTURES = 3013;
-    public static final int RC_NO_TRIPS = 3014;
-    public static final int RC_AMBIGUOUS_DESTINATION = 3015;
-    public static final int RC_UNKNOWN_SERVER_RESPONSE = 3016;
+    public static final int RC_REQUEST_FAILED = 3010;
+    public static final int RC_SERVICE_DOWN = 3011;
+    public static final int RC_INVALID_PROVIDER = 3012;
+    public static final int RC_INVALID_STATION = 3013;
+    public static final int RC_NO_DEPARTURES = 3014;
+    public static final int RC_NO_TRIPS = 3015;
+    public static final int RC_AMBIGUOUS_DESTINATION = 3016;
+    public static final int RC_UNKNOWN_SERVER_RESPONSE = 3017;
 
 
     public static String getMessageForReturnCode(int returnCode) {
@@ -35,6 +36,8 @@ public class PtException extends ServerException {
             case RC_NO_COORDINATES:
                 return GlobalInstance.getStringResource(R.string.errorPtReqNoCoordinates);
 
+            case RC_REQUEST_FAILED:
+                return GlobalInstance.getStringResource(R.string.errorPtReqServerRequestFailed);
             case RC_SERVICE_DOWN:
                 return GlobalInstance.getStringResource(R.string.errorPtReqPTServiceDown);
             case RC_INVALID_PROVIDER:

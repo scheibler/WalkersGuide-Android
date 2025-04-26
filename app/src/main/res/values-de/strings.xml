@@ -1129,11 +1129,13 @@
     -->
 
     <!-- ServerRequestException -->
-    <string name="errorReqRequestFailed">Der Server ist nicht erreichbar.</string>
     <string name="errorReqNoInternetConnection">Keine Internetverbindung verfügbar.</string>
-    <string name="errorReqBadRequest">Die Anfrage an den Server konnte nicht erstellt werden. Ungültige Parameter.</string>
-    <string name="errorReqBadResponse">Die Antwort des Kartenservers konnte nicht verarbeitet werden.</string>
+    <string name="errorReqUnknownHost">Es besteht entweder keine Internetverbindung oder die Adresse des Servers konnte nicht aufgelöst werden.</string>
+    <string name="errorReqServerConnectionFailed">Der Server ist nicht erreichbar.</string>
+    <string name="errorReqServerConnectionTimeout">Der Server benötigt zu lang für eine Antwort.</string>
+    <string name="errorReqBadResponse">Die Antwort des Servers konnte nicht verarbeitet werden.</string>
     <string name="errorReqRequestCancelled">Die Serveranfrage wurde abgebrochen.</string>
+    <string name="errorReqUnknownIOException">Unbekannter Fehler beim Verbindungsaufbau.</string>
     <string name="errorReqUnknownReturnCode">Unbekannter Fehler: %1$d</string>
 
     <!-- WgRequestException -->
@@ -1177,6 +1179,7 @@
     <string name="errorPtReqNoStation">Keine Haltestelle ausgewählt</string>
     <string name="errorPtReqNoDepartureDate">Kein Abfahrtsdatum ausgewählt</string>
     <string name="errorPtReqNoCoordinates">Die aktuelle Position ist nicht verfügbar.</string>
+    <string name="errorPtReqServerRequestFailed">Die Anfrage an den ÖPNV Provider ist fehlgeschlagen. Es besteht entweder keine Internetverbindung oder der Server ist nicht erreichbar.</string>
     <string name="errorPtReqPTServiceDown">Der ÖPNV Provider ist nicht erreichbar.</string>
     <string name="errorPtReqInvalidProvider">Ungültiger ÖPNV Provider.</string>
     <string name="errorPtReqInvalidStation">Ungültige Haltestelle.</string>

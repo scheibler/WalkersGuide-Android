@@ -537,7 +537,7 @@ public class ObjectWithIdView extends LinearLayout {
 
         // load route
         if (object instanceof Route) {
-            if (((Route) object).isReversable()) {
+            if (((Route) object).isReversible()) {
                 SubMenu loadRouteSubMenu = contextMenu.getMenu().addSubMenu(
                         MENU_GROUP_1, Menu.NONE, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdLoadRoute));
                 MenuItem menuItemLoadRouteCurrentDirection = loadRouteSubMenu.add(

@@ -33,7 +33,15 @@ public class Route extends ObjectWithId implements Serializable {
     private static final long serialVersionUID = 1l;
 
     public enum Type {
-        P2P_ROUTE, STREET_COURSE, GPX_TRACK, RECORDED_ROUTE
+        P2P_ROUTE(false),
+        STREET_COURSE(false),
+        GPX_TRACK(true),
+        RECORDED_ROUTE(true);
+
+        public boolean reversible;
+        private Type(boolean reversible) {
+            this.reversible = reversible;
+        }
     }
 
 
@@ -118,8 +126,8 @@ public class Route extends ObjectWithId implements Serializable {
     }
 
     public static Route reverse(Route route) throws JSONException {
-        if (route == null || ! route.isReversable()) {
-            throw new JSONException("Route is null or not reversable");
+        if (route == null || ! route.isReversible()) {
+            throw new JSONException("Route is null or not reversible");
         }
 
         // extract points and reverse list
@@ -282,13 +290,8 @@ public class Route extends ObjectWithId implements Serializable {
         return getName();
     }
 
-    public boolean isReversable() {
-        switch (getType()) {
-            case GPX_TRACK:
-            case RECORDED_ROUTE:
-                return true;
-        }
-        return false;
+    public boolean isReversible() {
+        return getType().reversible;
     }
 
     public boolean isReversed() {
@@ -417,7 +420,7 @@ public class Route extends ObjectWithId implements Serializable {
     @Override public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(super.getName());
-        if (isReversable() && isReversed()) {
+        if (isReversed()) {
             stringBuilder.append(System.lineSeparator());
             stringBuilder.append(
                     GlobalInstance.getStringResource(R.string.labelOppositeDirection));

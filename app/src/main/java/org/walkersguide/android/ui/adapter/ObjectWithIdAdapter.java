@@ -101,7 +101,6 @@ public class ObjectWithIdAdapter extends BaseAdapter {
             }
         }
 
-
         layoutObject.configureAsListItem(objectWithId, showIcon);
         return layoutObject;
     }
