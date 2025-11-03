@@ -1,7 +1,3 @@
-Navigationshilfe für Blinde und Sehbehinderte basierend auf OpenStreetMap
-
---------------------
-
 WalkersGuide ist ein Navigationshilfsmittel, entwickelt primär für blinde und sehbehinderte
 Fußgänger. Es kann sowohl für die Berechnung von Routen als auch für die Anzeige von POI in der Nähe
 verwendet werden.  Das Projekt besteht aus einer Android App und einem Server, der für die
@@ -18,7 +14,5 @@ Hauptmerkmale der App:
 - Aufzeichnen eigener Routen
 
 Die Anwendung ist vollständig mit Androids Screenreader Talkback bedienbar.
-
-Du kannst mich gern kontaktieren, wenn die Karte deiner Region fehlt.
 
 Bitte besuche https://www.walkersguide.org für weitere Informationen.

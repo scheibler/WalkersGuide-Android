@@ -1,0 +1,6 @@
+- Richtungspfeil im Navigieren-Tab hinzugefügt.
+- Behoben: Der ursprüngliche Name von Objekten konnte nicht wiederhergestellt werden, nachdem er mindestens einmal umbenannt wurde.
+- Behoben: Wenn die Standortsimulation aktiviert war und der simulierte Punkt ein GPS-Punkt war, dann
+  wurde dessen Name bei der Routenberechnung durch die nächstgelegene Adresse überschrieben.
+- Behoben: Wenn dein Gerät keine Spracheingabe unterstützt, konntest du nicht über das Hauptmenü zu
+  einer Adresse navigieren. Jetzt kannst du die Adresse stattdessen manuell eingeben.
