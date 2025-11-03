@@ -5,6 +5,7 @@ and a server. The latter performs the route calculation.
 The map data is provided by OpenStreetMap, a project to create a free map of the world.
 
 Main app features:
+
 - Calculate routes optimized for blind and visually impaired users
 - Explore layout of intersections
 - Show and track nearby POI

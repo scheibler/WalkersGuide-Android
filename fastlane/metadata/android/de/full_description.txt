@@ -6,6 +6,7 @@ Berechnung der angefragten Route zuständig ist.
 Die Kartendaten stammen von OpenStreetMap, einem Projekt zur Schaffung einer freien Weltkarte.
 
 Hauptmerkmale der App:
+
 - Routenberechnung optimiert für blinde und sehbehinderte Benutzer
 - Details über den Aufbau von Kreuzungen
 - Anzeigen und Verfolgen von POIs in der Nähe
