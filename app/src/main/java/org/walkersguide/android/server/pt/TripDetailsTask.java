@@ -131,6 +131,7 @@ public class TripDetailsTask extends ServerTask {
 
     private static ArrayList<Stop> parseTripsResult(Line line, Date departureTime,
             QueryTripsResult tripsResult) throws PtException {
+        Timber.d("parseTripsResult: %1$s", tripsResult);
         if (tripsResult != null
                 && tripsResult.status == QueryTripsResult.Status.OK) {
 
