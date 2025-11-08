@@ -1,5 +1,6 @@
 package org.walkersguide.android.sensor;
 
+import androidx.annotation.RequiresApi;
 import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,7 +11,6 @@ import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
 
 import org.walkersguide.android.util.GlobalInstance;
-import android.annotation.TargetApi;
 
 import android.content.Context;
 import android.content.Intent;
@@ -339,10 +339,15 @@ public class PositionManager implements android.location.LocationListener {
         return false;
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
     private BearingSensorAccuracyRating extractBearingSensorAccuracyRating(Location location) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O
-                && location.hasBearingAccuracy()) {
+        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O
+            ? extractBearingSensorAccuracyRatingForOAndNewer(location)
+            : null;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private BearingSensorAccuracyRating extractBearingSensorAccuracyRatingForOAndNewer(Location location) {
+        if (location.hasBearingAccuracy()) {
             int bearingAccuracyDegrees = Math.round(location.getBearingAccuracyDegrees());
             // return accuracy rating value
             if (bearingAccuracyDegrees < 10) {

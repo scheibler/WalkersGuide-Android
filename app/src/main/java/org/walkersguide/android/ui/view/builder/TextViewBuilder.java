@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.view.builder;
 
+import android.os.Build;
 import org.walkersguide.android.ui.UiHelper;
 import android.text.util.Linkify;
 import android.view.ViewGroup.MarginLayoutParams;
@@ -9,8 +10,7 @@ import android.widget.LinearLayout;
 import android.view.View;
 
 import android.widget.TextView;
-
-import android.annotation.TargetApi;
+import androidx.annotation.RequiresApi;
 
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.util.GlobalInstance;
@@ -107,15 +107,19 @@ public class TextViewBuilder {
         return this;
     }
 
-    @TargetApi(android.os.Build.VERSION_CODES.P)
     public TextViewBuilder isHeading() {
         this.label.setText(
                 UiHelper.boldAndRed(
                     this.label.getText().toString()));
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            this.label.setAccessibilityHeading(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            setAccessibilityHeadingAttributeForPAndNewer();
         }
         return this;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    private void setAccessibilityHeadingAttributeForPAndNewer() {
+        this.label.setAccessibilityHeading(true);
     }
 
     public TextViewBuilder isLabelFor(int id) {

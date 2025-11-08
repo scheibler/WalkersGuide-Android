@@ -31,8 +31,8 @@ import android.os.Build;
 import java.lang.ClassLoader;
 import androidx.annotation.RequiresApi;
 import android.content.res.TypedArray;
-import android.annotation.TargetApi;
 import android.view.inputmethod.InputMethodManager;
+import android.annotation.SuppressLint;
 
 
 public class EditTextAndClearInputButton extends LinearLayout {
@@ -211,7 +211,7 @@ public class EditTextAndClearInputButton extends LinearLayout {
                 return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ? new SavedState(in, loader) : new SavedState(in);
             }
 
-            @TargetApi(Build.VERSION_CODES.N)
+            @SuppressLint("NewApi")
             @Override public SavedState createFromParcel(Parcel in) {
                 return new SavedState(in, null);
             }

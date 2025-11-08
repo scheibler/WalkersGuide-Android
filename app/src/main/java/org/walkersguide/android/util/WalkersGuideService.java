@@ -30,7 +30,7 @@ import org.json.JSONObject;
 import android.Manifest;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
+import androidx.annotation.RequiresApi;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -247,7 +247,9 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
         // off state
         this.serviceState = ServiceState.OFF;
         this.notificationManagerInstance = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        this.createNotificationChannel();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.createNotificationChannelForOAndNewer();
+        }
 
         disableTrackingHandler= new Handler(Looper.getMainLooper());
         disableTrackingRunnable = new Runnable() {
@@ -596,18 +598,16 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
      * notification
      */
 
-    @TargetApi(Build.VERSION_CODES.O)
-    private void createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel walkersGuideServiceNotificationChannel = new NotificationChannel(
-                    WALKERS_GUIDE_SERVICE_NOTIFICATION_CHANNEL_ID,
-                    getResources().getString(R.string.walkersGuideServiceNotificationChannelName),
-                    NotificationManager.IMPORTANCE_LOW);
-            walkersGuideServiceNotificationChannel.setShowBadge(false);
-            walkersGuideServiceNotificationChannel.setDescription(
-                    getResources().getString(R.string.walkersGuideServiceNotificationChannelDescription));
-            notificationManagerInstance.createNotificationChannel(walkersGuideServiceNotificationChannel);
-        }
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void createNotificationChannelForOAndNewer() {
+        NotificationChannel walkersGuideServiceNotificationChannel = new NotificationChannel(
+                WALKERS_GUIDE_SERVICE_NOTIFICATION_CHANNEL_ID,
+                getResources().getString(R.string.walkersGuideServiceNotificationChannelName),
+                NotificationManager.IMPORTANCE_LOW);
+        walkersGuideServiceNotificationChannel.setShowBadge(false);
+        walkersGuideServiceNotificationChannel.setDescription(
+                getResources().getString(R.string.walkersGuideServiceNotificationChannelDescription));
+        notificationManagerInstance.createNotificationChannel(walkersGuideServiceNotificationChannel);
     }
 
     // WalkersGuide service

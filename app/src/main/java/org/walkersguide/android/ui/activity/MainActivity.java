@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.activity;
 
+import androidx.activity.OnBackPressedCallback;
             import android.view.ViewGroup.MarginLayoutParams;
 
 import org.walkersguide.android.ui.fragment.menu.MainMenuFragment;
@@ -233,6 +234,21 @@ public class MainActivity extends AppCompatActivity
             return WindowInsetsCompat.CONSUMED;
         });
 
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
+                    getSupportFragmentManager().popBackStack();
+                    getSupportFragmentManager().executePendingTransactions();
+                    updateToolbarNavigateUpButtonVisibility();
+                } else if (mainMenuIsOpen) {
+                    closeMainMenu();
+                } else {
+                    finish();
+                }
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
+
         // toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
@@ -436,17 +452,6 @@ public class MainActivity extends AppCompatActivity
                     .show(getSupportFragmentManager(), "OpenGpxFileDialog");
             }
             lastUri = uri;
-        }
-    }
-
-    @Override public void onBackPressed() {
-        if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-            super.onBackPressed();
-            updateToolbarNavigateUpButtonVisibility();
-        } else if (mainMenuIsOpen) {
-            closeMainMenu();
-        } else {
-            finish();
         }
     }
 
@@ -884,7 +889,6 @@ public class MainActivity extends AppCompatActivity
         updateAccessibilityActionsOnBearingDetailsButton();
         buttonLocationDetails.setContentDescription(createLocationDetailsButtonContentDescription());
         updateAccessibilityActionsOnLocationDetailsButton();
-        WalkersGuideService.requestServiceState();
 
         if (globalInstance.applicationWasInBackground()) {
             globalInstance.setApplicationInBackground(false);
@@ -924,6 +928,8 @@ public class MainActivity extends AppCompatActivity
             globalInstance.clearCaches();
             globalInstance.resetEnabledStaticShortcutActions();
         }
+
+        WalkersGuideService.requestServiceState();
     }
 
     @Override public void displayRemainsActiveSettingChanged(boolean remainsActive) {

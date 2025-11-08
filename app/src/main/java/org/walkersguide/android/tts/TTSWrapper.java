@@ -1,11 +1,11 @@
 package org.walkersguide.android.tts;
 
+import androidx.annotation.RequiresApi;
 import org.walkersguide.android.R;
 import android.os.Looper;
 import android.os.Handler;
 import org.walkersguide.android.util.Helper;
 
-import android.annotation.TargetApi;
 
 import android.content.Context;
 
@@ -353,19 +353,19 @@ public class TTSWrapper extends UtteranceProgressListener {
 
     private boolean tryToGetAudioFocus() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            return mAudioManager.requestAudioFocus(buildAudioFocusRequest()) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+            return mAudioManager.requestAudioFocus(buildAudioFocusRequestForOAndNewer()) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         }
         return true;
     }
 
     private void giveUpAudioFocus() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            mAudioManager.abandonAudioFocusRequest(buildAudioFocusRequest());
+            mAudioManager.abandonAudioFocusRequest(buildAudioFocusRequestForOAndNewer());
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
-    private AudioFocusRequest buildAudioFocusRequest() {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private AudioFocusRequest buildAudioFocusRequestForOAndNewer() {
         return new AudioFocusRequest.Builder(
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(buildAudioAttributes())

@@ -9,7 +9,6 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import android.text.TextUtils;
 import android.os.Vibrator;
-import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.content.Context;
@@ -38,6 +37,7 @@ import android.media.MediaPlayer;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import org.walkersguide.android.data.object_with_id.Route.PointListItem;
+import androidx.annotation.RequiresApi;
 
 
 public class Helper {
@@ -163,16 +163,17 @@ public class Helper {
         return null;
     }
 
-    @TargetApi(Build.VERSION_CODES.TIRAMISU)
     public static Locale getAppLocale() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            LocaleManager localeManager = (LocaleManager) GlobalInstance.getContext().getSystemService(Context.LOCALE_SERVICE);
-            LocaleList appLocales = localeManager.getApplicationLocales();
-            if (! appLocales.isEmpty()) {
-                return appLocales.get(0);
-            }
-        }
-        return Locale.getDefault();
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            ? getAppLocaleForTiramisuAndNewer()
+            : Locale.getDefault();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private static Locale getAppLocaleForTiramisuAndNewer() {
+        LocaleManager localeManager = (LocaleManager) GlobalInstance.getContext().getSystemService(Context.LOCALE_SERVICE);
+        LocaleList appLocales = localeManager.getApplicationLocales();
+        return ! appLocales.isEmpty() ? appLocales.get(0) : Locale.getDefault();
     }
 
 
@@ -418,7 +419,6 @@ public class Helper {
     public static final int VIBRATION_INTENSITY_DEFAULT = 128;
     public static final int VIBRATION_INTENSITY_STRONG = 180;
 
-    @TargetApi(Build.VERSION_CODES.O)
     public static void vibrateOnce(long duration) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             vibrateOnce(duration, VibrationEffect.DEFAULT_AMPLITUDE);
@@ -427,30 +427,38 @@ public class Helper {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
     public static void vibrateOnce(long duration, int amplitude) {
         Vibrator vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                vibrator.vibrate(
-                        VibrationEffect.createOneShot(duration, amplitude));
+                vibrateOnceForOAndNewer(vibrator, duration, amplitude);
             } else {
                 vibrator.vibrate(duration);
             }
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static void vibrateOnceForOAndNewer(Vibrator vibrator, long duration, int amplitude) {
+        vibrator.vibrate(
+                VibrationEffect.createOneShot(duration, amplitude));
+    }
+
     public static void vibratePattern(long[] timings) {
         Vibrator vibrator = (Vibrator) GlobalInstance.getContext().getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                vibrator.vibrate(
-                        VibrationEffect.createWaveform(timings, -1));
+                vibratePatternForOAndNewer(vibrator, timings);
             } else {
                 vibrator.vibrate(timings, -1);
             }
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static void vibratePatternForOAndNewer(Vibrator vibrator, long[] timings) {
+        vibrator.vibrate(
+                VibrationEffect.createWaveform(timings, -1));
     }
 
 

@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 
@@ -21,6 +22,7 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.net.Uri;
 import org.walkersguide.android.ui.UiHelper;
+import timber.log.Timber;
 
 public class SimpleMessageDialog extends DialogFragment {
     public static final String REQUEST_DIALOG_CLOSED = "dialogClosed";
@@ -71,6 +73,13 @@ public class SimpleMessageDialog extends DialogFragment {
                 ? UiHelper.getPublicTransportDataSourceText()
                 : getArguments().getString(KEY_MESSAGE));
 
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                close();
+            }
+        };
+        getActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity())
             .setView(view)
             .setPositiveButton(
@@ -78,16 +87,6 @@ public class SimpleMessageDialog extends DialogFragment {
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             close();
-                        }
-                    })
-            .setOnKeyListener(
-                    new Dialog.OnKeyListener() {
-                        @Override public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
-                            if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                close();
-                                return true;
-                            }
-                            return false;
                         }
                     });
 
@@ -110,6 +109,7 @@ public class SimpleMessageDialog extends DialogFragment {
     }
 
     private void close() {
+        Timber.d("close");
         Bundle result = new Bundle();
         getParentFragmentManager().setFragmentResult(REQUEST_DIALOG_CLOSED, result);
         dismiss();
