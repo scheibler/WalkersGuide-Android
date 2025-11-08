@@ -639,8 +639,16 @@
 
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Alle Änderungen</string>
-    <string-array name="changesList">
-        <item>Änderungen in der Version 3.2.2</item>
+
+    <string name="changesHeading3_2_3">Version 3.2.3</string>
+    <string-array name="changesList3_2_3">
+        <item>Datum: 11.11.2025</item>
+        <item>- Richtungspfeilgraphik aktualisiert</item>
+        <item>- Unterstützung für Android 16</item>
+    </string-array>
+
+    <string name="changesHeading3_2_2">Version 3.2.2</string>
+    <string-array name="changesList3_2_2">
         <item>Datum: 16.02.2025</item>
         <item>- Richtungspfeil im Navigieren-Tab hinzugefügt.</item>
         <item>- Behoben: Der ursprüngliche Name von Objekten konnte nicht wiederhergestellt werden, nachdem er mindestens einmal umbenannt wurde.</item>
@@ -648,11 +656,16 @@
             wurde dessen Name bei der Routenberechnung durch die nächstgelegene Adresse überschrieben.</item>
         <item>- Behoben: Wenn dein Gerät keine Spracheingabe unterstützt, konntest du nicht über das Hauptmenü zu
             einer Adresse navigieren. Jetzt kannst du die Adresse stattdessen manuell eingeben.</item>
-        <item>Änderungen in der Version 3.2.1</item>
+    </string-array>
+
+    <string name="changesHeading3_2_1">Version 3.2.1</string>
+    <string-array name="changesList3_2_1">
         <item>Datum: 12.01.2025</item>
         <item>Behoben: Die Tableiste der App wurde unter Umständen von Androids Navigationsbuttons am unteren Bildschirmrand überlagert.</item>
-        <item></item>
-        <item>Änderungen in der Version 3.2.0</item>
+    </string-array>
+
+    <string name="changesHeading3_2_0">Version 3.2.0</string>
+    <string-array name="changesList3_2_0">
         <item>Datum: 31.12.2024</item>
         <item>Neue Einträge im überarbeiteten Hauptmenü der App:</item>
         <item>- Zu einer Adresse navigieren</item>

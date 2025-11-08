@@ -638,8 +638,16 @@
 
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">All changes</string>
-    <string-array name="changesList">
-        <item>Changes in version 3.2.2</item>
+
+    <string name="changesHeading3_2_3">Version 3.2.3</string>
+    <string-array name="changesList3_2_3">
+        <item>Date: November 11, 2025</item>
+        <item>- Direction arrow image updated</item>
+        <item>- Support for Android 16</item>
+    </string-array>
+
+    <string name="changesHeading3_2_2">Version 3.2.2</string>
+    <string-array name="changesList3_2_2">
         <item>Date: February 16, 2025</item>
         <item>- Direction arrow added in the navigate tab.</item>
         <item>- Fixed: Couldn\'t restore the objects original name after it was renamed at least once.</item>
@@ -647,11 +655,16 @@
             then its name was overwritten with its closest address on route calculation.</item>
         <item>- Fixed: If your device doesn\'t support speech input you couldn\'t navigate to an address from the
             main menu. Now you can enter the address manually instead.</item>
-        <item>Changes in version 3.2.1</item>
+    </string-array>
+
+    <string name="changesHeading3_2_1">Version 3.2.1</string>
+    <string-array name="changesList3_2_1">
         <item>Date: January 12, 2025</item>
         <item>Fixed: The app\'s tab bar was potentially being overlapped by Android\'s navigation buttons at the bottom of the screen.</item>
-        <item></item>
-        <item>Changes in version 3.2.0</item>
+    </string-array>
+
+    <string name="changesHeading3_2_0">Version 3.2.0</string>
+    <string-array name="changesList3_2_0">
         <item>Date: December 31, 2024</item>
         <item>New entries in the redesigned apps main menu:</item>
         <item>- Navigate to a street address</item>

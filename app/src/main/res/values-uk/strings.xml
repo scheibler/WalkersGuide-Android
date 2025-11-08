@@ -622,18 +622,31 @@
 
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Всі зміни</string>
-    <string-array name="changesList">
-        <item>Зміни у версії 3.2.2</item>
+
+    <string name="changesHeading3_2_3">Версія 3.2.3</string>
+    <string-array name="changesList3_2_3">
+        <item>Date: November 11, 2025</item>
+        <item>- Direction arrow image updated</item>
+        <item>- Support for Android 16</item>
+    </string-array>
+
+    <string name="changesHeading3_2_2">Версія 3.2.2</string>
+    <string-array name="changesList3_2_2">
         <item>Дата: 16 лютий 2025</item>
         <item>Стрілку напрямку додано на вкладку навігації.</item>
         <item>- Виправлено: Неможливо було відновити оригінальну назву об\'єкта після того, як вона була змінена хоча б один раз.</item>
         <item>- Виправлено: Якщо була увімкнена симуляція місцезнаходження і симульована точка була GPS-точкою, її назва замінювалася найближчою адресою під час розрахунку маршруту.</item>
         <item>- Виправлено: Якщо ваш пристрій не підтримує голосовий ввід, ви не могли навігувати до адреси з головного меню. Тепер ви можете ввести адресу вручну.</item>
-        <item>Зміни у версії 3.2.1</item>
+    </string-array>
+
+    <string name="changesHeading3_2_1">Версія 3.2.1</string>
+    <string-array name="changesList3_2_1">
         <item>Дата: 12 Січень 2025</item>
         <item>Виправлено: Панель вкладок додатка могла бути перекрита навігаційними кнопками Android в нижній частині екрана.</item>
-        <item></item>
-        <item>Зміни у версії 3.2.0</item>
+    </string-array>
+
+    <string name="changesHeading3_2_0">Версія 3.2.0</string>
+    <string-array name="changesList3_2_0">
         <item>Дата: 31 грудня 2024</item>
         <item>Нові пункти в оновленому головному меню програми:</item>
         <item>- Побудова маршруту до вказаної адреси</item>

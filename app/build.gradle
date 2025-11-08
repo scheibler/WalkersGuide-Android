@@ -23,15 +23,15 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 61
-        versionName '3.3.0'
+        versionCode 62
+        versionName '3.2.3'
         minSdkVersion 21
         targetSdkVersion 36
         multiDexEnabled true
         resConfigs "en", "de", "uk"
         // when to show the ChangelogDialog
         // see the 'versionCode' variable above
-        buildConfigField 'Integer', 'CHANGELOG_VERSION_CODE', '61'
+        buildConfigField 'Integer', 'CHANGELOG_VERSION_CODE', '62'
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'

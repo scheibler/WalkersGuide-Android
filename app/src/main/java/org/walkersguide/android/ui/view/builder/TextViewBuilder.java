@@ -27,12 +27,12 @@ public class TextViewBuilder {
 
     private TextView label;
 
+    public TextViewBuilder(Context context) {
+        initialize(context, "", getDefaultLayoutParams());
+    }
+
     public TextViewBuilder(Context context, CharSequence text) {
-        initialize(
-                context,
-                text,
-                new LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        initialize(context, text, getDefaultLayoutParams());
     }
 
     public TextViewBuilder(Context context, String text, LayoutParams lp) {
@@ -141,6 +141,11 @@ public class TextViewBuilder {
 
     public TextView create() {
         return this.label;
+    }
+
+    private static LayoutParams getDefaultLayoutParams() {
+        return new LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     }
 
 }
