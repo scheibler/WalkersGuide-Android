@@ -224,7 +224,7 @@ public class GpxFileReader {
                             parser.nextText());
                 } catch (NumberFormatException | NullPointerException e) {}
                 if (altitude != null) {
-                    gpsBuilder.setAltitude(altitude);
+                    gpsBuilder.setMslAltitude(altitude);
                 }
                 parser.require(XmlPullParser.END_TAG, null, "ele");
 

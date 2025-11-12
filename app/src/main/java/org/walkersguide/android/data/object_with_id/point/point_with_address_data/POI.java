@@ -19,6 +19,7 @@ public class POI extends PointWithAddressData implements Serializable {
     private ArrayList<Entrance> entranceList;
     private POI isInside;
     private String email, phone, website, openingHours;
+    private String level, postOfficePartner;
 
     public POI(JSONObject inputData) throws JSONException {
         super(inputData);
@@ -48,6 +49,8 @@ public class POI extends PointWithAddressData implements Serializable {
         this.phone = Helper.getNullableStringFromJsonObject(inputData, KEY_PHONE);
         this.website = Helper.getNullableStringFromJsonObject(inputData, KEY_WEBSITE);
         this.openingHours = Helper.getNullableStringFromJsonObject(inputData, KEY_OPENING_HOURS);
+        this.level = Helper.getNullableStringFromJsonObject(inputData, KEY_LEVEL);
+        this.postOfficePartner = Helper.getNullableStringFromJsonObject(inputData, KEY_POST_OFFICE_PARTNER);
     }
 
     public ArrayList<Entrance> getEntranceList() {
@@ -83,6 +86,21 @@ public class POI extends PointWithAddressData implements Serializable {
         return this.openingHours;
     }
 
+    public String getLevel() {
+        return this.level;
+    }
+
+    public String formatLevel() {
+        if (this.level != null) {
+            return this.level.replace(";", ", ");
+        }
+        return "";
+    }
+
+    public String getPostOfficePartner() {
+        return this.postOfficePartner;
+    }
+
     @Override public String toString() {
         String description = super.toString();
         // number of entrances
@@ -107,6 +125,8 @@ public class POI extends PointWithAddressData implements Serializable {
     public static final String KEY_PHONE = "phone";
     public static final String KEY_WEBSITE = "website";
     public static final String KEY_OPENING_HOURS = "opening_hours";
+    public static final String KEY_LEVEL = "level";
+    public static final String KEY_POST_OFFICE_PARTNER = "post_office_partner";
 
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
@@ -135,6 +155,12 @@ public class POI extends PointWithAddressData implements Serializable {
         }
         if (this.openingHours != null) {
             jsonObject.put(KEY_OPENING_HOURS, this.openingHours);
+        }
+        if (this.level != null) {
+            jsonObject.put(KEY_LEVEL, this.level);
+        }
+        if (this.postOfficePartner != null) {
+            jsonObject.put(KEY_POST_OFFICE_PARTNER, this.postOfficePartner);
         }
 
         return jsonObject;

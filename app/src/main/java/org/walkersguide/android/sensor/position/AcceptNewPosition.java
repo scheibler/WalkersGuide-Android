@@ -12,7 +12,7 @@ public class AcceptNewPosition implements Serializable {
 
     public static AcceptNewPosition newInstanceForObjectListUpdate() {
         return new AcceptNewPosition(
-                50, 30000l, PositionManager.getInstance().getCurrentLocation());
+                30, 15000l, PositionManager.getInstance().getCurrentLocation());
     }
 
     public static AcceptNewPosition newInstanceForDistanceLabelUpdate() {

@@ -96,7 +96,7 @@ public class LocationSensorDetailsDialog extends DialogFragment {
                 labelGPSLongitude.setText(context.getResources().getString(R.string.labelGPSLongitude));
                 labelGPSProvider.setText(context.getResources().getString(R.string.labelGPSProvider));
                 labelGPSAccuracy.setText(context.getResources().getString(R.string.labelGPSAccuracy));
-                labelGPSAltitude.setText(context.getResources().getString(R.string.labelGPSAltitude));
+                labelGPSAltitude.setText(context.getResources().getString(R.string.labelGPSMslAltitude));
                 labelGPSBearing.setText(context.getResources().getString(R.string.labelGPSBearing));
                 labelGPSSpeed.setText(context.getResources().getString(R.string.labelGPSSpeed));
                 labelGPSTime.setText(context.getResources().getString(R.string.labelGPSTime));

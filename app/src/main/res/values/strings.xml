@@ -90,7 +90,8 @@
     <string name="labelGPSLongitude">Longitude</string>
     <string name="labelGPSProvider">Provider</string>
     <string name="labelGPSAccuracy">Accuracy</string>
-    <string name="labelGPSAltitude">Altitude</string>
+    <string name="labelGPSMslAltitude">Elevation</string>
+    <string name="labelGPSEllipsoidAltitude">Elevation (approx.)</string>
     <string name="labelGPSBearing">Bearing</string>
     <string name="labelGPSSpeed">Speed</string>
     <string name="labelGPSTime">Last fix at</string>
@@ -427,6 +428,8 @@
     <string name="labelPointPOIBuildingHeading">Building</string>
     <string name="labelPointPOIBuildingIsInside">Inside of</string>
     <string name="labelPointPOIBuildingNumberOfEntrances">Number of entrances</string>
+    <string name="labelPointPOIBuildingLevel">Floor</string>
+    <string name="labelPointPOIPostOfficePartner">Postal services</string>
     <string name="labelPointPOIContactHeading">Contact data</string>
     <string name="labelPointPOIContactPostAddress">Post address</string>
     <string name="labelPointPOIContactEMailAddress">Email address</string>
@@ -1006,28 +1009,31 @@
     <string name="poiCategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
     <string name="poiCategoryTaxi">Taxi</string>
     <string name="poiCategoryFood">Food and drink</string>
-    <string name="poiCategoryTourism">Tourism</string>
-    <string name="poiCategoryShop">Shopping</string>
-    <string name="poiCategoryHealth">Health</string>
-    <string name="poiCategoryEducation">Education</string>
+    <string name="poiCategoryAccommodation">Hotels and Accommodations</string>
+    <string name="poiCategoryTourism">Sights and tourist information</string>
+    <string name="poiCategoryEntertainment">Entertainment:\n  Cinemas, Theaters, Bars, Pubs, …</string>
     <string name="poiCategoryFinance">Finance</string>
-    <string name="poiCategoryEntertainment">Sports and entertainment</string>
-    <string name="poiCategoryPublicService">Public services</string>
-    <string name="poiCategoryOtherService">Other services</string>
+    <string name="poiCategoryPostBox">Post and Parcels, Mailboxes</string>
+    <string name="poiCategoryShop">Shopping</string>
+    <string name="poiCategoryEducation">Education and research</string>
+    <string name="poiCategoryHealth">Health:\n  Doctors, Pharmacies, Hospitals, …</string>
+    <string name="poiCategorySport">Sports and Recreation:\n  Sports Facilities, playgrounds, parks, …</string>
+    <string name="poiCategoryPublicService">Public services:\n  Police, Fire Department, Civic Offices, …</string>
+    <string name="poiCategoryOtherService">All other services</string>
+    <string name="poiCategoryElevator">Elevators</string>
+    <string name="poiCategorySanitary">Toilets and Showers</string>
+    <string name="poiCategoryBench">Benches</string>
+    <string name="poiCategoryTrash">Trash cans</string>
+    <string name="poiCategorySurveillance">Surveillance cameras</string>
     <string name="poiCategoryBuildingsWithName">All buildings with a name</string>
     <string name="poiCategoryEntrance">Entrances with a name</string>
     <string name="poiCategoryEntranceWithoutName">All other entrances</string>
-    <string name="poiCategoryPostBox">Post boxes</string>
-    <string name="poiCategorySurveillance">Surveillance cameras</string>
-    <string name="poiCategoryBench">Benches</string>
-    <string name="poiCategoryTrash">Trash cans</string>
-    <string name="poiCategoryNature">Lakes and mountains</string>
-    <string name="poiCategoryBridge">Bridges</string>
+    <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
     <string name="poiCategoryFullyNamedIntersection">Fully named intersections</string>
     <string name="poiCategoryPartiallyNamedIntersection">Partially named intersections</string>
     <string name="poiCategoryUnnamedIntersection">Unnamed intersections</string>
     <string name="poiCategoryRailwayIntersection">Intersections with railway tracks</string>
-    <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
+    <string name="poiCategoryBridge">Bridges</string>
 
 
     <!--

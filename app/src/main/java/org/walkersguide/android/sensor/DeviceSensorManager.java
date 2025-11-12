@@ -97,7 +97,7 @@ public class DeviceSensorManager implements SensorEventListener {
             sensorManager.registerListener(
                     this,
                     sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_UI);
 
             // register rotation vector sensor if the device has a gyroscope, otherwise fall back to magnetic field sensor
             if (sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null) {
@@ -105,13 +105,13 @@ public class DeviceSensorManager implements SensorEventListener {
                 sensorManager.registerListener(
                         this,
                         sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-                        SensorManager.SENSOR_DELAY_NORMAL);
+                        SensorManager.SENSOR_DELAY_UI);
             } else {
                 // magnetic field sensor
                 sensorManager.registerListener(
                         this,
                         sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                        SensorManager.SENSOR_DELAY_NORMAL);
+                        SensorManager.SENSOR_DELAY_UI);
             }
 
             // gps location updates
@@ -294,13 +294,13 @@ public class DeviceSensorManager implements SensorEventListener {
     public static final String ACTION_NEW_BEARING_VALUE_FROM_COMPASS = "new_bearing_value_from_compass";
 
     // min time difference between compass values
-    private static final int MIN_COMPASS_VALUE_DELAY = 250;          // in ms
+    private static final int MIN_COMPASS_VALUE_DELAY = 20;          // in ms
 
     private BearingSensorAccuracyRating bearingSensorAccuracyRating = null;
     // accelerometer
     private float[] valuesAccelerometer = new float[3];
     // compass
-    private int[] bearingValueFromCompassArray = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private int[] bearingValueFromCompassArray = new int[]{0, 0, 0, 0, 0};
     private float differenceToTrueNorth = 0.0f;
 
     public void requestBearingValueFromCompass() {
@@ -499,7 +499,7 @@ public class DeviceSensorManager implements SensorEventListener {
 
                     // obtain the diff to true north
                     if (differenceToTrueNorth == 0.0f
-                            && gps.getAltitude() != null) {
+                            && gps.getEllipsoidAltitude() != null) {
                         GeomagneticField geoField = new GeomagneticField(
                                 Double.valueOf(
                                         gps.getCoordinates().getLatitude())
@@ -508,7 +508,7 @@ public class DeviceSensorManager implements SensorEventListener {
                                         gps.getCoordinates().getLongitude())
                                     .floatValue(),
                                 Double.valueOf(
-                                        gps.getAltitude())
+                                        gps.getEllipsoidAltitude())
                                     .floatValue(),
                                 System.currentTimeMillis());
                         differenceToTrueNorth = geoField.getDeclination();

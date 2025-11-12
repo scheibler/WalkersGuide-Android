@@ -47,9 +47,15 @@ public class GPS extends Point {
             } catch (JSONException e) {}
             return this;
         }
-        public Builder setAltitude(final double altitude) {
+        public Builder setEllipsoidAltitude(final double altitude) {
             try {
                 super.inputData.put(KEY_ALTITUDE, altitude);
+            } catch (JSONException e) {}
+            return this;
+        }
+        public Builder setMslAltitude(final double mslAltitude) {
+            try {
+                super.inputData.put(KEY_MSL_ALTITUDE, mslAltitude);
             } catch (JSONException e) {}
             return this;
         }
@@ -85,7 +91,7 @@ public class GPS extends Point {
 
 
     private Long timestamp;
-    private Double altitude;
+    private Double altitude, mslAltitude;
     private Float accuracy, speed;
     private Integer numberOfSatellites;
     private String provider;
@@ -96,6 +102,7 @@ public class GPS extends Point {
         this.timestamp = inputData.getLong(KEY_TIMESTAMP);
 
         this.altitude = Helper.getNullableAndPositiveDoubleFromJsonObject(inputData, KEY_ALTITUDE);
+        this.mslAltitude = Helper.getNullableAndPositiveDoubleFromJsonObject(inputData, KEY_MSL_ALTITUDE);
         this.accuracy = Helper.getNullableAndPositiveFloatFromJsonObject(inputData, KEY_ACCURACY);
         this.speed = Helper.getNullableAndPositiveFloatFromJsonObject(inputData, KEY_SPEED);
         this.numberOfSatellites = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_NUMBER_OF_SATELLITES);
@@ -127,8 +134,16 @@ public class GPS extends Point {
         return this.timestamp;
     }
 
-    public Double getAltitude() {
+    public Double getEllipsoidAltitude() {
         return this.altitude;
+    }
+
+    public Double getMslAltitude() {
+        return this.mslAltitude;
+    }
+
+    public boolean hasAltitude() {
+        return this.mslAltitude != null || this.altitude != null;
     }
 
     public Float getAccuracy() {
@@ -175,13 +190,18 @@ public class GPS extends Point {
     }
 
     public String formatAltitudeInMeters() {
-        if (this.altitude != null) {
+        if (this.mslAltitude != null) {
             return String.format(
                     "%1$s: %2$s",
-                    GlobalInstance.getStringResource(R.string.labelGPSAltitude),
+                    GlobalInstance.getStringResource(R.string.labelGPSMslAltitude),
+                    GlobalInstance.getPluralResource(R.plurals.meter, (int) Math.round(this.mslAltitude)));
+        } else if (this.altitude != null) {
+            return String.format(
+                    "%1$s: %2$s",
+                    GlobalInstance.getStringResource(R.string.labelGPSEllipsoidAltitude),
                     GlobalInstance.getPluralResource(R.plurals.meter, (int) Math.round(this.altitude)));
         }
-        return GlobalInstance.getStringResource(R.string.labelGPSAltitude);
+        return GlobalInstance.getStringResource(R.string.labelGPSMslAltitude);
     }
 
     public String formatAccuracyInMeters() {
@@ -243,6 +263,7 @@ public class GPS extends Point {
     public static final String KEY_PROVIDER = "provider";
     public static final String KEY_ACCURACY = "accuracy";
     public static final String KEY_ALTITUDE = "altitude";
+    public static final String KEY_MSL_ALTITUDE = "mslAltitude";
     public static final String KEY_NUMBER_OF_SATELLITES = "number_of_satellites";
     public static final String KEY_SPEED = "speed";
     public static final String KEY_BEARING_SENSOR_VALUE = "bearingSensorValue";
@@ -259,6 +280,11 @@ public class GPS extends Point {
         if (this.altitude != null) {
             try {
                 jsonObject.put(KEY_ALTITUDE, this.altitude);
+            } catch (JSONException e) {}
+        }
+        if (this.mslAltitude != null) {
+            try {
+                jsonObject.put(KEY_MSL_ALTITUDE, this.mslAltitude);
             } catch (JSONException e) {}
         }
         if (this.provider != null) {

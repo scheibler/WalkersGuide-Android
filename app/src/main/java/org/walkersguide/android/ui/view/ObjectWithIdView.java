@@ -102,6 +102,12 @@ public class ObjectWithIdView extends LinearLayout {
         this.initUi(context);
     }
 
+    public ObjectWithIdView(Context context, boolean includeDistanceOrBearingInformation) {
+        super(context);
+        this.includeDistanceOrBearingInformation = includeDistanceOrBearingInformation;
+        this.initUi(context);
+    }
+
     public ObjectWithIdView(Context context, String prefix, boolean compact, boolean includeDistanceOrBearingInformation) {
         super(context);
         this.prefix = prefix;

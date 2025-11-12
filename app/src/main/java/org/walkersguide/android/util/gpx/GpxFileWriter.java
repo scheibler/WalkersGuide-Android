@@ -93,10 +93,10 @@ public class GpxFileWriter {
         if (point instanceof GPS) {
             GPS gps = (GPS) point;
             // altitude
-            Double altitude = gps.getAltitude();
-            if (altitude != null) {
+            Double mslAltitude = gps.getMslAltitude();
+            if (mslAltitude != null) {
                 serializer.startTag(null, "ele");
-                serializer.text(String.format(Locale.ROOT, "%1$.2f", altitude));
+                serializer.text(String.format(Locale.ROOT, "%1$.2f", mslAltitude));
                 serializer.endTag(null, "ele");
             }
             // timestamp must come after ele

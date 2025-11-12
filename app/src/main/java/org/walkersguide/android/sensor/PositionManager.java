@@ -53,9 +53,12 @@ import org.walkersguide.android.util.Helper;
 import timber.log.Timber;
 import java.util.function.Consumer;
 import org.walkersguide.android.tts.TTSWrapper;
+import android.location.LocationRequest;
+import java.util.concurrent.Executor;
+import android.location.LocationListener;
 
 
-public class PositionManager implements android.location.LocationListener {
+public class PositionManager implements LocationListener {
     private DateFormat timeFormatter = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
     private DateFormat dateAndTimeFormatter = SimpleDateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
 
@@ -112,20 +115,24 @@ public class PositionManager implements android.location.LocationListener {
             gpsFixFound = false;
 
             // listen for new locations
-            // first choice should be satellite
-            if (locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER, 0, 0, this);
-            }
-            // additionally use fused or network provider for better results (if available)
+
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
                     && settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider()
                     && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                        LocationManager.FUSED_PROVIDER, 10000, 0, this);
-            } else if (locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+                registerFusedLocationProviderForSAndNewer(
+                        locationManager, GlobalInstance.getContext().getMainExecutor(), this);
+
+            } else {
+
+                if (locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER, 500, 0.5f, this);
+                }
+
+                if (locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER, 10000, 10, this);
+                }
             }
 
             // get last known location after a short pause
@@ -150,6 +157,19 @@ public class PositionManager implements android.location.LocationListener {
 
     public boolean isRunning() {
         return this.locationManager != null;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private static void registerFusedLocationProviderForSAndNewer(
+            LocationManager manager, Executor mainExecutor, LocationListener listener) {
+        LocationRequest request = new LocationRequest.Builder(500)
+            .setMinUpdateIntervalMillis(0)      // No throttling - accept ASAP
+            .setMaxUpdateDelayMillis(0)         // No batching - deliver immediately
+            .setMinUpdateDistanceMeters(0.5f)
+            .setQuality(LocationRequest.QUALITY_HIGH_ACCURACY)
+            .build();
+        manager.requestLocationUpdates(
+                LocationManager.FUSED_PROVIDER, request, mainExecutor, listener);
     }
 
 
@@ -237,7 +257,11 @@ public class PositionManager implements android.location.LocationListener {
                 gpsBuilder.setAccuracy(newLocationObject.getAccuracy());
             }
             if (newLocationObject.hasAltitude()) {
-                gpsBuilder.setAltitude(newLocationObject.getAltitude());
+                gpsBuilder.setEllipsoidAltitude(newLocationObject.getAltitude());
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                gpsBuilder = addMslAltitudeToGpsBuilderObjectForUpsideDownCakeAndNewer(
+                        gpsBuilder, newLocationObject);
             }
             if (newLocationObject.getExtras() != null) {
                 Bundle locationExtras = newLocationObject.getExtras();
@@ -265,7 +289,8 @@ public class PositionManager implements android.location.LocationListener {
         } catch (JSONException e) {}
 
         // compare
-        if (isBetterLocation(getGPSLocation(), newLocation)) {
+        if (isBetterLocationNewApproach(getGPSLocation(), newLocation)) {
+            //Helper.vibrateOnce(50, 50);
             boolean isAtLeastFiftyMetersAway = getGPSLocation() == null
                 || getGPSLocation().distanceTo(newLocation) >= 50;
             settingsManagerInstance.setGPSLocation(newLocation);
@@ -290,7 +315,32 @@ public class PositionManager implements android.location.LocationListener {
         }
     }
 
-    private static boolean isBetterLocation(GPS currentLocation, GPS newLocation) {
+    private static boolean isBetterLocationNewApproach(GPS currentLocation, GPS newLocation) {
+        if (newLocation == null) {
+            return false;
+        } else if (currentLocation == null) {
+            return true;
+        }
+
+        final long timeDelta = newLocation.getTimestamp() - currentLocation.getTimestamp();
+        final boolean isOnlySlightlyNewer = timeDelta > 0 && timeDelta < 10000;
+
+        final int accuracyDelta = (int) (newLocation.getAccuracy() - currentLocation.getAccuracy());
+        final boolean isSignificantlyLessAccurate = accuracyDelta > 20;
+
+        Timber.d("newLocation: isOnlySlightlyNewer = %1$s (%2$d), isSignificantlyLessAccurate = %3$s (%4$d meter)",
+                isOnlySlightlyNewer, timeDelta, isSignificantlyLessAccurate, accuracyDelta);
+
+        if (isOnlySlightlyNewer && isSignificantlyLessAccurate) {
+            Timber.d("- filter location");
+            //TTSWrapper.getInstance().screenReader(
+            //        String.format("%1$d, %2$d meter", timeDelta, accuracyDelta));
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isBetterLocationOldVersion(GPS currentLocation, GPS newLocation) {
         if (newLocation == null) {
             return false;
         } else if (currentLocation == null) {
@@ -298,15 +348,15 @@ public class PositionManager implements android.location.LocationListener {
         }
 
         // Check whether the new location fix is newer or older
-        long timeDelta = newLocation.getTimestamp() - currentLocation.getTimestamp();
+        final long timeDelta = newLocation.getTimestamp() - currentLocation.getTimestamp();
         boolean isNewer = timeDelta > 0;
         boolean isABitNewer = timeDelta > 10000;
         boolean isSignificantlyNewer = timeDelta > 20000;
         boolean isMuchMuchNewer = timeDelta > 180000;
 
         // Check whether the new location fix is more or less accurate
-        int accuracyDelta = (int) (newLocation.getAccuracy() - currentLocation.getAccuracy());
-        int accuracyThresholdValue = 15;
+        final int accuracyDelta = (int) (newLocation.getAccuracy() - currentLocation.getAccuracy());
+        final int accuracyThresholdValue = 15;
         boolean isMoreAccurateThanThresholdValue = newLocation.getAccuracy() <= accuracyThresholdValue;
         boolean isMoreAccurate = false;
         boolean isABitLessAccurate = false;
@@ -339,14 +389,23 @@ public class PositionManager implements android.location.LocationListener {
         return false;
     }
 
-    private BearingSensorAccuracyRating extractBearingSensorAccuracyRating(Location location) {
+    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private static GPS.Builder addMslAltitudeToGpsBuilderObjectForUpsideDownCakeAndNewer(
+            GPS.Builder gpsBuilder, Location location) {
+        if (location != null && location.hasMslAltitude()) {
+            gpsBuilder.setMslAltitude(location.getMslAltitudeMeters());
+        }
+        return gpsBuilder;
+    }
+
+    private static BearingSensorAccuracyRating extractBearingSensorAccuracyRating(Location location) {
         return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O
             ? extractBearingSensorAccuracyRatingForOAndNewer(location)
             : null;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private BearingSensorAccuracyRating extractBearingSensorAccuracyRatingForOAndNewer(Location location) {
+    private static BearingSensorAccuracyRating extractBearingSensorAccuracyRatingForOAndNewer(Location location) {
         if (location.hasBearingAccuracy()) {
             int bearingAccuracyDegrees = Math.round(location.getBearingAccuracyDegrees());
             // return accuracy rating value

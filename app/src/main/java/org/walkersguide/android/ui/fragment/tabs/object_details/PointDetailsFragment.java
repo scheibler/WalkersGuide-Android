@@ -251,6 +251,21 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                     }
                 }
 
+                // misc attributes
+                //
+                // post services within another facility
+                if (poi.getPostOfficePartner() != null) {
+                    layoutAttributes.addView(
+                            new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointPOIPostOfficePartner),
+                                    poi.getPostOfficePartner()))
+                            .create()
+                            );
+                }
+
                 // poi building attributes
                 if (poi.getOuterBuilding() != null
                         || ! poi.getEntranceList().isEmpty()) {
@@ -299,6 +314,19 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                     .create()
                                 );
                     }
+                }
+
+                // level / floor
+                if (poi.getLevel() != null) {
+                    layoutAttributes.addView(
+                            new TextViewBuilder(
+                                PointDetailsFragment.this.getContext(),
+                                String.format(
+                                    "%1$s: %2$s",
+                                    getResources().getString(R.string.labelPointPOIBuildingLevel),
+                                    poi.formatLevel()))
+                            .create()
+                            );
                 }
 
                 // contact attributes
@@ -563,7 +591,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
             }
 
             // altitude
-            if (gps.getAltitude() != null) {
+            if (gps.hasAltitude()) {
                 layoutAttributes.addView(
                         new TextViewBuilder(
                                 PointDetailsFragment.this.getContext(),

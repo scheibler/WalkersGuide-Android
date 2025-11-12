@@ -91,7 +91,8 @@
     <string name="labelGPSLongitude">Längengrad</string>
     <string name="labelGPSProvider">Provider</string>
     <string name="labelGPSAccuracy">Genauigkeit</string>
-    <string name="labelGPSAltitude">Höhe</string>
+    <string name="labelGPSMslAltitude">Höhe</string>
+    <string name="labelGPSEllipsoidAltitude">Höhe (geschätzt)</string>
     <string name="labelGPSBearing">Kurs</string>
     <string name="labelGPSSpeed">Geschwindigkeit</string>
     <string name="labelGPSTime">Letzte Position um</string>
@@ -428,6 +429,8 @@
     <string name="labelPointPOIBuildingHeading">Gebäude</string>
     <string name="labelPointPOIBuildingIsInside">Innerhalb von</string>
     <string name="labelPointPOIBuildingNumberOfEntrances">Anzahl Eingänge</string>
+    <string name="labelPointPOIBuildingLevel">Etage</string>
+    <string name="labelPointPOIPostOfficePartner">Postdienste</string>
     <string name="labelPointPOIContactHeading">Kontaktdaten</string>
     <string name="labelPointPOIContactPostAddress">Postadresse</string>
     <string name="labelPointPOIContactEMailAddress">E-Mail adresse</string>
@@ -1004,31 +1007,34 @@
     <!-- POICategory -->
     <string name="poiCategoryBusTram">Bus- und Straßenbahnhaltestellen</string>
     <string name="poiCategoryTrain">Bahnhöfe, sowie S- und U-Bahnstationen</string>
-    <string name="poiCategoryAirportFerry">Flughafen und Fähren</string>
+    <string name="poiCategoryAirportFerry">Flughäfen, Seilbahnen und Fähren</string>
     <string name="poiCategoryTaxi">Taxi</string>
     <string name="poiCategoryFood">Essen und Trinken</string>
-    <string name="poiCategoryTourism">Tourismus</string>
-    <string name="poiCategoryShop">Einkaufen</string>
-    <string name="poiCategoryHealth">Gesundheit</string>
-    <string name="poiCategoryEducation">Bildung</string>
+    <string name="poiCategoryAccommodation">Hotels und Unterkünfte</string>
+    <string name="poiCategoryTourism">Sehenswürdigkeiten und Touristen-Infos</string>
+    <string name="poiCategoryEntertainment">Unterhaltung:\n  Kinos, Theater, Bars, Kneipen, …</string>
     <string name="poiCategoryFinance">Finanzen</string>
-    <string name="poiCategoryEntertainment">Sport und Unterhaltung</string>
-    <string name="poiCategoryPublicService">Öffentliche Dienstleistungen</string>
-    <string name="poiCategoryOtherService">Sonstige Dienstleistungen</string>
+    <string name="poiCategoryPostBox">Post und Pakete, Briefkästen</string>
+    <string name="poiCategoryShop">Einkaufen</string>
+    <string name="poiCategoryEducation">Bildung und Forschung</string>
+    <string name="poiCategoryHealth">Gesundheit:\n  Ärzte, Apotheken, Krankenhäuser, …</string>
+    <string name="poiCategorySport">Sport und Bewegung:\n  Sportstätten, Spielplätze, Parks, …</string>
+    <string name="poiCategoryPublicService">Öffentliche Dienstleistungen:\n  Polizei, Feuerwehr, Bürgerämter, …</string>
+    <string name="poiCategoryOtherService">Alle sonstige Dienstleistungen</string>
+    <string name="poiCategoryElevator">Aufzüge</string>
+    <string name="poiCategorySanitary">WC und Duschen</string>
+    <string name="poiCategoryBench">Bänke</string>
+    <string name="poiCategoryTrash">Mülleimer</string>
+    <string name="poiCategorySurveillance">Überwachungskameras</string>
     <string name="poiCategoryBuildingsWithName">Gebäude mit einem Namen</string>
     <string name="poiCategoryEntrance">Eingänge mit einem Namen</string>
     <string name="poiCategoryEntranceWithoutName">Alle sonstigen Eingänge</string>
-    <string name="poiCategoryPostBox">Briefkästen</string>
-    <string name="poiCategorySurveillance">Überwachungskameras</string>
-    <string name="poiCategoryBench">Bänke</string>
-    <string name="poiCategoryTrash">Mülleimer</string>
-    <string name="poiCategoryNature">Seen und Berge</string>
-    <string name="poiCategoryBridge">Brücken</string>
+    <string name="poiCategoryPedestrianCrossings">Fußgängerquerungen und -ampeln</string>
     <string name="poiCategoryFullyNamedIntersection">Vollständig benannte Kreuzungen</string>
     <string name="poiCategoryPartiallyNamedIntersection">Teilweise benannte Kreuzungen</string>
     <string name="poiCategoryUnnamedIntersection">Unbenannte Kreuzungen</string>
     <string name="poiCategoryRailwayIntersection">Kreuzungen mit Eisenbahnschienen</string>
-    <string name="poiCategoryPedestrianCrossings">Fußgängerquerungen</string>
+    <string name="poiCategoryBridge">Brücken</string>
 
 
     <!--

@@ -84,7 +84,8 @@
     <string name="labelGPSLongitude">Довгота</string>
     <string name="labelGPSProvider">Джерело</string>
     <string name="labelGPSAccuracy">Точність</string>
-    <string name="labelGPSAltitude">Висота</string>
+    <string name="labelGPSMslAltitude">Висота</string>
+    <string name="labelGPSEllipsoidAltitude">Висота (приблизно)</string>
     <string name="labelGPSBearing">Азимут</string>
     <string name="labelGPSSpeed">швидкість</string>
     <string name="labelGPSTime">Оновлено</string>
@@ -419,6 +420,8 @@
     <string name="labelPointPOIBuildingHeading">будівля</string>
     <string name="labelPointPOIBuildingIsInside">Всередині</string>
     <string name="labelPointPOIBuildingNumberOfEntrances">Кількість входів</string>
+    <string name="labelPointPOIBuildingLevel">Поверх</string>
+    <string name="labelPointPOIPostOfficePartner">Поштові послуги</string>
     <string name="labelPointPOIContactHeading">Контактна інформація</string>
     <string name="labelPointPOIContactPostAddress">Поштова адреса</string>
     <string name="labelPointPOIContactEMailAddress">Адреса електронної пошти</string>
@@ -988,28 +991,31 @@
     <string name="poiCategoryAirportFerry">Аеропорти, поромні термінали та канатні дороги</string>
     <string name="poiCategoryTaxi">Таксі</string>
     <string name="poiCategoryFood">Їжа та напої</string>
-    <string name="poiCategoryTourism">Туризм</string>
-    <string name="poiCategoryShop">Торгівля</string>
-    <string name="poiCategoryHealth">Здоров\'я</string>
-    <string name="poiCategoryEducation">Освіта</string>
+    <string name="poiCategoryAccommodation">Готелі та житло</string>
+    <string name="poiCategoryTourism">Визначні місця та туристична інформація</string>
+    <string name="poiCategoryEntertainment">дозвілля:\n  кінотеатри, театри, бари, паби, …</string>
     <string name="poiCategoryFinance">Фінанси</string>
-    <string name="poiCategoryEntertainment">Спорт і дозвілля</string>
-    <string name="poiCategoryPublicService">Державні послуги</string>
+    <string name="poiCategoryPostBox">Пошта та посилки, поштові скриньки</string>
+    <string name="poiCategoryShop">Торгівля</string>
+    <string name="poiCategoryEducation">Освіта та наука</string>
+    <string name="poiCategoryHealth">Здоров\'я:\n  Лікарі, аптеки, лікарні, …</string>
+    <string name="poiCategorySport">Спорт і відпочинок:\n  Спортивні споруди, дитячі майданчики, парки, …</string>
+    <string name="poiCategoryPublicService">Державні послуги:\n  Поліція, пожежна служба, громадські установи, …</string>
     <string name="poiCategoryOtherService">Інші послуги</string>
+    <string name="poiCategoryElevator">Ліфти</string>
+    <string name="poiCategorySanitary">Туалети та душі</string>
+    <string name="poiCategoryBench">Лавки</string>
+    <string name="poiCategoryTrash">Контейнери для сміття</string>
+    <string name="poiCategorySurveillance">Камери спостереження</string>
     <string name="poiCategoryBuildingsWithName">Іменовані будівлі</string>
     <string name="poiCategoryEntrance">Іменовані входи</string>
     <string name="poiCategoryEntranceWithoutName">Інші входи</string>
-    <string name="poiCategoryPostBox">Поштові скриньки</string>
-    <string name="poiCategorySurveillance">Камери спостереження</string>
-    <string name="poiCategoryBench">Лавки</string>
-    <string name="poiCategoryTrash">Контейнери для сміття</string>
-    <string name="poiCategoryNature">Гори та озера</string>
-    <string name="poiCategoryBridge">Мости</string>
+    <string name="poiCategoryPedestrianCrossings">Пішохідні переходи та світлофори</string>
     <string name="poiCategoryFullyNamedIntersection">Іменовані перехрестя</string>
     <string name="poiCategoryPartiallyNamedIntersection">Частково іменовані перехрестя</string>
     <string name="poiCategoryUnnamedIntersection">Інші перехрестя</string>
     <string name="poiCategoryRailwayIntersection">Залізничні переїзди та переходи</string>
-    <string name="poiCategoryPedestrianCrossings">Пішохідні переходи та світлофори</string>
+    <string name="poiCategoryBridge">Мости</string>
 
 
     <!--

@@ -212,7 +212,7 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
         @Override public View getView(int position, View convertView, ViewGroup parent) {
             ObjectWithIdView layoutObject = null;
             if (convertView == null) {
-                layoutObject = new ObjectWithIdView(super.getContext());
+                layoutObject = new ObjectWithIdView(super.getContext(), false);
                 layoutObject.setLayoutParams(
                         new LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -221,7 +221,7 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
             }
 
             IntersectionSegment intersectionSegment = this.intersectionSegmentList.get(position);
-            layoutObject.setAutoUpdate(true);
+            layoutObject.setAutoUpdate(false);
             layoutObject.configureAsListItem(
                     intersectionSegment,
                     intersectionSegment.getRelativeBearingFromCurrentLocation() != null
