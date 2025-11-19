@@ -513,10 +513,6 @@
     <string name="labelNearby">Поруч</string>
     <string name="labelNoPtStationsNearby">У вибраного постачальника даних немає інформації про станції поблизу.</string>
     <string name="labelSelectStation">Будь ласка, виберіть станцію.</string>
-    <!-- DepartureAdapter -->
-    <string name="labelDepartureAdapter">%1$s\nдо %2$s\n%3$s %4$s</string>
-    <string name="labelDepartureAdapterCD">%1$s до %2$s, %3$s, %4$s</string>
-    <string name="labelFromPlatform">Від платформи %1$s</string>
 
     <!-- SelectPtStationDialog -->
     <string name="selectPtStationDialogTitle">Виберіть станцію:</string>
@@ -529,9 +525,14 @@
 
     <!-- TripDetailsFragment -->
     <string name="labelNoMoreStops">Транспорт прибув на кінцеву зупинку.</string>
-    <!-- TripAdapter -->
-    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
-    <string name="labelTripAdapterCD">%1$s, %2$s, %3$s</string>
+
+    <!-- format departures -->
+    <string name="labelLineAndDestination">%1$s до %2$s</string>
+    <string name="labelPredictedDeparture">очікується</string>
+    <string name="labelPlannedDeparture">Заплановано</string>
+    <string name="labelPlannedDepartureCD">Заплановане відправлення</string>
+    <string name="labelDifferentPlannedDepartureCD">Заплановане відправлення було</string>
+    <string name="labelFromPlatform">Від платформи %1$s</string>
 
 
     <!--

@@ -15,6 +15,7 @@ import java.util.Calendar;
 
 
 import de.schildbach.pte.dto.Departure;
+import de.schildbach.pte.dto.Position;
 import java.util.ListIterator;
 import android.os.Handler;
 import android.os.Looper;
@@ -761,6 +762,11 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
             Departure departure = getItem(position);
+            String lineAndDestination = String.format(
+                    context.getResources().getString(R.string.labelLineAndDestination),
+                    PtUtility.getLineLabel(departure.line, true),
+                    PtUtility.getLocationName(departure.destination));
+            Position platform = departure.position;
 
             // load item layout
             EntryHolder holder;
@@ -773,35 +779,13 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
                 holder = (EntryHolder) convertView.getTag();
             }
 
-            String labelText = String.format(
-                    context.getResources().getString(R.string.labelDepartureAdapter),
-                    PtUtility.getLineLabel(departure.line, true),
-                    PtUtility.getLocationName(departure.destination),
-                    PtUtility.formatRelativeDepartureTime(
-                        PtUtility.getDepartureTime(departure), false),
-                    PtUtility.formatAbsoluteDepartureTime(
-                        PtUtility.getDepartureTime(departure)));
-            if (departure.position != null) {
-                labelText += "\n" + String.format(
-                        context.getResources().getString(R.string.labelFromPlatform),
-                        departure.position.toString());
-            }
-            holder.label.setText(labelText);
+            holder.label.setText(
+                    PtUtility.formatDeparture(
+                        lineAndDestination, departure.predictedTime, departure.plannedTime, platform, false));
 
-            String labelContentDescription = String.format(
-                    context.getResources().getString(R.string.labelDepartureAdapterCD),
-                    PtUtility.getLineLabel(departure.line, true),
-                    PtUtility.getLocationName(departure.destination),
-                    PtUtility.formatRelativeDepartureTime(
-                        PtUtility.getDepartureTime(departure), true),
-                    PtUtility.formatAbsoluteDepartureTime(
-                        PtUtility.getDepartureTime(departure)));
-            if (departure.position != null) {
-                labelContentDescription += ", " + String.format(
-                        context.getResources().getString(R.string.labelFromPlatform),
-                        departure.position.toString());
-            }
-            holder.label.setContentDescription(labelContentDescription);
+            holder.label.setContentDescription(
+                    PtUtility.formatDeparture(
+                        lineAndDestination, departure.predictedTime, departure.plannedTime, platform, true));
 
             return convertView;
         }
@@ -821,7 +805,7 @@ public class DeparturesFragment extends RootFragment implements FragmentResultLi
             ListIterator<Departure> departureListIterator = this.departureList.listIterator();
             while(departureListIterator.hasNext()){
                 Departure departure = departureListIterator.next();
-                if (PtUtility.getDepartureTime(departure).before(new Date(System.currentTimeMillis()-60000))) {
+                if (PtUtility.getPredictedOrPlannedDepartureTime(departure).before(new Date(System.currentTimeMillis()-60000))) {
                     departureListIterator.remove();
                 }
             }

@@ -52,7 +52,7 @@ public class TripDetailsTask extends ServerTask {
         }
 
         Timber.d("Request: from %1$s to %2$s at %3$s", this.station.toString(), this.departure.toString(), departure.plannedTime.toString());
-        Date departureTime = PtUtility.getDepartureTime(this.departure);
+        Date departureTime = PtUtility.getPredictedOrPlannedDepartureTime(this.departure);
         TripOptions options = new TripOptions(
                 this.departure.line != null && this.departure.line.product != null
                 ? EnumSet.of(this.departure.line.product)
@@ -147,7 +147,7 @@ public class TripDetailsTask extends ServerTask {
                         && trip.isTravelable()
                         && trip.getNumChanges() == 0) {
                     Line tripLine = trip.getFirstPublicLeg().line;
-                    Date tripDepartureTime = PtUtility.getDepartureTime(
+                    Date tripDepartureTime = PtUtility.getPredictedOrPlannedDepartureOrArrivalTime(
                             trip.getFirstPublicLeg().departureStop);
                     long absoluteDepartureDifference = Math.abs(
                             departureTime.getTime() - tripDepartureTime.getTime());

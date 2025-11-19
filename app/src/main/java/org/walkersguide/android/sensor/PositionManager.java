@@ -160,6 +160,7 @@ public class PositionManager implements LocationListener {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.S)
+    @SuppressLint("MissingPermission")
     private static void registerFusedLocationProviderForSAndNewer(
             LocationManager manager, Executor mainExecutor, LocationListener listener) {
         LocationRequest request = new LocationRequest.Builder(500)

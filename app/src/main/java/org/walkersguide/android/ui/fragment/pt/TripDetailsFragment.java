@@ -2,6 +2,7 @@ package org.walkersguide.android.ui.fragment.pt;
 
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
+import de.schildbach.pte.dto.Position;
 import de.schildbach.pte.dto.Stop;
 import java.util.ListIterator;
 import android.os.Looper;
@@ -171,7 +172,7 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
                     mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                             DeparturesFragment.newInstance(
                                 selectedStop.location,
-                                PtUtility.getDepartureTime(selectedStop)));
+                                PtUtility.getPredictedOrPlannedDepartureOrArrivalTime(selectedStop)));
                 }
             }
         });
@@ -363,6 +364,16 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
             Stop stop = getItem(position);
+            String destination = PtUtility.getLocationName(stop.location);
+            Date predictedTime = stop.predictedDepartureTime != null
+                ? stop.predictedDepartureTime
+                : stop.predictedArrivalTime;
+            Date plannedTime = stop.plannedDepartureTime != null
+                ? stop.plannedDepartureTime
+                : stop.plannedArrivalTime;
+            Position platform = stop.predictedDeparturePosition != null
+                ? stop.predictedDeparturePosition
+                : stop.plannedDeparturePosition;
 
             // load item layout
             EntryHolder holder;
@@ -376,24 +387,12 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
             }
 
             holder.label.setText(
-                    String.format(
-                        context.getResources().getString(R.string.labelTripAdapter),
-                        PtUtility.getLocationName(stop.location),
-                        PtUtility.formatRelativeDepartureTime(
-                            PtUtility.getDepartureTime(stop), false),
-                        PtUtility.formatAbsoluteDepartureTime(
-                            PtUtility.getDepartureTime(stop)))
-                    );
+                    PtUtility.formatDeparture(
+                        destination, predictedTime, plannedTime, platform, false));
 
             holder.label.setContentDescription(
-                    String.format(
-                        context.getResources().getString(R.string.labelTripAdapterCD),
-                        PtUtility.getLocationName(stop.location),
-                        PtUtility.formatRelativeDepartureTime(
-                            PtUtility.getDepartureTime(stop), true),
-                        PtUtility.formatAbsoluteDepartureTime(
-                            PtUtility.getDepartureTime(stop)))
-                    );
+                    PtUtility.formatDeparture(
+                        destination, predictedTime, plannedTime, platform, true));
 
             return convertView;
         }
@@ -413,7 +412,7 @@ public class TripDetailsFragment extends RootFragment implements MenuProvider, R
             ListIterator<Stop> stopListIterator = this.stopList.listIterator();
             while(stopListIterator.hasNext()){
                 Stop stop = stopListIterator.next();
-                if (PtUtility.getDepartureTime(stop).before(new Date())) {
+                if (PtUtility.getPredictedOrPlannedDepartureOrArrivalTime(stop).before(new Date())) {
                     stopListIterator.remove();
                 }
             }

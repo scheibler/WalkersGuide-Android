@@ -521,10 +521,6 @@
     <string name="labelNearby">In der Nähe von</string>
     <string name="labelNoPtStationsNearby">Der ausgewählte ÖPNV Provider konnte keine Haltestelle finden.</string>
     <string name="labelSelectStation">Bitte wähle eine Haltestelle für die Abfahrtsinformationen aus.</string>
-    <!-- DepartureAdapter -->
-    <string name="labelDepartureAdapter">%1$s\nnach %2$s\n%3$s %4$s</string>
-    <string name="labelDepartureAdapterCD">%1$s nach %2$s, %3$s, %4$s</string>
-    <string name="labelFromPlatform">Von Gleis %1$s</string>
 
     <!-- SelectPtStationDialog -->
     <string name="selectPtStationDialogTitle">Haltestelle auswählen:</string>
@@ -537,9 +533,14 @@
 
     <!-- TripDetailsFragment -->
     <string name="labelNoMoreStops">Die Linie hat ihre Zielhaltestelle erreicht.</string>
-    <!-- TripAdapter -->
-    <string name="labelTripAdapter">%1$s\n%2$s %3$s</string>
-    <string name="labelTripAdapterCD">%1$s, %2$s, %3$s</string>
+
+    <!-- format departures -->
+    <string name="labelLineAndDestination">%1$s nach %2$s</string>
+    <string name="labelPredictedDeparture">voraussichtlich</string>
+    <string name="labelPlannedDeparture">Geplant</string>
+    <string name="labelPlannedDepartureCD">Geplante Abfahrt</string>
+    <string name="labelDifferentPlannedDepartureCD">Geplante Abfahrt war</string>
+    <string name="labelFromPlatform">Von Gleis %1$s</string>
 
 
     <!--

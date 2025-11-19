@@ -13,6 +13,7 @@ import de.schildbach.pte.AbstractNetworkProvider;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.Point;
+import de.schildbach.pte.dto.Position;
 import de.schildbach.pte.dto.Product;
 import de.schildbach.pte.dto.Stop;
 import de.schildbach.pte.RtProvider;
@@ -236,7 +237,116 @@ public class PtUtility {
         }
     }
 
-    public static String formatAbsoluteDepartureTime(Date date) {
+    private static String getVehicleName(Product product) {
+        if (product == null) {
+            return "";
+        } else if (product.code == Product.HIGH_SPEED_TRAIN.code) {
+            return GlobalInstance.getStringResource(R.string.productHighSpeedTrain);
+        } else if (product.code == Product.REGIONAL_TRAIN.code) {
+            return GlobalInstance.getStringResource(R.string.productRegionalTrain);
+        } else if (product.code == Product.SUBURBAN_TRAIN.code) {
+            return GlobalInstance.getStringResource(R.string.productSuburbanTrain);
+        } else if (product.code == Product.SUBWAY.code) {
+            return GlobalInstance.getStringResource(R.string.productSubway);
+        } else if (product.code == Product.TRAM.code) {
+            return GlobalInstance.getStringResource(R.string.productTram);
+        } else if (product.code == Product.BUS.code) {
+            return GlobalInstance.getStringResource(R.string.productBus);
+        } else if (product.code == Product.FERRY.code) {
+            return GlobalInstance.getStringResource(R.string.productFerry);
+        } else if (product.code == Product.CABLECAR.code) {
+            return GlobalInstance.getStringResource(R.string.productCableCar);
+        } else if (product.code == Product.ON_DEMAND.code) {
+            return GlobalInstance.getStringResource(R.string.productOnDemand);
+        } else {
+            return product.name().substring(0, 1).toUpperCase(Locale.getDefault())
+                + product.name().substring(1).toLowerCase(Locale.getDefault());
+        }
+    }
+
+    public static String formatDeparture(String firstLine, Date predictedDepartureTime, Date plannedDepartureTime, Position position, boolean contentDescription) {
+        boolean hasPredictedDepartureTime = predictedDepartureTime != null;
+        boolean hasPlannedDepartureTime = plannedDepartureTime != null;
+        boolean hasDifferentPredictedAndPlannedDepartureTimes =
+               hasPredictedDepartureTime
+            && hasPlannedDepartureTime
+            && ! predictedDepartureTime.equals(plannedDepartureTime);
+        boolean hasPlatform = position != null;
+
+        if (contentDescription) {
+
+            String labelContentDescription = firstLine;
+
+            if (hasPredictedDepartureTime) {
+
+                labelContentDescription += String.format(
+                        ",\n%1$s %2$s %3$s",
+                        GlobalInstance.getStringResource(R.string.labelPredictedDeparture),
+                        formatRelativeDepartureTime(predictedDepartureTime, true),
+                        formatAbsoluteDepartureTime(predictedDepartureTime));
+
+                if (hasPlatform) {
+                    labelContentDescription += " " + formatPlatformNumber(position);
+                }
+
+                if (hasDifferentPredictedAndPlannedDepartureTimes) {
+                    labelContentDescription += String.format(
+                            ".\n%1$s %2$s",
+                            GlobalInstance.getStringResource(R.string.labelDifferentPlannedDepartureCD),
+                            formatAbsoluteDepartureTime(plannedDepartureTime));
+                }
+
+            } else if (hasPlannedDepartureTime) {
+                labelContentDescription += String.format(
+                        ",\n%1$s %2$s %3$s",
+                        GlobalInstance.getStringResource(R.string.labelPlannedDepartureCD),
+                        formatRelativeDepartureTime(plannedDepartureTime, true),
+                        formatAbsoluteDepartureTime(plannedDepartureTime));
+
+                if (hasPlatform) {
+                    labelContentDescription += " " + formatPlatformNumber(position);
+                }
+            }
+
+            return labelContentDescription;
+
+        } else {
+
+            String labelText = firstLine;
+
+            if (hasPredictedDepartureTime) {
+
+                labelText += String.format(
+                        "\n%1$s %2$s %3$s",
+                        GlobalInstance.getStringResource(R.string.labelPredictedDeparture),
+                        formatRelativeDepartureTime(predictedDepartureTime, false),
+                        formatAbsoluteDepartureTime(predictedDepartureTime));
+
+                if (hasDifferentPredictedAndPlannedDepartureTimes) {
+                    labelText += String.format(
+                            " (%1$s %2$s)",
+                            GlobalInstance.getStringResource(R.string.labelPlannedDeparture),
+                            formatAbsoluteDepartureTime(plannedDepartureTime));
+                }
+
+            } else if (hasPlannedDepartureTime) {
+
+                labelText += String.format(
+                        "\n%1$s %2$s %3$s",
+                        GlobalInstance.getStringResource(R.string.labelPlannedDeparture),
+                        formatRelativeDepartureTime(plannedDepartureTime, false),
+                        formatAbsoluteDepartureTime(plannedDepartureTime));
+            }
+
+            if (hasPlatform) {
+                labelText += "\n" + formatPlatformNumber(position);
+            }
+
+            return labelText;
+        }
+    }
+
+    private static String formatAbsoluteDepartureTime(Date date) {
         if (date == null) {
             return "";
         } else {
@@ -247,7 +357,7 @@ public class PtUtility {
         }
     }
 
-    public static String formatRelativeDepartureTime(Date date, boolean contentDescription) {
+    private static String formatRelativeDepartureTime(Date date, boolean contentDescription) {
         if (date == null) {
             return "";
         } else {
@@ -290,31 +400,13 @@ public class PtUtility {
         }
     }
 
-    private static String getVehicleName(Product product) {
-        if (product == null) {
-            return "";
-        } else if (product.code == Product.HIGH_SPEED_TRAIN.code) {
-            return GlobalInstance.getStringResource(R.string.productHighSpeedTrain);
-        } else if (product.code == Product.REGIONAL_TRAIN.code) {
-            return GlobalInstance.getStringResource(R.string.productRegionalTrain);
-        } else if (product.code == Product.SUBURBAN_TRAIN.code) {
-            return GlobalInstance.getStringResource(R.string.productSuburbanTrain);
-        } else if (product.code == Product.SUBWAY.code) {
-            return GlobalInstance.getStringResource(R.string.productSubway);
-        } else if (product.code == Product.TRAM.code) {
-            return GlobalInstance.getStringResource(R.string.productTram);
-        } else if (product.code == Product.BUS.code) {
-            return GlobalInstance.getStringResource(R.string.productBus);
-        } else if (product.code == Product.FERRY.code) {
-            return GlobalInstance.getStringResource(R.string.productFerry);
-        } else if (product.code == Product.CABLECAR.code) {
-            return GlobalInstance.getStringResource(R.string.productCableCar);
-        } else if (product.code == Product.ON_DEMAND.code) {
-            return GlobalInstance.getStringResource(R.string.productOnDemand);
-        } else {
-            return product.name().substring(0, 1).toUpperCase(Locale.getDefault())
-                + product.name().substring(1).toLowerCase(Locale.getDefault());
+    private static String formatPlatformNumber(Position position) {
+        if (position != null) {
+            return String.format(
+                    GlobalInstance.getStringResource(R.string.labelFromPlatform),
+                    position.toString());
         }
+        return "";
     }
 
 
@@ -333,7 +425,7 @@ public class PtUtility {
         return 1000000000;
     }
 
-    public static Date getDepartureTime(Departure departure) {
+    public static Date getPredictedOrPlannedDepartureTime(Departure departure) {
         if (departure != null) {
             if (departure.predictedTime != null) {
                 return departure.predictedTime;
@@ -344,7 +436,7 @@ public class PtUtility {
         return null;
     }
 
-    public static Date getDepartureTime(Stop stop) {
+    public static Date getPredictedOrPlannedDepartureOrArrivalTime(Stop stop) {
         if (stop != null) {
             if (stop.predictedDepartureTime != null) {
                 return stop.predictedDepartureTime;

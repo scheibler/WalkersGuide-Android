@@ -73,7 +73,7 @@ public class StationDeparturesTask extends ServerTask {
             for (StationDepartures stationDepartures  : departuresResult.stationDepartures) {
                 for (Departure departure : stationDepartures.departures) {
                     if (! departureList.contains(departure)
-                            && PtUtility.getDepartureTime(departure) != null) {
+                            && PtUtility.getPredictedOrPlannedDepartureTime(departure) != null) {
                         departureList.add(departure);
                         newDepartureFound = true;
                     }
@@ -89,12 +89,12 @@ public class StationDeparturesTask extends ServerTask {
                     departureList,
                     new Comparator<Departure>() {
                         @Override public int compare(Departure departure1, Departure departure2) {
-                            return PtUtility.getDepartureTime(departure1)
-                                .compareTo(PtUtility.getDepartureTime(departure2));
+                            return PtUtility.getPredictedOrPlannedDepartureTime(departure1)
+                                .compareTo(PtUtility.getPredictedOrPlannedDepartureTime(departure2));
                         }
                     });
             // update next departure date
-            nextDepartureDate = PtUtility.getDepartureTime(
+            nextDepartureDate = PtUtility.getPredictedOrPlannedDepartureTime(
                     departureList.get(departureList.size()-1));
             // increment request counter
             numberOfRequests += 1;
