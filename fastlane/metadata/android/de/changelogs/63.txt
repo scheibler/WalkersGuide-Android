@@ -1,0 +1,5 @@
+- POI-Kategorien aktualisiert
+- Echtzeit-Abfahrtsprognosen in Abfahrten und Reisedetails hinzugefügt
+- Kompass- und Standort-Updates verbessert
+- Richtungspfeil-Design überarbeitet
+- Unterstützung für Android 16 hinzugefügt

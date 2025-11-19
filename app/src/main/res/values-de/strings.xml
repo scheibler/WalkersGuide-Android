@@ -646,9 +646,12 @@
 
     <string name="changesHeading3_2_3">Version 3.2.3</string>
     <string-array name="changesList3_2_3">
-        <item>Datum: 11.11.2025</item>
-        <item>- Richtungspfeilgraphik aktualisiert</item>
-        <item>- Unterstützung für Android 16</item>
+        <item>Datum: 19.11.2025</item>
+        <item>- POI-Kategorien aktualisiert</item>
+        <item>- Echtzeit-Abfahrtsprognosen in Abfahrten und Reisedetails hinzugefügt</item>
+        <item>- Kompass- und Standort-Updates verbessert</item>
+        <item>- Richtungspfeil-Design überarbeitet</item>
+        <item>- Unterstützung für Android 16 hinzugefügt</item>
     </string-array>
 
     <string name="changesHeading3_2_2">Version 3.2.2</string>

@@ -645,9 +645,12 @@
 
     <string name="changesHeading3_2_3">Version 3.2.3</string>
     <string-array name="changesList3_2_3">
-        <item>Date: November 11, 2025</item>
-        <item>- Direction arrow image updated</item>
-        <item>- Support for Android 16</item>
+        <item>Date: November 19, 2025</item>
+        <item>- Updated POI categories</item>
+        <item>- Added real-time departure predictions to departures and trip details</item>
+        <item>- Improved compass and location update performance</item>
+        <item>- Updated direction arrow design</item>
+        <item>- Added support for Android 16</item>
     </string-array>
 
     <string name="changesHeading3_2_2">Version 3.2.2</string>

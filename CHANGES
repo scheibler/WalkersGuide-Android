@@ -3,6 +3,17 @@ Change Log
 
 
 
+v3.2.3: 2025-11-19
+------------------
+
+- Updated POI categories
+- Added real-time departure predictions to departures and trip details
+- Improved compass and location update performance
+- Updated direction arrow design
+- Added support for Android 16
+
+
+
 v3.2.2: 2025-02-16
 ------------------
 

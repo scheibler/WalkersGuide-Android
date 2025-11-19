@@ -1,0 +1,5 @@
+- Updated POI categories
+- Added real-time departure predictions to departures and trip details
+- Improved compass and location update performance
+- Updated direction arrow design
+- Added support for Android 16

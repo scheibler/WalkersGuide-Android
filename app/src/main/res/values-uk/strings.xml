@@ -629,9 +629,12 @@
 
     <string name="changesHeading3_2_3">Версія 3.2.3</string>
     <string-array name="changesList3_2_3">
-        <item>Date: November 11, 2025</item>
-        <item>- Direction arrow image updated</item>
-        <item>- Support for Android 16</item>
+        <item>Дата: 19 листопада 2025</item>
+        <item>- Оновлено категорії POI</item>
+        <item>- Додано прогнози відправлення в реальному часі до розкладів та деталей поїздки</item>
+        <item>- Покращено продуктивність оновлень компаса та місцезнаходження</item>
+        <item>- Оновлено дизайн стрілки напрямку</item>
+        <item>- Додано підтримку Android 16</item>
     </string-array>
 
     <string name="changesHeading3_2_2">Версія 3.2.2</string>

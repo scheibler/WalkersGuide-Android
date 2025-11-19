@@ -333,9 +333,6 @@ public class PositionManager implements LocationListener {
                 isOnlySlightlyNewer, timeDelta, isSignificantlyLessAccurate, accuracyDelta);
 
         if (isOnlySlightlyNewer && isSignificantlyLessAccurate) {
-            Timber.d("- filter location");
-            //TTSWrapper.getInstance().screenReader(
-            //        String.format("%1$d, %2$d meter", timeDelta, accuracyDelta));
             return false;
         }
         return true;
