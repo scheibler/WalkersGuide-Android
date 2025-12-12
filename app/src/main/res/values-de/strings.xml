@@ -8,6 +8,7 @@
     <string name="variableChangeLogUrl">https://www.walkersguide.org/de/downloads/#versionsverlauf-der-app</string>
     <string name="variableUserManualUrl">https://www.walkersguide.org/de/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/de/privacy/</string>
+    <string name="variableDonateUrl">https://www.walkersguide.org/de/donate/</string>
 
 
     <!--
@@ -619,6 +620,7 @@
     <string name="labelInfoURL">Webseite</string>
     <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;Bedienungsanleitung&lt;/a&gt;</string>
     <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Datenschutzerklärung&lt;/a&gt;</string>
+    <string name="labelInfoDonate">&lt;a href="%1$s"&gt;Spenden&lt;/a&gt;</string>
     <!-- WalkersGuide server -->
     <string name="labelServerHeader">Kartenserver</string>
     <string name="labelServerName">Name</string>

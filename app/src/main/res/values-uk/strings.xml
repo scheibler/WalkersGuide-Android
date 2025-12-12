@@ -8,6 +8,7 @@
     <string name="variableChangeLogUrl">https://www.walkersguide.org/en/downloads/#apps-change-log</string>
     <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
+    <string name="variableDonateUrl">https://www.walkersguide.org/en/donate/</string>
 
 
     <!--
@@ -602,6 +603,7 @@
     <string name="labelInfoURL">Веб-сторінка</string>
     <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;Посібник користувача&lt;/a&gt;</string>
     <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Політика конфіденційності&lt;/a&gt;</string>
+    <string name="labelInfoDonate">&lt;a href="%1$s"&gt;Підтримати&lt;/a&gt;</string>
     <!-- WalkersGuide server -->
     <string name="labelServerHeader">Сервер карт</string>
     <string name="labelServerName">Ім\'я</string>

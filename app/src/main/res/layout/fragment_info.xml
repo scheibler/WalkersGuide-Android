@@ -63,12 +63,21 @@
             android:id="@+id/labelInfoUserManual"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:focusable="true" />
 
         <TextView
             android:id="@+id/labelInfoPrivacyPolicy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/labelInfoDonate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:focusable="true" />
 
 

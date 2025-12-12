@@ -8,6 +8,7 @@
     <string name="variableChangeLogUrl">https://www.walkersguide.org/en/downloads/#apps-change-log</string>
     <string name="variableUserManualUrl">https://www.walkersguide.org/en/user_manual_android/</string>
     <string name="variablePrivacyPolicyUrl">https://www.walkersguide.org/en/privacy/</string>
+    <string name="variableDonateUrl">https://www.walkersguide.org/en/donate/</string>
 
 
     <!--
@@ -618,6 +619,7 @@
     <string name="labelInfoURL">Website</string>
     <string name="labelInfoUserManual">&lt;a href="%1$s"&gt;User manual&lt;/a&gt;</string>
     <string name="labelInfoPrivacyPolicy">&lt;a href="%1$s"&gt;Privacy policy&lt;/a&gt;</string>
+    <string name="labelInfoDonate">&lt;a href="%1$s"&gt;Donate&lt;/a&gt;</string>
     <!-- WalkersGuide server -->
     <string name="labelServerHeader">Map server</string>
     <string name="labelServerName">Name</string>

@@ -164,6 +164,26 @@ public class InfoFragment extends RootFragment {
         ViewCompat.setAccessibilityDelegate(
                 labelInfoPrivacyPolicy, UiHelper.getAccessibilityDelegateViewClassButton());
 
+        TextView labelInfoDonate = (TextView) view.findViewById(R.id.labelInfoDonate);
+        labelInfoDonate.setMovementMethod(LinkMovementMethod.getInstance());
+        labelInfoDonate.setText(
+                UiHelper.fromHtml(
+                    String.format(
+                        getResources().getString(R.string.labelInfoDonate),
+                        getResources().getString(R.string.variableDonateUrl))
+                    )
+                );
+        labelInfoDonate.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(
+                        Uri.parse(getResources().getString(R.string.variableDonateUrl)));
+                getActivity().startActivity(i);
+            }
+        });
+        ViewCompat.setAccessibilityDelegate(
+                labelInfoDonate, UiHelper.getAccessibilityDelegateViewClassButton());
+
         labelServerName = (TextView) view.findViewById(R.id.labelServerName);
         labelServerVersion = (TextView) view.findViewById(R.id.labelServerVersion);
         labelSelectedMapName = (TextView) view.findViewById(R.id.labelSelectedMapName);
