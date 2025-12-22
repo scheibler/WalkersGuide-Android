@@ -531,8 +531,6 @@
     <string name="labelLineAndDestination">%1$s до %2$s</string>
     <string name="labelPredictedDeparture">очікується</string>
     <string name="labelPlannedDeparture">Заплановано</string>
-    <string name="labelPlannedDepartureCD">Заплановане відправлення</string>
-    <string name="labelDifferentPlannedDepartureCD">Заплановане відправлення було</string>
     <string name="labelFromPlatform">Від платформи %1$s</string>
 
 
@@ -1079,8 +1077,11 @@
     -->
 
     <!-- PTHelper -->
-    <string name="contentDescriptionAbsoluteDepartureTime">о %1$s</string>
+    <!-- used in the public transport departure timetable like this: in 7 Minutes at 14:20 -->
+    <!-- Relative: in 7 Minutes -->
     <string name="contentDescriptionRelativeDepartureTime">через %1$s</string>
+    <!-- Absolute: at 14:20 -->
+    <string name="contentDescriptionAbsoluteDepartureTime">о %1$s</string>
 
     <!-- Countries -->
     <string name="countryEurope">Європа</string>

@@ -539,8 +539,6 @@
     <string name="labelLineAndDestination">%1$s nach %2$s</string>
     <string name="labelPredictedDeparture">voraussichtlich</string>
     <string name="labelPlannedDeparture">Geplant</string>
-    <string name="labelPlannedDepartureCD">Geplante Abfahrt</string>
-    <string name="labelDifferentPlannedDepartureCD">Geplante Abfahrt war</string>
     <string name="labelFromPlatform">Von Gleis %1$s</string>
 
 
@@ -1098,8 +1096,11 @@
     -->
 
     <!-- PTHelper -->
-    <string name="contentDescriptionAbsoluteDepartureTime">um %1$s</string>
+    <!-- used in the public transport departure timetable like this: in 7 Minutes at 14:20 -->
+    <!-- Relative: in 7 Minutes -->
     <string name="contentDescriptionRelativeDepartureTime">in %1$s</string>
+    <!-- Absolute: at 14:20 -->
+    <string name="contentDescriptionAbsoluteDepartureTime">um %1$s</string>
 
     <!-- Countries -->
     <string name="countryEurope">Europa</string>

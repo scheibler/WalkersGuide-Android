@@ -292,14 +292,14 @@ public class PtUtility {
                 if (hasDifferentPredictedAndPlannedDepartureTimes) {
                     labelContentDescription += String.format(
                             ".\n%1$s %2$s",
-                            GlobalInstance.getStringResource(R.string.labelDifferentPlannedDepartureCD),
+                            GlobalInstance.getStringResource(R.string.labelPlannedDeparture),
                             formatAbsoluteDepartureTime(plannedDepartureTime));
                 }
 
             } else if (hasPlannedDepartureTime) {
                 labelContentDescription += String.format(
                         ",\n%1$s %2$s %3$s",
-                        GlobalInstance.getStringResource(R.string.labelPlannedDepartureCD),
+                        GlobalInstance.getStringResource(R.string.labelPlannedDeparture),
                         formatRelativeDepartureTime(plannedDepartureTime, true),
                         formatAbsoluteDepartureTime(plannedDepartureTime));
 
