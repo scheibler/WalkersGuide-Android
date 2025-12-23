@@ -28,7 +28,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 36
         multiDexEnabled true
-        resConfigs "en", "de", "uk"
+        resConfigs "en", "de", "es", "uk"
         // when to show the ChangelogDialog
         // see the 'versionCode' variable above
         buildConfigField 'Integer', 'CHANGELOG_VERSION_CODE', '63'

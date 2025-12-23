@@ -404,7 +404,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                     route.getRouteObjectList().size(),
                     route.getElapsedLength(),
                     GlobalInstance.getPluralResource(
-                        R.plurals.meters,
+                        R.plurals.meter,
                         route.getTotalLength()),
                     progress)
                 );

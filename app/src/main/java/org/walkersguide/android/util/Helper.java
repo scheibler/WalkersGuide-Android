@@ -38,6 +38,7 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import org.walkersguide.android.data.object_with_id.Route.PointListItem;
 import androidx.annotation.RequiresApi;
+import java.io.Serializable;
 
 
 public class Helper {
@@ -213,6 +214,35 @@ public class Helper {
      * json
      */
 
+    public static Boolean getNullableBooleanFromJsonObject(JSONObject jsonObject, String key) {
+        if (! jsonObject.isNull(key)) {
+            try {
+                return jsonObject.getBoolean(key);
+            } catch (JSONException e) {}
+            try {
+                return jsonObject.getInt(key) != 0;
+            } catch (JSONException e) {}
+        }
+        return null;
+    }
+
+    public static JSONObject putNullableBooleanToJsonObject(
+            JSONObject jsonObject, String key, Boolean value) throws JSONException {
+        return putNullableBooleanToJsonObject(jsonObject, key, value, false);
+    }
+
+    public static JSONObject putNullableBooleanToJsonObject(
+            JSONObject jsonObject, String key, Boolean value, boolean asInt) throws JSONException {
+        if (value != null) {
+            if (asInt) {
+                jsonObject.put(key, value ? 1 : 0);
+            } else {
+                jsonObject.put(key, value);
+            }
+        }
+        return jsonObject;
+    }
+
     public static Float getNullableAndPositiveFloatFromJsonObject(JSONObject jsonObject, String key) {
         Double nullableAndPositiveDouble = getNullableAndPositiveDoubleFromJsonObject(jsonObject, key);
         return nullableAndPositiveDouble == null
@@ -227,6 +257,22 @@ public class Helper {
                     return doubleFromJson;
                 }
             } catch (JSONException e) {}
+        }
+        return null;
+    }
+
+    public static <T extends Enum<T>> T getNullableEnumFromJsonObject(
+            JSONObject jsonObject, String key, Class<T> enumClass) {
+        String enumValue = getNullableStringFromJsonObject(jsonObject, key);
+        if (enumClass != null && enumValue != null) {
+            try {
+                return Enum.valueOf(enumClass, enumValue);
+            } catch (IllegalArgumentException e1) {
+                Timber.d("Enum.valueOf: no match, try to upper-case the name. Error: %1$s", e1);
+                try {
+                    return Enum.valueOf(enumClass, enumValue.toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException e2) {}
+            }
         }
         return null;
     }
@@ -255,18 +301,6 @@ public class Helper {
         return null;
     }
 
-    public static Boolean getNullableBooleanFromJsonObject(JSONObject jsonObject, String key) {
-        if (! jsonObject.isNull(key)) {
-            try {
-                return jsonObject.getBoolean(key);
-            } catch (JSONException e) {}
-            try {
-                return jsonObject.getInt(key) != 0;
-            } catch (JSONException e) {}
-        }
-        return null;
-    }
-
     public static String getNullableStringFromJsonObject(JSONObject jsonObject, String key) {
         if (! jsonObject.isNull(key)) {
             try {
@@ -277,42 +311,6 @@ public class Helper {
             } catch (JSONException e) {}
         }
         return null;
-    }
-
-    public static JSONObject putNullableBooleanToJsonObject(
-            JSONObject jsonObject, String key, Boolean value) throws JSONException {
-        return putNullableBooleanToJsonObject(jsonObject, key, value, false);
-    }
-
-    public static JSONObject putNullableBooleanToJsonObject(
-            JSONObject jsonObject, String key, Boolean value, boolean asInt) throws JSONException {
-        if (value != null) {
-            if (asInt) {
-                jsonObject.put(key, value ? 1 : 0);
-            } else {
-                jsonObject.put(key, value);
-            }
-        }
-        return jsonObject;
-    }
-
-    public static <T extends Enum<T>> T getNullableEnumFromJsonObject(
-            JSONObject jsonObject, String key, Class<T> enumClass) {
-        String enumValue = getNullableStringFromJsonObject(jsonObject, key);
-        if (enumValue != null) {
-            try {
-                return Enum.valueOf(enumClass, enumValue.toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException e) {}
-        }
-        return null;
-    }
-
-    public static <T extends Enum<T>> JSONObject putNullableEnumToJsonObject(
-            JSONObject jsonObject, String key, T value) throws JSONException {
-        if (value != null) {
-            jsonObject.put(key, value.name());
-        }
-        return jsonObject;
     }
 
 

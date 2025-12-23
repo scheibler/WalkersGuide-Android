@@ -1261,14 +1261,6 @@
     </plurals>
 
     <plurals
-        name="meters">
-        <item quantity="one">%d метр</item>
-        <item quantity="few">%d метри</item>
-        <item quantity="many">%d метрів</item>
-        <item quantity="other">%d метрів</item>
-    </plurals>
-
-    <plurals
         name="inMeters">
         <item quantity="one">%d метр</item>
         <item quantity="few">%d метри</item>

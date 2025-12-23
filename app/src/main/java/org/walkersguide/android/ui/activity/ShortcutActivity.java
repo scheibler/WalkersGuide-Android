@@ -8,7 +8,6 @@ import androidx.fragment.app.FragmentResultListener;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.bearing.BearingSensorValue;
 import org.walkersguide.android.sensor.bearing.BearingSensor;
-import org.walkersguide.android.sensor.bearing.BearingSensorAccuracyRating;
 import android.net.Uri;
 import org.walkersguide.android.ui.dialog.SimpleMessageDialog;
 import org.walkersguide.android.ui.dialog.toolbar.BearingDetailsDialog;

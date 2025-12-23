@@ -62,7 +62,9 @@
     -->
 
     <!-- toolbar -->
+    <!-- GPS location format example: Position, accuracy 10 meters -->
     <string name="toolbarSensorPrefixPosition">Position</string>
+    <!-- Simulated point format example: Simulation: Main station -->
     <string name="toolbarSensorPrefixSimulation">Simulation</string>
     <string name="toolbarSensorDataOutdated">outdated</string>
     <string name="toolbarSensorCalibrationRequired">calibrate</string>
@@ -196,6 +198,7 @@
     <string name="saveCurrentLocationDialogTitleTrack">Track the current location:</string>
     <string name="labelName">Name</string>
     <string name="messageNameMissing">Please enter a name.</string>
+    <!-- format example: Satellite singal: Accuracy at 15 meters, last fix at 15:03:59 -->
     <string name="labelGPSSignal">Satellite signal:\nAccuracy at %1$s, %2$s</string>
     <string name="messageSearchLocationInProgress">Current location is being retrieved, please wait…</string>
     <string name="messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful">The current location was pinned successfully.</string>
@@ -258,6 +261,7 @@
     <string name="buttonPreviousRouteObject">Previous route point</string>
     <string name="buttonNextRouteObject">Next route point</string>
     <string name="messageFirstSegment">Route start point</string>
+    <!-- format example: 20 meters on main street, afterwards turn left -->
     <string name="messageNextSegmentInstructionAndTurn">%1$s. Afterwards %2$s.</string>
     <!-- more options menu -->
     <string name="menuItemRecalculate">Recalculate</string>
@@ -312,7 +316,7 @@
     <string name="fragmentCollectionListName">Collections</string>
     <string name="fragmentCollectionListNameSelect">Select collection:</string>
     <string name="buttonAddCollection">Add collection</string>
-    <string name="labelEmptyCollectionList">Add collections to assist you in managing your collected points and routes.</string>
+    <string name="labelEmptyCollectionList">Add collections to help you manage your collected points and routes.</string>
 
     <!-- create collections -->
     <string name="layoutCollectionName">Collection name:</string>
@@ -337,12 +341,14 @@
 
     <!-- PoiProfileListFragment -->
     <string name="fragmentPoiProfileListName">Point profiles</string>
+    <!-- the following is used as a toolbar title and is short for "Points nearby" -->
     <string name="fragmentPoiProfileListNameEmbedded">Nearby</string>
     <string name="fragmentPoiProfileListNameSelect">Select point profile:</string>
     <string name="buttonAddPoiProfile">Add point profile</string>
-    <string name="labelEmptyPoiProfileList">Please create at least one point profile to search for nearby points of interest.</string>
+    <string name="labelEmptyPoiProfileList">Create at least one point profile to search for nearby points of interest.</string>
 
     <!-- CreatePoiProfileDialog  -->
+    <!-- Although in the apps code the following profile is referred to poi profile, in the ui it should use the more general "point profile" -->
     <string name="createPoiProfileDialogTitle">Create profile</string>
     <string name="labelProfileName">Name:</string>
     <string name="messagePoiProfileNameMissing">Please enter a name for the point profile.</string>
@@ -352,6 +358,7 @@
     <string name="selectCollectionsDialogTitle">Select collections:</string>
 
     <!-- SelectPoiCategoriesDialog -->
+    <!-- same for poi category vs. point category in ui  -->
     <string name="selectPoiCategoriesDialogTitle">Select point categories:</string>
 
     <!-- history fragment -->
@@ -391,14 +398,16 @@
     <string name="labelPleaseSelectFrom">Please select from %1$s:</string>
 
     <!-- ObjectListFromDatabaseFragment -->
+    "!-- for filters see labelHeadingSecondLineViewingDirection and labelHeadingSecondLineAutoUpdate -->
     <string name="labelHeadingSecondLineObjectTypeFilter">Filter%1$s</string>
+    <!-- for sorting see SortMethod below -->
     <string name="labelHeadingSecondLineSortMethod">Sorted by %1$s</string>
     <!-- toolbar menu -->
     <string name="menuItemObjectTypeFilter">Filter by type</string>
     <string name="menuItemSortMethod">Sort method</string>
     <string name="menuItemClearProfile">Clear profile</string>
     <!-- clear profile dialog -->
-    <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"</string>
+    <string name="clearProfileDialogTitle">Do you want to remove all entries from the profile \"%1$s\"?</string>
 
     <!-- SelectObjectTypeFilterDialog -->
     <string name="selectObjectTypeFilterDialogTitle">Which objects do you want to see?</string>
@@ -408,7 +417,7 @@
 
     <!-- PoiListFromServerFragment -->
     <string name="labelHeadingSecondLineRadius">Radius: %1$s</string>
-    <string name="labelMoreResults">Load more points</string>
+    <string name="labelMoreResults">Show more points</string>
 
 
     <!--
@@ -427,9 +436,10 @@
     <string name="labelPointEntranceLabel">Label</string>
     <!-- poi -->
     <string name="labelPointPOIBuildingHeading">Building</string>
-    <string name="labelPointPOIBuildingIsInside">Inside of</string>
+    <string name="labelPointPOIBuildingIsInside">Inside</string>
     <string name="labelPointPOIBuildingNumberOfEntrances">Number of entrances</string>
     <string name="labelPointPOIBuildingLevel">Floor</string>
+    <!-- postal services: DHL -->
     <string name="labelPointPOIPostOfficePartner">Postal services</string>
     <string name="labelPointPOIContactHeading">Contact data</string>
     <string name="labelPointPOIContactPostAddress">Post address</string>
@@ -444,7 +454,7 @@
     <string name="labelPointStationVehicleTypes">Vehicle type</string>
     <string name="labelPointStationLinesHeading">Lines</string>
     <!-- point with address -->
-    <string name="labelPointWithAddressDataHeading">Address components</string>
+    <string name="labelPointWithAddressDataHeading">Address details</string>
     <string name="labelPointWithAddressDataHouseNumber">House number</string>
     <string name="labelPointWithAddressDataRoad">Road</string>
     <string name="labelPointWithAddressDataResidential">Residential</string>
@@ -455,7 +465,7 @@
     <string name="labelPointWithAddressDataState">State</string>
     <string name="labelPointWithAddressDataCountry">Country</string>
     <!-- gps -->
-    <string name="labelPointGPSDetailsHeading">GPS Details</string>
+    <string name="labelPointGPSDetailsHeading">GPS details</string>
     <string name="labelPointGPSTimestamp">Created at</string>
     <!-- intersection -->
     <string name="labelPointIntersectionAttributesHeading">Intersection</string>
@@ -500,7 +510,7 @@
     <string name="labelSegmentFootwaySurface">Surface</string>
     <string name="labelSegmentFootwaySmoothness">Smoothness</string>
     <string name="labelSegmentFootwayWidth">Width</string>
-    <string name="labelSegmentFootwayNumberOfLanes">Number of Lanes</string>
+    <string name="labelSegmentFootwayNumberOfLanes">Number of lanes</string>
     <string name="labelSegmentFootwayMaxSpeed">Max. speed (default=km/h)</string>
     <string name="labelSegmentFootwaySegregated">Cycleway and footway segregated</string>
     <string name="labelSegmentFootwayTram">Tram rails</string>
@@ -520,7 +530,7 @@
     <string name="menuItemPublicTransportProvider">Public transport provider</string>
     <string name="menuItemSelectStation">Select station</string>
     <string name="labelNearby">Nearby</string>
-    <string name="labelNoPtStationsNearby">The selected pt provider found no station nearby.</string>
+    <string name="labelNoPtStationsNearby">The selected public transport provider found no stations nearby.</string>
     <string name="labelSelectStation">Please select a station.</string>
 
     <!-- SelectPtStationDialog -->
@@ -533,9 +543,10 @@
     <string name="selectDepartureDateAndTimeDialogTitle">Select departure date and time:</string>
 
     <!-- TripDetailsFragment -->
-    <string name="labelNoMoreStops">The line arrived at its destination stop.</string>
+    <string name="labelNoMoreStops">This line has arrived at its destination.</string>
 
     <!-- format departures -->
+    <!-- format example: Tram 8 to main station -->
     <string name="labelLineAndDestination">%1$s to %2$s</string>
     <string name="labelPredictedDeparture">Predicted</string>
     <string name="labelPlannedDeparture">Planned</string>
@@ -557,22 +568,22 @@
     <string name="switchPreferTranslatedStrings">Prefer translations</string>
     <string name="switchPreferTranslatedStringsHint">
             If the map database has multiple languages stored for an entry, this setting ensures that the app outputs
-            everything that\'s available in your set system language or, as a fallback, in English.
+            everything that\'s available in your system language or, as a fallback, in English.
             For instance, the name of restaurants or attractions is occasionally available as an English translation.</string>
     <string name="labelPublicTransportSettingsHeader">Public transport:</string>
     <string name="buttonPublicTransportProvider">Provider: %1$s</string>
     <string name="buttonPublicTransportProviderNoSelection">Provider: None selected</string>
     <string name="labelInterfaceSettingsHeader">User interface:</string>
     <string name="switchShowActionButton">Show action button</string>
-    <string name="switchShowActionButtonHint">Alternatively perform a long click to open the context menu.</string>
+    <string name="switchShowActionButtonHint">Alternatively, long-press to open the context menu.</string>
     <string name="switchDisplayRemainsActive">Screen remains active, while the app is in use.</string>
-    <string name="switchDisplayRemainsActiveHint">Disables the auto lock screen feature during navigation.</string>
+    <string name="switchDisplayRemainsActiveHint">Disables the auto-lock screen feature during navigation.</string>
     <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Prefer the fused Location Provider for location determination.</string>
     <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">If enabled you get more precise location fixes especially within buildings.
         But on some devices it may cause accuracy problems during navigation.
         If so you should disable the fused location provider here.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
-    <string name="buttonShakeIntensityHint">Shake to refresh "Where am I" Dialog and "Points" Tab.</string>
+    <string name="buttonShakeIntensityHint">Shake to refresh the "Where am I" dialog and "Points" tab.</string>
     <string name="labelTTSSettingsHeader">Text to speech</string>
     <string name="switchAnnouncementsEnabled">Enable speech announcements</string>
     <string name="labelDistanceAnnouncementInterval">Distance announcement interval</string>
@@ -580,9 +591,9 @@
     <string name="buttonSpeechRate">Speech rate</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Keep Bluetooth headphone connection alive</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">
-        Some Bluetooth headphones go to sleep after some time of inactivity and their subsequent
-        awakening produces a noticeable delay. Then the start of the
-        next voice announcement may be truncated.</string>
+        Some Bluetooth headphones enter sleep mode after a period of inactivity, and waking them up causes a noticeable
+        delay that may truncate the start
+        of voice announcements.</string>
     <string name="labelImportAndExportSettingsHeader">Import and Export:</string>
     <string name="buttonImportSettings">Import application settings</string>
     <string name="buttonExportSettings">Export application settings</string>
@@ -626,7 +637,7 @@
     <string name="labelSelectedMapCreated">Created</string>
     <!-- public transport data -->
     <string name="labelPublicTransportHeading">Public transport data</string>
-    <string name="labelPublicTransportMessage">The public transport data is provided by the library &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
+    <string name="labelPublicTransportMessage">The public transport data is provided by the open-source library &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
         Here you can find the &lt;a href="%2$s"&gt;list of all supported providers&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
@@ -657,10 +668,10 @@
     <string-array name="changesList3_2_2">
         <item>Date: February 16, 2025</item>
         <item>- Direction arrow added in the navigate tab.</item>
-        <item>- Fixed: Couldn\'t restore the objects original name after it was renamed at least once.</item>
+        <item>- Fixed: Couldn\'t restore the object\'s original name after it was renamed at least once.</item>
         <item>- Fixed: If the location simulation was enabled and the simulated point was a GPS point
             then its name was overwritten with its closest address on route calculation.</item>
-        <item>- Fixed: If your device doesn\'t support speech input you couldn\'t navigate to an address from the
+        <item>- Fixed: If your device doesn\'t support speech input, you couldn\'t navigate to an address from the
             main menu. Now you can enter the address manually instead.</item>
     </string-array>
 
@@ -718,7 +729,7 @@
     <!--
          ObjectWithIdView
     -->
-    <string name="messageCantReverseRoute">Could not reverse the selected route.</string>
+    <string name="messageCantReverseRoute">Couldn\'t reverse the selected route.</string>
 
     <!-- label prefix -->
     <string name="labelPrefixStart">Start</string>
@@ -786,7 +797,7 @@
     <!-- AddPoiProfileToHomeScreenDialog -->
     <string name="addPoiProfileToHomeScreenDialogTitle">Enter shortcut name:</string>
     <string name="messageShortcutNameMissing">Please enter a shortcut name.</string>
-    <string name="messageCorrespondingPoiProfileNotFound">The poi profile for this shortcut could not be found. Maybe it was removed.</string>
+    <string name="messageCorrespondingPoiProfileNotFound">The poi profile for this shortcut couldn\'t be found. Maybe it was removed.</string>
 
 
     <!--
@@ -805,7 +816,7 @@
     <string name="labelIndexSelected">Current instruction</string>
 
     <!-- IntersectionScheme -->
-    <string name="labelIntersectionScheme">Schematic diagram of the intersection</string>
+    <string name="labelIntersectionScheme">Intersection schematic</string>
     <string name="labelIntersectionCenter">Intersection center</string>
 
     <!-- common context menu entries -->
@@ -850,7 +861,7 @@
     <string name="messagePleaseWait">Please wait…</string>
     <string name="messageNameIsMissing">Please enter a name.</string>
     <string name="messageRenameFailed">Rename failed.</string>
-    <string name="messageSetUserAnnotationFailed">The annotation could not be saved.</string>
+    <string name="messageSetUserAnnotationFailed">The annotation couldn\'t be saved.</string>
 
 
     <!--
@@ -874,7 +885,9 @@
     <string name="wheelchairYes">Yes</string>
 
     <!-- intersection point -->
+    <!-- format example: Intersection with 4 streets  -->
     <string name="intersectionNumberOfStreets">Intersection with %1$s</string>
+    <!-- format example: 2 crossings nearby -->
     <string name="intersectionNumberOfCrossingsNearby">%1$s nearby</string>
 
     <!-- PedestrianCrossing -->
@@ -916,7 +929,8 @@
 
     <!-- route segment -->
     <string name="routeSegmentNameUnknown">Way segment</string>
-    <string name="routeSegmentToString">%1$s at %2$s</string>
+    <!-- example format: 30 meter on main street -->
+    <string name="routeSegmentToString">%1$s on %2$s</string>
 
 
     <!--
@@ -935,7 +949,7 @@
     <string name="orientationNorthWest">Northwest</string>
 
     <!-- RelativeBearing -->
-    <!-- Direction -->
+    <!-- Direction, for example something is to the right or behind the user -->
     <string name="directionStraightAhead">Straight ahead</string>
     <string name="directionRightSlightly">slight right</string>
     <string name="directionRight">right</string>
@@ -1008,7 +1022,7 @@
     <string name="sortCreatedDesc">Added, descending</string>
 
     <!-- POICategory -->
-    <string name="poiCategoryBusTram">Bus and tramstations</string>
+    <string name="poiCategoryBusTram">Bus and tram stations</string>
     <string name="poiCategoryTrain">Train, suburban train and subway stations</string>
     <string name="poiCategoryAirportFerry">Airports, ferry terminals and aerial cableways</string>
     <string name="poiCategoryTaxi">Taxi</string>
@@ -1029,7 +1043,7 @@
     <string name="poiCategoryBench">Benches</string>
     <string name="poiCategoryTrash">Trash cans</string>
     <string name="poiCategorySurveillance">Surveillance cameras</string>
-    <string name="poiCategoryBuildingsWithName">All buildings with a name</string>
+    <string name="poiCategoryBuildingsWithName">Named buildings</string>
     <string name="poiCategoryEntrance">Entrances with a name</string>
     <string name="poiCategoryEntranceWithoutName">All other entrances</string>
     <string name="poiCategoryPedestrianCrossings">Pedestrian traffic signals and zebra crossings</string>
@@ -1045,25 +1059,35 @@
     -->
 
     <!-- Route -->
+    <!-- format example: way course for main street towards South  -->
     <string name="routeNameStreetCourse">Way course for %1$s towards %2$s</string>
+    <!-- format example: ... at the intersection main street, high street and follows main street towards South -->
     <string name="routeDescriptionStreetCourse">The route starts at the intersection %1$s and follows %2$s towards %3$s.</string>
+    <!-- format example: ... route is 1000 meters long and contains 10 intersections -->
     <string name="routeDescriptionDefault">The route is %1$s long and contains %2$s.</string>
     <string name="labelOppositeDirection">Opposite direction</string>
     <string name="messageAlmostArrivedAtRouteStart">Almost at start point</string>
+    <!-- format example: Shortly turn right at main street, high street -->
     <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s at %2$s</string>
     <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>
     <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
+    <!-- format example: Arrived at point 8, Now turn right, Then 50 meters on high street -->
     <string name="messageArrivedAtRoutePoint">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.</string>
-    <string name="messageArrivedAtRoutePointWithNextTurn">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.\nAfterwarts: %4$s.</string>
+    <!-- format example: Arrived at point 8, Now turn right, Then 50 meters on high street, Afterwards straight ahead -->
+    <string name="messageArrivedAtRoutePointWithNextTurn">Arrived at point %1$d.\nNow: %2$s.\nThen: %3$s.\nAfterwards: %4$s.</string>
     <string name="messageArrivedAtRouteDestination">Arrived at route destination point.</string>
     <string name="messageTestInstruction">Arrived at point 2. Now: Turn left. Then: 69 Meter on main street (primary road). Afterwards: Straight ahead.</string>
 
     <!-- RouteObject -->
+    <!-- format example: Start: main street, high street -->
     <string name="routePointInstructionStart">Start: %1$s</string>
+    <!-- format example: Cross main street, high street -->
     <string name="routePointInstructionIntermediateCross">%1$s %2$s</string>
+    <!-- format example: Turn left at main street, high street -->
     <string name="routePointInstructionIntermediateTurn">%1$s at %2$s</string>
+    <!-- format example: Destination: main street, high street -->
     <string name="routePointInstructionDestination">Destination: %1$s</string>
-    <string name="routeSegmentBewareCyclists">Attention: bicycle traffic</string>
+    <string name="routeSegmentBewareCyclists">Watch for cyclists!</string>
 
     <!-- WayClassSettings presets -->
     <string name="wcwsPresetShortestRoute">Shortest route</string>
@@ -1072,8 +1096,10 @@
     <string name="wcwsPresetHiking">Hiking</string>
 
     <!-- WayClassType -->
-    <string name="wayClassTypeBigStreets">Big streets</string>
-    <string name="wayClassTypeSmallStreets">Small streets</string>
+    <!-- major / primary streets -->
+    <string name="wayClassTypeBigStreets">Major streets</string>
+    <!-- minor / living streets -->
+    <string name="wayClassTypeSmallStreets">Minor streets</string>
     <string name="wayClassTypePavedWays">Paved ways</string>
     <string name="wayClassTypeUnpavedWays">Unpaved ways</string>
     <string name="wayClassTypeSteps">Steps</string>
@@ -1105,7 +1131,7 @@
     <string name="countryEurope">Europe</string>
     <string name="countryGermany">Germany</string>
 
-    <!-- public transport provider -->
+    <!-- public transport provider (don't translate) -->
     <!-- europe -->
     <string name="publicTransportProviderRT">Railteam (Europe)</string>
     <!-- germany -->
@@ -1140,7 +1166,7 @@
     <string name="bearingSensorAccuracyHigh">High</string>
     <string name="bearingSensorAccuracyUnknown">Unknown</string>
 
-    <!-- : ShakeIntensity -->
+    <!-- ShakeIntensity -->
     <string name="shakeIntensityDisabled">Disabled</string>
     <string name="shakeIntensityVeryWeak">Very weak</string>
     <string name="shakeIntensityWeak">Weak</string>
@@ -1238,7 +1264,7 @@
 
     <plurals
         name="hourLong">
-        <item quantity="one">einer hour</item>
+        <item quantity="one">one hour</item>
         <item quantity="other">%d hours</item>
     </plurals>
 
@@ -1250,7 +1276,7 @@
 
     <plurals
         name="minuteLong">
-        <item quantity="one">einer Minute</item>
+        <item quantity="one">one Minute</item>
         <item quantity="other">%d Minutes</item>
     </plurals>
 
@@ -1270,12 +1296,6 @@
         name="meterShort">
         <item quantity="one">1 m</item>
         <item quantity="other">%d m</item>
-    </plurals>
-
-    <plurals
-        name="meters">
-        <item quantity="one">1 Meter</item>
-        <item quantity="other">%d Meters</item>
     </plurals>
 
     <plurals
@@ -1335,7 +1355,7 @@
     <plurals
         name="recordedRoute">
         <item quantity="one">1 recorded route</item>
-        <item quantity="other">%d recorded Routes</item>
+        <item quantity="other">%d recorded routes</item>
     </plurals>
 
     <plurals

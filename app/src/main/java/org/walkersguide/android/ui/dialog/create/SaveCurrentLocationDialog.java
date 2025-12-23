@@ -220,7 +220,7 @@ public class SaveCurrentLocationDialog extends DialogFragment implements Fragmen
                             String.format(
                                 context.getResources().getString(R.string.labelGPSSignal),
                                 GlobalInstance.getPluralResource(
-                                    R.plurals.meters,
+                                    R.plurals.meter,
                                     Math.round(gpsLocation.getAccuracy())),
                                 gpsLocation.formatTimestamp(
                                     GlobalInstance.getStringResource(R.string.labelGPSTime)))

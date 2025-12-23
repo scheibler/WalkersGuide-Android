@@ -110,19 +110,21 @@ public class PedestrianCrossing extends Point implements Serializable {
      */
 
     public enum CrossingBarrier {
-        FULL(GlobalInstance.getStringResource(R.string.crossingBarrierFull)),
-        HALF(GlobalInstance.getStringResource(R.string.crossingBarrierHalf)),
-        NO(GlobalInstance.getStringResource(R.string.crossingBarrierNo)),
-        YES(GlobalInstance.getStringResource(R.string.crossingBarrierYes));
 
-        private String label;
+        FULL, HALF, NO, YES;
 
-        private CrossingBarrier(String label) {
-            this.label = label;
+        public String getDisplayName() {
+            switch (this) {
+                case FULL: return GlobalInstance.getStringResource(R.string.crossingBarrierFull);
+                case HALF: return GlobalInstance.getStringResource(R.string.crossingBarrierHalf);
+                case NO: return GlobalInstance.getStringResource(R.string.crossingBarrierNo);
+                case YES: return GlobalInstance.getStringResource(R.string.crossingBarrierYes);
+                default: return name();
+            }
         }
 
         @Override public String toString() {
-            return this.label;
+            return getDisplayName();
         }
     }
 
@@ -136,21 +138,23 @@ public class PedestrianCrossing extends Point implements Serializable {
      */
 
     public enum Kerb {
-        FLUSH(GlobalInstance.getStringResource(R.string.kerbFlush)),
-        LOWERED(GlobalInstance.getStringResource(R.string.kerbLowered)),
-        ROLLED(GlobalInstance.getStringResource(R.string.kerbRolled)),
-        RAISED(GlobalInstance.getStringResource(R.string.kerbRaised)),
-        YES(GlobalInstance.getStringResource(R.string.kerbYes)),
-        NO(GlobalInstance.getStringResource(R.string.kerbNo));
 
-        private String label;
+        FLUSH, LOWERED, ROLLED, RAISED, YES, NO;
 
-        private Kerb(String label) {
-            this.label = label;
+        public String getDisplayName() {
+            switch (this) {
+                case FLUSH: return GlobalInstance.getStringResource(R.string.kerbFlush);
+                case LOWERED: GlobalInstance.getStringResource(R.string.kerbLowered);
+                case ROLLED: return GlobalInstance.getStringResource(R.string.kerbRolled);
+                case RAISED: return GlobalInstance.getStringResource(R.string.kerbRaised);
+                case YES: return GlobalInstance.getStringResource(R.string.kerbYes);
+                case NO: return GlobalInstance.getStringResource(R.string.kerbNo);
+                default: return name();
+            }
         }
 
         @Override public String toString() {
-            return this.label;
+            return getDisplayName();
         }
     }
 
@@ -171,7 +175,9 @@ public class PedestrianCrossing extends Point implements Serializable {
 
     @Override public JSONObject toJson() throws JSONException {
         JSONObject jsonObject = super.toJson();
+
         // everything is optional
+
         jsonObject = Helper.putNullableBooleanToJsonObject(jsonObject, KEY_ISLAND, this.island);
         // the next two Boolean must produce a 0/1 int as bool representation for now
         // that's the last "true" for
@@ -179,9 +185,14 @@ public class PedestrianCrossing extends Point implements Serializable {
                 jsonObject, KEY_TRAFFIC_SIGNALS_SOUND, this.trafficSignalsSound, true);
         jsonObject = Helper.putNullableBooleanToJsonObject(
                 jsonObject, KEY_TRAFFIC_SIGNALS_VIBRATION, this.trafficSignalsVibration, true);
-        // and the two new enums which already are represented by their values in json
-        jsonObject = Helper.putNullableEnumToJsonObject(jsonObject, KEY_CROSSING_BARRIER, this.crossingBarrier);
-        jsonObject = Helper.putNullableEnumToJsonObject(jsonObject, KEY_KERB, this.kerb);
+
+        if (this.crossingBarrier != null) {
+            jsonObject.put(KEY_CROSSING_BARRIER, this.crossingBarrier.name());
+        }
+        if (this.kerb != null) {
+            jsonObject.put(KEY_KERB, this.kerb.name());
+        }
+
         return jsonObject;
     }
 

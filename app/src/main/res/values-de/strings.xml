@@ -54,7 +54,7 @@
 
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Keine Verfolgung</string>
-    <string name="wgTrackingModeHintDistance">Punkte und Routen werden angesagt, wenn du dich ihnen näherst..</string>
+    <string name="wgTrackingModeHintDistance">Punkte und Routen werden angesagt, wenn du dich ihnen näherst.</string>
     <string name="wgTrackingModeHintBearing">Lass dir ansagen, welche Punkte und Routen sich in Blickrichtung befinden. Drehe dich dazu einmal um 360°.</string>
 
 
@@ -445,7 +445,7 @@
     <string name="labelPointStationVehicleTypes">Fahrzeugtypen</string>
     <string name="labelPointStationLinesHeading">Linien</string>
     <!-- point with address -->
-    <string name="labelPointWithAddressDataHeading">Adresskomponenten</string>
+    <string name="labelPointWithAddressDataHeading">Adressdetails</string>
     <string name="labelPointWithAddressDataHouseNumber">Hausnummer</string>
     <string name="labelPointWithAddressDataRoad">Straße</string>
     <string name="labelPointWithAddressDataResidential">Wohnviertel</string>
@@ -533,7 +533,7 @@
     <string name="selectDepartureDateAndTimeDialogTitle">Abfahrtsdatum und -zeit auswählen:</string>
 
     <!-- TripDetailsFragment -->
-    <string name="labelNoMoreStops">Die Linie hat ihre Zielhaltestelle erreicht.</string>
+    <string name="labelNoMoreStops">Diese Linie hat ihr Ziel erreicht.</string>
 
     <!-- format departures -->
     <string name="labelLineAndDestination">%1$s nach %2$s</string>
@@ -627,7 +627,7 @@
     <string name="labelSelectedMapCreated">Erstellt am</string>
     <!-- public transport data -->
     <string name="labelPublicTransportHeading">ÖPNV Daten</string>
-    <string name="labelPublicTransportMessage">Die Abfahrtsinformationen werden von der Bibliothek &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt; bereitgestellt.
+    <string name="labelPublicTransportMessage">Die Abfahrtsinformationen werden von der Open-Source Bibliothek &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt; bereitgestellt.
         Hier findest du die &lt;a href="%2$s"&gt;Liste aller unterstützten Provider&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
@@ -806,7 +806,7 @@
     <string name="labelIndexSelected">Aktuelle Anweisung</string>
 
     <!-- IntersectionScheme -->
-    <string name="labelIntersectionScheme">Schematische Darstellung der Kreuzung</string>
+    <string name="labelIntersectionScheme">Kreuzungsschema</string>
     <string name="labelIntersectionCenter">Kreuzungsmitte</string>
 
     <!-- common context menu entries -->
@@ -876,7 +876,7 @@
 
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Kreuzung mit %1$s</string>
-    <string name="intersectionNumberOfCrossingsNearby">%1$s in der Nähe:</string>
+    <string name="intersectionNumberOfCrossingsNearby">%1$s in der Nähe</string>
 
     <!-- PedestrianCrossing -->
     <!-- details in toString -->
@@ -917,6 +917,7 @@
 
     <!-- route segment -->
     <string name="routeSegmentNameUnknown">Wegstück</string>
+    <!-- example format: 30 meter auf Hauptstraße -->
     <string name="routeSegmentToString">%1$s auf %2$s</string>
 
 
@@ -1024,7 +1025,7 @@
     <string name="poiCategoryHealth">Gesundheit:\n  Ärzte, Apotheken, Krankenhäuser, …</string>
     <string name="poiCategorySport">Sport und Bewegung:\n  Sportstätten, Spielplätze, Parks, …</string>
     <string name="poiCategoryPublicService">Öffentliche Dienstleistungen:\n  Polizei, Feuerwehr, Bürgerämter, …</string>
-    <string name="poiCategoryOtherService">Alle sonstige Dienstleistungen</string>
+    <string name="poiCategoryOtherService">Alle sonstigen Dienstleistungen</string>
     <string name="poiCategoryElevator">Aufzüge</string>
     <string name="poiCategorySanitary">WC und Duschen</string>
     <string name="poiCategoryBench">Bänke</string>
@@ -1073,8 +1074,8 @@
     <string name="wcwsPresetHiking">Wandern</string>
 
     <!-- WayClassType -->
-    <string name="wayClassTypeBigStreets">Große Straßen</string>
-    <string name="wayClassTypeSmallStreets">Kleine Straßen</string>
+    <string name="wayClassTypeBigStreets">Hauptstraßen</string>
+    <string name="wayClassTypeSmallStreets">Nebenstraßen</string>
     <string name="wayClassTypePavedWays">Befestigte Wege</string>
     <string name="wayClassTypeUnpavedWays">Unbefestigte Wege</string>
     <string name="wayClassTypeSteps">Treppen</string>
@@ -1221,7 +1222,7 @@
     <!-- other errors -->
     <string name="errorSavePointFailed">Fehler beim Anlegen des Punktes.</string>
     <string name="errorNoHomeAddressSet">Du hast dein Zuhause noch nicht festgelegt. Dies kannst du in den Einstellungen der App erledigen.</string>
-    <string name="errorNoLocationFound">Keine position verfügbar</string>
+    <string name="errorNoLocationFound">Keine Position verfügbar</string>
     <string name="errorNoBearingFound">Keine Richtungsangabe verfügbar</string>
 
 
@@ -1275,12 +1276,6 @@
         name="meterShort">
         <item quantity="one">1 m</item>
         <item quantity="other">%d m</item>
-    </plurals>
-
-    <plurals
-        name="meters">
-        <item quantity="one">1 Meter</item>
-        <item quantity="other">%d Meter</item>
     </plurals>
 
     <plurals

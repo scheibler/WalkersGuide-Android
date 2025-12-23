@@ -1095,9 +1095,9 @@ public class MainActivity extends AppCompatActivity
 
     public enum Tab {
 
-        OVERVIEW(0, GlobalInstance.getStringResource(R.string.mainTabNameOverview)),
-        ROUTES(1, GlobalInstance.getStringResource(R.string.mainTabNameRoutes)),
-        POINTS(2, GlobalInstance.getStringResource(R.string.mainTabNamePoints));
+        OVERVIEW(0),
+        ROUTES(1),
+        POINTS(2);
 
         public static Tab getTabAtPosition(int position) {
             for (Tab tab : Tab.values()) {
@@ -1109,15 +1109,22 @@ public class MainActivity extends AppCompatActivity
         }
 
         public int position;
-        public String label;
 
-        private Tab(int position, String label) {
+        private Tab(int position) {
             this.position = position;
-            this.label = label;
+        }
+
+        public String getDisplayName() {
+            switch (this) {
+                case OVERVIEW: return GlobalInstance.getStringResource(R.string.mainTabNameOverview);
+                case ROUTES: return GlobalInstance.getStringResource(R.string.mainTabNameRoutes);
+                case POINTS: return GlobalInstance.getStringResource(R.string.mainTabNamePoints);
+                default: return name();
+            }
         }
 
         @Override public String toString() {
-            return this.label;
+            return this.getDisplayName();
         }
     }
 

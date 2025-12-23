@@ -1,21 +1,14 @@
 package org.walkersguide.android.util;
 
+
         import org.walkersguide.android.shortcut.PinnedShortcutUtility;
 import org.walkersguide.android.shortcut.StaticShortcutAction;
-import android.annotation.TargetApi;
 
 import android.app.Application;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 
 import android.content.Context;
-import android.content.Intent;
 
-import android.os.Build;
 
-import androidx.core.app.NotificationCompat;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,28 +16,19 @@ import java.util.UUID;
 
 import org.walkersguide.android.server.wg.status.ServerInstance;
 import org.walkersguide.android.BuildConfig;
-import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.R;
-import org.walkersguide.android.sensor.DeviceSensorManager;
-import org.walkersguide.android.sensor.PositionManager;
-import org.walkersguide.android.ui.activity.MainActivity;
 
 import timber.log.Timber;
-import java.io.File;
-import android.os.Environment;
-import org.walkersguide.android.database.util.SQLiteHelper;
 import android.os.Handler;
 import java.util.LinkedHashMap;
 import org.walkersguide.android.server.wg.poi.PoiProfileRequest;
 import org.walkersguide.android.server.wg.poi.PoiProfileResult;
-import android.annotation.SuppressLint;
 import org.walkersguide.android.data.object_with_id.Route;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
 import java.util.Map;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
-import android.media.AudioManager;
 import android.os.Looper;
 
 
@@ -73,7 +57,7 @@ public class GlobalInstance extends Application {
     }
 
     public static Context getContext() {
-        return globalInstance;
+        return globalInstance.getApplicationContext();
     }
 
     public static String getStringResource(int resourceId) {
