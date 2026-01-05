@@ -1252,120 +1252,140 @@
     <plurals
         name="departure">
         <item quantity="one">1 salida</item>
+        <item quantity="many">%d de salidas</item>
         <item quantity="other">%d salidas</item>
     </plurals>
 
     <plurals
         name="hourShort">
         <item quantity="one">1 h</item>
+        <item quantity="many">%d h</item>
         <item quantity="other">%d h</item>
     </plurals>
 
     <plurals
         name="hourLong">
         <item quantity="one">una hora</item>
+        <item quantity="many">%d de horas</item>
         <item quantity="other">%d horas</item>
     </plurals>
 
     <plurals
         name="minuteShort">
         <item quantity="one">1 min</item>
+        <item quantity="many">%d de min</item>
         <item quantity="other">%d min</item>
     </plurals>
 
     <plurals
         name="minuteLong">
         <item quantity="one">un minuto</item>
+        <item quantity="many">%d de minutos</item>
         <item quantity="other">%d minutos</item>
     </plurals>
 
     <plurals
         name="meter">
         <item quantity="one">1 metro</item>
+        <item quantity="many">%d de metros</item>
         <item quantity="other">%d metros</item>
     </plurals>
 
     <plurals
         name="meterFloat">
         <item quantity="one">1.0 metro</item>
+        <item quantity="many">%1$.1f de metros</item>
         <item quantity="other">%1$.1f metros</item>
     </plurals>
 
     <plurals
         name="meterShort">
         <item quantity="one">1 m</item>
+        <item quantity="many">%d m</item>
         <item quantity="other">%d m</item>
     </plurals>
 
     <plurals
         name="inMeters">
         <item quantity="one">En 1 metro</item>
+        <item quantity="many">En %d de metros</item>
         <item quantity="other">En %d metros</item>
     </plurals>
 
     <plurals
         name="result">
         <item quantity="one">1 resultado</item>
+        <item quantity="many">%d de resultados</item>
         <item quantity="other">%d resultados</item>
     </plurals>
 
     <plurals
         name="satellite">
         <item quantity="one">1 satélite</item>
+        <item quantity="many">%d de satélites</item>
         <item quantity="other">%d satélites</item>
     </plurals>
 
     <plurals
         name="object">
         <item quantity="one">1 objeto</item>
+        <item quantity="many">%d de objetos</item>
         <item quantity="other">%d objetos</item>
     </plurals>
 
     <plurals
         name="point">
         <item quantity="one">1 punto</item>
+        <item quantity="many">%d de puntos</item>
         <item quantity="other">%d puntos</item>
     </plurals>
 
     <plurals
         name="manuallyAddedPoint">
         <item quantity="one">1 punto añadido manualmente</item>
+        <item quantity="many">%d de puntos añadidos manualmente</item>
         <item quantity="other">%d puntos añadidos manualmente</item>
     </plurals>
 
     <plurals
         name="trackedPoint">
         <item quantity="one">1 punto seguido</item>
+        <item quantity="many">%d de puntos seguidos</item>
         <item quantity="other">%d puntos seguidos</item>
     </plurals>
 
     <plurals
         name="route">
         <item quantity="one">1 ruta</item>
+        <item quantity="many">%d de rutas</item>
         <item quantity="other">%d rutas</item>
     </plurals>
 
     <plurals
         name="pointAndRoute">
         <item quantity="one">1 punto o ruta</item>
+        <item quantity="many">%d de puntos y rutas</item>
         <item quantity="other">%d puntos y rutas</item>
     </plurals>
 
     <plurals
         name="recordedRoute">
         <item quantity="one">1 ruta grabada</item>
+        <item quantity="many">%d de rutas grabadas</item>
         <item quantity="other">%d rutas grabadas</item>
     </plurals>
 
     <plurals
         name="way">
         <item quantity="one">1 vía</item>
+        <item quantity="many">%d de vías</item>
         <item quantity="other">%d vías</item>
     </plurals>
 
     <plurals
         name="crossing">
         <item quantity="one">1 cruce</item>
+        <item quantity="many">%d de cruces</item>
         <item quantity="other">%d cruces</item>
     </plurals>
 
@@ -1373,84 +1393,98 @@
     <plurals
         name="intersectionNumberOfCrossingsNearby">
         <item quantity="one">1 cruce cercano</item>
+        <item quantity="many">%d de cruces cercanos</item>
         <item quantity="other">%d cruces cercanos</item>
     </plurals>
 
     <plurals
         name="entrance">
         <item quantity="one">1 entrada</item>
+        <item quantity="many">%d de entradas</item>
         <item quantity="other">%d entradas</item>
     </plurals>
 
     <plurals
         name="intersection">
         <item quantity="one">1 intersección</item>
+        <item quantity="many">%d de intersecciones</item>
         <item quantity="other">%d intersecciones</item>
     </plurals>
 
     <plurals
         name="poi">
         <item quantity="one">1 punto</item>
+        <item quantity="many">%d de puntos</item>
         <item quantity="other">%d puntos</item>
     </plurals>
 
     <plurals
         name="station">
         <item quantity="one">1 estación</item>
+        <item quantity="many">%d de estaciones</item>
         <item quantity="other">%d estaciones</item>
     </plurals>
 
     <plurals
         name="street">
         <item quantity="one">1 calle</item>
+        <item quantity="many">%d de calles</item>
         <item quantity="other">%d calles</item>
     </plurals>
 
     <plurals
         name="turning">
         <item quantity="one">1 giro</item>
+        <item quantity="many">%d de giros</item>
         <item quantity="other">%d giros</item>
     </plurals>
 
     <plurals
         name="profile">
         <item quantity="one">1 perfil</item>
+        <item quantity="many">%d de perfiles</item>
         <item quantity="other">%d perfiles</item>
     </plurals>
 
     <plurals
         name="collection">
         <item quantity="one">1 colección</item>
+        <item quantity="many">%d de colecciones</item>
         <item quantity="other">%d colecciones</item>
     </plurals>
 
     <plurals
         name="collectionSelected">
         <item quantity="one">1 colección seleccionada</item>
+        <item quantity="many">%d de colecciones seleccionadas</item>
         <item quantity="other">%d colecciones seleccionadas</item>
     </plurals>
 
     <plurals
         name="pointProfile">
         <item quantity="one">1 perfil de puntos</item>
+        <item quantity="many">%d de perfiles de puntos</item>
         <item quantity="other">%d perfiles de puntos</item>
     </plurals>
 
     <plurals
         name="poiCategory">
         <item quantity="one">1 categoría de puntos</item>
+        <item quantity="many">%d de categorías de puntos</item>
         <item quantity="other">%d categorías de puntos</item>
     </plurals>
 
     <plurals
         name="poiCategorySelected">
         <item quantity="one">1 categoría de puntos seleccionada</item>
+        <item quantity="many">%d de categorías de puntos seleccionadas</item>
         <item quantity="other">%d categorías de puntos seleccionadas</item>
     </plurals>
 
     <plurals
         name="labelSomethingPinned">
         <item quantity="one">%1$s fijado</item>
+        <item quantity="many">%1$s fijados</item>
         <item quantity="other">%1$s fijados</item>
     </plurals>
 
