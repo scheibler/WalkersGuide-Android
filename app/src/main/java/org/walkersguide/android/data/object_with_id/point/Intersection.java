@@ -113,11 +113,9 @@ public class Intersection extends Point implements Serializable {
     }
 
     public String formatNumberOfCrossingsNearby() {
-        return String.format(
-                GlobalInstance.getStringResource(R.string.intersectionNumberOfCrossingsNearby),
-                GlobalInstance.getPluralResource(
-                    R.plurals.crossing,
-                    hasPedestrianCrossings() ? this.pedestrianCrossingList.size() : 0));
+        return GlobalInstance.getPluralResource(
+                R.plurals.intersectionNumberOfCrossingsNearby,
+                hasPedestrianCrossings() ? this.pedestrianCrossingList.size() : 0);
     }
 
     @Override public String toString() {

@@ -68,6 +68,10 @@ public class GlobalInstance extends Application {
         return getContext().getResources().getQuantityString(resourceId, number, number);
     }
 
+    public static String getPluralText(int resourceId, int number) {
+        return getContext().getResources().getQuantityText(resourceId, number).toString();
+    }
+
 
     /**
      * session id

@@ -231,7 +231,6 @@
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Only profiles</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Only points and routes</string>
     <string name="menuItemClearPinnedObjectsBoth">Clear both</string>
-    <string name="labelSomethingPinned">%1$s pinned</string>
     <string name="groupNameProfiles">Profiles</string>
     <string name="buttonAddPinnedProfile">Pin profile</string>
     <string name="groupNamePointsAndRoutes">Points and routes</string>
@@ -887,8 +886,6 @@
     <!-- intersection point -->
     <!-- format example: Intersection with 4 streets  -->
     <string name="intersectionNumberOfStreets">Intersection with %1$s</string>
-    <!-- format example: 2 crossings nearby -->
-    <string name="intersectionNumberOfCrossingsNearby">%1$s nearby</string>
 
     <!-- PedestrianCrossing -->
     <!-- details in toString -->
@@ -1370,6 +1367,13 @@
         <item quantity="other">%d crossings</item>
     </plurals>
 
+    <!-- format example: 2 crossings nearby -->
+    <plurals
+        name="intersectionNumberOfCrossingsNearby">
+        <item quantity="one">1 crossing nearby</item>
+        <item quantity="other">%d crossings nearby</item>
+    </plurals>
+
     <plurals
         name="entrance">
         <item quantity="one">1 entrance</item>
@@ -1440,6 +1444,12 @@
         name="poiCategorySelected">
         <item quantity="one">1 point category selected</item>
         <item quantity="other">%d point categories selected</item>
+    </plurals>
+
+    <plurals
+        name="labelSomethingPinned">
+        <item quantity="one">%1$s pinned</item>
+        <item quantity="other">%1$s pinned</item>
     </plurals>
 
 </resources>

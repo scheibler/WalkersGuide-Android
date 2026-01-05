@@ -71,8 +71,10 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
         String quantityString = null;
         switch (groupPosition) {
             case ID_PROFILES:
-                quantityString = GlobalInstance.getPluralResource(
-                        R.plurals.profile, profileList.size());
+                quantityString = String.format(
+                        GlobalInstance.getPluralText(R.plurals.labelSomethingPinned, profileList.size()),
+                        GlobalInstance.getPluralResource(R.plurals.profile, profileList.size()));
+
                 holder.buttonAdd.setContentDescription(
                         context.getResources().getString(R.string.buttonAddPinnedProfile));
                 holder.buttonAdd.setOnClickListener(new View.OnClickListener() {
@@ -83,8 +85,9 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
                 break;
 
             case ID_OBJECTS:
-                quantityString = GlobalInstance.getPluralResource(
-                        StaticProfile.pinnedObjectsWithId().getPluralResId(), objectList.size());
+                quantityString = String.format(
+                        GlobalInstance.getPluralText(R.plurals.labelSomethingPinned, objectList.size()),
+                        GlobalInstance.getPluralResource(StaticProfile.pinnedObjectsWithId().getPluralResId(), objectList.size()));
                 holder.buttonAdd.setContentDescription(
                         context.getResources().getString(R.string.buttonAddPinnedPointOrRoute));
                 holder.buttonAdd.setOnClickListener(new View.OnClickListener() {
@@ -96,11 +99,7 @@ public class PinnedObjectsAdapter extends BaseExpandableListAdapter {
         }
 
         if (quantityString != null) {
-            holder.labelHeading.setText(
-                    String.format(
-                        context.getResources().getString(R.string.labelSomethingPinned),
-                        quantityString)
-                    );
+            holder.labelHeading.setText(quantityString);
             holder.buttonAdd.setVisibility(View.VISIBLE);
         }
         return convertView;

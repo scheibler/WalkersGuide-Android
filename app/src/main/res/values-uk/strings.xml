@@ -222,7 +222,6 @@
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Тільки профілі</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Тільки точки і маршрути</string>
     <string name="menuItemClearPinnedObjectsBoth">Скинути все</string>
-    <string name="labelSomethingPinned">%1$s закріплено</string>
     <string name="groupNameProfiles">Профілі</string>
     <string name="buttonAddPinnedProfile">Закріпити профіль</string>
     <string name="groupNamePointsAndRoutes">Точки та маршрути</string>
@@ -857,7 +856,6 @@
 
     <!-- intersection point -->
 <string name="intersectionNumberOfStreets">Перехрестя, має %1$s</string>
-<string name="intersectionNumberOfCrossingsNearby">%1$s поруч</string>
 
     <!-- PedestrianCrossing -->
     <!-- details in toString -->
@@ -1356,6 +1354,15 @@
         <item quantity="other">%d переходів</item>
     </plurals>
 
+    <!-- format example: 2 crossings nearby -->
+    <plurals
+        name="intersectionNumberOfCrossingsNearby">
+        <item quantity="one">%d перехід поруч</item>
+        <item quantity="few">%d переходи поруч</item>
+        <item quantity="many">%d переходів поруч</item>
+        <item quantity="other">%d переходів поруч</item>
+    </plurals>
+
     <plurals
         name="entrance">
         <item quantity="one">%d вхід</item>
@@ -1450,6 +1457,14 @@
         <item quantity="few">%d категорії точок вибрано</item>
         <item quantity="many">%d категорій точок вибрано</item>
         <item quantity="other">%d категорій точок вибрано</item>
+    </plurals>
+
+    <plurals
+        name="labelSomethingPinned">
+        <item quantity="one">%1$s закріплено</item>
+        <item quantity="few">%1$s закріплено</item>
+        <item quantity="many">%1$s закріплено</item>
+        <item quantity="other">%1$s закріплено</item>
     </plurals>
 
 </resources>

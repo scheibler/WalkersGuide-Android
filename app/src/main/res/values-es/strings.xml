@@ -42,13 +42,13 @@
     <string name="messageLocationProviderDisabledShort">Servicio de ubicación desactivado</string>
 
     <!-- RouteRecordingState -->
-    <string name="wgRouteRecordingStateOff">Apagado</string>
+    <string name="wgRouteRecordingStateOff">Desactivado</string>
     <string name="wgRouteRecordingStatePaused">Pausado</string>
     <string name="wgRouteRecordingStateRunning">Encendido</string>
     <string name="messageRouteRecordingPaused">Grabación de ruta pausada</string>
 
     <!-- TrackingMode -->
-    <string name="wgTrackingModeOff">Apagado</string>
+    <string name="wgTrackingModeOff">Desactivado</string>
     <string name="wgTrackingModeDistance">Distancia</string>
     <string name="wgTrackingModeBearing">Dirección de vista</string>
 
@@ -157,7 +157,7 @@
     <string name="pointSelectFromEnterAddress">Introducir dirección</string>
     <string name="pointSelectFromEnterCoordinates">Introducir coordenadas</string>
     <string name="pointSelectFromCollections">Colecciones</string>
-    <string name="pointSelectFromPOI">Seleccionar de puntos cercanos</string>
+    <string name="pointSelectFromPOI">Seleccionar desde puntos cercanos</string>
     <string name="pointSelectFromHistory">Historial</string>
     <string name="pointSelectFromCoordinatesLink">Importar desde enlace compartido</string>
 
@@ -200,7 +200,7 @@
     <string name="labelName">Nombre</string>
     <string name="messageNameMissing">Por favor, introduce un nombre.</string>
     <!-- format example: Satellite singal: Accuracy at 15 meters, last fix at 15:03:59 -->
-    <string name="labelGPSSignal">Señal satelital:\nPrecisión de %1$s, %2$s</string>
+    <string name="labelGPSSignal">Señal de satélite:\nPrecisión de %1$s, %2$s</string>
     <string name="messageSearchLocationInProgress">Se está obteniendo la ubicación actual, por favor espera…</string>
     <string name="messageCurrentLocationAddedToPinnedObjectsWithIdSuccessful">La ubicación actual se fijó correctamente.</string>
     <string name="messageCurrentLocationAddedToTrackedObjectsWithIdSuccessful">Se inició el seguimiento de la ubicación actual.</string>
@@ -232,7 +232,6 @@
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Solo perfiles</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Solo puntos y rutas</string>
     <string name="menuItemClearPinnedObjectsBoth">Borrar ambos</string>
-    <string name="labelSomethingPinned">%1$s fijado</string>
     <string name="groupNameProfiles">Perfiles</string>
     <string name="buttonAddPinnedProfile">Fijar perfil</string>
     <string name="groupNamePointsAndRoutes">Puntos y rutas</string>
@@ -288,9 +287,9 @@
     <string name="buttonFinishRecordingCD">Finalizar grabación</string>
     <string name="labelRecordedPointName">Punto %1$d</string>
     <string name="labelNoRecordedRoutes">Aún no se han grabado rutas.</string>
-    <string name="messageNoteRouteRecordingOnlyInForeground">Ten en cuenta que tu ruta solo se graba mientras la aplicación está en primer plano.
-        Cuando bloqueas la pantalla o pones WalkersGuide en segundo plano, la grabación de la ruta se pausa.</string>
-    <string name="messageRecordedRouteTooFewPoints">No se puede guardar la ruta grabada. Todavía contiene muy pocos puntos.</string>
+    <string name="messageNoteRouteRecordingOnlyInForeground">Ten en cuenta que la ruta solo se graba mientras la aplicación está en primer plano.
+        Si se bloquea la pantalla o WalkersGuide queda en segundo plano, la grabación de la ruta se pausa.</string>
+    <string name="messageRecordedRouteTooFewPoints">No se puede guardar la ruta grabada. Contiene demasiados pocos puntos.</string>
     <string name="messageRecordedRouteNameIsMissing">Por favor, introduce un nombre para la ruta grabada.</string>
     <string name="messageSaveRecordedRouteFailed">Error: No se puede guardar la ruta grabada.</string>
     <string name="messageSaveRecordedRouteSuccessful">La ruta se guardó correctamente.</string>
@@ -405,7 +404,7 @@
     <string name="labelHeadingSecondLineSortMethod">Ordenado por %1$s</string>
     <!-- toolbar menu -->
     <string name="menuItemObjectTypeFilter">Filtrar por tipo</string>
-    <string name="menuItemSortMethod">Método de ordenación</string>
+    <string name="menuItemSortMethod">Ordenar por</string>
     <string name="menuItemClearProfile">Vaciar perfil</string>
     <!-- clear profile dialog -->
     <string name="clearProfileDialogTitle">¿Quieres eliminar todas las entradas del perfil \"%1$s\"?</string>
@@ -414,7 +413,7 @@
     <string name="selectObjectTypeFilterDialogTitle">¿Qué objetos quieres ver?</string>
 
     <!-- SelectSortMethodDialog -->
-    <string name="selectSortMethodDialogTitle">Seleccionar método de ordenación:</string>
+    <string name="selectSortMethodDialogTitle">Ordenar por:</string>
 
     <!-- PoiListFromServerFragment -->
     <string name="labelHeadingSecondLineRadius">Radio: %1$s</string>
@@ -802,7 +801,7 @@
 
 
     <!--
-         other dialogs and layouts
+         many dialogs and layouts
     -->
 
     <!-- CreateOrSelectCollectionDialog -->
@@ -852,7 +851,7 @@
     <string name="dialogShare">Compartir</string>
     <string name="dialogTest">Probar</string>
 
-    <!-- other common labels and messages -->
+    <!-- many common labels and messages -->
     <string name="fillingWordAnd">y</string>
     <string name="fillingWordCustom">personalizado</string>
     <string name="fillingWordHas">tiene</string>
@@ -888,8 +887,6 @@
     <!-- intersection point -->
     <!-- format example: Intersection with 4 streets  -->
     <string name="intersectionNumberOfStreets">Cruce con %1$s</string>
-    <!-- format example: 2 crossings nearby -->
-    <string name="intersectionNumberOfCrossingsNearby">%1$s cercanos</string>
 
     <!-- PedestrianCrossing -->
     <!-- details in toString -->
@@ -1031,14 +1028,14 @@
     <string name="poiCategoryFood">Comida y bebida</string>
     <string name="poiCategoryAccommodation">Hoteles y alojamientos</string>
     <string name="poiCategoryTourism">Lugares de interés e información turística</string>
-    <string name="poiCategoryEntertainment">Entretenimiento:\n  Cines, teatros, bares, pubs, …</string>
+    <string name="poiCategoryEntertainment">Entretenimiento:\n  Cines, teatros, bares, pubs…</string>
     <string name="poiCategoryFinance">Finanzas</string>
     <string name="poiCategoryPostBox">Correos y paquetería, buzones</string>
     <string name="poiCategoryShop">Compras</string>
     <string name="poiCategoryEducation">Educación e investigación</string>
-    <string name="poiCategoryHealth">Salud:\n  Médicos, farmacias, hospitales, …</string>
-    <string name="poiCategorySport">Deportes y recreación:\n  Instalaciones deportivas, parques infantiles, parques, …</string>
-    <string name="poiCategoryPublicService">Servicios públicos:\n  Policía, bomberos, oficinas municipales, …</string>
+    <string name="poiCategoryHealth">Salud:\n  Médicos, farmacias, hospitales…</string>
+    <string name="poiCategorySport">Deportes y recreación:\n  Instalaciones deportivas, parques infantiles, parques…</string>
+    <string name="poiCategoryPublicService">Servicios públicos:\n  Policía, bomberos, oficinas municipales…</string>
     <string name="poiCategoryOtherService">Todos los demás servicios</string>
     <string name="poiCategoryElevator">Ascensores</string>
     <string name="poiCategorySanitary">Aseos y duchas</string>
@@ -1241,7 +1238,7 @@
     <string name="errorAddrReqNoCoordinatesForAddress">No se encontraron coordenadas para esta dirección.</string>
     <string name="errorAddrReqNoAddressForCoordinates">No se encontró ninguna dirección para estas coordenadas.</string>
 
-    <!-- other errors -->
+    <!-- many errors -->
     <string name="errorSavePointFailed">Error al crear el punto.</string>
     <string name="errorNoHomeAddressSet">Aún no has seleccionado tu dirección de casa. Puedes hacerlo en la configuración de la aplicación.</string>
     <string name="errorNoLocationFound">No hay ubicación disponible.</string>
@@ -1372,6 +1369,13 @@
         <item quantity="other">%d cruces</item>
     </plurals>
 
+    <!-- format example: 2 crossings nearby -->
+    <plurals
+        name="intersectionNumberOfCrossingsNearby">
+        <item quantity="one">1 cruce cercano</item>
+        <item quantity="other">%d cruces cercanos</item>
+    </plurals>
+
     <plurals
         name="entrance">
         <item quantity="one">1 entrada</item>
@@ -1442,6 +1446,12 @@
         name="poiCategorySelected">
         <item quantity="one">1 categoría de puntos seleccionada</item>
         <item quantity="other">%d categorías de puntos seleccionadas</item>
+    </plurals>
+
+    <plurals
+        name="labelSomethingPinned">
+        <item quantity="one">%1$s fijado</item>
+        <item quantity="other">%1$s fijados</item>
     </plurals>
 
 </resources>

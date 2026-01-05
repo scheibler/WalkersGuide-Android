@@ -229,7 +229,6 @@
     <string name="menuItemClearPinnedObjectsOnlyProfiles">Nur Profile</string>
     <string name="menuItemClearPinnedObjectsOnlyPointsAndRoutes">Nur Punkte und Routen</string>
     <string name="menuItemClearPinnedObjectsBoth">Alles zurücksetzen</string>
-    <string name="labelSomethingPinned">%1$s angeheftet</string>
     <string name="groupNameProfiles">Profile</string>
     <string name="buttonAddPinnedProfile">Profil anheften</string>
     <string name="groupNamePointsAndRoutes">Punkte und Routen</string>
@@ -876,7 +875,6 @@
 
     <!-- intersection point -->
     <string name="intersectionNumberOfStreets">Kreuzung mit %1$s</string>
-    <string name="intersectionNumberOfCrossingsNearby">%1$s in der Nähe</string>
 
     <!-- PedestrianCrossing -->
     <!-- details in toString -->
@@ -1350,6 +1348,13 @@
         <item quantity="other">%d Querungen</item>
     </plurals>
 
+    <!-- format example: 2 crossings nearby -->
+    <plurals
+        name="intersectionNumberOfCrossingsNearby">
+        <item quantity="one">1 Querung in der Nähe</item>
+        <item quantity="other">%d Querungen in der Nähe</item>
+    </plurals>
+
     <plurals
         name="entrance">
         <item quantity="one">1 Eingang</item>
@@ -1420,6 +1425,12 @@
         name="poiCategorySelected">
         <item quantity="one">1 Punktkategorie ausgewählt</item>
         <item quantity="other">%d Punktkategorien ausgewählt</item>
+    </plurals>
+
+    <plurals
+        name="labelSomethingPinned">
+        <item quantity="one">%1$s angeheftet</item>
+        <item quantity="other">%1$s angeheftet</item>
     </plurals>
 
 </resources>
