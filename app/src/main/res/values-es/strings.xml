@@ -132,7 +132,7 @@
     <!-- options menu -->
     <string name="planRouteMenuItemSwap">Intercambiar inicio y destino</string>
     <string name="planRouteMenuItemExcludedWays">Vías excluidas</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Ponderación de tipos de vía</string>
+    <string name="planRouteMenuItemRoutingWayClasses">Priorizar tipos de vía</string>
     <string name="planRouteMenuItemClear">Borrar puntos</string>
 
     <!-- ConfigureWayClassWeightsDialog -->
@@ -341,7 +341,7 @@
 
     <!-- PoiProfileListFragment -->
     <string name="fragmentPoiProfileListName">Perfiles de puntos</string>
-    <!-- the following is used as a toolbar title and is short for "Points nearby" -->
+    <!-- the following is used as a toolbar title and is short for "Points nearby / Puntos cercanos" -->
     <string name="fragmentPoiProfileListNameEmbedded">Cercanos</string>
     <string name="fragmentPoiProfileListNameSelect">Seleccionar perfil de puntos:</string>
     <string name="buttonAddPoiProfile">Añadir perfil de puntos</string>
@@ -389,7 +389,7 @@
     <!-- IntersectionStructureFragment -->
     <string name="fragmentIntersectionStructureName">Estructura del cruce</string>
     <string name="menuItemAnnounceWayAhead">Anunciar vías por delante</string>
-    <string name="labelPartOfPreviousRouteSegment">Segmento de ruta anterior</string>
+    <string name="labelPartOfPreviousRouteSegment">Anterior segmento de ruta</string>
     <string name="labelPartOfNextRouteSegment">Siguiente segmento de ruta</string>
 
     <!-- ExtendedObjectListFragment -->
@@ -405,7 +405,7 @@
     <!-- toolbar menu -->
     <string name="menuItemObjectTypeFilter">Filtrar por tipo</string>
     <string name="menuItemSortMethod">Ordenar por</string>
-    <string name="menuItemClearProfile">Vaciar perfil</string>
+    <string name="menuItemClearProfile">Borrar perfil</string>
     <!-- clear profile dialog -->
     <string name="clearProfileDialogTitle">¿Quieres eliminar todas las entradas del perfil \"%1$s\"?</string>
 
@@ -417,7 +417,7 @@
 
     <!-- PoiListFromServerFragment -->
     <string name="labelHeadingSecondLineRadius">Radio: %1$s</string>
-    <string name="labelMoreResults">Cargar más puntos</string>
+    <string name="labelMoreResults">Mostrar más puntos</string>
 
 
     <!--
@@ -504,7 +504,7 @@
     <string name="labelSegmentRouteDistance">Distancia</string>
     <!-- segment attributes -->
     <string name="labelSegmentFootwayAttributesHeading">Atributos</string>
-    <string name="labelSegmentBearing">Rumbo</string>
+    <string name="labelSegmentBearing">Orientación</string>
     <string name="labelSegmentFootwayDescription">Descripción</string>
     <string name="labelSegmentFootwaySidewalk">Acera</string>
     <string name="labelSegmentFootwaySurface">Superficie</string>
@@ -529,7 +529,7 @@
     <string name="menuItemSelectDepartureDateAndTime">Hora de salida</string>
     <string name="menuItemPublicTransportProvider">Proveedor de transporte público</string>
     <string name="menuItemSelectStation">Seleccionar estación</string>
-    <string name="labelNearby">Cercano</string>
+    <string name="labelNearby">Cerca de</string>
     <string name="labelNoPtStationsNearby">El proveedor de transporte seleccionado no encontró ninguna estación cercana.</string>
     <string name="labelSelectStation">Por favor, selecciona una estación.</string>
 
@@ -543,13 +543,13 @@
     <string name="selectDepartureDateAndTimeDialogTitle">Seleccionar fecha y hora de salida:</string>
 
     <!-- TripDetailsFragment -->
-    <string name="labelNoMoreStops">La línea llegó a su parada de destino.</string>
+    <string name="labelNoMoreStops">La línea ha llegado a su destino.</string>
 
     <!-- format departures -->
     <!-- format example: Tram 8 to main station -->
     <string name="labelLineAndDestination">%1$s a %2$s</string>
-    <string name="labelPredictedDeparture">Prevista</string>
-    <string name="labelPlannedDeparture">Planificada</string>
+    <string name="labelPredictedDeparture">Previsto</string>
+    <string name="labelPlannedDeparture">Planificado</string>
     <string name="labelFromPlatform">Desde andén %1$s</string>
 
 
@@ -567,9 +567,9 @@
     <string name="buttonServerMapNoSelection">Mapa: Ninguno seleccionado</string>
     <string name="switchPreferTranslatedStrings">Preferir traducciones</string>
     <string name="switchPreferTranslatedStringsHint">
-            Si la base de datos del mapa tiene varios idiomas almacenados para una entrada, este ajuste garantiza que la aplicación muestre
-            todo lo que esté disponible en el idioma de tu sistema o, como alternativa, en inglés.
-            Por ejemplo, el nombre de restaurantes o atracciones ocasionalmente está disponible como traducción al inglés.</string>
+            Si la base de datos del mapa tiene varios idiomas almacenados para una entrada, este ajuste garantiza que la aplicación muestra
+            todo lo que esté disponible en el idioma local o, sino, en inglés.
+            Por ejemplo, en ocasiones el nombre de restaurantes o atracciones están disponibles en varios idiomas.</string>
     <string name="labelPublicTransportSettingsHeader">Transporte público:</string>
     <string name="buttonPublicTransportProvider">Proveedor: %1$s</string>
     <string name="buttonPublicTransportProviderNoSelection">Proveedor: Ninguno seleccionado</string>
@@ -578,21 +578,21 @@
     <string name="switchShowActionButtonHint">Alternativamente, realiza una pulsación larga para abrir el menú contextual.</string>
     <string name="switchDisplayRemainsActive">Mantener pantalla activa mientras se usa la aplicación.</string>
     <string name="switchDisplayRemainsActiveHint">Desactiva la función de bloqueo automático de pantalla durante la navegación.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Preferir el proveedor de ubicación fusionado para la determinación de ubicación.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Si está activado, obtienes ubicaciones más precisas especialmente dentro de edificios.
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Preferir el proveedor de ubicación combinada para determinar la ubicación.</string>
+    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Si está activado se obtienen ubicaciones más precisas, especialmente dentro de edificios.
         Pero en algunos dispositivos puede causar problemas de precisión durante la navegación.
-        Si es así, deberías desactivar el proveedor de ubicación fusionado aquí.</string>
+        Si es así, deberías desactivar el proveedor de ubicación combinada aquí.</string>
     <string name="buttonShakeIntensity">Intensidad de agitación</string>
-    <string name="buttonShakeIntensityHint">Agita para actualizar el diálogo \"Dónde estoy\" y la pestaña \"Puntos\".</string>
+    <string name="buttonShakeIntensityHint">Agita el dispositivo para actualizar el diálogo \"Dónde estoy\" y la pestaña \"Puntos\".</string>
     <string name="labelTTSSettingsHeader">Texto a voz</string>
     <string name="switchAnnouncementsEnabled">Activar anuncios de voz</string>
     <string name="labelDistanceAnnouncementInterval">Intervalo de anuncio de distancia</string>
     <string name="labelDistanceAnnouncementIntervalUnit">metros</string>
-    <string name="buttonSpeechRate">Velocidad de voz</string>
+    <string name="buttonSpeechRate">Velocidad de la voz</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Mantener activa la conexión de auriculares Bluetooth</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">
         Algunos auriculares Bluetooth entran en modo de suspensión después de un tiempo de inactividad y su posterior
-        activación produce un retraso notable. Entonces el inicio del
+        activación produce un retraso notable al reproducir sonido. El inicio del
         siguiente anuncio de voz puede quedar truncado.</string>
     <string name="labelImportAndExportSettingsHeader">Importar y exportar:</string>
     <string name="buttonImportSettings">Importar ajustes de la aplicación</string>
@@ -616,8 +616,8 @@
     <string name="selectShakeIntensityDialogTitle">Seleccionar intensidad:</string>
 
     <!-- SpeechRateDialog -->
-    <string name="buttonDecreaseSpeechRate">Reducir velocidad de voz</string>
-    <string name="buttonIncreaseSpeechRate">Aumentar velocidad de voz</string>
+    <string name="buttonDecreaseSpeechRate">Reducir velocidad de la voz</string>
+    <string name="buttonIncreaseSpeechRate">Aumentar velocidad de la voz</string>
 
     <!-- InfoFragment -->
     <string name="fragmentInfoName">Información</string>
@@ -637,7 +637,7 @@
     <string name="labelSelectedMapCreated">Creado</string>
     <!-- public transport data -->
     <string name="labelPublicTransportHeading">Datos de transporte público</string>
-    <string name="labelPublicTransportMessage">Los datos de transporte público son proporcionados por la biblioteca &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
+    <string name="labelPublicTransportMessage">Los datos de transporte público están proporcionados por la biblioteca &lt;a href="%1$s"&gt;Public-transport-enabler&lt;/a&gt;.
         Aquí puedes encontrar la &lt;a href="%2$s"&gt;lista de todos los proveedores compatibles&lt;/a&gt;.</string>
 
     <!-- SendFeedbackDialog -->
@@ -659,7 +659,7 @@
         <item>Fecha: 19 de noviembre de 2025</item>
         <item>- Categorías de puntos de interés actualizadas</item>
         <item>- Añadidas predicciones de salida en tiempo real a salidas y detalles de viaje</item>
-        <item>- Mejorado el rendimiento de actualización de brújula y ubicación</item>
+        <item>- Mejorado el rendimiento de actualización de la brújula y la ubicación</item>
         <item>- Actualizado el diseño de la flecha de dirección</item>
         <item>- Añadido soporte para Android 16</item>
     </string-array>
@@ -748,7 +748,7 @@
     <string name="contextMenuItemObjectWithIdStreetCourse">Recorrido de la calle</string>
     <string name="contextMenuItemObjectWithIdExcludeFromRouting">Excluido de la planificación de rutas</string>
     <string name="contextMenuItemObjectWithIdSimulateLocation">Ubicación simulada</string>
-    <string name="contextMenuItemObjectWithIdSimulateBearing">Rumbo simulado</string>
+    <string name="contextMenuItemObjectWithIdSimulateBearing">Orientación simulado</string>
     <string name="contextMenuItemObjectWithIdNavigateToThisPoint">Navegar a este punto</string>
     <string name="contextMenuItemObjectWithIdCollections">Añadir a colecciones</string>
     <string name="contextMenuItemObjectWithIdRoutePlanner">Planificador de rutas</string>
@@ -816,7 +816,7 @@
     <string name="labelIndexSelected">Instrucción actual</string>
 
     <!-- IntersectionScheme -->
-    <string name="labelIntersectionScheme">Esquema de la intersección</string>
+    <string name="labelIntersectionScheme">Esquema del cruce</string>
     <string name="labelIntersectionCenter">Centro del cruce</string>
 
     <!-- common context menu entries -->
@@ -836,7 +836,7 @@
     <string name="dialogClose">Cerrar</string>
     <string name="dialogYes">Sí</string>
     <string name="dialogNo">No</string>
-    <string name="dialogSelectAll">Todo</string>
+    <string name="dialogSelectAll">Todos</string>
     <string name="dialogAdd">Añadir</string>
     <string name="dialogAppInfo">Abrir página de información de la aplicación</string>
     <string name="dialogClear">Borrar</string>
@@ -860,7 +860,7 @@
     <string name="viewClassNameTab">Pestaña</string>
     <string name="messagePleaseWait">Por favor, espera…</string>
     <string name="messageNameIsMissing">Por favor, introduce un nombre.</string>
-    <string name="messageRenameFailed">El renombrado falló.</string>
+    <string name="messageRenameFailed">Renombrado fallido.</string>
     <string name="messageSetUserAnnotationFailed">No se pudo guardar la anotación.</string>
 
 
@@ -895,7 +895,7 @@
     <string name="pedestrianCrossingDetailsCrossingBarrierYes">Barrera</string>
     <string name="pedestrianCrossingDetailsKerbNo">Sin bordillo</string>
     <string name="pedestrianCrossingDetailsSoundYes">Sonido</string>
-    <string name="pedestrianCrossingDetailsTactilePavingYes">Pavimento táctil</string>
+    <string name="pedestrianCrossingDetailsTactilePavingYes">Superficie podotáctil</string>
     <!-- CrossingBarrier -->
     <string name="crossingBarrierFull">Completa</string>
     <string name="crossingBarrierHalf">Media</string>
@@ -952,9 +952,9 @@
     <string name="directionStraightAhead">Todo recto</string>
     <string name="directionRightSlightly">ligeramente a la derecha</string>
     <string name="directionRight">a la derecha</string>
-    <string name="directionRightStrongly">muy a la derecha</string>
+    <string name="directionRightStrongly">completamente a la derecha</string>
     <string name="directionBehind">Detrás de ti</string>
-    <string name="directionLeftStrongly">muy a la izquierda</string>
+    <string name="directionLeftStrongly">completamente a la izquierda</string>
     <string name="directionLeft">a la izquierda</string>
     <string name="directionLeftSlightly">ligeramente a la izquierda</string>
 
@@ -963,9 +963,9 @@
     <string name="instructionCross">Cruzar</string>
     <string name="instructionTurnRightSlightly">Girar ligeramente a la derecha</string>
     <string name="instructionTurnRight">Girar a la derecha</string>
-    <string name="instructionTurnRightStrongly">Girar muy a la derecha</string>
+    <string name="instructionTurnRightStrongly">Girar completamente a la derecha</string>
     <string name="instructionTurnRound">Dar la vuelta</string>
-    <string name="instructionTurnLeftStrongly">Girar muy a la izquierda</string>
+    <string name="instructionTurnLeftStrongly">Girar completamente a la izquierda</string>
     <string name="instructionTurnLeft">Girar a la izquierda</string>
     <string name="instructionTurnLeftSlightly">Girar ligeramente a la izquierda</string>
 
@@ -1005,7 +1005,7 @@
     <string name="collectionNameFavorites">Favoritos</string>
 
     <!-- ObjectTypeFilter -->
-    <string name="objectTypeFilterAll">Todo</string>
+    <string name="objectTypeFilterAll">Todos</string>
     <string name="objectTypeFilterPoints">Puntos</string>
     <string name="objectTypeFilterRoutes">Rutas</string>
     <string name="objectTypeFilterSegments">Caminos</string>
@@ -1166,7 +1166,7 @@
     <string name="bearingSensorAccuracyUnknown">Desconocida</string>
 
     <!-- ShakeIntensity -->
-    <string name="shakeIntensityDisabled">Desactivado</string>
+    <string name="shakeIntensityDisabled">Desactivada</string>
     <string name="shakeIntensityVeryWeak">Muy débil</string>
     <string name="shakeIntensityWeak">Débil</string>
     <string name="shakeIntensityMedium">Media</string>
@@ -1192,16 +1192,16 @@
 
     <!-- walkersguide server -->
     <string name="errorWgReqBadRequest">Servidor WalkersGuide: Parámetros de solicitud no válidos.</string>
-    <string name="errorWgReqRequestInProgress">Una solicitud anterior aún se está procesando. Por favor, inténtalo más tarde.</string>
+    <string name="errorWgReqRequestInProgress">Una solicitud anterior aún se está procesando. Por favor, inténtalo de nuevo más tarde.</string>
     <string name="errorWgReqInternalServerError">Error interno del servidor.</string>
-    <string name="errorWgReqServiceUnavailableOrBusy">El servidor está ocupado. Por favor, inténtalo más tarde.</string>
+    <string name="errorWgReqServiceUnavailableOrBusy">El servidor está ocupado. Por favor, inténtalo de nuevo más tarde.</string>
     <string name="errorWgReqNoPOITagsSelected">No hay categorías de puntos seleccionadas.</string>
     <string name="errorWgReqMapLoadingFailed">El mapa seleccionado no está disponible en el servidor o está desactualizado.</string>
     <string name="errorWgReqWrongMapSelected">La ubicación indicada está fuera del mapa seleccionado.</string>
     <string name="errorWgReqMapOutdated">El mapa seleccionado no ofrece esta función.</string>
     <string name="errorWgReqStartOrDestinationMissing">Falta el punto de inicio o destino.</string>
     <string name="errorWgReqStartAndDestinationTooFarAway">La distancia entre los puntos de inicio y destino es demasiado grande. Por favor, incluye al menos un punto intermedio.</string>
-    <string name="errorWgReqTooManyWayClassesIgnored">Has excluido demasiadas clases de vías del cálculo de rutas.</string>
+    <string name="errorWgReqTooManyWayClassesIgnored">Has excluido demasiados tipos de caminos del cálculo de rutas.</string>
     <string name="errorWgReqNoRouteBetweenStartAndDestination">El servidor no puede encontrar una ruta entre el inicio y el destino indicados.</string>
 
     <!-- app errorWgReqs -->
@@ -1213,10 +1213,10 @@
     <!-- route -->
     <string name="errorWgReqNoRouteCreated">No se ha creado ninguna ruta.</string>
     <string name="errorWgReqNoRouteSelected">No hay ninguna ruta seleccionada.</string>
-    <string name="errorWgReqRouteParsing">Error al analizar la ruta.</string>
+    <string name="errorWgReqRouteParsing">Error al procesar la ruta.</string>
     <!-- status -->
     <string name="errorWgReqNoServerURL">URL del servidor vacía o no válida.</string>
-    <string name="errorWgReqAPIClientOutdated">La versión de la API de esta aplicación es demasiado antigua para el servidor seleccionado. Por favor, busca actualizaciones de la aplicación en walkersguide.org o en Google Play Store.</string>
+    <string name="errorWgReqAPIClientOutdated">La versión de la API de esta aplicación es demasiado antigua para el servidor seleccionado. Por favor, busca actualizaciones en walkersguide.org o en la tienda Google Play.</string>
     <string name="errorWgReqAPIServerOutdated">La versión de la API del servidor de mapas seleccionado ya no es compatible con esta aplicación.</string>
     <string name="errorWgReqNoMapList">El servidor no ofrece ningún mapa.</string>
 
