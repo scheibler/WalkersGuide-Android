@@ -32,10 +32,10 @@
         La aplicación no recibirá actualizaciones de ubicación</string>
     <string name="messageLocationPermissionDeniedShort">Permiso de ubicación denegado</string>
     <string name="messagePostNotificationsPermissionDenied">La aplicación no recibirá actualizaciones de ubicación
-        porque no tiene permiso para enviarte notificaciones. Muchas de las funciones de WalkersGuide,
+        porque no tiene permiso para enviar notificaciones. Muchas de las funciones de WalkersGuide,
         como el seguimiento de ubicación y la grabación de rutas, se ejecutan en un servicio. Android requiere que este tipo de servicio
-        muestre una notificación si quiere ejecutarse de forma permanente.
-        Por eso, la aplicación solicita este permiso.</string>
+        muestre una notificación para ejecutarse de forma permanente.
+        La aplicación solicita este permiso por este motivo.</string>
     <string name="messagePostNotificationsPermissionDeniedShort">Permiso para enviar notificaciones denegado.</string>
 
     <!-- location provider disabled -->
@@ -54,8 +54,8 @@
 
     <!-- TrackingMode hints -->
     <string name="wgTrackingModeHintOff">Seguimiento desactivado</string>
-    <string name="wgTrackingModeHintDistance">Los puntos y rutas se anuncian cuando pasas cerca de ellos.</string>
-    <string name="wgTrackingModeHintBearing">Gira lentamente y escucha los puntos y rutas que están frente a ti.</string>
+    <string name="wgTrackingModeHintDistance">Los puntos y rutas se anuncian al pasar cerca de ellos.</string>
+    <string name="wgTrackingModeHintBearing">Gira lentamente y escucha los puntos y rutas que están en frente.</string>
 
 
     <!--
@@ -96,7 +96,7 @@
     <string name="labelGPSAccuracy">Precisión</string>
     <string name="labelGPSMslAltitude">Elevación</string>
     <string name="labelGPSEllipsoidAltitude">Elevación (aprox.)</string>
-    <string name="labelGPSBearing">Rumbo</string>
+    <string name="labelGPSBearing">Orientación</string>
     <string name="labelGPSSpeed">Velocidad</string>
     <string name="labelGPSTime">Última posición a las</string>
 
@@ -157,7 +157,7 @@
     <string name="pointSelectFromEnterAddress">Introducir dirección</string>
     <string name="pointSelectFromEnterCoordinates">Introducir coordenadas</string>
     <string name="pointSelectFromCollections">Colecciones</string>
-    <string name="pointSelectFromPOI">Seleccionar desde puntos cercanos</string>
+    <string name="pointSelectFromPOI">Seleccionar entre puntos cercanos</string>
     <string name="pointSelectFromHistory">Historial</string>
     <string name="pointSelectFromCoordinatesLink">Importar desde enlace compartido</string>
 
@@ -182,10 +182,10 @@
     <string name="pointFromCoordinatesLinkDialogTitle">Introducir enlace de coordenadas:</string>
     <string name="editHintMapLinkURL">URL de Google Maps, Apple Maps u OSM</string>
     <string name="messageLinkUrlMissing">Falta la URL de coordenadas.</string>
-    <string name="messageAppleMapsUrlFormatUnknown">No se pudo extraer la latitud y longitud. El formato de URL de coordenadas de Apple Maps es desconocido.</string>
-    <string name="messageGoogleMapsUrlFormatUnknown">No se pudo extraer la latitud y longitud. El formato de URL de coordenadas de Google Maps es desconocido.</string>
-    <string name="messageOsmOrgUrlFormatUnknown">No se pudo extraer la latitud y longitud. El formato de URL de coordenadas de OpenStreetMap es desconocido.</string>
-    <string name="messageOsmAndUrlFormatUnknown">No se pudo extraer la latitud y longitud. El formato de URL de coordenadas de OsmAnd es desconocido.</string>
+    <string name="messageAppleMapsUrlFormatUnknown">No se pudo extraer latitud y longitud. El formato de URL de coordenadas de Apple Maps es desconocido.</string>
+    <string name="messageGoogleMapsUrlFormatUnknown">No se pudo extraer latitud y longitud. El formato de URL de coordenadas de Google Maps es desconocido.</string>
+    <string name="messageOsmOrgUrlFormatUnknown">No se pudo extraer latitud y longitud. El formato de URL de coordenadas de OpenStreetMap es desconocido.</string>
+    <string name="messageOsmAndUrlFormatUnknown">No se pudo extraer latitud y longitud. El formato de URL de coordenadas de OsmAnd es desconocido.</string>
     <string name="messageLinkContainsInvalidCoordinates">Se encontraron coordenadas no válidas.</string>
     <string name="messageCouldNotResolveShortenedUrl">No se pudo resolver la URL acortada.</string>
     <string name="messageCouldNotObtainCoordinatesForOsmOrgNodeId">No se pudieron obtener las coordenadas para el ID de nodo introducido.</string>
@@ -236,7 +236,7 @@
     <string name="buttonAddPinnedProfile">Fijar perfil</string>
     <string name="groupNamePointsAndRoutes">Puntos y rutas</string>
     <string name="buttonAddPinnedPointOrRoute">Fijar punto o ruta</string>
-    <string name="labelNoPinnedObjectsHint">Aquí puedes añadir perfiles de puntos y colecciones, así como puntos y rutas para acceder rápidamente a ellos.</string>
+    <string name="labelNoPinnedObjectsHint">Aquí se pueden añadir perfiles de puntos y colecciones, así como puntos y rutas para acceder rápidamente.</string>
 
     <!-- track fragment -->
     <string name="fragmentTrackName">Seguir</string>
@@ -247,18 +247,18 @@
     <string name="spinnerTrackingModeCD">Modo de seguimiento</string>
     <string name="spinnerTrackingModePrompt">Seleccionar modo de seguimiento:</string>
     <string name="layoutTrackedProfile">Perfil seguido</string>
-    <string name="labelAnnouncementRadius">Dentro del radio de:</string>
-    <string name="spinnerAnnouncementRadiusPrompt">Anuncios dentro del radio de:</string>
+    <string name="labelAnnouncementRadius">Dentro de un radio de:</string>
+    <string name="spinnerAnnouncementRadiusPrompt">Anuncios dentro de un radio de:</string>
     <string name="buttonAddTrackedPoint">Añadir punto</string>
-    <string name="labelNoTrackedObjectsHint">Añade puntos que quieras seguir. Se anunciarán mediante voz periódicamente,
-        dependiendo del modo de seguimiento que hayas seleccionado arriba.</string>
+    <string name="labelNoTrackedObjectsHint">Añade puntos a seguir. Se anunciarán mediante voz periódicamente,
+        dependiendo del modo de seguimiento que se haya seleccionado arriba.</string>
 
     <!-- navigate fragment -->
     <string name="fragmentNavigateName">Navegar</string>
     <string name="labelRoutePosition">%1$d de %2$d\t(%3$d de %4$s, %5$d%%)</string>
-    <string name="labelRoutePositionCD">Instrucción %1$d de %2$d, %3$d de %4$s completado, %5$d%%</string>
+    <string name="labelRoutePositionCD">Instrucción %1$d de %2$d, %3$d de %4$s completada, %5$d%%</string>
     <string name="labelIntersectionStructureHeading">Estructura del cruce</string>
-    <string name="buttonPreviousRouteObject">Punto de ruta anterior</string>
+    <string name="buttonPreviousRouteObject">Anterior punto de ruta</string>
     <string name="buttonNextRouteObject">Siguiente punto de ruta</string>
     <string name="messageFirstSegment">Punto de inicio de la ruta</string>
     <!-- format example: 20 meters on main street, afterwards turn left -->
@@ -274,7 +274,7 @@
     <!-- record route fragment -->
     <string name="fragmentRecordRouteName">Grabar</string>
     <string name="menuItemCancelRouteRecording">Cancelar grabación</string>
-    <string name="cancelRouteRecordingDialogTitle">¿Realmente quieres cancelar esta grabación? La ruta ya grabada se perderá.</string>
+    <string name="cancelRouteRecordingDialogTitle">¿Realmente quieres cancelar esta grabación? La ruta grabada se perderá.</string>
     <string name="labelRecordedRouteStatus">Grabado</string>
     <string name="buttonStartRouteRecording">Iniciar grabación</string>
     <string name="buttonPauseRecording">Pausar</string>
@@ -316,7 +316,7 @@
     <string name="fragmentCollectionListName">Colecciones</string>
     <string name="fragmentCollectionListNameSelect">Seleccionar colección:</string>
     <string name="buttonAddCollection">Añadir colección</string>
-    <string name="labelEmptyCollectionList">Añade colecciones para ayudarte a gestionar tus puntos y rutas recopilados.</string>
+    <string name="labelEmptyCollectionList">Añade colecciones para ayudarte a gestionar tus puntos y rutas recopiladas.</string>
 
     <!-- create collections -->
     <string name="layoutCollectionName">Nombre de la colección:</string>
@@ -345,7 +345,7 @@
     <string name="fragmentPoiProfileListNameEmbedded">Cercanos</string>
     <string name="fragmentPoiProfileListNameSelect">Seleccionar perfil de puntos:</string>
     <string name="buttonAddPoiProfile">Añadir perfil de puntos</string>
-    <string name="labelEmptyPoiProfileList">Por favor, crea al menos un perfil de puntos para buscar puntos de interés cercanos.</string>
+    <string name="labelEmptyPoiProfileList">Crea al menos un perfil de puntos para buscar puntos de interés cercanos.</string>
 
     <!-- CreatePoiProfileDialog  -->
     <!-- Although in the apps code the following profile is referred to poi profile, in the ui it should use the more general "point profile" -->
@@ -576,7 +576,7 @@
     <string name="labelInterfaceSettingsHeader">Interfaz de usuario:</string>
     <string name="switchShowActionButton">Mostrar botón de acción</string>
     <string name="switchShowActionButtonHint">Alternativamente, realiza una pulsación larga para abrir el menú contextual.</string>
-    <string name="switchDisplayRemainsActive">La pantalla permanece activa mientras se usa la aplicación.</string>
+    <string name="switchDisplayRemainsActive">Mantener pantalla activa mientras se usa la aplicación.</string>
     <string name="switchDisplayRemainsActiveHint">Desactiva la función de bloqueo automático de pantalla durante la navegación.</string>
     <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Preferir el proveedor de ubicación fusionado para la determinación de ubicación.</string>
     <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Si está activado, obtienes ubicaciones más precisas especialmente dentro de edificios.
