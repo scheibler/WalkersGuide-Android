@@ -23,15 +23,15 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 63
-        versionName '3.2.3'
+        versionCode 64
+        versionName '3.3.0'
         minSdkVersion 21
         targetSdkVersion 36
         multiDexEnabled true
         resConfigs "en", "de", "es", "uk"
         // when to show the ChangelogDialog
         // see the 'versionCode' variable above
-        buildConfigField 'Integer', 'CHANGELOG_VERSION_CODE', '63'
+        buildConfigField 'Integer', 'CHANGELOG_VERSION_CODE', '64'
         // contact data
         buildConfigField 'String', 'CONTACT_EMAIL', '"info@walkersguide.org"'
         buildConfigField 'String', 'CONTACT_WEBSITE', '"https://www.walkersguide.org"'
@@ -96,6 +96,14 @@ android {
         }
     }
 
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 17
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
@@ -124,7 +132,7 @@ dependencies {
 
     // material design
     implementation 'com.google.android.material:material:1.13.0'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0'
 
     // google helpers
     implementation 'com.google.guava:guava:33.5.0-android'
@@ -132,6 +140,9 @@ dependencies {
 
     // logging
     implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    // Desugaring
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
     // public transport enabler
     implementation 'de.schildbach.pte:public-transport-enabler'

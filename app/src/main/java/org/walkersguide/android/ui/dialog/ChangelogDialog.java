@@ -159,6 +159,12 @@ public class ChangelogDialog extends DialogFragment {
                         Item.TYPE_HEADING,
                         context.getResources().getString(R.string.labelInfoLastChangelog)));
 
+            // version 3.3.0
+            this.itemList.addAll(
+                    createChangelogEntry(
+                        context.getResources().getString(R.string.changesHeading3_3_0),
+                        context.getResources().getStringArray(R.array.changesList3_3_0)));
+
             // version 3.2.3
             this.itemList.addAll(
                     createChangelogEntry(

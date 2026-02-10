@@ -626,6 +626,12 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Всі зміни</string>
 
+    <string name="changesHeading3_3_0">Version 3.3.0</string>
+    <string-array name="changesList3_3_0">
+        <item>Дата: 9 лютого 2026 року</item>
+        <item>- Додано переклад іспанською мовою</item>
+    </string-array>
+
     <string name="changesHeading3_2_3">Версія 3.2.3</string>
     <string-array name="changesList3_2_3">
         <item>Дата: 19 листопада 2025</item>

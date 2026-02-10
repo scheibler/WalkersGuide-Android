@@ -643,6 +643,12 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Alle Änderungen</string>
 
+    <string name="changesHeading3_3_0">Version 3.3.0</string>
+    <string-array name="changesList3_3_0">
+        <item>Datum: 9. Februar 2026</item>
+        <item>- Spanische Übersetzung hinzugefügt</item>
+    </string-array>
+
     <string name="changesHeading3_2_3">Version 3.2.3</string>
     <string-array name="changesList3_2_3">
         <item>Datum: 19.11.2025</item>

@@ -139,10 +139,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         if (menuItemShowIntersectionLayoutDetails != null) {
             menuItemShowIntersectionLayoutDetails.setChecked(
                     settingsManagerInstance.getShowIntersectionLayoutDetails());
-            // only show intersection structure details menu item on android >= 7
-            // due to stream() method in "updateUi"
-            menuItemShowIntersectionLayoutDetails.setVisible(
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N);
         }
         // precise bearings
         MenuItem menuItemShowPreciseBearingValues = menu.findItem(R.id.menuItemShowPreciseBearingValues);
@@ -425,7 +421,6 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         // intersection structure
         layoutIntersectionStructure.setVisibility(View.GONE);
         if (currentRouteObject.getPoint() instanceof Intersection
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N   // due to stream() method below
                 && settingsManagerInstance.getShowIntersectionLayoutDetails()) {
             Intersection intersection = (Intersection) currentRouteObject.getPoint();
 
@@ -446,7 +441,8 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                         inverseBearingOfPreviousRouteSegment, Angle.Quadrant.Q3.max, true);
 
                 int index = 0;
-                for (IntersectionSegment intersectionSegment : intersection.getSegmentList().stream().sorted(comparator).collect(Collectors.toList())) {
+                for (IntersectionSegment intersectionSegment : intersection.getSegmentList()
+                        .stream().sorted(comparator).collect(Collectors.toList())) {
                     RelativeBearing relativeBearingIntersectionSegment = intersectionSegment
                         .getBearing()
                         .relativeTo(inverseBearingOfPreviousRouteSegment);

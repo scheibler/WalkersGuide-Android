@@ -654,6 +654,12 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Todos los cambios</string>
 
+    <string name="changesHeading3_3_0">Version 3.3.0</string>
+    <string-array name="changesList3_3_0">
+        <item>Fecha: 9 de febrero de 2026</item>
+        <item>- Añadir traducción al español</item>
+    </string-array>
+
     <string name="changesHeading3_2_3">Versión 3.2.3</string>
     <string-array name="changesList3_2_3">
         <item>Fecha: 19 de noviembre de 2025</item>
