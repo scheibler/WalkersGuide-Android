@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:labelFor="@+id/spinnerSelectDefaultWayClassWeightSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/HeadingTextView"
+        android:text="@string/labelDefaultWayClassWeightSettingsHeading" />
+
+    <Spinner
+        android:id="@+id/spinnerSelectDefaultWayClassWeightSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:spinnerMode="dialog"
+        android:prompt="@string/spinnerSelectDefaultWayClassWeightSettingsPrompt" />
+
+
+    <!-- available way class weight settings list -->
+
+    <include
+        layout="@layout/layout_heading_and_add_button" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewAvailableWayClassWeightSettings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="4dp"
+        android:scrollbars="vertical" />
+
+    <LinearLayout
+        android:id="@+id/layoutEmptyView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="vertical" >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/labelNoRouteProfilesAvailable" />
+
+        <Button
+            android:id="@+id/buttonRestoreDefaultWayClassWeightSettingsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/buttonRestoreDefaultWayClassWeightSettingsList" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -12,112 +12,110 @@ import java.util.Locale;
 import java.util.LinkedHashMap;
 import java.lang.Comparable;
 import org.walkersguide.android.util.GlobalInstance;
+import android.text.TextUtils;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
 
 
 public class WayClassWeightSettings implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    public enum Preset {
-        SHORTEST_ROUTE(
-                1,
+    public static WayClassWeightSettings createShortestRoute() {
+        return new WayClassWeightSettings(
+                ID_SHORTEST_ROUTE,
                 GlobalInstance.getStringResource(R.string.wcwsPresetShortestRoute),
-                presetShortestRoute()),
-        URBAN_ON_FOOT(
-                2,
+                weightsForShortestRoute());
+    }
+
+    private static final String ID_SHORTEST_ROUTE = "SHORTEST_ROUTE";
+    private static Map<WayClassType,WayClassWeight> weightsForShortestRoute() {
+        Map<WayClassType,WayClassWeight> map = new LinkedHashMap<>();
+        for (WayClassType type : WayClassType.values()) {
+            map.put(type, WayClassWeight.NEUTRAL);
+        }
+        return map;
+    }
+
+    public static WayClassWeightSettings createUrbanOnFoot() {
+        return new WayClassWeightSettings(
+                ID_URBAN_ON_FOOT,
                 GlobalInstance.getStringResource(R.string.wcwsPresetUrbanOnFoot),
-                presetUrbanOnFoot()),
-        URBAN_BY_CAR(
-                3,
+                weightsForUrbanOnFoot());
+    }
+
+    private static final String ID_URBAN_ON_FOOT = "URBAN_ON_FOOT";
+    private static Map<WayClassType,WayClassWeight> weightsForUrbanOnFoot() {
+        Map<WayClassType,WayClassWeight> map = new LinkedHashMap<>();
+        map.put(WayClassType.BIG_STREETS, WayClassWeight.SLIGHTLY_PREFER);
+        map.put(WayClassType.SMALL_STREETS, WayClassWeight.STRONGLY_PREFER);
+        map.put(WayClassType.PAVED_WAYS, WayClassWeight.NEUTRAL);
+        map.put(WayClassType.UNPAVED_WAYS, WayClassWeight.AVOID);
+        map.put(WayClassType.STEPS, WayClassWeight.SLIGHTLY_AVOID);
+        map.put(WayClassType.UNCLASSIFIED_WAYS, WayClassWeight.AVOID);
+        return map;
+    }
+
+    public static WayClassWeightSettings createUrbanByCar() {
+        return new WayClassWeightSettings(
+                ID_URBAN_BY_CAR,
                 GlobalInstance.getStringResource(R.string.wcwsPresetUrbanByCar),
-                presetUrbanByCar()),
-        HIKING(
-                4,
+                weightsForUrbanByCar());
+    }
+
+    private static final String ID_URBAN_BY_CAR = "URBAN_BY_CAR";
+    private static Map<WayClassType,WayClassWeight> weightsForUrbanByCar() {
+        Map<WayClassType,WayClassWeight> map = new LinkedHashMap<>();
+        map.put(WayClassType.BIG_STREETS, WayClassWeight.STRONGLY_PREFER);
+        map.put(WayClassType.SMALL_STREETS, WayClassWeight.NEUTRAL);
+        map.put(WayClassType.PAVED_WAYS, WayClassWeight.EXCLUDE);
+        map.put(WayClassType.UNPAVED_WAYS, WayClassWeight.EXCLUDE);
+        map.put(WayClassType.STEPS, WayClassWeight.EXCLUDE);
+        map.put(WayClassType.UNCLASSIFIED_WAYS, WayClassWeight.EXCLUDE);
+        return map;
+    }
+
+    public static WayClassWeightSettings createHiking() {
+        return new WayClassWeightSettings(
+                ID_HIKING,
                 GlobalInstance.getStringResource(R.string.wcwsPresetHiking),
-                presetHiking());
+                weightsForHiking());
+    }
 
-        public static Preset matchesId(int presetId) {
-            for (Preset preset : values()) {
-                if (preset.id == presetId) {
-                    return preset;
-                }
-            }
-            return null;
-        }
-
-        public static Preset matchesSettings(WayClassWeightSettings settings) {
-            for (Preset preset : values()) {
-                if (preset.settings.equals(settings)) {
-                    return preset;
-                }
-            }
-            return null;
-        }
-
-        public int id;
-        public String label;
-        public WayClassWeightSettings settings;
-
-        private Preset(int id, String label, WayClassWeightSettings settings) {
-            this.id = id;
-            this.label = label;
-            this.settings = settings;
-        }
-
-        @Override public String toString() {
-            return this.label.replace(" ", "\u00A0");
-        }
-
-        private static WayClassWeightSettings presetShortestRoute() {
-            LinkedHashMap<WayClassType,WayClassWeight> map = new LinkedHashMap<WayClassType,WayClassWeight>();
-            for (WayClassType type : WayClassType.values()) {
-                map.put(type, WayClassWeight.NEUTRAL);
-            }
-            return new WayClassWeightSettings(map);
-        }
-
-        private static WayClassWeightSettings presetUrbanOnFoot() {
-            LinkedHashMap<WayClassType,WayClassWeight> map = new LinkedHashMap<WayClassType,WayClassWeight>();
-            map.put(WayClassType.BIG_STREETS, WayClassWeight.SLIGHTLY_PREFER);
-            map.put(WayClassType.SMALL_STREETS, WayClassWeight.STRONGLY_PREFER);
-            map.put(WayClassType.PAVED_WAYS, WayClassWeight.NEUTRAL);
-            map.put(WayClassType.UNPAVED_WAYS, WayClassWeight.AVOID);
-            map.put(WayClassType.STEPS, WayClassWeight.SLIGHTLY_AVOID);
-            map.put(WayClassType.UNCLASSIFIED_WAYS, WayClassWeight.AVOID);
-            return new WayClassWeightSettings(map);
-        }
-
-        private static WayClassWeightSettings presetUrbanByCar() {
-            LinkedHashMap<WayClassType,WayClassWeight> map = new LinkedHashMap<WayClassType,WayClassWeight>();
-            map.put(WayClassType.BIG_STREETS, WayClassWeight.STRONGLY_PREFER);
-            map.put(WayClassType.SMALL_STREETS, WayClassWeight.NEUTRAL);
-            map.put(WayClassType.PAVED_WAYS, WayClassWeight.EXCLUDE);
-            map.put(WayClassType.UNPAVED_WAYS, WayClassWeight.EXCLUDE);
-            map.put(WayClassType.STEPS, WayClassWeight.EXCLUDE);
-            map.put(WayClassType.UNCLASSIFIED_WAYS, WayClassWeight.EXCLUDE);
-            return new WayClassWeightSettings(map);
-        }
-
-        private static WayClassWeightSettings presetHiking() {
-            LinkedHashMap<WayClassType,WayClassWeight> map = new LinkedHashMap<WayClassType,WayClassWeight>();
-            map.put(WayClassType.BIG_STREETS, WayClassWeight.EXCLUDE);
-            map.put(WayClassType.SMALL_STREETS, WayClassWeight.AVOID);
-            map.put(WayClassType.PAVED_WAYS, WayClassWeight.STRONGLY_PREFER);
-            map.put(WayClassType.UNPAVED_WAYS, WayClassWeight.NEUTRAL);
-            map.put(WayClassType.STEPS, WayClassWeight.AVOID);
-            map.put(WayClassType.UNCLASSIFIED_WAYS, WayClassWeight.AVOID);
-            return new WayClassWeightSettings(map);
-        }
+    private static final String ID_HIKING = "HIKING";
+    private static Map<WayClassType,WayClassWeight> weightsForHiking() {
+        Map<WayClassType,WayClassWeight> map = new LinkedHashMap<>();
+        map.put(WayClassType.BIG_STREETS, WayClassWeight.EXCLUDE);
+        map.put(WayClassType.SMALL_STREETS, WayClassWeight.AVOID);
+        map.put(WayClassType.PAVED_WAYS, WayClassWeight.STRONGLY_PREFER);
+        map.put(WayClassType.UNPAVED_WAYS, WayClassWeight.NEUTRAL);
+        map.put(WayClassType.STEPS, WayClassWeight.AVOID);
+        map.put(WayClassType.UNCLASSIFIED_WAYS, WayClassWeight.AVOID);
+        return map;
     }
 
 
-    private LinkedHashMap<WayClassType,WayClassWeight> typeWeightMap;
+    private String id, name;
+    private Map<WayClassType,WayClassWeight> typeWeightMap;
 
-    public WayClassWeightSettings(LinkedHashMap<WayClassType,WayClassWeight> typeWeightMap) {
+    public WayClassWeightSettings(String name) {
+        this.id = UUID.randomUUID().toString();
+        this.name = name;
+        this.typeWeightMap = weightsForShortestRoute();
+    }
+
+    private WayClassWeightSettings(String id, String name, Map<WayClassType,WayClassWeight> typeWeightMap) {
+        this.id = id;
+        this.name = name;
         this.typeWeightMap = typeWeightMap;
     }
 
-    public int getNumberOfEntries() {
-        return this.typeWeightMap.size();
+    public String getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public WayClassWeight getWeightFor(WayClassType type) {
@@ -130,41 +128,39 @@ public class WayClassWeightSettings implements Serializable {
         }
     }
 
-    @Override public int hashCode() {
-        int result = 1;
+    public String formatWayClassWeightsForContentDescription() {
+        List<String> formattedWayClassWeightSettings = new ArrayList<>();
         for (Map.Entry<WayClassType,WayClassWeight> entry : typeWeightMap.entrySet()) {
-            result += Double.valueOf(entry.getValue().weight).hashCode();
+            formattedWayClassWeightSettings.add(
+                    String.format("%1$s: %2$s", entry.getKey().label, entry.getValue().label));
         }
-        return result;
+        return TextUtils.join(".\n", formattedWayClassWeightSettings);
     }
 
-    @Override public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (! (obj instanceof WayClassWeightSettings)) {
-            return false;
-        }
-        WayClassWeightSettings other = (WayClassWeightSettings) obj;
-        if (this.typeWeightMap.size() != other.getNumberOfEntries()) {
-            return false;
-        }
-        for (Map.Entry<WayClassType,WayClassWeight> entry : this.typeWeightMap.entrySet()) {
-            if (entry.getValue() != other.getWeightFor(entry.getKey())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public JSONObject toJson() throws JSONException {
+    public JSONObject serializeWayClassWeightsForServerRequest() throws JSONException {
         JSONObject jsonWayClassTypeAndWeightMappings = new JSONObject();
         for (Map.Entry<WayClassType,WayClassWeight> entry : typeWeightMap.entrySet()) {
             jsonWayClassTypeAndWeightMappings.put(
                     entry.getKey().name().toLowerCase(Locale.ROOT), entry.getValue().weight);
         }
         return jsonWayClassTypeAndWeightMappings;
+    }
+
+    @Override public String toString() {
+        return this.name;
+    }
+
+    @Override public int hashCode() {
+        return this.id.hashCode();
+    }
+
+    @Override public boolean equals(Object obj) {
+        if (this == obj) return true;
+        else if (obj == null) return false;
+        else if (! (obj instanceof WayClassWeightSettings)) return false;
+
+        WayClassWeightSettings other = (WayClassWeightSettings) obj;
+        return this.id.equals(other.getId());
     }
 
 }

@@ -175,7 +175,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             }
 
             // create new route request
-            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.getDefault();
+            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
             // new start but same destination point
             p2pRouteRequest.setStartPoint(currentLocation);
             p2pRouteRequest.setDestinationPoint(route.getDestinationPoint());

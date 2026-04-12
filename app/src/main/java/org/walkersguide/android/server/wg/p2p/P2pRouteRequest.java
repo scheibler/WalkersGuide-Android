@@ -5,27 +5,33 @@ import java.io.Serializable;
 import org.walkersguide.android.data.object_with_id.Point;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.data.object_with_id.point.GPS;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class P2pRouteRequest implements Serializable {
     private static final long serialVersionUID = 1l;
 
-    public static P2pRouteRequest getDefault() {
-        return new P2pRouteRequest(null, null, null, null, null);
+    public static P2pRouteRequest create() {
+        SettingsManager settingsManagerInstance = SettingsManager.getInstance();
+        return new P2pRouteRequest(
+                settingsManagerInstance.getWayClassWeightSettingsList().size() == 1
+                ? settingsManagerInstance.getWayClassWeightSettingsList().get(0)
+                : settingsManagerInstance.getDefaultWayClassWeightSettings());
     }
 
 
     private Long startPointId, destinationPointId;
     private Long viaPoint1Id, viaPoint2Id, viaPoint3Id;
+    private WayClassWeightSettings wayClassWeightSettings;
     private boolean replaceNameOfStartPointWithClosestAddress;
 
-    public P2pRouteRequest(Long startPointId, Long destinationPointId,
-            Long viaPoint1Id, Long viaPoint2Id, Long viaPoint3Id) {
-        this.startPointId = startPointId;
-        this.destinationPointId = destinationPointId;
-        this.viaPoint1Id = viaPoint1Id;
-        this.viaPoint2Id = viaPoint2Id;
-        this.viaPoint3Id = viaPoint3Id;
+    private P2pRouteRequest(WayClassWeightSettings settings) {
+        this.startPointId = null;
+        this.destinationPointId = null;
+        this.viaPoint1Id = null;
+        this.viaPoint2Id = null;
+        this.viaPoint3Id = null;
+        this.wayClassWeightSettings = settings;
         this.replaceNameOfStartPointWithClosestAddress = false;
     }
 
@@ -51,6 +57,20 @@ public class P2pRouteRequest implements Serializable {
         this.destinationPointId = setPoint(newDestinationPoint);
     }
 
+    public void swapStartAndDestinationPoints() {
+        Point tempPoint = getStartPoint();
+        setStartPoint(getDestinationPoint());
+        setDestinationPoint(tempPoint);
+    }
+
+    public WayClassWeightSettings getWayClassWeightSettings() {
+        return this.wayClassWeightSettings;
+    }
+
+    public void setWayClassWeightSettings(WayClassWeightSettings newSettings) {
+        this.wayClassWeightSettings = newSettings;
+    }
+
     public Point getViaPoint1() {
         return getPoint(viaPoint1Id);
     }
@@ -73,12 +93,6 @@ public class P2pRouteRequest implements Serializable {
 
     public void setViaPoint3(Point newViaPoint3) {
         this.viaPoint3Id = setPoint(newViaPoint3);
-    }
-
-    public void swapStartAndDestinationPoints() {
-        Point tempPoint = getStartPoint();
-        setStartPoint(getDestinationPoint());
-        setDestinationPoint(tempPoint);
     }
 
     public boolean hasViaPoint() {

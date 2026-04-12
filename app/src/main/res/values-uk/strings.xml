@@ -119,15 +119,10 @@
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Побудова маршруту</string>
+    <string name="buttonNewRoute">Новий маршрут</string>
+    <string name="buttonSwapStartAndDestination">Поміняти місцями початкову та кінцеву точки</string>
+    <string name="spinnerSelectWayClassWeightSettingsPrompt">Вибрати профіль маршруту</string>
     <string name="switchShowViaPointList">Показати проміжні точки</string>
-    <!-- options menu -->
-    <string name="planRouteMenuItemSwap">Поміняти місцями початкову та кінцеву точки</string>
-    <string name="planRouteMenuItemExcludedWays">Виключені дороги</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Категорії доріг</string>
-    <string name="planRouteMenuItemClear">Очистити точки</string>
-
-    <!-- ConfigureWayClassWeightsDialog -->
-    <string name="configureWayClassWeightsDialogTitle">Пріоритетність категорій доріг</string>
 
     <!-- SelectObjectWithIdFromMultipleSourcesDialog -->
     <!-- dialog titles -->
@@ -545,6 +540,7 @@
     <string name="buttonServerURLNoSelection">URL-адреса: не вибрано</string>
     <string name="buttonServerMap">Карта: %1$s</string>
     <string name="buttonServerMapNoSelection">Карта: не вибрано</string>
+    <string name="buttonManageWayClassWeightSettings">Профілі маршрутів</string>
     <string name="switchPreferTranslatedStrings">Відображати перекладені назви тегів</string>
     <string name="switchPreferTranslatedStringsHint">Якщо на карті дані для місця збережені кількома мовами, цей параметр дозволяє відображати інформацію мовою вашого пристрою або, як запасний варіант, англійською. Наприклад, деякі назви міст в інших країнах доступні українською мовою.</string>
     <string name="labelPublicTransportSettingsHeader">Громадський транспорт:</string>
@@ -583,6 +579,21 @@
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Виберіть карту:</string>
+
+    <!-- manage way class weight settings dialog -->
+    <string name="labelDefaultWayClassWeightSettingsHeading">Профіль маршруту за замовчуванням</string>
+    <string name="labelDefaultWayClassWeightSettingsAlwaysAsk">Завжди питати</string>
+    <string name="spinnerSelectDefaultWayClassWeightSettingsPrompt">Вибрати профіль маршруту за замовчуванням</string>
+    <string name="labelAvailableWayClassWeightSettingsHeading">Доступні профілі маршрутів</string>
+    <string name="labelWayClassWeightSettingsMoved">%1$s переміщено з позиції %2$d на позицію %3$d.</string>
+    <string name="labelNoRouteProfilesAvailable">Немає доступних профілів маршрутів. Будь ласка, створіть принаймні один профіль маршруту.</string>
+    <string name="buttonAddWayClassWeightSettings">Додати профіль маршруту</string>
+    <string name="buttonRemoveWayClassWeightSettings">Видалити профіль маршруту %1$s</string>
+    <string name="buttonRestoreDefaultWayClassWeightSettingsList">Відновити профілі маршрутів за замовчуванням</string>
+
+    <!-- EnterWayClassWeightSettingsNameDialog -->
+    <string name="enterWayClassWeightSettingsNameDialogTitle">Новий профіль маршруту</string>
+    <string name="messageWayClassWeightSettingsNameIsMissing">Будь ласка, введіть назву для нового профілю маршруту.</string>
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Виберіть інтенсивність:</string>
@@ -819,8 +830,6 @@
     <string name="dialogCalculate">Побудувати</string>
     <string name="dialogDefault">Стандартні параметри</string>
     <string name="dialogNow">Зараз</string>
-    <string name="dialogOptions">Параметри</string>
-    <string name="dialogPresets">Шаблони пріоритетів</string>
     <string name="dialogRefresh">Оновити</string>
     <string name="dialogSend">Надіслати</string>
     <string name="dialogSomethingMissing">Щось пропущено?</string>
@@ -829,10 +838,11 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">і</string>
-    <string name="fillingWordCustom">Персоналізовано</string>
     <string name="fillingWordHas">має</string>
     <string name="stateCollapsed">згорнуто</string>
     <string name="stateExpanded">розгорнуто</string>
+    <string name="actionMoveUp">Перемістити вгору</string>
+    <string name="actionMoveDown">Перемістити вниз</string>
     <string name="viewClassNameTab">вкладка</string>
     <string name="messagePleaseWait">Будь ласка, зачекайте…</string>
     <string name="messageNameIsMissing">Будь ласка, введіть ім\'я.</string>

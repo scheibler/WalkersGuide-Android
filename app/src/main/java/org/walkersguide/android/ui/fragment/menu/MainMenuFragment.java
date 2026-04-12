@@ -240,7 +240,7 @@ public class MainMenuFragment extends RootFragment implements FragmentResultList
     }
 
     private void prepareRequestAndCalculateRoute(Point destination) {
-        P2pRouteRequest p2pRouteRequest = P2pRouteRequest.getDefault();
+        P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
 
         // start point
         Point currentLocation = PositionManager.getInstance().getCurrentLocation();

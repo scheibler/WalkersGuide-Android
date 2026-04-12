@@ -126,15 +126,10 @@
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Route planen</string>
+    <string name="buttonNewRoute">Neue Route</string>
+    <string name="buttonSwapStartAndDestination">Start und Ziel tauschen</string>
+    <string name="spinnerSelectWayClassWeightSettingsPrompt">Routenprofil auswählen</string>
     <string name="switchShowViaPointList">Zwischenziele anzeigen</string>
-    <!-- options menu -->
-    <string name="planRouteMenuItemSwap">Start und Ziel tauschen</string>
-    <string name="planRouteMenuItemExcludedWays">Ausgeschlossene Wege</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Wegeklassengewichtung</string>
-    <string name="planRouteMenuItemClear">Neue Route</string>
-
-    <!-- ConfigureWayClassWeightsDialog -->
-    <string name="configureWayClassWeightsDialogTitle">Wegeklassen gewichten:</string>
 
     <!-- SelectObjectWithIdFromMultipleSourcesDialog -->
     <!-- dialog titles -->
@@ -553,6 +548,7 @@
     <string name="buttonServerURLNoSelection">URL: Keine ausgewählt</string>
     <string name="buttonServerMap">Karte: %1$s</string>
     <string name="buttonServerMapNoSelection">Karte: Keine ausgewählt</string>
+    <string name="buttonManageWayClassWeightSettings">Routenprofile</string>
     <string name="switchPreferTranslatedStrings">Übersetzungen bevorzugen</string>
     <string name="switchPreferTranslatedStringsHint">
             Wenn die Kartendatenbank für einen Eintrag mehrere Sprachen hinterlegt hat, dann bewirkt
@@ -600,6 +596,21 @@
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Karte auswählen:</string>
+
+    <!-- manage way class weight settings dialog -->
+    <string name="labelDefaultWayClassWeightSettingsHeading">Standard Routenprofil</string>
+    <string name="labelDefaultWayClassWeightSettingsAlwaysAsk">Immer fragen</string>
+    <string name="spinnerSelectDefaultWayClassWeightSettingsPrompt">Standard Routenprofil auswählen</string>
+    <string name="labelAvailableWayClassWeightSettingsHeading">Verfügbare Routenprofile</string>
+    <string name="labelWayClassWeightSettingsMoved">%1$s von Position %2$d nach Position %3$d bewegt.</string>
+    <string name="labelNoRouteProfilesAvailable">Keine Routenprofile verfügbar. Bitte lege mindestens ein Routenprofil an.</string>
+    <string name="buttonAddWayClassWeightSettings">Routenprofil hinzufügen</string>
+    <string name="buttonRemoveWayClassWeightSettings">Routenprofil %1$s entfernen</string>
+    <string name="buttonRestoreDefaultWayClassWeightSettingsList">Standard Routenprofile wiederherstellen</string>
+
+    <!-- EnterWayClassWeightSettingsNameDialog -->
+    <string name="enterWayClassWeightSettingsNameDialogTitle">Neues Routenprofil</string>
+    <string name="messageWayClassWeightSettingsNameIsMissing">Bitte gib einen Namen für das neue Routenprofil an.</string>
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Schüttelintensität auswählen:</string>
@@ -838,8 +849,6 @@
     <string name="dialogCalculate">Berechnen</string>
     <string name="dialogDefault">Standard</string>
     <string name="dialogNow">Jetzt</string>
-    <string name="dialogOptions">Optionen</string>
-    <string name="dialogPresets">Presets</string>
     <string name="dialogRefresh">Aktualisieren</string>
     <string name="dialogSend">Senden</string>
     <string name="dialogSomethingMissing">Fehlt etwas?</string>
@@ -848,10 +857,11 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">und</string>
-    <string name="fillingWordCustom">benutzerdefiniert</string>
     <string name="fillingWordHas">hat</string>
     <string name="stateCollapsed">minimiert</string>
     <string name="stateExpanded">maximiert</string>
+    <string name="actionMoveUp">Nach oben bewegen</string>
+    <string name="actionMoveDown">Nach unten bewegen</string>
     <string name="viewClassNameTab">Tab</string>
     <string name="messagePleaseWait">Bitte warten…</string>
     <string name="messageNameIsMissing">Bitte gib einen Namen ein.</string>

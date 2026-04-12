@@ -26,21 +26,21 @@ import org.walkersguide.android.data.angle.Turn;
 import org.walkersguide.android.data.object_with_id.point.GPS;
 import org.walkersguide.android.data.object_with_id.point.point_with_address_data.StreetAddress;
 import org.walkersguide.android.server.address.ResolveCoordinatesTask;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class P2pRouteTask extends ServerTask {
 
     private P2pRouteRequest request;
-    private WayClassWeightSettings wayClassWeightSettings;
 
-    public P2pRouteTask(P2pRouteRequest request, WayClassWeightSettings wayClassWeightSettings) {
+    public P2pRouteTask(P2pRouteRequest request) {
         this.request = request;
-        this.wayClassWeightSettings = wayClassWeightSettings;
     }
 
     @Override public void execute() throws WgException {
         Point startPoint = this.request.getStartPoint();
         Point destinationPoint = this.request.getDestinationPoint();
+        WayClassWeightSettings wayClassWeightSettings = this.request.getWayClassWeightSettings();
         if (startPoint == null || destinationPoint == null) {
             throw new WgException(WgException.RC_START_OR_DESTINATION_MISSING);
         }
@@ -85,6 +85,13 @@ public class P2pRouteTask extends ServerTask {
             jsonSourcePoints.put(destinationPoint.toJson());
             jsonServerParams.put("source_points", jsonSourcePoints);
 
+            // allowed way classes
+            if (wayClassWeightSettings != null) {
+                jsonServerParams.put(
+                        "allowed_way_classes",
+                        wayClassWeightSettings.serializeWayClassWeightsForServerRequest());
+            }
+
             // excluded ways
             JSONArray jsonExcludedWays = new JSONArray();
             DatabaseProfileRequest databaseProfileRequest = new DatabaseProfileRequest(
@@ -98,10 +105,6 @@ public class P2pRouteTask extends ServerTask {
             if (jsonExcludedWays.length() > 0) {
                 jsonServerParams.put("blocked_ways", jsonExcludedWays);
             }
-
-            // allowed way classes
-            jsonServerParams.put(
-                    "allowed_way_classes", this.wayClassWeightSettings.toJson());
 
         } catch (JSONException e) {
             throw new WgException(WgException.RC_BAD_REQUEST);

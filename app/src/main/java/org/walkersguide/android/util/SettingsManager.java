@@ -49,6 +49,7 @@ import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.data.Profile;
 import java.util.HashMap;
+import java.util.Collections;
 
 
 public class SettingsManager {
@@ -115,7 +116,8 @@ public class SettingsManager {
     private static final String KEY_TRACKED_PROFILE_ID = "trackedProfileId";
     // p2p route settings
     private static final String KEY_P2P_ROUTE_REQUEST = "p2pRouteRequest";
-    private static final String KEY_WAY_CLASS_SETTINGS = "wayClassWeightSettings";
+    private static final String KEY_WAY_CLASS_SETTINGS_LIST = "wayClassWeightSettingsList";
+    private static final String KEY_DEFAULT_WAY_CLASS_SETTINGS = "defaultWayClassWeightSettings";
     private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
     private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
     private static final String KEY_SHOW_INTERSECTION_LAYOUT_DETAILS = "showIntersectionLayoutDetails";
@@ -149,6 +151,8 @@ public class SettingsManager {
             .create();
 
         // remove deprecated settings
+
+        // original
         if (settings.contains("generalSettings")) {
             Editor editor = settings.edit();
             editor.remove("generalSettings");
@@ -178,6 +182,19 @@ public class SettingsManager {
             Editor editor = settings.edit();
             editor.remove("serverSettings");
             editor.apply();
+        }
+
+        // addition from april 2026
+        if (settings.contains("wayClassWeightSettings")) {
+
+            // first remove the old setting
+            Editor editor = settings.edit();
+            editor.remove("wayClassWeightSettings");
+            editor.apply();
+
+            // then add the new route profiles (were WayClassWeightSettings.Preset)
+            // this is done only once for migration purposes
+            restoreWayClassWeightSettingsListToDefaults();
         }
     }
 
@@ -442,6 +459,100 @@ public class SettingsManager {
         editor.apply();
     }
 
+    public List<WayClassWeightSettings> getWayClassWeightSettingsList() {
+        List<WayClassWeightSettings> settingsList = gson.fromJson(
+                settings.getString(KEY_WAY_CLASS_SETTINGS_LIST, ""),
+                new TypeToken<List<WayClassWeightSettings>>() {}.getType());
+        return settingsList != null ? settingsList : new ArrayList<>();
+    }
+
+    public boolean containsWayClassWeightSettings(WayClassWeightSettings settings) {
+        return settings != null && getWayClassWeightSettingsList().contains(settings);
+    }
+
+    public void addOrUpdateWayClassWeightSettings(WayClassWeightSettings settingsToAdd) {
+        if (settingsToAdd != null) {
+            List<WayClassWeightSettings> settingsList = getWayClassWeightSettingsList();
+            int index = settingsList.indexOf(settingsToAdd);
+            if (index >= 0) {
+                settingsList.set(index, settingsToAdd);
+            } else {
+                settingsList.add(settingsToAdd);
+            }
+            setWayClassWeightSettingsList(settingsList);
+        }
+    }
+
+    public void moveWayClassWeightSettings(int from, int to) {
+        List<WayClassWeightSettings> settingsList = getWayClassWeightSettingsList();
+        Collections.swap(settingsList, from, to);
+        setWayClassWeightSettingsList(settingsList);
+    }
+
+    public void removeWayClassWeightSettings(WayClassWeightSettings settingsToRemove) {
+        if (settingsToRemove != null) {
+            List<WayClassWeightSettings> settingsList = getWayClassWeightSettingsList();
+            if (settingsList.contains(settingsToRemove)) {
+                settingsList.remove(settingsToRemove);
+                setWayClassWeightSettingsList(settingsList);
+            }
+        }
+    }
+
+    public void restoreWayClassWeightSettingsListToDefaults() {
+        List<WayClassWeightSettings> wayClassWeightSettingsList = new ArrayList<>();
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createShortestRoute());
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createUrbanOnFoot());
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createUrbanByCar());
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createHiking());
+        setWayClassWeightSettingsList(wayClassWeightSettingsList);
+    }
+
+    private void setWayClassWeightSettingsList(List<WayClassWeightSettings> newList) {
+        Editor editor = settings.edit();
+        editor.putString(
+                KEY_WAY_CLASS_SETTINGS_LIST,
+                gson.toJson(
+                    newList, new TypeToken<List<WayClassWeightSettings>>() {}.getType()));
+        editor.apply();
+
+        if (! newList.contains(getDefaultWayClassWeightSettings())) {
+            clearDefaultWayClassWeightSettings();
+        }
+    }
+
+    public WayClassWeightSettings getDefaultWayClassWeightSettings() {
+        WayClassWeightSettings defaultSettings = gson.fromJson(
+                settings.getString(KEY_DEFAULT_WAY_CLASS_SETTINGS, ""),
+                WayClassWeightSettings.class);
+        if (defaultSettings != null && ! containsWayClassWeightSettings(defaultSettings)) {
+            defaultSettings = null;
+            clearDefaultWayClassWeightSettings();
+        }
+        return defaultSettings;
+    }
+
+    public void setDefaultWayClassWeightSettings(WayClassWeightSettings newSettings) {
+        if (newSettings != null) {
+            Editor editor = settings.edit();
+            editor.putString(
+                    KEY_DEFAULT_WAY_CLASS_SETTINGS, gson.toJson(newSettings));
+            editor.apply();
+        } else {
+            clearDefaultWayClassWeightSettings();
+        }
+    }
+
+    public boolean hasDefaultWayClassWeightSettings() {
+        return getDefaultWayClassWeightSettings() != null;
+    }
+
+    public void clearDefaultWayClassWeightSettings() {
+        Editor editor = settings.edit();
+        editor.remove(KEY_DEFAULT_WAY_CLASS_SETTINGS);
+        editor.apply();
+    }
+
 
     /**
      * public transport
@@ -645,7 +756,7 @@ public class SettingsManager {
                     P2pRouteRequest.class);
         } catch (ClassCastException e) {}
         if (p2pRouteRequest == null) {
-            p2pRouteRequest = P2pRouteRequest.getDefault();
+            p2pRouteRequest = P2pRouteRequest.create();
         }
         return p2pRouteRequest;
     }
@@ -656,41 +767,6 @@ public class SettingsManager {
                 KEY_P2P_ROUTE_REQUEST, gson.toJson(newP2pRouteRequest));
         editor.apply();
     }
-
-    public WayClassWeightSettings getWayClassWeightSettings() {
-        // load
-        WayClassWeightSettings wayClassWeightSettings = null;
-        try {
-            wayClassWeightSettings = gson.fromJson(
-                    settings.getString(KEY_WAY_CLASS_SETTINGS, ""),
-                    WayClassWeightSettings.class);
-        } catch (ClassCastException e) {}
-        // check
-        boolean resetToDefaults = false;
-        if (wayClassWeightSettings == null) {
-            resetToDefaults = true;
-        } else {
-            for (WayClassType type : WayClassType.values()) {
-                if (wayClassWeightSettings.getWeightFor(type) == null) {
-                    resetToDefaults = true;
-                    break;
-                }
-            }
-        }
-        if (resetToDefaults) {
-            wayClassWeightSettings = WayClassWeightSettings.Preset.URBAN_ON_FOOT.settings;
-        }
-        // return
-        return wayClassWeightSettings;
-    }
-
-    public void setWayClassWeightSettings(WayClassWeightSettings newWayClassWeightSettings) {
-        Editor editor = settings.edit();
-        editor.putString(
-                KEY_WAY_CLASS_SETTINGS, gson.toJson(newWayClassWeightSettings));
-        editor.apply();
-    }
-
 
     public Route getLastSelectedRoute() {
         return Route.load(

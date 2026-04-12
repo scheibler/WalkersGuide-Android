@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.dialog;
 
+import org.walkersguide.android.ui.adapter.WayClassWeightSettingsSpinnerAdapter;
 import org.walkersguide.android.ui.activity.MainActivity;
 import org.walkersguide.android.ui.activity.MainActivityController;
 import org.walkersguide.android.server.ServerTaskExecutor;
@@ -9,7 +10,6 @@ import org.walkersguide.android.server.wg.p2p.WayClassWeightSettings;
 
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
     import org.walkersguide.android.ui.view.ObjectWithIdView;
-import org.walkersguide.android.ui.dialog.edit.ConfigureWayClassWeightsDialog;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog;
 import org.walkersguide.android.ui.dialog.select.SelectObjectWithIdFromMultipleSourcesDialog.Target;
 import androidx.appcompat.app.AlertDialog;
@@ -60,6 +60,10 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.database.profile.StaticProfile;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.data.ObjectWithId;
+import android.widget.ImageButton;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 
 
 public class PlanRouteDialog extends DialogFragment implements FragmentResultListener {
@@ -76,6 +80,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
 
     // ui components
     private ObjectWithIdView layoutStartPoint, layoutDestinationPoint;
+    private Spinner spinnerSelectWayClassWeightSettings;
     private LinearLayout layoutViaPointList;
     private SwitchCompat switchShowViaPointList;
     private ObjectWithIdView layoutViaPoint1, layoutViaPoint2, layoutViaPoint3;
@@ -96,13 +101,26 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     // dialog
     private static final String KEY_START_ROUTE_CALCULATION_IMMEDIATELY = "startRouteCalculationImmediately";
     private static final String KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY = "triedToStartRouteCalculationImmediately";
+    private static final String KEY_CLICKED_ON_CALCULATE_BUTTON_BUT_NO_WAY_CLASS_WEIGHT_SETTINGS_SELECTED = "clickedOnCalculateButtonButNoWayClassWeightSettingsSelected";
 
     private boolean triedToStartRouteCalculationImmediately;
+    private boolean clickedOnCalculateButtonButNoWayClassWeightSettingsSelected;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serverTaskExecutorInstance = ServerTaskExecutor.getInstance();
         settingsManagerInstance = SettingsManager.getInstance();
+
+        if (savedInstanceState != null) {
+            taskId = savedInstanceState.getLong(KEY_TASK_ID);
+            triedToStartRouteCalculationImmediately = savedInstanceState.getBoolean(KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY);
+            clickedOnCalculateButtonButNoWayClassWeightSettingsSelected = savedInstanceState.getBoolean(KEY_CLICKED_ON_CALCULATE_BUTTON_BUT_NO_WAY_CLASS_WEIGHT_SETTINGS_SELECTED);
+        } else {
+            taskId = ServerTaskExecutor.NO_TASK_ID;
+            triedToStartRouteCalculationImmediately = false;
+            clickedOnCalculateButtonButNoWayClassWeightSettingsSelected = false;
+        }
+
         // progress updater
         this.progressHandler = new Handler();
         this.progressUpdater = new ProgressUpdater();
@@ -154,14 +172,6 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     }
 
     @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            taskId = savedInstanceState.getLong(KEY_TASK_ID);
-            triedToStartRouteCalculationImmediately = savedInstanceState.getBoolean(KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY);
-        } else {
-            taskId = ServerTaskExecutor.NO_TASK_ID;
-            triedToStartRouteCalculationImmediately = false;
-        }
-
         // custom view
         final ViewGroup nullParent = null;
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -182,6 +192,41 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                 SelectObjectWithIdFromMultipleSourcesDialog.newInstance(
                         SelectObjectWithIdFromMultipleSourcesDialog.Target.ROUTE_DESTINATION_POINT)
                     .show(getChildFragmentManager(), "SelectObjectWithIdFromMultipleSourcesDialog");
+            }
+        });
+
+        ImageButton buttonSwapStartAndDestination = view.findViewById(R.id.buttonSwapStartAndDestination);
+        buttonSwapStartAndDestination.setOnClickListener(v -> {
+            P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+            p2pRouteRequest.swapStartAndDestinationPoints();
+            settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+            updateUI();
+        });
+
+        spinnerSelectWayClassWeightSettings = view.findViewById(R.id.spinnerSelectWayClassWeightSettings);
+        WayClassWeightSettingsSpinnerAdapter spinnerAdapter = new WayClassWeightSettingsSpinnerAdapter(
+                requireContext(),
+                settingsManagerInstance.getWayClassWeightSettingsList(),
+                getResources().getString(R.string.spinnerSelectWayClassWeightSettingsPrompt),
+                false);
+        spinnerSelectWayClassWeightSettings.setAdapter(spinnerAdapter);
+        selectWayClassWeightSettings();     // do before OnItemSelectedListener
+
+        spinnerSelectWayClassWeightSettings.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onNothingSelected(AdapterView parent) {
+                clickedOnCalculateButtonButNoWayClassWeightSettingsSelected = false;
+            }
+
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+                p2pRouteRequest.setWayClassWeightSettings(
+                        (WayClassWeightSettings) parent.getItemAtPosition(position));
+                settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+
+                if (clickedOnCalculateButtonButNoWayClassWeightSettingsSelected) {
+                    clickedOnCalculateButtonButNoWayClassWeightSettingsSelected = false;
+                    startRouteCalculation();
+                }
             }
         });
 
@@ -258,7 +303,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                         }
                     })
             .setNeutralButton(
-                    getResources().getString(R.string.dialogOptions),
+                    getResources().getString(R.string.buttonNewRoute),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                         }
@@ -296,7 +341,8 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
             buttonNeutral.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
-                        showOptionsMenu(view);
+                        settingsManagerInstance.setP2pRouteRequest(P2pRouteRequest.create());
+                        updateUI();
                     }
                 }
             });
@@ -343,6 +389,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putLong(KEY_TASK_ID, taskId);
         savedInstanceState.putBoolean(KEY_TRIED_TO_START_ROUTE_CALCULATION_IMMEDIATELY, triedToStartRouteCalculationImmediately);
+        savedInstanceState.putBoolean(KEY_CLICKED_ON_CALCULATE_BUTTON_BUT_NO_WAY_CLASS_WEIGHT_SETTINGS_SELECTED, clickedOnCalculateButtonButNoWayClassWeightSettingsSelected);
     }
 
     @Override public void onDestroy() {
@@ -353,12 +400,18 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
     }
 
     private void startRouteCalculation() {
+        P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
+
+        if (p2pRouteRequest.getWayClassWeightSettings() == null) {
+            clickedOnCalculateButtonButNoWayClassWeightSettingsSelected = true;
+            spinnerSelectWayClassWeightSettings.performClick();
+            return;
+        }
+
         updatePositiveButtonText(true);
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {
             taskId = serverTaskExecutorInstance.executeTask(
-                    new P2pRouteTask(
-                        settingsManagerInstance.getP2pRouteRequest(),
-                        settingsManagerInstance.getWayClassWeightSettings()));
+                    new P2pRouteTask(p2pRouteRequest));
             progressHandler.postDelayed(progressUpdater, 2000);
         }
     }
@@ -367,6 +420,7 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
         layoutStartPoint.configureAsSingleObject(p2pRouteRequest.getStartPoint());
         layoutDestinationPoint.configureAsSingleObject(p2pRouteRequest.getDestinationPoint());
+        selectWayClassWeightSettings();
 
         // via point layout
         switchShowViaPointList.setChecked(p2pRouteRequest.hasViaPoint());
@@ -376,6 +430,15 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
         layoutViaPoint1.configureAsSingleObject(p2pRouteRequest.getViaPoint1());
         layoutViaPoint2.configureAsSingleObject(p2pRouteRequest.getViaPoint2());
         layoutViaPoint3.configureAsSingleObject(p2pRouteRequest.getViaPoint3());
+    }
+
+    private void selectWayClassWeightSettings() {
+        WayClassWeightSettingsSpinnerAdapter spinnerAdapter = (WayClassWeightSettingsSpinnerAdapter) spinnerSelectWayClassWeightSettings.getAdapter();
+        int newWayClassWeightSettingsSpinnerPosition = spinnerAdapter.indexOfItem(
+                settingsManagerInstance.getP2pRouteRequest().getWayClassWeightSettings());
+        if (spinnerSelectWayClassWeightSettings.getSelectedItemPosition() != newWayClassWeightSettingsSpinnerPosition) {
+            spinnerSelectWayClassWeightSettings.setSelection(newWayClassWeightSettingsSpinnerPosition);
+        }
     }
 
     private void updatePositiveButtonText(boolean requestInProgress) {
@@ -436,57 +499,6 @@ public class PlanRouteDialog extends DialogFragment implements FragmentResultLis
                     Helper.VIBRATION_DURATION_SHORT, Helper.VIBRATION_INTENSITY_WEAK);
             progressHandler.postDelayed(this, 2000);
         }
-    }
-
-
-    /**
-     * options menu
-     */
-    private static final int MENU_ITEM_SWAP = 1;
-    private static final int MENU_ITEM_EXCLUDED_WAYS = 2;
-    private static final int MENU_ITEM_ROUTING_WAY_CLASSES = 3;
-    private static final int MENU_ITEM_CLEAR = 4;
-
-    private void showOptionsMenu(View view) {
-        PopupMenu optionsMenu = new PopupMenu(getActivity(), view);
-        optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_CLEAR, 1, GlobalInstance.getStringResource(R.string.planRouteMenuItemClear));
-        optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_SWAP, 2, GlobalInstance.getStringResource(R.string.planRouteMenuItemSwap));
-        optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_EXCLUDED_WAYS, 3, GlobalInstance.getStringResource(R.string.planRouteMenuItemExcludedWays));
-        optionsMenu.getMenu().add(
-                Menu.NONE, MENU_ITEM_ROUTING_WAY_CLASSES, 4, GlobalInstance.getStringResource(R.string.planRouteMenuItemRoutingWayClasses));
-
-        optionsMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override public boolean onMenuItemClick(MenuItem item) {
-
-                if (item.getItemId() == MENU_ITEM_CLEAR) {
-                    settingsManagerInstance.setP2pRouteRequest(P2pRouteRequest.getDefault());
-                    updateUI();
-
-                } else if (item.getItemId() == MENU_ITEM_SWAP) {
-                    P2pRouteRequest p2pRouteRequest = settingsManagerInstance.getP2pRouteRequest();
-                    p2pRouteRequest.swapStartAndDestinationPoints();
-                    settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-                    updateUI();
-
-                } else if (item.getItemId() == MENU_ITEM_EXCLUDED_WAYS) {
-                    ObjectListFromDatabaseFragment.newInstance(StaticProfile.excludedRoutingSegments())
-                        .show(getChildFragmentManager(), "excludedRoutingSegments");
-
-                } else if (item.getItemId() == MENU_ITEM_ROUTING_WAY_CLASSES) {
-                    ConfigureWayClassWeightsDialog.newInstance()
-                        .show(getChildFragmentManager(), "ConfigureWayClassWeightsDialog");
-
-                } else {
-                    return false;
-                }
-                return true;
-            }
-        });
-
-        optionsMenu.show();
     }
 
 }

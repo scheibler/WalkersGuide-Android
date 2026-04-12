@@ -13,17 +13,48 @@
 
         <!-- start and destination -->
 
-        <org.walkersguide.android.ui.view.ObjectWithIdView
-            android:id="@+id/layoutStartPoint"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:prefix="@string/labelPrefixStart" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <org.walkersguide.android.ui.view.ObjectWithIdView
-            android:id="@+id/layoutDestinationPoint"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <org.walkersguide.android.ui.view.ObjectWithIdView
+                    android:id="@+id/layoutStartPoint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:prefix="@string/labelPrefixStart" />
+
+                <org.walkersguide.android.ui.view.ObjectWithIdView
+                    android:id="@+id/layoutDestinationPoint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:prefix="@string/labelPrefixDestination" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/buttonSwapStartAndDestination"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/image_swap_start_and_destination"
+                android:contentDescription="@string/buttonSwapStartAndDestination"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/spinnerSelectWayClassWeightSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:prefix="@string/labelPrefixDestination" />
+            android:layout_marginBottom="10dp"
+            android:spinnerMode="dialog"
+            android:prompt="@string/spinnerSelectWayClassWeightSettingsPrompt" />
 
 
         <!-- via points -->
@@ -35,8 +66,7 @@
             android:paddingTop="@dimen/smallPadding"
             android:paddingBottom="@dimen/smallPadding"
             android:minHeight="@dimen/minHeight"
-            android:text="@string/switchShowViaPointList"
-            android:theme="@style/HeadingTextView" />
+            android:text="@string/switchShowViaPointList" />
 
         <LinearLayout
             android:id="@+id/layoutViaPointList"

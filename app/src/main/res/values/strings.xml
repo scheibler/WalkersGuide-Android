@@ -127,15 +127,10 @@
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Plan route</string>
+    <string name="buttonNewRoute">New route</string>
+    <string name="buttonSwapStartAndDestination">Swap start and destination</string>
+    <string name="spinnerSelectWayClassWeightSettingsPrompt">Select route profile</string>
     <string name="switchShowViaPointList">Show via points</string>
-    <!-- options menu -->
-    <string name="planRouteMenuItemSwap">Swap start and destination</string>
-    <string name="planRouteMenuItemExcludedWays">Excluded ways</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Way class weights</string>
-    <string name="planRouteMenuItemClear">Clear points</string>
-
-    <!-- ConfigureWayClassWeightsDialog -->
-    <string name="configureWayClassWeightsDialogTitle">Prioritise way classes:</string>
 
     <!-- SelectObjectWithIdFromMultipleSourcesDialog -->
     <!-- dialog titles -->
@@ -564,6 +559,7 @@
     <string name="buttonServerURLNoSelection">URL: None selected</string>
     <string name="buttonServerMap">Map: %1$s</string>
     <string name="buttonServerMapNoSelection">Map: None selected</string>
+    <string name="buttonManageWayClassWeightSettings">Route profiles</string>
     <string name="switchPreferTranslatedStrings">Prefer translations</string>
     <string name="switchPreferTranslatedStringsHint">
             If the map database has multiple languages stored for an entry, this setting ensures that the app outputs
@@ -610,6 +606,21 @@
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Select map:</string>
+
+    <!-- manage way class weight settings dialog -->
+    <string name="labelDefaultWayClassWeightSettingsHeading">Default route profile</string>
+    <string name="labelDefaultWayClassWeightSettingsAlwaysAsk">Always ask</string>
+    <string name="spinnerSelectDefaultWayClassWeightSettingsPrompt">Select default route profile</string>
+    <string name="labelAvailableWayClassWeightSettingsHeading">Available route profiles</string>
+    <string name="labelWayClassWeightSettingsMoved">%1$s moved from position %2$d to position %3$d.</string>
+    <string name="labelNoRouteProfilesAvailable">Please create at least one route profile.</string>
+    <string name="buttonAddWayClassWeightSettings">Add route profile</string>
+    <string name="buttonRemoveWayClassWeightSettings">Remove route profile %1$s</string>
+    <string name="buttonRestoreDefaultWayClassWeightSettingsList">Restore default route profiles</string>
+
+    <!-- EnterWayClassWeightSettingsNameDialog -->
+    <string name="enterWayClassWeightSettingsNameDialogTitle">New route profile</string>
+    <string name="messageWayClassWeightSettingsNameIsMissing">Please enter a name for the new route profile.</string>
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Select strain:</string>
@@ -848,8 +859,6 @@
     <string name="dialogCalculate">Calculate</string>
     <string name="dialogDefault">Default</string>
     <string name="dialogNow">Now</string>
-    <string name="dialogOptions">Options</string>
-    <string name="dialogPresets">Presets</string>
     <string name="dialogRefresh">Refresh</string>
     <string name="dialogSend">Send</string>
     <string name="dialogSomethingMissing">Something missing?</string>
@@ -858,10 +867,11 @@
 
     <!-- other common labels and messages -->
     <string name="fillingWordAnd">and</string>
-    <string name="fillingWordCustom">custom</string>
     <string name="fillingWordHas">has</string>
     <string name="stateCollapsed">collapsed</string>
     <string name="stateExpanded">expanded</string>
+    <string name="actionMoveUp">Move up</string>
+    <string name="actionMoveDown">Move down</string>
     <string name="viewClassNameTab">Tab</string>
     <string name="messagePleaseWait">Please wait…</string>
     <string name="messageNameIsMissing">Please enter a name.</string>

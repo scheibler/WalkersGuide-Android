@@ -43,10 +43,10 @@
             android:text="@string/buttonServerMapNoSelection" />
 
         <Button
-            android:id="@+id/buttonRoutingWayClasses"
+            android:id="@+id/buttonManageWayClassWeightSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/planRouteMenuItemRoutingWayClasses" />
+            android:text="@string/buttonManageWayClassWeightSettings" />
 
         <Button
             android:id="@+id/buttonExcludedWays"

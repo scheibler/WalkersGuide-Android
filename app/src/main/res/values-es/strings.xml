@@ -128,15 +128,10 @@
 
     <!-- plan route dialog -->
     <string name="planRouteDialogTitle">Planificar ruta</string>
+    <string name="buttonNewRoute">Nueva ruta</string>
+    <string name="buttonSwapStartAndDestination">Intercambiar inicio y destino</string>
+    <string name="spinnerSelectWayClassWeightSettingsPrompt">Seleccionar perfil de ruta</string>
     <string name="switchShowViaPointList">Mostrar puntos intermedios</string>
-    <!-- options menu -->
-    <string name="planRouteMenuItemSwap">Intercambiar inicio y destino</string>
-    <string name="planRouteMenuItemExcludedWays">Vías excluidas</string>
-    <string name="planRouteMenuItemRoutingWayClasses">Priorizar tipos de vía</string>
-    <string name="planRouteMenuItemClear">Borrar puntos</string>
-
-    <!-- ConfigureWayClassWeightsDialog -->
-    <string name="configureWayClassWeightsDialogTitle">Priorizar tipos de vía:</string>
 
     <!-- SelectObjectWithIdFromMultipleSourcesDialog -->
     <!-- dialog titles -->
@@ -565,6 +560,7 @@
     <string name="buttonServerURLNoSelection">URL: Ninguna seleccionada</string>
     <string name="buttonServerMap">Mapa: %1$s</string>
     <string name="buttonServerMapNoSelection">Mapa: Ninguno seleccionado</string>
+    <string name="buttonManageWayClassWeightSettings">Perfiles de ruta</string>
     <string name="switchPreferTranslatedStrings">Preferir traducciones</string>
     <string name="switchPreferTranslatedStringsHint">
             Si la base de datos del mapa tiene varios idiomas almacenados para una entrada, este ajuste garantiza que la aplicación muestra
@@ -611,6 +607,21 @@
 
     <!-- select map dialog -->
     <string name="selectMapDialogTitle">Seleccionar mapa:</string>
+
+    <!-- manage way class weight settings dialog -->
+    <string name="labelDefaultWayClassWeightSettingsHeading">Perfil de ruta predeterminado</string>
+    <string name="labelDefaultWayClassWeightSettingsAlwaysAsk">Preguntar siempre</string>
+    <string name="spinnerSelectDefaultWayClassWeightSettingsPrompt">Seleccionar perfil de ruta predeterminado</string>
+    <string name="labelAvailableWayClassWeightSettingsHeading">Perfiles de ruta disponibles</string>
+    <string name="labelWayClassWeightSettingsMoved">%1$s movido de la posición %2$d a la posición %3$d.</string>
+    <string name="labelNoRouteProfilesAvailable">No hay perfiles de ruta disponibles. Por favor, crea al menos un perfil de ruta.</string>
+    <string name="buttonAddWayClassWeightSettings">Añadir perfil de ruta</string>
+    <string name="buttonRemoveWayClassWeightSettings">Eliminar perfil de ruta %1$s</string>
+    <string name="buttonRestoreDefaultWayClassWeightSettingsList">Restaurar perfiles de ruta predeterminados</string>
+
+    <!-- EnterWayClassWeightSettingsNameDialog -->
+    <string name="enterWayClassWeightSettingsNameDialogTitle">Nuevo perfil de ruta</string>
+    <string name="messageWayClassWeightSettingsNameIsMissing">Por favor, introduce un nombre para el nuevo perfil de ruta.</string>
 
     <!-- Select shake intentsity Dialog -->
     <string name="selectShakeIntensityDialogTitle">Seleccionar intensidad:</string>
@@ -849,8 +860,6 @@
     <string name="dialogCalculate">Calcular</string>
     <string name="dialogDefault">Predeterminado</string>
     <string name="dialogNow">Ahora</string>
-    <string name="dialogOptions">Opciones</string>
-    <string name="dialogPresets">Ajustes preestablecidos</string>
     <string name="dialogRefresh">Actualizar</string>
     <string name="dialogSend">Enviar</string>
     <string name="dialogSomethingMissing">¿Falta algo?</string>
@@ -859,10 +868,11 @@
 
     <!-- many common labels and messages -->
     <string name="fillingWordAnd">y</string>
-    <string name="fillingWordCustom">personalizado</string>
     <string name="fillingWordHas">tiene</string>
     <string name="stateCollapsed">contraído</string>
     <string name="stateExpanded">expandido</string>
+    <string name="actionMoveUp">Mover arriba</string>
+    <string name="actionMoveDown">Mover abajo</string>
     <string name="viewClassNameTab">Pestaña</string>
     <string name="messagePleaseWait">Por favor, espera…</string>
     <string name="messageNameIsMissing">Por favor, introduce un nombre.</string>

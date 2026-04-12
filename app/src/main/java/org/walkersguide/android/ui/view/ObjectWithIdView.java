@@ -767,7 +767,7 @@ public class ObjectWithIdView extends LinearLayout {
                 return true;
             }
 
-            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.getDefault();
+            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
             p2pRouteRequest.setStartPoint(currentLocation);
             p2pRouteRequest.setDestinationPoint(point);
             settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
