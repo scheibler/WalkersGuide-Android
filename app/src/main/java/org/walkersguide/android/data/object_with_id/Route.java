@@ -304,41 +304,59 @@ public class Route extends ObjectWithId implements Serializable {
 
     public String formatShortlyBeforeArrivalAtPointMessage() {
         RouteObject currentRouteObject = getCurrentRouteObject();
+        RouteObject nextRouteObject = getNextRouteObject();
+
+        if (currentRouteObject.getIsLastRouteObject() || nextRouteObject == null) {
+            return GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRouteDestination);
+        }
+
         if (currentRouteObject.getIsFirstRouteObject()) {
             return GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRouteStart);
-        } else if (currentRouteObject.getIsLastRouteObject()) {
-            return GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRouteDestination);
-        } else {
-            return String.format(
-                    GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRoutePoint),
-                    currentRouteObject.getTurn().getInstruction(),
-                    currentRouteObject.getPoint().getName());
         }
+
+        return String.format(
+                GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRoutePoint),
+                currentRouteObject.getTurn().getInstruction(),
+                currentRouteObject.getPoint().getName());
     }
 
     public String formatArrivalAtPointMessage() {
         RouteObject currentRouteObject = getCurrentRouteObject();
-        if (currentRouteObject.getIsFirstRouteObject()) {
-            return GlobalInstance.getStringResource(R.string.messageArrivedAtRouteStart);
-        } else if (currentRouteObject.getIsLastRouteObject()) {
-            return GlobalInstance.getStringResource(R.string.messageArrivedAtRouteDestination);
-        } else {
-            RouteObject nextRouteObject = this.routeObjectList.get(getCurrentPosition()+1);
-            if (nextRouteObject.getTurn() != null) {
-                return String.format(
-                        GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePointWithNextTurn),
-                        getCurrentPosition()+1,
-                        currentRouteObject.getTurn().getInstruction(),
-                        nextRouteObject.formatSegmentInstruction(),
-                        nextRouteObject.getTurn().getInstruction());
-            } else {
-                return String.format(
-                        GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePoint),
-                        getCurrentPosition()+1,
-                        currentRouteObject.getTurn().getInstruction(),
-                        nextRouteObject.formatSegmentInstruction());
-            }
+        RouteObject nextRouteObject = getNextRouteObject();
+
+        if (currentRouteObject.getIsLastRouteObject() || nextRouteObject == null) {
+            return String.format(
+                    "%1$s\n%2$s",
+                    GlobalInstance.getStringResource(R.string.messageArrivedAtRouteDestination),
+                    currentRouteObject
+                        .getPoint()
+                        .formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter, false));
         }
+
+        if (currentRouteObject.getIsFirstRouteObject()) {
+            return String.format(
+                    "%1$s\n%2$s: %3$s",
+                    GlobalInstance.getStringResource(R.string.messageArrivedAtRouteStart),
+                    GlobalInstance.getStringResource(R.string.buttonNextRouteObject),
+                    nextRouteObject
+                        .getPoint()
+                        .formatDistanceAndRelativeBearingFromCurrentLocation(R.plurals.meter, false));
+        }
+
+        if (nextRouteObject.getTurn() != null) {
+            return String.format(
+                    GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePointWithNextTurn),
+                    getCurrentPosition()+1,
+                    currentRouteObject.getTurn().getInstruction(),
+                    nextRouteObject.formatSegmentInstruction(),
+                    nextRouteObject.getTurn().getInstruction());
+        }
+
+        return String.format(
+                GlobalInstance.getStringResource(R.string.messageArrivedAtRoutePoint),
+                getCurrentPosition()+1,
+                currentRouteObject.getTurn().getInstruction(),
+                nextRouteObject.formatSegmentInstruction());
     }
 
     public int getElapsedLength() {
@@ -443,6 +461,13 @@ public class Route extends ObjectWithId implements Serializable {
 
     public RouteObject getCurrentRouteObject() {
         return this.routeObjectList.get(getCurrentPosition());
+    }
+
+    public RouteObject getNextRouteObject() {
+        if (hasNextRouteObject()) {
+            return this.routeObjectList.get(getCurrentPosition()+1);
+        }
+        return null;
     }
 
     public RouteObject getClosestRouteObjectFromCurrentLocation() {

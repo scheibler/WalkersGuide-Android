@@ -443,7 +443,6 @@ public class PositionManager implements LocationListener {
     }
 
     private void broadcastSimulationStatusChanged() {
-        Timber.d("broadcastSimulationStatusChanged");
         Intent intent = new Intent(ACTION_SIMULATION_STATUS_CHANGED);
         intent.putExtra(EXTRA_SIMULATION_ENABLED, getSimulationEnabled());
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);

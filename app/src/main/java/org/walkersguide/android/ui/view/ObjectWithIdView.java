@@ -259,6 +259,7 @@ public class ObjectWithIdView extends LinearLayout {
             this.objectWithId = object;
             this.showObjectIcon = showObjectIcon;
             updateLabelAndButtonText();
+            updateAccessibilityActions();
         }
     }
 
@@ -269,6 +270,7 @@ public class ObjectWithIdView extends LinearLayout {
             this.staticLabelText = staticLabelText;
             this.showObjectIcon = ShowIcon.NO;
             updateLabelAndButtonText();
+            updateAccessibilityActions();
         }
     }
 
@@ -285,6 +287,7 @@ public class ObjectWithIdView extends LinearLayout {
             ViewCompat.setAccessibilityDelegate(
                     this.label, UiHelper.getAccessibilityDelegateViewClassButton());
             updateLabelAndButtonText();
+            updateAccessibilityActions();
         }
     }
 
@@ -293,12 +296,7 @@ public class ObjectWithIdView extends LinearLayout {
         this.showObjectIcon = ShowIcon.NO;
         this.staticLabelText = null;
 
-        // remove previously added accessibility actions
-        for (Integer actionId : registeredAccessibilityActionIdList) {
-            ViewCompat.removeAccessibilityAction(this.label, actionId);
-        }
-        registeredAccessibilityActionIdList.clear();
-
+        clearAccessibilityActions();
         updateLabelAndButtonText();
     }
 
@@ -351,20 +349,6 @@ public class ObjectWithIdView extends LinearLayout {
                 this.imageViewObjectIcon.setVisibility(View.INVISIBLE);
             }
 
-            // accessibility actions
-            for (final Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
-                int actionId = ViewCompat.addAccessibilityAction(
-                        this.label,
-                        entry.getValue(),
-                        (actionView, arguments) -> {
-                            executeAccessibilityMenuAction(entry.getKey());
-                            return true;
-                        });
-                if (actionId != View.NO_ID) {
-                    registeredAccessibilityActionIdList.add(actionId);
-                }
-            }
-
             // action button
             if (settingsManagerInstance.getShowActionButton()) {
                 this.buttonActionFor.setContentDescription(
@@ -386,34 +370,95 @@ public class ObjectWithIdView extends LinearLayout {
      */
     private ArrayList<Integer> registeredAccessibilityActionIdList = new ArrayList<Integer>();;
 
+    private void updateAccessibilityActions() {
+        clearAccessibilityActions();
+
+        if (this.objectWithId != null) {
+            for (final Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
+                int actionId = ViewCompat.addAccessibilityAction(
+                        this.label,
+                        entry.getValue(),
+                        (actionView, arguments) -> {
+                            executeAccessibilityMenuAction(entry.getKey());
+                            return true;
+                        });
+                if (actionId != View.NO_ID) {
+                    registeredAccessibilityActionIdList.add(actionId);
+                }
+            }
+        }
+    }
+
+    private void clearAccessibilityActions() {
+        for (Integer actionId : registeredAccessibilityActionIdList) {
+            ViewCompat.removeAccessibilityAction(this.label, actionId);
+        }
+        registeredAccessibilityActionIdList.clear();
+    }
+
     private LinkedHashMap<Integer,String> getAccessibilityActionMenuItemMap() {
         LinkedHashMap<Integer,String> actionMap = new LinkedHashMap<Integer,String>();
         if (objectDetailsActionEnabled) {
             actionMap.put(
                     MENU_ITEM_DETAILS, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
         }
-        if (objectWithId instanceof POI) {
-            if (objectWithId instanceof Station) {
-                actionMap.put(
-                        MENU_ITEM_DEPARTURES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdDepartures));
+
+        if (objectWithId instanceof Point) {
+
+            if (objectWithId instanceof POI) {
+                if (objectWithId instanceof Station) {
+                    actionMap.put(
+                            MENU_ITEM_DEPARTURES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdDepartures));
+                }
+                if (((POI) objectWithId).hasEntrance()) {
+                    actionMap.put(
+                            MENU_ITEM_ENTRANCES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdEntrances));
+                }
+
+            } else if (objectWithId instanceof Intersection) {
+                if (((Intersection) objectWithId).hasPedestrianCrossings()) {
+                    actionMap.put(
+                            MENU_ITEM_PEDESTRIAN_CROSSINGS, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdPedestrianCrossings));
+                }
             }
-            if (((POI) objectWithId).hasEntrance()) {
+
+            Point point = (Point) objectWithId;
+            if (! isLocationSimulated(point)) {
                 actionMap.put(
-                        MENU_ITEM_ENTRANCES, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdEntrances));
+                        MENU_ITEM_NAVIGATE_TO_THIS_POINT,
+                        GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdNavigateToThisPoint));
             }
-        } else if (objectWithId instanceof Intersection) {
-            if (((Intersection) objectWithId).hasPedestrianCrossings()) {
-                actionMap.put(
-                        MENU_ITEM_PEDESTRIAN_CROSSINGS, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdPedestrianCrossings));
-            }
-        } else if (objectWithId instanceof IntersectionSegment) {
             actionMap.put(
-                    MENU_ITEM_STREET_COURSE, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdStreetCourse));
+                    MENU_ITEM_SIMULATE_LOCATION,
+                    String.format(
+                        isLocationSimulated(point)
+                        ? GlobalInstance.getStringResource(R.string.accessibilityActionEndSimulation)
+                        : GlobalInstance.getStringResource(R.string.accessibilityActionStartSimulationLocation),
+                        point.getName()));
+
+        } else if (objectWithId instanceof Segment) {
+
+            if (objectWithId instanceof IntersectionSegment) {
+                actionMap.put(
+                        MENU_ITEM_STREET_COURSE, GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdStreetCourse));
+            }
+
+            Segment segment = (Segment) objectWithId;
+            actionMap.put(
+                    MENU_ITEM_SIMULATE_BEARING,
+                    String.format(
+                        isBearingSimulated(segment)
+                        ? GlobalInstance.getStringResource(R.string.accessibilityActionEndSimulation)
+                        : GlobalInstance.getStringResource(R.string.accessibilityActionStartSimulationBearing),
+                        segment.getBearing().toString()));
         }
+
         return actionMap;
     }
 
     private boolean executeAccessibilityMenuAction(int menuItemId) {
+
+        // subtab actions
         if (menuItemId == MENU_ITEM_DETAILS) {
             mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                         ObjectDetailsTabLayoutFragment.details(this.objectWithId));
@@ -429,10 +474,65 @@ public class ObjectWithIdView extends LinearLayout {
         } else if (menuItemId == MENU_ITEM_STREET_COURSE) {
             mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(
                     ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) this.objectWithId));
+
+        // other actions
+        } else if (menuItemId == MENU_ITEM_NAVIGATE_TO_THIS_POINT) {
+            navigateToThisPoint((Point) this.objectWithId);
+        } else if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
+            toggleLocationSimulation((Point) this.objectWithId);
+        } else if (menuItemId == MENU_ITEM_SIMULATE_BEARING) {
+            toggleBearingSimulation((Segment) this.objectWithId);
+
         } else {
             return false;
         }
         return true;
+    }
+
+    private void navigateToThisPoint(Point destination) {
+        Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+        if (currentLocation == null) {
+            Toast.makeText(
+                    getContext(),
+                    GlobalInstance.getStringResource(R.string.errorNoLocationFound),
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
+        p2pRouteRequest.setStartPoint(currentLocation);
+        p2pRouteRequest.setDestinationPoint(destination);
+        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+
+        mainActivityController.openPlanRouteDialog(true);
+    }
+
+    private boolean isLocationSimulated(Point point) {
+        return positionManagerInstance.getSimulationEnabled()
+            && point != null
+            && point.equals(positionManagerInstance.getSimulatedLocation());
+    }
+
+    private void toggleLocationSimulation(Point point) {
+        boolean enableSimulation = ! isLocationSimulated(point);
+        if (enableSimulation) {
+            positionManagerInstance.setSimulatedLocation(point);
+        }
+        positionManagerInstance.setSimulationEnabled(enableSimulation);
+    }
+
+    private boolean isBearingSimulated(Segment segment) {
+        return deviceSensorManagerInstance.getSimulationEnabled()
+            && segment != null
+            && segment.getBearing().equals(deviceSensorManagerInstance.getSimulatedBearing());
+    }
+
+    private void toggleBearingSimulation(Segment segment) {
+            boolean enableSimulation = ! isBearingSimulated(segment);
+            if (enableSimulation) {
+                deviceSensorManagerInstance.setSimulatedBearing(segment.getBearing());
+            }
+            deviceSensorManagerInstance.setSimulationEnabled(enableSimulation);
     }
 
 
@@ -453,7 +553,9 @@ public class ObjectWithIdView extends LinearLayout {
         filter.addAction(UpdateObjectWithIdSelectedCollectionsDialog.ACTION_UPDATE_OBJECT_WITH_ID_SELECTED_COLLECTIONS_WAS_SUCCESSFUL);
         // new location and bearing values
         filter.addAction(PositionManager.ACTION_NEW_LOCATION);
+        filter.addAction(PositionManager.ACTION_SIMULATION_STATUS_CHANGED);
         filter.addAction(DeviceSensorManager.ACTION_NEW_BEARING);
+        filter.addAction(DeviceSensorManager.ACTION_SIMULATION_STATUS_CHANGED);
         LocalBroadcastManager.getInstance(GlobalInstance.getContext()).registerReceiver(newLocationReceiver, filter);
     }
 
@@ -462,6 +564,7 @@ public class ObjectWithIdView extends LinearLayout {
         private AcceptNewBearing acceptNewBearing = new AcceptNewBearing(30, 2000l);
 
         @Override public void onReceive(Context context, Intent intent) {
+
             if (intent.getAction().equals(RenameObjectWithIdDialog.ACTION_RENAME_OBJECT_WITH_ID_WAS_SUCCESSFUL)) {
                 updateLabelAndButtonText();
 
@@ -479,6 +582,9 @@ public class ObjectWithIdView extends LinearLayout {
                     updateLabelAndButtonText();
                 }
 
+            } else if (intent.getAction().equals(PositionManager.ACTION_SIMULATION_STATUS_CHANGED)) {
+                updateAccessibilityActions();
+
             } else if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING)) {
                 if (acceptNewBearing.updateBearing(
                             (Bearing) intent.getSerializableExtra(DeviceSensorManager.EXTRA_BEARING),
@@ -487,6 +593,9 @@ public class ObjectWithIdView extends LinearLayout {
                             autoUpdate && includeDistanceOrBearingInformation)) {
                     updateLabelAndButtonText();
                 }
+
+            } else if (intent.getAction().equals(DeviceSensorManager.ACTION_SIMULATION_STATUS_CHANGED)) {
+                updateAccessibilityActions();
             }
         }
     };
@@ -537,6 +646,13 @@ public class ObjectWithIdView extends LinearLayout {
 
         // top items
         for (Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
+            if (       entry.getKey() == MENU_ITEM_NAVIGATE_TO_THIS_POINT
+                    || entry.getKey() == MENU_ITEM_SIMULATE_LOCATION
+                    || entry.getKey() == MENU_ITEM_SIMULATE_BEARING) {
+                continue;
+            }
+            // only add the subtab actions
+            // see executeAccessibilityMenuAction() for details
             contextMenu.getMenu().add(
                     MENU_GROUP_1, entry.getKey(), orderId++, entry.getValue());
         }
@@ -580,17 +696,13 @@ public class ObjectWithIdView extends LinearLayout {
                     MENU_GROUP_2, MENU_ITEM_SIMULATE_LOCATION, orderId++,
                     GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdSimulateLocation));
             menuItemSimulateLocation.setCheckable(true);
-            menuItemSimulateLocation.setChecked(
-                       positionManagerInstance.getSimulationEnabled()
-                    && ((Point) object).equals(positionManagerInstance.getSimulatedLocation()));
+            menuItemSimulateLocation.setChecked(isLocationSimulated((Point) object));
         } else if (object instanceof Segment) {
             MenuItem menuItemSimulateBearing = contextMenu.getMenu().add(
                     MENU_GROUP_2, MENU_ITEM_SIMULATE_BEARING, orderId++,
                     GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdSimulateBearing));
             menuItemSimulateBearing.setCheckable(true);
-            menuItemSimulateBearing.setChecked(
-                       deviceSensorManagerInstance.getSimulationEnabled()
-                    && ((Segment) object).getBearing().equals(deviceSensorManagerInstance.getSimulatedBearing()));
+            menuItemSimulateBearing.setChecked(isBearingSimulated((Segment) object));
         }
 
         // exclude from routing
@@ -751,27 +863,10 @@ public class ObjectWithIdView extends LinearLayout {
         int menuItemId = item.getItemId();
 
         if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
-            boolean enableSimulation = ! item.isChecked();
-            if (enableSimulation) {
-                positionManagerInstance.setSimulatedLocation(point);
-            }
-            positionManagerInstance.setSimulationEnabled(enableSimulation);
+            toggleLocationSimulation(point);
 
         } else if (menuItemId == MENU_ITEM_NAVIGATE_TO_THIS_POINT) {
-            Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-            if (currentLocation == null) {
-                Toast.makeText(
-                        context,
-                        GlobalInstance.getStringResource(R.string.errorNoLocationFound),
-                        Toast.LENGTH_LONG).show();
-                return true;
-            }
-
-            P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
-            p2pRouteRequest.setStartPoint(currentLocation);
-            p2pRouteRequest.setDestinationPoint(point);
-            settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-            mainActivityController.openPlanRouteDialog(true);
+            navigateToThisPoint(point);
 
         } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1
@@ -847,11 +942,7 @@ public class ObjectWithIdView extends LinearLayout {
         int menuItemId = item.getItemId();
 
         if (menuItemId == MENU_ITEM_SIMULATE_BEARING) {
-            boolean enableSimulation = ! item.isChecked();
-            if (enableSimulation) {
-                deviceSensorManagerInstance.setSimulatedBearing(segment.getBearing());
-            }
-            deviceSensorManagerInstance.setSimulationEnabled(enableSimulation);
+            toggleBearingSimulation(segment);
 
         } else if (menuItemId == MENU_ITEM_EXCLUDE_FROM_ROUTING) {
             if (StaticProfile.excludedRoutingSegments().containsObject(segment)) {

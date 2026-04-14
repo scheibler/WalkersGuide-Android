@@ -268,10 +268,11 @@ public class Helper {
             try {
                 return Enum.valueOf(enumClass, enumValue);
             } catch (IllegalArgumentException e1) {
-                Timber.d("Enum.valueOf: no match, try to upper-case the name. Error: %1$s", e1);
                 try {
                     return Enum.valueOf(enumClass, enumValue.toUpperCase(Locale.ROOT));
-                } catch (IllegalArgumentException e2) {}
+                } catch (IllegalArgumentException e2) {
+                    Timber.w("Enum.valueOf: no match, not even after name.toUpperCase(). Error: %1$s", e2);
+                }
             }
         }
         return null;

@@ -362,7 +362,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
                     // wait, until onResume is finished and the ui has focus
                     PositionManager.getInstance().requestCurrentLocation();
                 }
-            }, 200);
+            }, 500);
 
         } else {
             labelHeading.setText(
