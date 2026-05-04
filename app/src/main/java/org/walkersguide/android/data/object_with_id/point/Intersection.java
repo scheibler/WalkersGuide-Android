@@ -18,6 +18,15 @@ import androidx.core.util.Pair;
 import org.walkersguide.android.data.angle.Bearing;
 import org.walkersguide.android.data.angle.RelativeBearing;
 import org.walkersguide.android.data.object_with_id.Segment;
+import org.walkersguide.android.data.object_with_id.Segment.SortByBearingRelativeTo;
+import java.lang.CharSequence;
+import android.text.SpannableString;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import org.walkersguide.android.ui.UiHelper;
+import org.walkersguide.android.data.Angle;
+import java.util.stream.Collectors;
 
 
 public class Intersection extends Point implements Serializable {
@@ -66,8 +75,55 @@ public class Intersection extends Point implements Serializable {
         this.numberOfStreetsWithName = Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_NUMBER_OF_STREETS_WITH_NAME);
     }
 
+    public boolean isImportant() {
+        return this.numberOfStreetsWithName != null
+            ? this.numberOfStreetsWithName > 1
+            : false;
+    }
+
+    public String formatNumberOfStreets() {
+        return String.format(
+                GlobalInstance.getStringResource(R.string.intersectionNumberOfStreets),
+                GlobalInstance.getPluralResource(
+                    R.plurals.street,
+                    this.numberOfStreets != null ? this.numberOfStreets : this.segmentList.size()));
+    }
+
+    @Override public String toString() {
+        String description = super.toString();
+        // second line: number of streets
+        description += System.lineSeparator();
+        description += formatNumberOfStreets();
+        // third line: crossings nearby
+        if (hasPedestrianCrossings()) {
+            description += System.lineSeparator();
+            description += formatNumberOfCrossingsNearby();
+        }
+        return description;
+    }
+
+    // intersection segments
+
     public ArrayList<IntersectionSegment> getSegmentList() {
         return this.segmentList;
+    }
+
+    public IntersectionSegment findIntersectionSegmentWhichIsPartOfPreviousRouteSegment() {
+        for (IntersectionSegment intersectionSegment : this.segmentList) {
+            if (intersectionSegment.isPartOfPreviousRouteSegment()) {
+                return intersectionSegment;
+            }
+        }
+        return null;
+    }
+
+    public IntersectionSegment findIntersectionSegmentWhichIsPartOfNextRouteSegment() {
+        for (IntersectionSegment intersectionSegment : this.segmentList) {
+            if (intersectionSegment.isPartOfNextRouteSegment()) {
+                return intersectionSegment;
+            }
+        }
+        return null;
     }
 
     public IntersectionSegment findMatchingIntersectionSegmentFor(long nextNodeId) {
@@ -90,6 +146,89 @@ public class Intersection extends Point implements Serializable {
         return closest.second <= threshold ? closest.first : null;
     }
 
+    public static class SchemeData {
+        public final String intersectionName;
+        public final LinkedHashMap<RelativeBearing,IntersectionSegment> segmentMap;
+        public final CharSequence legend;
+
+        public SchemeData(String intersectionName, LinkedHashMap<RelativeBearing, IntersectionSegment> segmentMap, CharSequence legend) {
+            this.intersectionName = intersectionName;
+            this.segmentMap = segmentMap;
+            this.legend = legend;
+        }
+
+        public String formatLlegendAsOneLiner() {
+            return legend.toString().replace("\n", " ");    // still comma separated (see getDescriptionForSortedSegmentMap())
+        }
+    }
+
+    public SchemeData getSchemeDataForFixedViewingDirectionFromPreviousRouteSegment(boolean includeWhatsBehind) {
+        IntersectionSegment partOfPreviousRouteSegment = findIntersectionSegmentWhichIsPartOfPreviousRouteSegment();
+        if (partOfPreviousRouteSegment == null) return null;
+        return getSchemeDataForViewingDirection(
+                partOfPreviousRouteSegment.getBearing().inverse(),
+                Angle.Quadrant.Q3.max,  // bearing offset = 157 -> sort the ways, which are strongly to the left of the user, to the top of the list
+                includeWhatsBehind);
+    }
+
+    public SchemeData getSchemeDataForViewingDirection(
+            Bearing viewingDirection, int offsetAngle, boolean includeWhatsBehind) {
+        LinkedHashMap<RelativeBearing,IntersectionSegment> segmentMap = getSegmentMapSortedBy(
+                viewingDirection, offsetAngle, includeWhatsBehind);
+        CharSequence legend = getDescriptionForSortedSegmentMap(segmentMap);
+        return new SchemeData(getName(), segmentMap, legend);
+    }
+
+    private LinkedHashMap<RelativeBearing,IntersectionSegment> getSegmentMapSortedBy(
+            Bearing viewingDirection, int offsetAngle, boolean includeWhatsBehind) {
+        LinkedHashMap<RelativeBearing,IntersectionSegment> segmentMap = new LinkedHashMap<>();
+        SortByBearingRelativeTo comparator =
+            new Segment.SortByBearingRelativeTo(viewingDirection, offsetAngle, true);
+
+        for (IntersectionSegment intersectionSegment : this.segmentList
+                .stream().sorted(comparator).collect(Collectors.toList())) {
+            RelativeBearing relativeBearingIntersectionSegment = intersectionSegment
+                .getBearing()
+                .relativeTo(viewingDirection);
+
+            if (includeWhatsBehind
+                    || relativeBearingIntersectionSegment.getDirection() != RelativeBearing.Direction.BEHIND) {
+                segmentMap.put(relativeBearingIntersectionSegment, intersectionSegment);
+            }
+        }
+        return segmentMap;
+    }
+
+    private CharSequence getDescriptionForSortedSegmentMap(
+            LinkedHashMap<RelativeBearing,IntersectionSegment> segmentMap) {
+        CharSequence formattedIntersectionStructure = new SpannableString("");
+        Iterator<Map.Entry<RelativeBearing, IntersectionSegment>> iterator = segmentMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<RelativeBearing, IntersectionSegment> entry = iterator.next();
+            RelativeBearing relativeBearingIntersectionSegment = entry.getKey();
+            IntersectionSegment intersectionSegment = entry.getValue();
+
+            // instruction structure label text (preserves text formatting)
+            formattedIntersectionStructure = TextUtils.concat(
+                    formattedIntersectionStructure,
+                    UiHelper.bold(
+                        relativeBearingIntersectionSegment.getDirection().toString()),
+                    ":\n",
+                    intersectionSegment.isPartOfNextRouteSegment()
+                    ? UiHelper.red(intersectionSegment.getName())
+                    : intersectionSegment.getName());
+
+            if (iterator.hasNext()) {
+                formattedIntersectionStructure = TextUtils.concat(
+                        formattedIntersectionStructure, ",\n");
+            }
+        }
+
+        return formattedIntersectionStructure;
+    }
+
+    // crossings nearby
+
     public ArrayList<PedestrianCrossing> getPedestrianCrossingList() {
         return this.pedestrianCrossingList;
     }
@@ -98,37 +237,10 @@ public class Intersection extends Point implements Serializable {
         return this.pedestrianCrossingList != null && ! this.pedestrianCrossingList.isEmpty();
     }
 
-    public boolean isImportant() {
-        return this.numberOfStreetsWithName != null
-            ? this.numberOfStreetsWithName > 1
-            : false;
-    }
-
-    public String formatNumberOfStreets() {
-        return String.format(
-                GlobalInstance.getStringResource(R.string.intersectionNumberOfStreets),
-                GlobalInstance.getPluralResource(
-                    R.plurals.street,
-                    this.numberOfStreets != null ? this.numberOfStreets : this.segmentList.size()));
-    }
-
     public String formatNumberOfCrossingsNearby() {
         return GlobalInstance.getPluralResource(
                 R.plurals.intersectionNumberOfCrossingsNearby,
                 hasPedestrianCrossings() ? this.pedestrianCrossingList.size() : 0);
-    }
-
-    @Override public String toString() {
-        String description = super.toString();
-        // second line: number of streets
-        description += System.lineSeparator();
-        description += formatNumberOfStreets();
-        // third line: crossings nearby
-        if (hasPedestrianCrossings()) {
-            description += System.lineSeparator();
-            description += formatNumberOfCrossingsNearby();
-        }
-        return description;
     }
 
 

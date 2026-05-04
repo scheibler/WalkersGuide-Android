@@ -31,7 +31,7 @@ public class ResolveAddressStringTask extends ServerTask {
         try {
             requestUrl = String.format(
                     Locale.ROOT,
-                    "%1$s/search?format=jsonv2&q=%2$s&accept-language=%3$s&addressdetails=1&limit=10",
+                    "%1$s/search?format=jsonv2&q=%2$s&accept-language=%3$s&layer=address,poi,natural&addressdetails=1&limit=10",
                     AddressUtility.ADDRESS_RESOLVER_URL,
                     URLEncoder.encode(
                         this.addressString, StandardCharsets.UTF_8.toString()),

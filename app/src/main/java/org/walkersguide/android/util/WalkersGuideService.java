@@ -142,9 +142,28 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             return false;
         } else {
             // start service
-            Intent intent = createServiceRequestIntent(ACTION_START_SERVICE);
-            ContextCompat.startForegroundService(GlobalInstance.getContext(), intent);
+            ContextCompat.startForegroundService(
+                    GlobalInstance.getContext(),
+                    createServiceRequestIntent(ACTION_START_SERVICE));
             return true;
+
+            /* for later
+            try {
+                ContextCompat.startForegroundService(
+                        GlobalInstance.getContext(),
+                        createServiceRequestIntent(ACTION_START_SERVICE));
+                return true;
+            } catch (Exception e) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                        && e instanceof ForegroundServiceStartNotAllowedException) {
+                    Timber.e("ForegroundServiceStartNotAllowedException - this shouldn't happen from user interaction");
+                    // Notify user
+                    Intent intent = new Intent(ACTION_START_SERVICE_FAILED);
+                    intent.putExtra(EXTRA_START_SERVICE_FAILURE, StartServiceFailure.SYSTEM_RESTRICTION);
+                    LocalBroadcastManager.getInstance(GlobalInstance.getContext()).sendBroadcast(intent);
+                }
+                return false;
+            }*/
         }
     }
 
@@ -261,6 +280,9 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null || intent.getAction() == null) {
+            Timber.d("service was restarted by the system after it killed it due to system restrictions");
+            // for now don't recover
+            destroyService();
             return START_STICKY;
         }
         Timber.d("onStartCommand: serviceState= %1$s, action= %2$s", serviceState, intent.getAction());
@@ -348,21 +370,28 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
 
         } else if (intent.getAction().equals(ACTION_SET_TRACKING_MODE)) {
             TrackingMode newTrackingMode = (TrackingMode) intent.getSerializableExtra(EXTRA_NEW_TRACKING_MODE);
-            if (newTrackingMode != null
-                    && this.trackingMode != newTrackingMode) {
-                if (this.trackingMode != TrackingMode.OFF
-                        && intent.getBooleanExtra(EXTRA_ONLY_IF_TRACKING_WAS_DISABLED, false)) {
-                    return START_STICKY;
-                }
+            if (newTrackingMode != null) {
+
+                // first update tracking cache
                 switch (newTrackingMode) {
                     case DISTANCE:
                     case BEARING:
                         updateTrackedObjectList();
                         break;
                 }
-                this.trackingMode = newTrackingMode;
-                sendTrackingModeChangedBroadcast();
-                updateServiceNotification();
+
+                if (this.trackingMode != newTrackingMode) {
+                    if (this.trackingMode != TrackingMode.OFF
+                            && intent.getBooleanExtra(EXTRA_ONLY_IF_TRACKING_WAS_DISABLED, false)) {
+                        // track a new object but mode = bearing was selected
+                        // then we don't want to switch to distance automatically
+                        return START_STICKY;
+                    }
+
+                    this.trackingMode = newTrackingMode;
+                    sendTrackingModeChangedBroadcast();
+                    updateServiceNotification();
+                }
             }
 
         } else if (intent.getAction().equals(ACTION_INVALIDATE_TRACKED_OBJECT_LIST)) {
@@ -696,7 +725,9 @@ public class WalkersGuideService extends Service implements LocationUpdate, Devi
             if (intent.getAction().equals(LocationManager.PROVIDERS_CHANGED_ACTION)) {
                 if (isLocationModuleEnabled()) {
                     // only go into foreground state, if app is in foreground itself
+                    Timber.d("PROVIDERS_CHANGED_ACTION, isLocationModuleEnabled=true, wasInBackground=%1$s", GlobalInstance.getInstance().applicationWasInBackground());
                     if (! GlobalInstance.getInstance().applicationWasInBackground()) {
+                        Timber.d("ContextCompat.startForegroundService again");
                         GlobalInstance.getContext().startService(
                                 createServiceRequestIntent(ACTION_START_SERVICE));
                     }

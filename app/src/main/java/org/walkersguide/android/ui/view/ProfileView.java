@@ -83,6 +83,8 @@ import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.ui.dialog.select.SelectPoiCategoriesDialog;
 import org.walkersguide.android.database.util.AccessDatabase;
 import org.walkersguide.android.database.profile.StaticProfile;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 public class ProfileView extends LinearLayout {
@@ -153,8 +155,7 @@ public class ProfileView extends LinearLayout {
                 if (onProfileDefaultActionListener != null) {
                     onProfileDefaultActionListener.onProfileDefaultActionClicked(profile);
                 } else if (profile != null) {
-                    executeProfileMenuAction(
-                            view.getContext(), profile, MENU_ITEM_DETAILS);
+                    executeAccessibilityMenuAction(MENU_ITEM_SHOW_LIST);
                 }
             }
         });
@@ -186,9 +187,11 @@ public class ProfileView extends LinearLayout {
     }
 
     private void reset() {
+        Timber.d("reset");
         this.profile = null;
         this.showProfileIcon = false;
         this.showContextMenuItemRemove = false;
+        clearAccessibilityActions();
         updateLabelAndButtonText();
     }
 
@@ -208,6 +211,7 @@ public class ProfileView extends LinearLayout {
     // convigure view
 
     public void configureAsSingleObject(Profile profile) {
+        Timber.d("configureAsSingleObject");
         configure(profile, false, false);
         ViewCompat.setAccessibilityDelegate(
                 this.label, UiHelper.getAccessibilityDelegateViewClassButton());
@@ -224,23 +228,34 @@ public class ProfileView extends LinearLayout {
             this.showProfileIcon = showProfileIcon;
             this.showContextMenuItemRemove = showContextMenuItemRemove;
             updateLabelAndButtonText();
+            updateAccessibilityActions();
         }
     }
 
     private void updateLabelAndButtonText() {
-        String labelText = null;
+        String labelText = null, labelContentDescription = null;
+
         if (this.profile != null) {
             labelText = this.compact ? this.profile.getName() : this.profile.toString();
+            labelContentDescription = this.profile.toString().replace("\n", ", ");
+
+            if (this.profile instanceof PoiProfile) {
+                labelContentDescription += String.format(
+                        ": %1$s", TextUtils.join(", ", ((PoiProfile) this.profile).getPoiCategoryList()));
+            }
+
         } else {
             labelText = GlobalInstance.getStringResource(R.string.labelNothingSelected);
         }
 
-        // prepare complete label text
         if (this.prefix != null) {
             labelText = String.format(
                     "%1$s: %2$s", this.prefix, labelText);
+            if (labelContentDescription != null) {
+                labelContentDescription = String.format(
+                        "%1$s: %2$s", this.prefix, labelContentDescription);
+            }
         }
-        this.label.setText(labelText);
 
         if (this.profile != null) {
 
@@ -248,11 +263,8 @@ public class ProfileView extends LinearLayout {
             if (this.showProfileIcon) {
                 this.imageViewProfileIcon.setImageResource(this.profile.getIcon().resId);
                 this.imageViewProfileIcon.setVisibility(View.VISIBLE);
-                this.label.setContentDescription(
-                        String.format(
-                            "%1$s: %2$s",
-                            this.profile.getIcon().name,
-                            labelText));
+                labelContentDescription = String.format(
+                        "%1$s: %2$s", this.profile.getIcon().name, labelContentDescription);
             }
 
             // action button
@@ -267,6 +279,110 @@ public class ProfileView extends LinearLayout {
                 this.buttonActionFor.setVisibility(View.VISIBLE);
             }
         }
+
+        this.label.setText(labelText);
+        this.label.setContentDescription(labelContentDescription);
+    }
+
+
+    /** accessibility actions
+     */
+    private ArrayList<Integer> registeredAccessibilityActionIdList = new ArrayList<Integer>();;
+
+    private void updateAccessibilityActions() {
+        clearAccessibilityActions();
+
+        if (this.profile != null) {
+            for (final Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
+                int actionId = ViewCompat.addAccessibilityAction(
+                        this.label,
+                        entry.getValue(),
+                        (actionView, arguments) -> {
+                            executeAccessibilityMenuAction(entry.getKey());
+                            return true;
+                        });
+                if (actionId != View.NO_ID) {
+                    registeredAccessibilityActionIdList.add(actionId);
+                }
+            }
+        }
+    }
+
+    private void clearAccessibilityActions() {
+        for (Integer actionId : registeredAccessibilityActionIdList) {
+            ViewCompat.removeAccessibilityAction(this.label, actionId);
+        }
+        registeredAccessibilityActionIdList.clear();
+    }
+
+    private LinkedHashMap<Integer,String> getAccessibilityActionMenuItemMap() {
+        LinkedHashMap<Integer,String> actionMap = new LinkedHashMap<Integer,String>();
+        if (this.profile == null) return actionMap;
+
+        if (this.onProfileDefaultActionListener != null) {
+            actionMap.put(
+                    MENU_ITEM_SHOW_LIST,
+                    GlobalInstance.getStringResource(R.string.contextMenuItemProfileShowList));
+        }
+
+        // unpin and untrack
+
+        if (this.profile instanceof MutableProfile) {
+            MutableProfile mutableProfile = (MutableProfile) this.profile;
+
+            if (mutableProfile.isPinned()) {
+                actionMap.put(
+                        MENU_ITEM_OVERVIEW_PIN,
+                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewUnpin));
+            }
+
+            if (mutableProfile.isTracked()) {
+                actionMap.put(
+                        MENU_ITEM_OVERVIEW_TRACK,
+                        GlobalInstance.getStringResource(R.string.contextMenuItemOverviewUntrack));
+            }
+        }
+
+        return actionMap;
+    }
+
+    private boolean executeAccessibilityMenuAction(int menuItemId) {
+        if (this.profile == null) return false;
+
+        if (menuItemId == MENU_ITEM_SHOW_LIST) {
+            DialogFragment profileDetailsFragment = null;
+            if (this.profile instanceof DatabaseProfile) {
+                profileDetailsFragment = ObjectListFromDatabaseFragment.newInstance((DatabaseProfile) this.profile);
+            } else if (this.profile instanceof PoiProfile) {
+                PoiProfile poiProfile = (PoiProfile) this.profile;
+                settingsManagerInstance.setSelectedPoiProfile(poiProfile);
+                profileDetailsFragment = PoiListFromServerFragment.newInstance(poiProfile);
+            }
+            if (profileDetailsFragment != null) {
+                mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(profileDetailsFragment);
+            }
+
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_PIN
+                && this.profile instanceof MutableProfile) {
+            MutableProfile mutableProfile = (MutableProfile) this.profile;
+            mutableProfile.setPinned(! mutableProfile.isPinned());
+            // update a11y actions and parent view
+            updateAccessibilityActions();
+            ViewChangedListener.sendProfileListChangedBroadcast();
+
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_TRACK
+                && this.profile instanceof MutableProfile) {
+            MutableProfile mutableProfile = (MutableProfile) this.profile;
+            mutableProfile.setTracked(! mutableProfile.isTracked());
+            // update a11y actions and parent view
+            updateAccessibilityActions();
+            ViewChangedListener.sendProfileListChangedBroadcast();
+
+        } else {
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -311,7 +427,7 @@ public class ProfileView extends LinearLayout {
      * context menu
      */
 
-    private static final int MENU_ITEM_DETAILS = 1;
+    private static final int MENU_ITEM_SHOW_LIST = 1;
     private static final int MENU_ITEM_OVERVIEW_PIN = 2;
     private static final int MENU_ITEM_OVERVIEW_TRACK = 3;
     private static final int MENU_ITEM_POI_CATEGORIES = 4;
@@ -328,7 +444,7 @@ public class ProfileView extends LinearLayout {
 
         if (onProfileDefaultActionListener != null) {
             contextMenu.getMenu().add(
-                    Menu.NONE, MENU_ITEM_DETAILS, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
+                    Menu.NONE, MENU_ITEM_SHOW_LIST, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemProfileShowList));
         }
 
         if (profile instanceof MutableProfile) {
@@ -336,12 +452,12 @@ public class ProfileView extends LinearLayout {
 
             // pin
             MenuItem menuItemOverviewPin = contextMenu.getMenu().add(
-                    Menu.NONE, MENU_ITEM_OVERVIEW_PIN, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
+                    Menu.NONE, MENU_ITEM_OVERVIEW_PIN, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPinned));
             menuItemOverviewPin.setCheckable(true);
             menuItemOverviewPin.setChecked(mutableProfile.isPinned());
             // track
             MenuItem menuItemOverviewTrack = contextMenu.getMenu().add(
-                    Menu.NONE, MENU_ITEM_OVERVIEW_TRACK, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
+                    Menu.NONE, MENU_ITEM_OVERVIEW_TRACK, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTracked));
             menuItemOverviewTrack.setCheckable(true);
             menuItemOverviewTrack.setChecked(mutableProfile.isTracked());
 
@@ -381,7 +497,9 @@ public class ProfileView extends LinearLayout {
         contextMenu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
             @Override public boolean onMenuItemClick(MenuItem item) {
                 Timber.d("onMenuItemClick: %1$d", item.getItemId());
-                if (executeProfileMenuAction(view.getContext(), profile, item.getItemId())) {
+                if (executeAccessibilityMenuAction(item.getItemId())) {
+                    return true;
+                } else if (executeProfileMenuAction(view.getContext(), profile, item.getItemId())) {
                     return true;
                 } else {
                     return false;
@@ -393,30 +511,7 @@ public class ProfileView extends LinearLayout {
     }
 
     private boolean executeProfileMenuAction(Context context, final Profile selectedProfile, final int menuItemId) {
-        if (menuItemId == MENU_ITEM_DETAILS) {
-            DialogFragment profileDetailsFragment = null;
-            if (selectedProfile instanceof DatabaseProfile) {
-                profileDetailsFragment = ObjectListFromDatabaseFragment.newInstance((DatabaseProfile) selectedProfile);
-            } else if (selectedProfile instanceof PoiProfile) {
-                settingsManagerInstance.setSelectedPoiProfile((PoiProfile) selectedProfile);
-                profileDetailsFragment = PoiListFromServerFragment.newInstance((PoiProfile) selectedProfile);
-            }
-            if (profileDetailsFragment != null) {
-                mainActivityController.embeddFragmentIfPossibleElseOpenAsDialog(profileDetailsFragment);
-            }
-
-        } else if (menuItemId == MENU_ITEM_OVERVIEW_PIN
-                || menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
-            MutableProfile mutableProfile = (MutableProfile) selectedProfile;
-            if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
-                mutableProfile.setPinned(! mutableProfile.isPinned());
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
-                mutableProfile.setTracked(! mutableProfile.isTracked());
-            }
-            // update parent view
-            ViewChangedListener.sendProfileListChangedBroadcast();
-
-        } else if (menuItemId == MENU_ITEM_POI_CATEGORIES) {
+        if (menuItemId == MENU_ITEM_POI_CATEGORIES) {
             mainActivityController.openDialog(
                     UpdatePoiProfileSelectedPoiCategoriesDialog.newInstance((PoiProfile) selectedProfile));
 

@@ -12,6 +12,10 @@ import org.json.JSONObject;
 import java.io.Serializable;
 import org.walkersguide.android.util.Helper;
 import org.walkersguide.android.data.object_with_id.Point;
+import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public abstract class PointWithAddressData extends Point implements Serializable {
@@ -77,6 +81,12 @@ public abstract class PointWithAddressData extends Point implements Serializable
             } catch (JSONException e) {}
             return this;
         }
+        public Builder setStateDistrict(final String stateDistrict) {
+            try {
+                super.inputData.put(KEY_STATE_DISTRICT, stateDistrict);
+            } catch (JSONException e) {}
+            return this;
+        }
         public Builder setState(final String state) {
             try {
                 super.inputData.put(KEY_STATE, state);
@@ -99,7 +109,8 @@ public abstract class PointWithAddressData extends Point implements Serializable
 
 
     private String displayName, extraName;
-    private String houseNumber, road, residential, suburb, cityDistrict, zipCode, city, state, country, countryCode;
+    private String houseNumber, road, residential, suburb, cityDistrict;
+    private String zipCode, city, stateDistrict, state, country, countryCode;
 
     public PointWithAddressData(JSONObject inputData) throws JSONException {
         super(inputData);
@@ -116,6 +127,7 @@ public abstract class PointWithAddressData extends Point implements Serializable
         this.cityDistrict = Helper.getNullableStringFromJsonObject(inputData, KEY_CITY_DISTRICT);
         this.zipCode = Helper.getNullableStringFromJsonObject(inputData, KEY_ZIP_CODE);
         this.city = Helper.getNullableStringFromJsonObject(inputData, KEY_CITY);
+        this.stateDistrict = Helper.getNullableStringFromJsonObject(inputData, KEY_STATE_DISTRICT);
         this.state = Helper.getNullableStringFromJsonObject(inputData, KEY_STATE);
         this.country = Helper.getNullableStringFromJsonObject(inputData, KEY_COUNTRY);
         this.countryCode = Helper.getNullableStringFromJsonObject(inputData, KEY_COUNTRY_CODE);
@@ -157,6 +169,10 @@ public abstract class PointWithAddressData extends Point implements Serializable
         return this.city;
     }
 
+    public String getStateDistrict() {
+        return this.stateDistrict;
+    }
+
     public String getState() {
         return this.state;
     }
@@ -181,8 +197,7 @@ public abstract class PointWithAddressData extends Point implements Serializable
 
     public String formatAddressShortLength() {
         if (this.hasAddress()) {
-            return this.formatRoadAndHouseNumber(
-                    this.road, this.houseNumber, this.extraName);
+            return this.formatRoadAndHouseNumber();
         }
         return super.getOriginalName();
     }
@@ -191,17 +206,15 @@ public abstract class PointWithAddressData extends Point implements Serializable
         if (this.hasAddress()) {
             ArrayList<String> addressComponentList = new ArrayList<String>();
             // road and house number
-            addressComponentList.add(
-                    this.formatRoadAndHouseNumber(
-                        this.road, this.houseNumber, this.extraName));
-            // add residential or  city district if houseNumber == null
-            if (this.houseNumber == null) {
-                if (this.residential != null) {
-                    addressComponentList.add(this.residential);
-                } else if (this.cityDistrict != null) {
+            addressComponentList.add(this.formatRoadAndHouseNumber());
+            // add residential or  city district if only a road is there
+            if (this.houseNumber == null && this.extraName == null) {
+                if (this.cityDistrict != null) {
                     addressComponentList.add(this.cityDistrict);
                 } else if (this.suburb != null) {
                     addressComponentList.add(this.suburb);
+                } else if (this.residential != null) {
+                    addressComponentList.add(this.residential);
                 }
             }
             // city
@@ -213,50 +226,78 @@ public abstract class PointWithAddressData extends Point implements Serializable
 
     public String formatAddressLongLength() {
         if (this.hasAddress()) {
-            ArrayList<String> addressComponentList = new ArrayList<String>();
-            // road and house number
-            addressComponentList.add(
-                    this.formatRoadAndHouseNumber(
-                        this.road, this.houseNumber, this.extraName));
-            // extra name if not already present
-            if (this.extraName != null
-                    && ! TextUtils.join(", ", addressComponentList).toLowerCase(Locale.getDefault())
-                    .contains(this.extraName.toLowerCase(Locale.getDefault()))) {
-                addressComponentList.add(0, this.extraName);
-            }
-            // residential, suburb or  city district
-            if (this.residential != null) {
-                addressComponentList.add(this.residential);
-            } else if (this.cityDistrict != null) {
-                addressComponentList.add(this.cityDistrict);
-            } else if (this.suburb != null) {
-                addressComponentList.add(this.suburb);
-            }
-            // zip code, city and country
+            List<String> addressComponentList = new ArrayList<>();
+
+            // first line: extra name, road and house number
+            addressComponentList.add(this.formatRoadAndHouseNumber());
+
+            // second line: zip code and city
+            List<String> secondLineAddressComponentList = new ArrayList<>();
             if (this.zipCode != null) {
-                addressComponentList.add(this.zipCode);
+                secondLineAddressComponentList.add(this.zipCode);
             }
-            addressComponentList.add(this.city);
+            secondLineAddressComponentList.add(this.city);
+            // optional suburb or  city district after zip code and city
+            if (this.cityDistrict != null) {
+                secondLineAddressComponentList.add(
+                        String.format("- %1$s", this.cityDistrict));
+            } else if (this.suburb != null) {
+                secondLineAddressComponentList.add(
+                        String.format("- %1$s", this.suburb));
+            }
+            addressComponentList.add(
+                    TextUtils.join(" ", secondLineAddressComponentList));
+
+            // third line: state district and state
+            List<String> thirdLineAddressComponentList = new ArrayList<>();
+            if (this.stateDistrict != null) {
+                thirdLineAddressComponentList.add(this.stateDistrict);
+            }
+            if (this.state != null) {
+                thirdLineAddressComponentList.add(this.state);
+            }
+            if (! thirdLineAddressComponentList.isEmpty()) {
+                addressComponentList.add(
+                        TextUtils.join(", ", thirdLineAddressComponentList));
+            }
+
+            // fourth line: country
             if (this.country != null) {
                 addressComponentList.add(this.country);
             }
-            return TextUtils.join(", ", addressComponentList);
+
+            return TextUtils.join("\n", addressComponentList);
+
         } else if (this.displayName != null) {
             return this.displayName;
         }
+
         return super.getOriginalName();
     }
 
-    public static String formatRoadAndHouseNumber(String road, String houseNumber, String alternative) {
-        if (road != null && houseNumber != null) {
-            if (Locale.getDefault().getLanguage().equals(Locale.GERMAN.getLanguage())) {
-                return String.format("%1$s %2$s", road, houseNumber);
-            }
-            return String.format("%1$s %2$s", houseNumber, road);
-        } else if (road != null) {
-            return road;
+    private String formatRoadAndHouseNumber() {
+        List<String> addressComponentList = new ArrayList<>();
+        if (this.extraName != null && ! this.extraName.equals(this.road)) {
+            addressComponentList.add(extraName);
         }
-        return alternative;
+        if (road != null && houseNumber != null) {
+            // simplification: street / house number format by country
+            Set<String> numberFirst = new HashSet<>(
+                    Arrays.asList("US", "CA", "GB", "IE", "AU", "NZ"));
+            String country = this.countryCode != null
+                ? this.countryCode.toUpperCase(Locale.ROOT)
+                : Locale.getDefault().getCountry();
+            if (numberFirst.contains(country)) {
+                addressComponentList.add(
+                        String.format("%1$s %2$s", houseNumber, road));
+            } else {
+                addressComponentList.add(
+                        String.format("%1$s %2$s", road, houseNumber));
+            }
+        } else if (road != null) {
+            addressComponentList.add(road);
+        }
+        return TextUtils.join(", ", addressComponentList);
     }
 
 
@@ -275,6 +316,7 @@ public abstract class PointWithAddressData extends Point implements Serializable
     public static final String KEY_CITY_DISTRICT = "city_district";
     public static final String KEY_ZIP_CODE = "postcode";
     public static final String KEY_CITY = "city";
+    public static final String KEY_STATE_DISTRICT = "state_district";
     public static final String KEY_STATE = "state";
     public static final String KEY_COUNTRY = "country";
     public static final String KEY_COUNTRY_CODE = "country_code";
@@ -311,6 +353,9 @@ public abstract class PointWithAddressData extends Point implements Serializable
         }
         if (this.city != null) {
             jsonObject.put(KEY_CITY, this.city);
+        }
+        if (this.stateDistrict != null) {
+            jsonObject.put(KEY_STATE_DISTRICT, this.stateDistrict);
         }
         if (this.state != null) {
             jsonObject.put(KEY_STATE, this.state);

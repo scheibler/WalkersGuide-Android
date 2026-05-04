@@ -56,6 +56,8 @@ import org.walkersguide.android.data.Profile;
 import android.widget.ImageButton;
 import android.view.accessibility.AccessibilityEvent;
 import org.walkersguide.android.ui.UiHelper;
+import android.os.Build;
+import androidx.annotation.RequiresApi;
 
 
 public abstract class ObjectListFragment extends RootFragment
@@ -290,18 +292,41 @@ public abstract class ObjectListFragment extends RootFragment
                 ? getResources().getString(R.string.menuItemCancel)
                 : getResources().getString(R.string.menuItemRefresh));
 
-        // checkboxes
+        // auto update and viewing direction checkboxes (always at the bottom of the menu)
         // list auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
         menuItemAutoUpdate.setChecked(autoUpdate);
         // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setChecked(viewingDirectionFilter);
+        // enable / disable both
+        MenuItem menuItemAutoUpdateAndFilterResult = menu.findItem(R.id.menuItemAutoUpdateAndFilterResult);
+        boolean disable = autoUpdate || viewingDirectionFilter;
+        menuItemAutoUpdateAndFilterResult.setTitle(
+                disable
+                ? getResources().getString(R.string.menuItemAutoUpdateAndFilterResultDisable)
+                : getResources().getString(R.string.menuItemAutoUpdateAndFilterResultEnable));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setContentDescriptionForMenuItemAutoUpdateAndFilterResult(
+                    menuItemAutoUpdateAndFilterResult, disable);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void setContentDescriptionForMenuItemAutoUpdateAndFilterResult(
+            MenuItem menuItemAutoUpdateAndFilterResult, boolean disable) {
+        menuItemAutoUpdateAndFilterResult.setContentDescription(
+                disable
+                ? getResources().getString(R.string.menuItemAutoUpdateAndFilterResultDisableCD)
+                : getResources().getString(R.string.menuItemAutoUpdateAndFilterResultEnableCD));
     }
 
     @Override public boolean onMenuItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuItemRefresh) {
             refreshMenuItemClicked();
+        } else if (item.getItemId() == R.id.menuItemJumpToTop) {
+            listViewObject.setSelection(0);
+
         } else if (item.getItemId() == R.id.menuItemAutoUpdate) {
             autoUpdate = ! autoUpdate;
             resetListPosition();
@@ -310,8 +335,13 @@ public abstract class ObjectListFragment extends RootFragment
             viewingDirectionFilter = ! viewingDirectionFilter;
             resetListPosition();
             requestUiUpdate();
-        } else if (item.getItemId() == R.id.menuItemJumpToTop) {
-            listViewObject.setSelection(0);
+        } else if (item.getItemId() == R.id.menuItemAutoUpdateAndFilterResult) {
+            boolean disable = autoUpdate || viewingDirectionFilter;
+            autoUpdate = ! disable;
+            viewingDirectionFilter = ! disable;
+            resetListPosition();
+            requestUiUpdate();
+
         } else {
             return false;
         }

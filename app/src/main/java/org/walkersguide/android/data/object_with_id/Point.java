@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.view.SubMenu;
 import android.view.Menu;
 import android.content.Context;
+import org.walkersguide.android.sensor.PositionManager;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public class Point extends ObjectWithId implements Serializable {
@@ -154,6 +156,12 @@ public class Point extends ObjectWithId implements Serializable {
      * helper functions
      */
 
+    public boolean isLocationSimulated() {
+        PositionManager positionManagerInstance = PositionManager.getInstance();
+        return positionManagerInstance.getSimulationEnabled()
+            && this.equals(positionManagerInstance.getSimulatedLocation());
+    }
+
     public String formatNameAndSubType() {
         String customOrOriginalName = getName();
         if (! TextUtils.isEmpty(getSubType())
@@ -185,6 +193,20 @@ public class Point extends ObjectWithId implements Serializable {
                 "%1$s: %2$f",
                 GlobalInstance.getStringResource(R.string.labelGPSLongitude),
                 this.coordinates.getLongitude());
+    }
+
+
+    /**
+     * track
+     */
+
+    public boolean isTracked() {
+        return StaticProfile.trackedObjectsWithId().containsObject(this);
+    }
+
+    public void setTracked(boolean tracked) {
+        if (tracked) StaticProfile.trackedObjectsWithId().addObject(this);
+        else StaticProfile.trackedObjectsWithId().removeObject(this);
     }
 
 

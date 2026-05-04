@@ -356,9 +356,13 @@
     <!-- toolbar menu -->
     <string name="menuItemRefresh">Оновити</string>
     <string name="menuItemCancel">Скасувати</string>
+    <string name="menuItemJumpToTop">Перейти до початку списку</string>
     <string name="menuItemAutoUpdate">Автоматичне оновлення списку</string>
     <string name="menuItemFilterResult">Фільтрувати за напрямком погляду</string>
-    <string name="menuItemJumpToTop">Перейти до початку списку</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnable">Увімкнути обидва</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnableCD">Увімкнути автоматичне оновлення та фільтр напрямку погляду</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisable">Вимкнути обидва</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisableCD">Вимкнути автоматичне оновлення та фільтр напрямку погляду</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Входи</string>
@@ -551,8 +555,6 @@
     <string name="switchShowActionButtonHint">Для відкриття контекстного меню замість цієї кнопки ви можете виконати натискання з утриманням.</string>
     <string name="switchDisplayRemainsActive">Залишати екран увімкненим під час роботи програми.</string>
     <string name="switchDisplayRemainsActiveHint">Вимикає функцію автоматичного блокування екрана під час навігації.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Віддавати перевагу об\'єднаному системному джерелу геоданих  для визначення місцезнаходження.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Якщо позначено, ви отримуєте точніші геодані, особливо всередені будівель. Однак на деяких пристроях це може спричинити проблеми з точністю під час навігації. У такому випадку вимкніть цю функцію.</string>
     <string name="buttonShakeIntensity">Інтенсивність струшування</string>
     <string name="buttonShakeIntensityHint">Струсіть, щоб оновити інформацію у діалозі «Де я?» та список на вкладці «Точки».</string>
     <string name="labelTTSSettingsHeader">Синтез мовлення</string>
@@ -560,6 +562,10 @@
     <string name="labelDistanceAnnouncementInterval">Інтервал сповіщень (за відстанню)</string>
     <string name="labelDistanceAnnouncementIntervalUnit">метрів</string>
     <string name="buttonSpeechRate">Темп мовлення</string>
+    <string name="switchSpeakIntersectionStructure">Промовляти структуру перехрестя</string>
+    <string name="switchSpeakIntersectionStructureHint">Додає структуру перехрестя до навігаційних інструкцій для кращої орієнтації.\n
+        Приклад: Ліворуч: другорядна дорога, Прямо: головна дорога, Праворуч: другорядна дорога.\n
+        Це налаштування також застосовується до вкладки Відстеження, коли ви наближаєтесь до відстежуваного перехрестя на кілька метрів.</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Підтримувати активним підключення Bluetooth-гарнітури</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Деякі Bluetooth-гарнітури переходять у режим сну після певного часу бездіяльності, а їх подальше пробудження викликає помітну затримку, що може спричинити пропуск частини наступного сповіщення.</string>
     <string name="labelImportAndExportSettingsHeader">Імпорт та експорт налаштувань програми:</string>
@@ -774,6 +780,7 @@
     <string name="removeProfileDialogTitle">Ви хочете видалити профіль %1$s?</string>
 
     <!-- profile context menu -->
+    <string name="contextMenuItemProfileShowList">Показати список</string>
     <string name="contextMenuItemProfilePoiCategories">Категорії точок</string>
     <string name="contextMenuItemProfileCollections">Бази</string>
     <string name="contextMenuItemProfilePinShortcut">Додати на головний екран</string>
@@ -808,8 +815,10 @@
 
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Подробиці</string>
-    <string name="contextMenuItemOverviewPin">Закріпити</string>
-    <string name="contextMenuItemOverviewTrack">Відстежувати</string>
+    <string name="contextMenuItemOverviewPinned">Закріплено</string>
+    <string name="contextMenuItemOverviewUnpin">Відкріпити з головної</string>
+    <string name="contextMenuItemOverviewTracked">Відстежується</string>
+    <string name="contextMenuItemOverviewUntrack">Припинити відстеження</string>
     <string name="contextMenuItemUserAnnotationAdd">Додати примітку</string>
     <string name="contextMenuItemUserAnnotationEdit">Редагувати примітку</string>
     <string name="contextMenuItemEdit">Редагувати</string>
@@ -1046,7 +1055,7 @@
     <string name="routeDescriptionDefault">Маршрут довжиною %1$s і містить %2$s.</string>
     <string name="labelOppositeDirection">Зворотний напрямок</string>
     <string name="messageAlmostArrivedAtRouteStart">Ви наближаєтесь до початкової точки</string>
-    <string name="messageAlmostArrivedAtRoutePoint">Невдовзі: %1$s у %2$s</string>
+    <string name="messageAlmostArrivedAtRoutePoint">Невдовзі: %1$s у %2$s.</string>
     <string name="messageAlmostArrivedAtRouteDestination">Ви наближаєтесь до кінцевої точки</string>
     <string name="messageArrivedAtRouteStart">Ви прибули до початкової точки.</string>
     <string name="messageArrivedAtRoutePoint">Ви прибули до точки %1$d.\nТеперр: %2$s.\nПотім: %3$s.</string>

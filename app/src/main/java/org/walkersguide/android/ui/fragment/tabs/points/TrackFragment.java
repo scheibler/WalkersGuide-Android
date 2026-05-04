@@ -207,6 +207,7 @@ public class TrackFragment extends ViewChangedListenerFragment implements Fragme
         }
 
         if (consumed) {
+            WalkersGuideService.invalidateTrackedObjectList();
             requestUiUpdate();
             return true;
         } else {

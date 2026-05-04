@@ -351,7 +351,7 @@ public class PointDetailsFragment extends Fragment implements MenuProvider {
                                 new TextViewBuilder(
                                         PointDetailsFragment.this.getContext(),
                                         String.format(
-                                            "%1$s: %2$s",
+                                            "%1$s:\n%2$s",
                                             getResources().getString(R.string.labelPointPOIContactPostAddress),
                                             poi.formatAddressLongLength()))
                                     .containsPostAddress()

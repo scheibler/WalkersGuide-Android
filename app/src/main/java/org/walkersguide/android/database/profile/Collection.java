@@ -112,6 +112,7 @@ public class Collection extends DatabaseProfile implements MutableProfile, Seria
     }
 
     @Override public boolean remove() {
+        if (isTracked()) setTracked(false);
         return AccessDatabase.getInstance().removeCollection(this.getId());
     }
 

@@ -1,6 +1,5 @@
 package org.walkersguide.android.util;
 
-import org.walkersguide.android.ui.dialog.ChangelogDialog;
 import org.walkersguide.android.data.profile.AnnouncementRadius;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +45,6 @@ import org.walkersguide.android.data.object_with_id.Route;
 import de.schildbach.pte.NetworkId;
 import com.google.gson.GsonBuilder;
 import org.walkersguide.android.ui.activity.MainActivity;
-import org.walkersguide.android.server.wg.p2p.wayclass.WayClassType;
 import org.walkersguide.android.data.Profile;
 import java.util.HashMap;
 import java.util.Collections;
@@ -62,9 +60,9 @@ public class SettingsManager {
     // ui settings
     public static final boolean DEFAULT_SHOW_ACTION_BUTTON = true;
     public static final boolean DEFAULT_DISPLAY_REMAINS_ACTIVE = false;
-    public static final boolean DEFAULT_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER = true;
     public static final ShakeIntensity DEFAULT_SHAKE_INTENSITY = ShakeIntensity.MEDIUM;
     // tts
+    public static final boolean DEFAULT_SPEAK_INTERSECTION_STRUCTURE = false;
     public static final boolean DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = false;
     // WalkersGuide server
     public static final boolean DEFAULT_PREFER_TRANSLATED_STRINGS = false;
@@ -88,12 +86,12 @@ public class SettingsManager {
     // ui settings
     private static final String KEY_SHOW_ACTION_BUTTON = "showActionButton";
     private static final String KEY_DISPLAY_REMAINS_ACTIVE = "displayRemainsActive";
-    private static final String KEY_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER = "preferFusedLocationProviderInsteadOfNetworkProvider";
     private static final String KEY_SHAKE_INTENSITY = "shakeIntensity";
     private static final String KEY_TRACKING_MODE_ANNOUNCEMENT_RADIUS = "trackingModeAnnouncementRadius";
     private static final String KEY_SEARCH_TERM_HISTORY = "searchTermHistory";
     // tts
     private static final String KEY_TTS_SETTINGS = "ttsSettings";
+    private static final String KEY_SPEAK_INTERSECTION_STRUCTURE = "speakIntersectionStructure";
     private static final String KEY_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE = "keepBluetoothHeadsetConnectionAlive";
     // WalkersGuide server
     private static final String KEY_WG_SERVER_URL = "wgServerUrl";
@@ -116,8 +114,8 @@ public class SettingsManager {
     private static final String KEY_TRACKED_PROFILE_ID = "trackedProfileId";
     // p2p route settings
     private static final String KEY_P2P_ROUTE_REQUEST = "p2pRouteRequest";
-    private static final String KEY_WAY_CLASS_SETTINGS_LIST = "wayClassWeightSettingsList";
-    private static final String KEY_DEFAULT_WAY_CLASS_SETTINGS = "defaultWayClassWeightSettings";
+    private static final String KEY_WAY_CLASS_WEIGHT_SETTINGS_LIST = "wayClassWeightSettingsList";
+    private static final String KEY_DEFAULT_WAY_CLASS_WEIGHT_SETTINGS = "defaultWayClassWeightSettings";
     private static final String KEY_SELECTED_ROUTE_ID = "selectedRouteId";
     private static final String KEY_AUTO_SKIP_TO_NEXT_ROUTE_POINT = "autoSkipToNextRoutePoint";
     private static final String KEY_SHOW_INTERSECTION_LAYOUT_DETAILS = "showIntersectionLayoutDetails";
@@ -150,53 +148,44 @@ public class SettingsManager {
             .enableComplexMapKeySerialization()
             .create();
 
-        // remove deprecated settings
-
-        // original
-        if (settings.contains("generalSettings")) {
-            Editor editor = settings.edit();
-            editor.remove("generalSettings");
-            editor.apply();
+        // migrate and remove deprecated settings
+        // required in case of an app update
+        Editor editor = settings.edit();
+        removeObsoleteSettingKeys(editor);
+        if (! settings.contains(KEY_WAY_CLASS_WEIGHT_SETTINGS_LIST)) {
+            // addition from april 2026
+            addWayClassWeightSettingsListIfNotPresent(gson, editor);
         }
-        if (settings.contains("directionSettings")) {
-            Editor editor = settings.edit();
-            editor.remove("directionSettings");
-            editor.apply();
-        }
-        if (settings.contains("locationSettings")) {
-            Editor editor = settings.edit();
-            editor.remove("locationSettings");
-            editor.apply();
-        }
-        if (settings.contains("poiSettings")) {
-            Editor editor = settings.edit();
-            editor.remove("poiSettings");
-            editor.apply();
-        }
-        if (settings.contains("routeSettings")) {
-            Editor editor = settings.edit();
-            editor.remove("routeSettings");
-            editor.apply();
-        }
-        if (settings.contains("serverSettings")) {
-            Editor editor = settings.edit();
-            editor.remove("serverSettings");
-            editor.apply();
-        }
-
-        // addition from april 2026
-        if (settings.contains("wayClassWeightSettings")) {
-
-            // first remove the old setting
-            Editor editor = settings.edit();
-            editor.remove("wayClassWeightSettings");
-            editor.apply();
-
-            // then add the new route profiles (were WayClassWeightSettings.Preset)
-            // this is done only once for migration purposes
-            restoreWayClassWeightSettingsListToDefaults();
-        }
+        editor.apply();
     }
+
+    private static void removeObsoleteSettingKeys(Editor editor) {
+        editor.remove("generalSettings");
+        editor.remove("directionSettings");
+        editor.remove("locationSettings");
+        editor.remove("poiSettings");
+        editor.remove("routeSettings");
+        editor.remove("serverSettings");
+
+        // new in april 2026 for WalkersGuide version 3.3.1
+        editor.remove("wayClassWeightSettings");
+    }
+
+    private static void addWayClassWeightSettingsListIfNotPresent(Gson gson, Editor editor) {
+        editor.putString(
+                KEY_WAY_CLASS_WEIGHT_SETTINGS_LIST,
+                gson.toJson(
+                    WayClassWeightSettings.allSettings(),
+                    new TypeToken<List<WayClassWeightSettings>>() {}.getType()));
+
+        // ask again
+        editor.remove(KEY_DEFAULT_WAY_CLASS_WEIGHT_SETTINGS);
+    }
+
+
+    /**
+     * general settings
+     */
 
     public MainActivity.Tab getSelectedTabForMainActivity() {
         MainActivity.Tab selectedTab = null;
@@ -275,18 +264,6 @@ public class SettingsManager {
     public void setDisplayRemainsActive(boolean newValue) {
         Editor editor = settings.edit();
         editor.putBoolean(KEY_DISPLAY_REMAINS_ACTIVE, newValue);
-        editor.apply();
-    }
-
-    public boolean getPreferFusedLocationProviderInsteadOfNetworkProvider() {
-        return settings.getBoolean(
-                KEY_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER, DEFAULT_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER);
-    }
-
-    public void setPreferFusedLocationProviderInsteadOfNetworkProvider(boolean newValue) {
-        Editor editor = settings.edit();
-        editor.putBoolean(
-                KEY_PREFER_FUSED_LOCATION_PROVIDER_INSTEAD_OF_NETWORK_PROVIDER, newValue);
         editor.apply();
     }
 
@@ -406,6 +383,18 @@ public class SettingsManager {
         editor.apply();
     }
 
+    public boolean getSpeakIntersectionStructure() {
+        return settings.getBoolean(
+                KEY_SPEAK_INTERSECTION_STRUCTURE, DEFAULT_SPEAK_INTERSECTION_STRUCTURE);
+    }
+
+    public void setSpeakIntersectionStructure(boolean newValue) {
+        Editor editor = settings.edit();
+        editor.putBoolean(
+                KEY_SPEAK_INTERSECTION_STRUCTURE, newValue);
+        editor.apply();
+    }
+
     public boolean getKeepBluetoothHeadsetConnectionAlive() {
         return settings.getBoolean(KEY_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE, DEFAULT_KEEP_BLUETOOTH_HEADSET_CONNECTION_ALIVE);
     }
@@ -461,7 +450,7 @@ public class SettingsManager {
 
     public List<WayClassWeightSettings> getWayClassWeightSettingsList() {
         List<WayClassWeightSettings> settingsList = gson.fromJson(
-                settings.getString(KEY_WAY_CLASS_SETTINGS_LIST, ""),
+                settings.getString(KEY_WAY_CLASS_WEIGHT_SETTINGS_LIST, ""),
                 new TypeToken<List<WayClassWeightSettings>>() {}.getType());
         return settingsList != null ? settingsList : new ArrayList<>();
     }
@@ -500,30 +489,26 @@ public class SettingsManager {
     }
 
     public void restoreWayClassWeightSettingsListToDefaults() {
-        List<WayClassWeightSettings> wayClassWeightSettingsList = new ArrayList<>();
-        wayClassWeightSettingsList.add(WayClassWeightSettings.createShortestRoute());
-        wayClassWeightSettingsList.add(WayClassWeightSettings.createUrbanOnFoot());
-        wayClassWeightSettingsList.add(WayClassWeightSettings.createUrbanByCar());
-        wayClassWeightSettingsList.add(WayClassWeightSettings.createHiking());
-        setWayClassWeightSettingsList(wayClassWeightSettingsList);
+        setWayClassWeightSettingsList(WayClassWeightSettings.allSettings());
     }
 
     private void setWayClassWeightSettingsList(List<WayClassWeightSettings> newList) {
         Editor editor = settings.edit();
         editor.putString(
-                KEY_WAY_CLASS_SETTINGS_LIST,
+                KEY_WAY_CLASS_WEIGHT_SETTINGS_LIST,
                 gson.toJson(
                     newList, new TypeToken<List<WayClassWeightSettings>>() {}.getType()));
         editor.apply();
 
-        if (! newList.contains(getDefaultWayClassWeightSettings())) {
+        if (hasDefaultWayClassWeightSettings()
+                && ! newList.contains(getDefaultWayClassWeightSettings())) {
             clearDefaultWayClassWeightSettings();
         }
     }
 
     public WayClassWeightSettings getDefaultWayClassWeightSettings() {
         WayClassWeightSettings defaultSettings = gson.fromJson(
-                settings.getString(KEY_DEFAULT_WAY_CLASS_SETTINGS, ""),
+                settings.getString(KEY_DEFAULT_WAY_CLASS_WEIGHT_SETTINGS, ""),
                 WayClassWeightSettings.class);
         if (defaultSettings != null && ! containsWayClassWeightSettings(defaultSettings)) {
             defaultSettings = null;
@@ -536,7 +521,7 @@ public class SettingsManager {
         if (newSettings != null) {
             Editor editor = settings.edit();
             editor.putString(
-                    KEY_DEFAULT_WAY_CLASS_SETTINGS, gson.toJson(newSettings));
+                    KEY_DEFAULT_WAY_CLASS_WEIGHT_SETTINGS, gson.toJson(newSettings));
             editor.apply();
         } else {
             clearDefaultWayClassWeightSettings();
@@ -549,7 +534,7 @@ public class SettingsManager {
 
     public void clearDefaultWayClassWeightSettings() {
         Editor editor = settings.edit();
-        editor.remove(KEY_DEFAULT_WAY_CLASS_SETTINGS);
+        editor.remove(KEY_DEFAULT_WAY_CLASS_WEIGHT_SETTINGS);
         editor.apply();
     }
 
@@ -876,6 +861,14 @@ public class SettingsManager {
             } else {
                 Timber.e("Settings type %1$s is unknown", e.getValue().getClass().getName());
             }
+        }
+
+        // remove obsolete keys
+        removeObsoleteSettingKeys(editor);
+
+        // add way class weight settings list if not present (was added in april 2026)
+        if (! map.containsKey(KEY_WAY_CLASS_WEIGHT_SETTINGS_LIST)) {
+            addWayClassWeightSettingsListIfNotPresent(gson, editor);
         }
 
         // prevent, that the changelog dialog appears after every import of an older settings bundle

@@ -36,6 +36,7 @@ import org.walkersguide.android.data.Angle;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import org.walkersguide.android.data.angle.RelativeBearing;
+import org.walkersguide.android.data.object_with_id.point.Intersection;
 
 
 public class IntersectionScheme extends View {
@@ -51,10 +52,9 @@ public class IntersectionScheme extends View {
         ViewCompat.setAccessibilityDelegate(this, mTouchHelper);
     }
 
-    public void configureView(String intersectionName,
-            LinkedHashMap<RelativeBearing,IntersectionSegment> intersectionSegmentRelativeToInstructionMap) {
-        this.intersectionName = intersectionName;
-        this.intersectionSegmentRelativeToInstructionMap = intersectionSegmentRelativeToInstructionMap;
+    public void configureView(Intersection.SchemeData data) {
+        this.intersectionName = data.intersectionName;
+        this.intersectionSegmentRelativeToInstructionMap = data.segmentMap;
         this.invalidate();
     }
 

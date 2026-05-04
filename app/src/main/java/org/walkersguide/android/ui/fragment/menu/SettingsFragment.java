@@ -97,6 +97,7 @@ import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.ui.dialog.edit.ManageWayClassWeightSettingsDialog;
 import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.database.profile.StaticProfile;
+import android.widget.LinearLayout;
 
 
 public class SettingsFragment extends RootFragment implements FragmentResultListener {
@@ -119,8 +120,9 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
     private SwitchCompat switchPreferTranslatedStrings;
     private Button buttonPublicTransportProvider;
     private Button buttonShakeIntensity;
-    private SwitchCompat switchShowActionButton, switchDisplayRemainsActive, switchPreferFusedLocationProviderInsteadOfNetworkProvider;
-    private SwitchCompat switchAnnouncementsEnabled, switchKeepBluetoothHeadsetConnectionAlive;
+    private SwitchCompat switchShowActionButton, switchDisplayRemainsActive;
+    private LinearLayout layoutTtsSettings;
+    private SwitchCompat switchAnnouncementsEnabled, switchSpeakIntersectionStructure, switchKeepBluetoothHeadsetConnectionAlive;
     private Button buttonSpeechRate;
     private EditText editDistanceAnnouncementInterval;
 
@@ -337,21 +339,6 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
             }
         });
 
-        switchPreferFusedLocationProviderInsteadOfNetworkProvider = (SwitchCompat) view.findViewById(R.id.switchPreferFusedLocationProviderInsteadOfNetworkProvider);
-        switchPreferFusedLocationProviderInsteadOfNetworkProvider.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider() != isChecked) {
-                    settingsManagerInstance.setPreferFusedLocationProviderInsteadOfNetworkProvider(isChecked);
-                    // toggle position manager
-                    PositionManager positionManagerInstance = PositionManager.getInstance();
-                    if (positionManagerInstance.isRunning()) {
-                        positionManagerInstance.stopGPS();
-                        positionManagerInstance.startGPS();
-                    }
-                }
-            }
-        });
-
         buttonShakeIntensity = (Button) view.findViewById(R.id.buttonShakeIntensity);
         buttonShakeIntensity.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -362,14 +349,19 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         });
 
         // tts
+        layoutTtsSettings = (LinearLayout) view.findViewById(R.id.layoutTtsSettings);
 
         switchAnnouncementsEnabled = (SwitchCompat) view.findViewById(R.id.switchAnnouncementsEnabled);
         switchAnnouncementsEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton view, boolean isChecked) {
                 TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
+
                 if (ttsSettings.getAnnouncementsEnabled() != isChecked) {
                     ttsSettings.setAnnouncementsEnabled(isChecked);
                     settingsManagerInstance.setTtsSettings(ttsSettings);
+
+                    layoutTtsSettings.setVisibility(
+                            isChecked ? View.VISIBLE : View.GONE);
                 }
             }
         });
@@ -404,6 +396,15 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
                     return true;
                 }
                 return false;
+            }
+        });
+
+        switchSpeakIntersectionStructure = (SwitchCompat) view.findViewById(R.id.switchSpeakIntersectionStructure);
+        switchSpeakIntersectionStructure.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (settingsManagerInstance.getSpeakIntersectionStructure() != isChecked) {
+                    settingsManagerInstance.setSpeakIntersectionStructure(isChecked);
+                }
             }
         });
 
@@ -509,19 +510,16 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         // ui settings
         switchShowActionButton.setChecked(settingsManagerInstance.getShowActionButton());
         switchDisplayRemainsActive.setChecked(settingsManagerInstance.getDisplayRemainsActive());
-        switchPreferFusedLocationProviderInsteadOfNetworkProvider.setChecked(
-                settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider());
-        switchPreferFusedLocationProviderInsteadOfNetworkProvider.setVisibility(
-                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-                ? View.VISIBLE : View.GONE);
         buttonShakeIntensity.setText(
                 String.format(
                     "%1$s: %2$s",
                     getResources().getString(R.string.buttonShakeIntensity),
                     settingsManagerInstance.getSelectedShakeIntensity())
                 );
-        TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
-        switchAnnouncementsEnabled.setChecked(ttsSettings.getAnnouncementsEnabled());
+
+        final TtsSettings ttsSettings = settingsManagerInstance.getTtsSettings();
+        final boolean announcementsEnabled = ttsSettings.getAnnouncementsEnabled();
+        switchAnnouncementsEnabled.setChecked(announcementsEnabled);
         buttonSpeechRate.setText(
                 String.format(
                     Locale.getDefault(),
@@ -532,7 +530,11 @@ public class SettingsFragment extends RootFragment implements FragmentResultList
         editDistanceAnnouncementInterval.setText(
                 String.valueOf(ttsSettings.getDistanceAnnouncementInterval()));
         editDistanceAnnouncementInterval.selectAll();
+        switchSpeakIntersectionStructure.setChecked(
+                settingsManagerInstance.getSpeakIntersectionStructure());
         switchKeepBluetoothHeadsetConnectionAlive.setChecked(settingsManagerInstance.getKeepBluetoothHeadsetConnectionAlive());
+        layoutTtsSettings.setVisibility(
+                announcementsEnabled ? View.VISIBLE : View.GONE);
 
         // request server instance
         if (! serverTaskExecutorInstance.taskInProgress(taskId)) {

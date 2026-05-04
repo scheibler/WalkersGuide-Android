@@ -64,6 +64,8 @@ public abstract class SimpleObjectListFragment extends ObjectListFragment {
         // viewing direction
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setVisible(true);
+        MenuItem menuItemAutoUpdateAndFilterResult = menu.findItem(R.id.menuItemAutoUpdateAndFilterResult);
+        menuItemAutoUpdateAndFilterResult.setVisible(true);
     }
 
 

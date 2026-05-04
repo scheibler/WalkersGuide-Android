@@ -106,7 +106,6 @@ public class StaticProfile extends DatabaseProfile implements Serializable {
 
     @Override public boolean addObject(ObjectWithId object) {
         if (this.getId() == ID_TRACKED_OBJECTS_WITH_ID) {
-            WalkersGuideService.invalidateTrackedObjectList();
             WalkersGuideService.setTrackingMode(TrackingMode.DISTANCE, true);
         }
         return super.addObject(object);

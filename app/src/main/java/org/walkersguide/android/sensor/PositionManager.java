@@ -117,7 +117,6 @@ public class PositionManager implements LocationListener {
             // listen for new locations
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-                    && settingsManagerInstance.getPreferFusedLocationProviderInsteadOfNetworkProvider()
                     && locationManager.getAllProviders().contains(LocationManager.FUSED_PROVIDER)) {
                 registerFusedLocationProviderForSAndNewer(
                         locationManager, GlobalInstance.getContext().getMainExecutor(), this);

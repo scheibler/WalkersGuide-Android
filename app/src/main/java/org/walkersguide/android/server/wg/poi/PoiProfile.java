@@ -13,6 +13,7 @@ import org.walkersguide.android.database.util.AccessDatabase;
 import android.text.TextUtils;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.util.GlobalInstance;
+import org.walkersguide.android.util.WalkersGuideService;
 
 
 public class PoiProfile extends Profile implements MutableProfile, Serializable {
@@ -105,6 +106,7 @@ public class PoiProfile extends Profile implements MutableProfile, Serializable 
     }
 
     @Override public boolean remove() {
+        if (isTracked()) setTracked(false);
         return AccessDatabase.getInstance().removePoiProfile(this.getId());
     }
 
@@ -120,7 +122,10 @@ public class PoiProfile extends Profile implements MutableProfile, Serializable 
         PoiProfileParams params = getProfileParamsFromDatabase();
         if (params != null && newPoiCategoryList != null) {
             params.poiCategoryList = newPoiCategoryList;
-            return updateProfile(params);
+            if (updateProfile(params)) {
+                if (isTracked()) WalkersGuideService.invalidateTrackedObjectList();
+                return true;
+            }
         }
         return false;
     }
@@ -134,7 +139,10 @@ public class PoiProfile extends Profile implements MutableProfile, Serializable 
         PoiProfileParams params = getProfileParamsFromDatabase();
         if (params != null && newCollectionList != null) {
             params.collectionList = newCollectionList;
-            return updateProfile(params);
+            if (updateProfile(params)) {
+                if (isTracked()) WalkersGuideService.invalidateTrackedObjectList();
+                return true;
+            }
         }
         return false;
     }

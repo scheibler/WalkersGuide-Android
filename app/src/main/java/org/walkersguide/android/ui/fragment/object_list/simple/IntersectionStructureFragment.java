@@ -107,6 +107,7 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
      */
 
     @Override public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        // no super method call -> doesn't inflate menus from ObjectListFragment and SimpleObjectListFragment
         menuInflater.inflate(R.menu.menu_toolbar_object_list_intersection_structure_fragment, menu);
     }
 
@@ -192,7 +193,8 @@ public class IntersectionStructureFragment extends SimpleObjectListFragment impl
                     }
 
                     if (announceWayAhead) {
-                        TTSWrapper.getInstance().screenReader(message);
+                        TTSWrapper.getInstance().announce(
+                                message, TTSWrapper.MessageType.INSTRUCTION);
                     }
                 }
             }

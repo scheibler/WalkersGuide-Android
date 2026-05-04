@@ -50,6 +50,8 @@ import android.content.Context;
 import org.walkersguide.android.server.ServerTaskExecutor;
 import org.walkersguide.android.server.address.ResolveAddressStringTask;
 import org.walkersguide.android.server.address.AddressException;
+import java.util.List;
+import android.widget.TextView;
 
 
 public class EnterAddressDialog extends DialogFragment implements FragmentResultListener {
@@ -367,10 +369,8 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
                 });
 
                 listViewItems.setAdapter(
-                        new ArrayAdapter<StreetAddress>(
-                            getActivity(),
-                            android.R.layout.simple_list_item_1,
-                            addressPointList));
+                        new StreetAddressLongFormatAdapter(
+                            requireContext(), addressPointList));
 
                 Button buttonNegative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 buttonNegative.setOnClickListener(new View.OnClickListener() {
@@ -378,6 +378,20 @@ public class EnterAddressDialog extends DialogFragment implements FragmentResult
                         dismiss();
                     }
                 });
+            }
+        }
+
+        public static class StreetAddressLongFormatAdapter extends ArrayAdapter<StreetAddress> {
+            public StreetAddressLongFormatAdapter(Context context, List<StreetAddress> addresses) {
+                super(context, android.R.layout.simple_list_item_1, addresses);
+            }
+
+            @Override public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                String longAddress = getItem(position).formatAddressLongLength();
+                // the . at the end is only there for tts (talkback can't move line-by-line if a content description is set
+                ((TextView) view).setText(longAddress.replace("\n", ".\n"));
+                return view;
             }
         }
     }

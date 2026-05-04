@@ -5,6 +5,6 @@
     <item
         android:id="@+id/menuItemShowPreciseBearingValues"
         android:title="@string/menuItemShowPreciseBearingValues"
-        android:orderInCategory="10"
-        android:checkable="true" />
+        android:checkable="true"
+        android:orderInCategory="30" />
 </menu>

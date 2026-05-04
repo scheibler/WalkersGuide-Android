@@ -211,6 +211,11 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         MenuItem menuItemSortMethod = menu.findItem(R.id.menuItemSortMethod);
         menuItemSortMethod.setVisible(
                 this.request != null && this.request.hasProfile());
+        // clear profile
+        MenuItem menuItemClearProfile = menu.findItem(R.id.menuItemClearProfile);
+        menuItemClearProfile.setVisible(
+                this.request != null && this.request.getProfile() instanceof StaticProfile);
+
         // show auto update and viewing direction filter
         boolean isHistoryProfile = this.request != null
             && this.request.getProfile() instanceof HistoryProfile;
@@ -218,10 +223,8 @@ public class ObjectListFromDatabaseFragment extends ExtendedObjectListFragment i
         menuItemAutoUpdate.setVisible(! isHistoryProfile);
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setVisible(! isHistoryProfile);
-        // clear profile
-        MenuItem menuItemClearProfile = menu.findItem(R.id.menuItemClearProfile);
-        menuItemClearProfile.setVisible(
-                this.request != null && this.request.getProfile() instanceof StaticProfile);
+        MenuItem menuItemAutoUpdateAndFilterResult = menu.findItem(R.id.menuItemAutoUpdateAndFilterResult);
+        menuItemAutoUpdateAndFilterResult.setVisible(! isHistoryProfile);
     }
 
     @Override public boolean onMenuItemSelected(MenuItem item) {

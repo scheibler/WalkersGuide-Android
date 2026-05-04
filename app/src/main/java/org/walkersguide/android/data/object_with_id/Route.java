@@ -27,6 +27,7 @@ import android.text.TextUtils;
 import java.util.Collections;
 import timber.log.Timber;
 import androidx.core.util.Pair;
+import org.walkersguide.android.util.SettingsManager;
 
 
 public class Route extends ObjectWithId implements Serializable {
@@ -314,10 +315,25 @@ public class Route extends ObjectWithId implements Serializable {
             return GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRouteStart);
         }
 
-        return String.format(
+        String instruction = String.format(
                 GlobalInstance.getStringResource(R.string.messageAlmostArrivedAtRoutePoint),
                 currentRouteObject.getTurn().getInstruction(),
                 currentRouteObject.getPoint().getName());
+
+        if (currentRouteObject.getPoint() instanceof Intersection
+                && SettingsManager.getInstance().getSpeakIntersectionStructure()) {
+            Intersection intersection = (Intersection) currentRouteObject.getPoint();
+            Intersection.SchemeData intersectionSchemeData = intersection
+                .getSchemeDataForFixedViewingDirectionFromPreviousRouteSegment(false);
+            if (intersectionSchemeData != null) {
+                instruction += String.format(
+                        "\n%1$s: %2$s",
+                        GlobalInstance.getStringResource(R.string.labelIntersectionStructureHeading),
+                        intersectionSchemeData.formatLlegendAsOneLiner());
+            }
+        }
+
+        return instruction;
     }
 
     public String formatArrivalAtPointMessage() {

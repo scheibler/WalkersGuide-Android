@@ -372,9 +372,13 @@
     <!-- toolbar menu -->
     <string name="menuItemRefresh">Actualizar</string>
     <string name="menuItemCancel">Cancelar</string>
+    <string name="menuItemJumpToTop">Saltar al inicio de la lista</string>
     <string name="menuItemAutoUpdate">Actualización automática de lista</string>
     <string name="menuItemFilterResult">Filtrar por dirección de vista</string>
-    <string name="menuItemJumpToTop">Saltar al inicio de la lista</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnable">Activar ambos</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnableCD">Activar actualización automática y filtro de dirección de vista</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisable">Desactivar ambos</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisableCD">Desactivar actualización automática y filtro de dirección de vista</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Entradas</string>
@@ -574,10 +578,6 @@
     <string name="switchShowActionButtonHint">Alternativamente, realiza una pulsación larga para abrir el menú contextual.</string>
     <string name="switchDisplayRemainsActive">Mantener pantalla activa mientras se usa la aplicación.</string>
     <string name="switchDisplayRemainsActiveHint">Desactiva la función de bloqueo automático de pantalla durante la navegación.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Preferir el proveedor de ubicación combinada para determinar la ubicación.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Si está activado se obtienen ubicaciones más precisas, especialmente dentro de edificios.
-        Pero en algunos dispositivos puede causar problemas de precisión durante la navegación.
-        Si es así, deberías desactivar el proveedor de ubicación combinada aquí.</string>
     <string name="buttonShakeIntensity">Intensidad de agitación</string>
     <string name="buttonShakeIntensityHint">Agita el dispositivo para actualizar el diálogo \"Dónde estoy\" y la pestaña \"Puntos\".</string>
     <string name="labelTTSSettingsHeader">Texto a voz</string>
@@ -585,6 +585,10 @@
     <string name="labelDistanceAnnouncementInterval">Intervalo de anuncio de distancia</string>
     <string name="labelDistanceAnnouncementIntervalUnit">metros</string>
     <string name="buttonSpeechRate">Velocidad de la voz</string>
+    <string name="switchSpeakIntersectionStructure">Anunciar estructura de intersección</string>
+    <string name="switchSpeakIntersectionStructureHint">Añade la estructura de una intersección a las instrucciones de navegación para una mejor orientación.\n
+        Ejemplo: Izquierda: calle secundaria, Recto: calle principal, Derecha: calle secundaria.\n
+        Esta configuración también se aplica a la pestaña de Seguimiento cuando te acerques a una intersección seguida a pocos metros.</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Mantener activa la conexión de auriculares Bluetooth</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">
         Algunos auriculares Bluetooth entran en modo de suspensión después de un tiempo de inactividad y su posterior
@@ -804,6 +808,7 @@
     <string name="removeProfileDialogTitle">¿Quieres eliminar el perfil %1$s?</string>
 
     <!-- profile context menu -->
+    <string name="contextMenuItemProfileShowList">Mostrar lista</string>
     <string name="contextMenuItemProfilePoiCategories">Categorías de puntos</string>
     <string name="contextMenuItemProfileCollections">Colecciones</string>
     <string name="contextMenuItemProfilePinShortcut">Añadir al lanzador</string>
@@ -838,8 +843,10 @@
 
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Detalles</string>
-    <string name="contextMenuItemOverviewPin">Fijado</string>
-    <string name="contextMenuItemOverviewTrack">Seguido</string>
+    <string name="contextMenuItemOverviewPinned">Fijado</string>
+    <string name="contextMenuItemOverviewUnpin">Desfijar de resumen</string>
+    <string name="contextMenuItemOverviewTracked">Seguido</string>
+    <string name="contextMenuItemOverviewUntrack">Dejar de seguir</string>
     <string name="contextMenuItemUserAnnotationAdd">Añadir anotación</string>
     <string name="contextMenuItemUserAnnotationEdit">Editar anotación</string>
     <string name="contextMenuItemEdit">Editar</string>
@@ -1083,7 +1090,7 @@
     <string name="labelOppositeDirection">Dirección opuesta</string>
     <string name="messageAlmostArrivedAtRouteStart">Casi en el punto de inicio</string>
     <!-- format example: Shortly turn right at main street, high street -->
-    <string name="messageAlmostArrivedAtRoutePoint">En breve: %1$s en %2$s</string>
+    <string name="messageAlmostArrivedAtRoutePoint">En breve: %1$s en %2$s.</string>
     <string name="messageAlmostArrivedAtRouteDestination">Casi en el punto de destino</string>
     <string name="messageArrivedAtRouteStart">Has llegado al punto de inicio de la ruta.</string>
     <!-- format example: Arrived at point 8, Now turn right, Then 50 meters on high street -->

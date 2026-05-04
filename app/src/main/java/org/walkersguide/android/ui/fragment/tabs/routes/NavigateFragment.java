@@ -1,5 +1,6 @@
 package org.walkersguide.android.ui.fragment.tabs.routes;
 
+import org.walkersguide.android.ui.fragment.object_list.extended.ObjectListFromDatabaseFragment;
 import org.walkersguide.android.ui.view.DistanceAndBearingView;
 import org.walkersguide.android.data.object_with_id.Segment.SortByBearingRelativeTo;
 import androidx.appcompat.app.AppCompatActivity;
@@ -64,6 +65,7 @@ import org.walkersguide.android.ui.UiHelper;
 import android.text.SpannableString;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
+import org.walkersguide.android.database.profile.static_profile.HistoryProfile;
 
 
 public class NavigateFragment extends Fragment implements MenuProvider {
@@ -357,12 +359,10 @@ public class NavigateFragment extends Fragment implements MenuProvider {
             updateUi();
 
             // request current location for labelDistanceAndBearing field
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override public void run() {
-                    // wait, until onResume is finished and the ui has focus
-                    PositionManager.getInstance().requestCurrentLocation();
-                }
-            }, 500);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                // wait, until onResume is finished and the ui has focus
+                PositionManager.getInstance().requestCurrentLocation();
+            }, 1000);
 
         } else {
             labelHeading.setText(
@@ -423,50 +423,11 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         if (currentRouteObject.getPoint() instanceof Intersection
                 && settingsManagerInstance.getShowIntersectionLayoutDetails()) {
             Intersection intersection = (Intersection) currentRouteObject.getPoint();
-
-            Bearing inverseBearingOfPreviousRouteSegment = null;
-            for (IntersectionSegment intersectionSegment : intersection.getSegmentList()) {
-                if (intersectionSegment.isPartOfPreviousRouteSegment()) {
-                    inverseBearingOfPreviousRouteSegment = intersectionSegment.getBearing().inverse();
-                    break;
-                }
-            }
-            if (inverseBearingOfPreviousRouteSegment != null) {
-
-                CharSequence formattedIntersectionStructure = new SpannableString("");
-                LinkedHashMap<RelativeBearing,IntersectionSegment> intersectionSegmentRelativeToInstructionMap =
-                    new LinkedHashMap<RelativeBearing,IntersectionSegment>();
-                // bearing offset = 157 -> sort the ways, which are strongly to the left of the user, to the top of the list
-                SortByBearingRelativeTo comparator = new Segment.SortByBearingRelativeTo(
-                        inverseBearingOfPreviousRouteSegment, Angle.Quadrant.Q3.max, true);
-
-                int index = 0;
-                for (IntersectionSegment intersectionSegment : intersection.getSegmentList()
-                        .stream().sorted(comparator).collect(Collectors.toList())) {
-                    RelativeBearing relativeBearingIntersectionSegment = intersectionSegment
-                        .getBearing()
-                        .relativeTo(inverseBearingOfPreviousRouteSegment);
-                    intersectionSegmentRelativeToInstructionMap.put(
-                            relativeBearingIntersectionSegment, intersectionSegment);
-                    // instruction structure label text (preserves text formatting)
-                    formattedIntersectionStructure = TextUtils.concat(
-                            formattedIntersectionStructure,
-                            UiHelper.bold(
-                                relativeBearingIntersectionSegment.getDirection().toString()),
-                            ":\n",
-                            intersectionSegment.isPartOfNextRouteSegment()
-                            ? UiHelper.red(intersectionSegment.getName())
-                            : intersectionSegment.getName());
-                    if (index < intersection.getSegmentList().size()-1) {
-                        formattedIntersectionStructure = TextUtils.concat(
-                                formattedIntersectionStructure, ",\n");
-                    }
-                    index++;
-                }
-
-                labelIntersectionStructure.setText(formattedIntersectionStructure);
-                intersectionScheme.configureView(
-                        intersection.getName(), intersectionSegmentRelativeToInstructionMap);
+            Intersection.SchemeData intersectionSchemeData = intersection
+                .getSchemeDataForFixedViewingDirectionFromPreviousRouteSegment(true);
+            if (intersectionSchemeData != null) {
+                labelIntersectionStructure.setText(intersectionSchemeData.legend);
+                intersectionScheme.configureView(intersectionSchemeData);
                 layoutIntersectionStructure.setVisibility(View.VISIBLE);
             }
         }
@@ -488,10 +449,10 @@ public class NavigateFragment extends Fragment implements MenuProvider {
 
             if (! currentRouteObject.equals(lastRouteObject)) {
                 // skipped to next route object
-                this.lastRouteObject = currentRouteObject;
                 this.shortlyBeforeArrivalAnnounced = false;
                 this.arrivalAnnounced = false;
-                this.arrivalTime = System.currentTimeMillis();
+                this.arrivalTime = lastRouteObject != null ? System.currentTimeMillis() : 0l;
+                this.lastRouteObject = currentRouteObject;
             }
 
             if (intent.getAction().equals(DeviceSensorManager.ACTION_NEW_BEARING_VALUE_FROM_SATELLITE)) {
@@ -519,9 +480,7 @@ public class NavigateFragment extends Fragment implements MenuProvider {
         }
 
         private boolean nextRouteObjectWithinRange(RouteObject currentRouteObject, BearingSensorValue bearingValueFromSatellite) {
-            if (! PositionManager.getInstance().hasCurrentLocation()) {
-                return false;
-            }
+            if (! PositionManager.getInstance().hasCurrentLocation()) return false;
 
             Integer distance = currentRouteObject
                 .getPoint()

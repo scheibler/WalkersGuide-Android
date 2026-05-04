@@ -206,12 +206,15 @@ public class PoiListFromServerFragment extends ExtendedObjectListFragment
         // refresh
         MenuItem menuItemRefresh = menu.findItem(R.id.menuItemRefresh);
         menuItemRefresh.setVisible(true);
+
         // show auto update
         MenuItem menuItemAutoUpdate = menu.findItem(R.id.menuItemAutoUpdate);
         menuItemAutoUpdate.setVisible(true);
         // viewing direction filter
         MenuItem menuItemFilterResult = menu.findItem(R.id.menuItemFilterResult);
         menuItemFilterResult.setVisible(true);
+        MenuItem menuItemAutoUpdateAndFilterResult = menu.findItem(R.id.menuItemAutoUpdateAndFilterResult);
+        menuItemAutoUpdateAndFilterResult.setVisible(true);
     }
 
 

@@ -41,8 +41,8 @@ public interface MutableProfile extends Serializable {
 
     public default boolean setTracked(boolean tracked) {
         SettingsManager.getInstance().setTrackedProfileId(tracked ? getId() : null);
-        WalkersGuideService.invalidateTrackedObjectList();
-        WalkersGuideService.setTrackingMode(TrackingMode.DISTANCE, true);
+        if (tracked) WalkersGuideService.setTrackingMode(TrackingMode.DISTANCE, true);
+        else WalkersGuideService.invalidateTrackedObjectList();
         return tracked == isTracked();
     }
 

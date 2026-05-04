@@ -23,8 +23,8 @@ android {
     namespace "org.walkersguide.android"
 
     defaultConfig {
-        versionCode 65
-        versionName '3.3.1-b1'
+        versionCode 67
+        versionName '3.3.1-b2'
         minSdkVersion 21
         targetSdkVersion 36
         multiDexEnabled true

@@ -216,7 +216,7 @@
     <string name="accessibilityActionUseBearingSource">Verwende Richtungsquelle: %1$s</string>
     <string name="accessibilityActionStartSimulationBearing">Simuliere Richtung: %1$s</string>
     <string name="accessibilityActionStartSimulationLocation">Simuliere Standort: %1$s</string>
-    <string name="accessibilityActionEndSimulation">Simulation von %1$s beenden</string>
+    <string name="accessibilityActionEndSimulation">Beende Simulation von %1$s</string>
 
     <!-- pin fragment -->
     <string name="fragmentPinName">Angeheftet</string>
@@ -365,9 +365,13 @@
     <!-- toolbar menu -->
     <string name="menuItemRefresh">Aktualisieren</string>
     <string name="menuItemCancel">Abbrechen</string>
+    <string name="menuItemJumpToTop">An den Listenanfang springen</string>
     <string name="menuItemAutoUpdate">Auto-Update</string>
     <string name="menuItemFilterResult">Nach Blickrichtung filtern</string>
-    <string name="menuItemJumpToTop">An den Listenanfang springen</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnable">Beides aktivieren</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnableCD">Auto-Update und Blickrichtungsfilter aktivieren</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisable">Beides deaktivieren</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisableCD">Auto-Update und Blickrichtungsfilter deaktivieren</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Eingänge</string>
@@ -448,7 +452,7 @@
     <string name="labelPointWithAddressDataPostcode">PLZ</string>
     <string name="labelPointWithAddressDataCity">Stadt</string>
     <string name="labelPointWithAddressDataState">Bundesland</string>
-    <string name="labelPointWithAddressDataCountry">Lang</string>
+    <string name="labelPointWithAddressDataCountry">Land</string>
     <!-- gps -->
     <string name="labelPointGPSDetailsHeading">GPS Details</string>
     <string name="labelPointGPSTimestamp">Erstellt am</string>
@@ -563,10 +567,6 @@
     <string name="switchShowActionButtonHint">Alternativ lässt sich das Kontextmenü mit einem langen Klick öffnen.</string>
     <string name="switchDisplayRemainsActive">Bildschirm bleibt während der Benutzung der App aktiv</string>
     <string name="switchDisplayRemainsActiveHint">Verhindert das automatische Sperren des Bildschirms bei Inaktivität.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Fused Location Provider bei der Positionsbestimmung bevorzugen</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">Wenn aktiviert, ist speziell die Standortbestimmung innerhalb von Gebäuden schneller und genauer.
-        Allerdings können bei einigen Geräten auch Probleme mit der Genauigkeit bei der Navigation auftreten.
-        Dann sollte der Fused Location Provider deaktiviert werden.</string>
     <string name="buttonShakeIntensity">Schüttelintensität</string>
     <string name="buttonShakeIntensityHint">Schütteln, um den "Wo bin ich" Dialog und den "Punkte" Tab zu aktualisieren.</string>
     <string name="labelTTSSettingsHeader">Sprachausgabe</string>
@@ -574,6 +574,10 @@
     <string name="labelDistanceAnnouncementInterval">Intervall für Entfernungsansagen</string>
     <string name="labelDistanceAnnouncementIntervalUnit">Meter</string>
     <string name="buttonSpeechRate">Sprechgeschwindigkeit</string>
+    <string name="switchSpeakIntersectionStructure">Kreuzungsaufbau sprechen</string>
+    <string name="switchSpeakIntersectionStructureHint">Hängt den Aufbau einer Kreuzung zur besseren Orientierung an die Navigationsanweisungen an.\n
+        Beispiel: Links: Nebenstraße, Geradeaus: Hauptstraße, Rechts: Nebenstraße.\n
+        Diese Einstellung gilt ebenfalls für den Verfolgen-Tab, sobald du dich einer verfolgten Kreuzung bis auf wenige Meter genähert hast.</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Verbindung zum Bluetooth Kopfhörer aktiv halten</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">Einige Bluetooth Kopfhörer gehen
         nach ein paar Sekunden Inaktivität in den Standby Modus, aus dem sie anschließend
@@ -793,6 +797,7 @@
     <string name="removeProfileDialogTitle">Möchtest du das Profil %1$s löschen?</string>
 
     <!-- profile context menu -->
+    <string name="contextMenuItemProfileShowList">Liste anzeigen</string>
     <string name="contextMenuItemProfilePoiCategories">Punktkategorien auswählen</string>
     <string name="contextMenuItemProfileCollections">Sammlungen auswählen</string>
     <string name="contextMenuItemProfilePinShortcut">Zum Startbildschirm hinzufügen</string>
@@ -827,8 +832,10 @@
 
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
-    <string name="contextMenuItemOverviewPin">Angeheftet</string>
-    <string name="contextMenuItemOverviewTrack">Verfolgt</string>
+    <string name="contextMenuItemOverviewPinned">Angeheftet</string>
+    <string name="contextMenuItemOverviewUnpin">Von Übersicht lösen</string>
+    <string name="contextMenuItemOverviewTracked">Verfolgt</string>
+    <string name="contextMenuItemOverviewUntrack">Verfolgung beenden</string>
     <string name="contextMenuItemUserAnnotationAdd">Notiz hinzufügen</string>
     <string name="contextMenuItemUserAnnotationEdit">Notiz bearbeiten</string>
     <string name="contextMenuItemEdit">Bearbeiten</string>
@@ -1066,7 +1073,7 @@
     <string name="routeDescriptionDefault">Die Route ist %1$s lang und besteht aus %2$s.</string>
     <string name="labelOppositeDirection">In Gegenrichtung</string>
     <string name="messageAlmostArrivedAtRouteStart">Startpunkt der Route beinahe erreicht.</string>
-    <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s an %2$s</string>
+    <string name="messageAlmostArrivedAtRoutePoint">In Kürze: %1$s an %2$s.</string>
     <string name="messageAlmostArrivedAtRouteDestination">Zielpunkt der Route beinahe erreicht.</string>
     <string name="messageArrivedAtRouteStart">Startpunkt der Route erreicht.</string>
     <string name="messageArrivedAtRoutePoint">Punkt %1$d erreicht.\nJetzt: %2$s.\nDanach: %3$s.</string>

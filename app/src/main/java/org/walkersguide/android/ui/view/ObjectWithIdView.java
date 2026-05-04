@@ -71,6 +71,7 @@ import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.database.util.AccessDatabase;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import android.view.accessibility.AccessibilityEvent;
 
 
 public class ObjectWithIdView extends LinearLayout {
@@ -196,7 +197,7 @@ public class ObjectWithIdView extends LinearLayout {
         });
 
         this.autoUpdate = true;
-        this.emptyLabelText = GlobalInstance.getStringResource(R.string.labelNothingSelected);
+        this.emptyLabelText = "";
         this.onDefaultObjectActionListener = null;
         this.objectDetailsActionEnabled = false;
         this.onRemoveObjectActionListener = null;
@@ -284,10 +285,13 @@ public class ObjectWithIdView extends LinearLayout {
             this.objectWithId = object;
             this.staticLabelText = staticLabelText;
             this.showObjectIcon = ShowIcon.NO;
-            ViewCompat.setAccessibilityDelegate(
-                    this.label, UiHelper.getAccessibilityDelegateViewClassButton());
+
             updateLabelAndButtonText();
             updateAccessibilityActions();
+            ViewCompat.setAccessibilityDelegate(
+                    this.label, UiHelper.getAccessibilityDelegateViewClassButton());
+            this.label.post(() ->
+                    this.label.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED));
         }
     }
 
@@ -295,6 +299,7 @@ public class ObjectWithIdView extends LinearLayout {
         this.objectWithId = null;
         this.showObjectIcon = ShowIcon.NO;
         this.staticLabelText = null;
+        this.emptyLabelText = GlobalInstance.getStringResource(R.string.labelNothingSelected);
 
         clearAccessibilityActions();
         updateLabelAndButtonText();
@@ -398,6 +403,8 @@ public class ObjectWithIdView extends LinearLayout {
 
     private LinkedHashMap<Integer,String> getAccessibilityActionMenuItemMap() {
         LinkedHashMap<Integer,String> actionMap = new LinkedHashMap<Integer,String>();
+        if (objectWithId == null) return actionMap;
+
         if (objectDetailsActionEnabled) {
             actionMap.put(
                     MENU_ITEM_DETAILS, GlobalInstance.getStringResource(R.string.contextMenuItemDetails));
@@ -423,7 +430,7 @@ public class ObjectWithIdView extends LinearLayout {
             }
 
             Point point = (Point) objectWithId;
-            if (! isLocationSimulated(point)) {
+            if (! point.isLocationSimulated()) {
                 actionMap.put(
                         MENU_ITEM_NAVIGATE_TO_THIS_POINT,
                         GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdNavigateToThisPoint));
@@ -431,10 +438,30 @@ public class ObjectWithIdView extends LinearLayout {
             actionMap.put(
                     MENU_ITEM_SIMULATE_LOCATION,
                     String.format(
-                        isLocationSimulated(point)
+                        point.isLocationSimulated()
                         ? GlobalInstance.getStringResource(R.string.accessibilityActionEndSimulation)
                         : GlobalInstance.getStringResource(R.string.accessibilityActionStartSimulationLocation),
                         point.getName()));
+
+        } else if (objectWithId instanceof Route) {
+            if (((Route) objectWithId).isReversible()) {
+                actionMap.put(
+                        MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION,
+                        String.format(
+                            "%1$s: %2$s",
+                            GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdLoadRoute),
+                            GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdLoadRouteCurrentDirection)));
+                actionMap.put(
+                        MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION,
+                        String.format(
+                            "%1$s: %2$s",
+                            GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdLoadRoute),
+                            GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdLoadRouteOppositeDirection)));
+            } else {
+                actionMap.put(
+                        MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION,
+                        GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdLoadRoute));
+            }
 
         } else if (objectWithId instanceof Segment) {
 
@@ -447,10 +474,25 @@ public class ObjectWithIdView extends LinearLayout {
             actionMap.put(
                     MENU_ITEM_SIMULATE_BEARING,
                     String.format(
-                        isBearingSimulated(segment)
+                        segment.isBearingSimulated()
                         ? GlobalInstance.getStringResource(R.string.accessibilityActionEndSimulation)
                         : GlobalInstance.getStringResource(R.string.accessibilityActionStartSimulationBearing),
                         segment.getBearing().toString()));
+        }
+
+        // unpin and untrack
+
+        if (objectWithId.isPinned()) {
+            actionMap.put(
+                    MENU_ITEM_OVERVIEW_PIN,
+                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewUnpin));
+        }
+
+        if (objectWithId instanceof Point
+                && ((Point) objectWithId).isTracked()) {
+            actionMap.put(
+                    MENU_ITEM_OVERVIEW_TRACK,
+                    GlobalInstance.getStringResource(R.string.contextMenuItemOverviewUntrack));
         }
 
         return actionMap;
@@ -476,63 +518,84 @@ public class ObjectWithIdView extends LinearLayout {
                     ObjectDetailsTabLayoutFragment.streetCourse((IntersectionSegment) this.objectWithId));
 
         // other actions
-        } else if (menuItemId == MENU_ITEM_NAVIGATE_TO_THIS_POINT) {
-            navigateToThisPoint((Point) this.objectWithId);
-        } else if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
-            toggleLocationSimulation((Point) this.objectWithId);
-        } else if (menuItemId == MENU_ITEM_SIMULATE_BEARING) {
-            toggleBearingSimulation((Segment) this.objectWithId);
+
+        } else if (menuItemId == MENU_ITEM_NAVIGATE_TO_THIS_POINT
+                && this.objectWithId instanceof Point) {
+            Point currentLocation = PositionManager.getInstance().getCurrentLocation();
+
+            if (currentLocation == null) {
+                Toast.makeText(
+                        getContext(),
+                        GlobalInstance.getStringResource(R.string.errorNoLocationFound),
+                        Toast.LENGTH_LONG).show();
+
+            } else {
+                P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
+                p2pRouteRequest.setStartPoint(currentLocation);
+                p2pRouteRequest.setDestinationPoint((Point) this.objectWithId);
+                settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
+
+                mainActivityController.openPlanRouteDialog(true);
+            }
+
+        } else if (menuItemId == MENU_ITEM_SIMULATE_LOCATION
+                && this.objectWithId instanceof Point) {
+            Point point = (Point) this.objectWithId;
+            boolean enableSimulation = ! point.isLocationSimulated();
+            if (enableSimulation) {
+                positionManagerInstance.setSimulatedLocation(point);
+            }
+            positionManagerInstance.setSimulationEnabled(enableSimulation);
+
+        } else if (menuItemId == MENU_ITEM_SIMULATE_BEARING
+                && this.objectWithId instanceof Segment) {
+            Segment segment = (Segment) this.objectWithId;
+            boolean enableSimulation = ! segment.isBearingSimulated();
+            if (enableSimulation) {
+                deviceSensorManagerInstance.setSimulatedBearing(segment.getBearing());
+            }
+            deviceSensorManagerInstance.setSimulationEnabled(enableSimulation);
+
+        } else if (menuItemId == MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION
+                && this.objectWithId instanceof Route) {
+            Route route = (Route) this.objectWithId;
+            mainActivityController.closeAllOpenDialogs();
+            MainActivity.loadRoute(getContext(), route);
+
+        } else if (menuItemId == MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION
+                && this.objectWithId instanceof Route) {
+            Route route = (Route) this.objectWithId;
+            Route reversedRoute = null;
+            try {
+                reversedRoute = Route.reverse(route);
+            } catch (JSONException e) {
+                Toast.makeText(
+                        getContext(),
+                        GlobalInstance.getStringResource(R.string.messageCantReverseRoute),
+                        Toast.LENGTH_LONG).show();
+                return false;
+            }
+            mainActivityController.closeAllOpenDialogs();
+            MainActivity.loadRoute(getContext(), reversedRoute);
+
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
+            objectWithId.setPinned(! objectWithId.isPinned());
+            // update a11y actions and parent view
+            updateAccessibilityActions();
+            ViewChangedListener.sendProfileListChangedBroadcast();
+
+        } else if (menuItemId == MENU_ITEM_OVERVIEW_TRACK
+                && this.objectWithId instanceof Point) {
+            Point point = (Point) this.objectWithId;
+            point.setTracked(! point.isTracked());
+            // update a11y actions and parent view
+            updateAccessibilityActions();
+            ViewChangedListener.sendProfileListChangedBroadcast();
 
         } else {
             return false;
         }
         return true;
-    }
-
-    private void navigateToThisPoint(Point destination) {
-        Point currentLocation = PositionManager.getInstance().getCurrentLocation();
-        if (currentLocation == null) {
-            Toast.makeText(
-                    getContext(),
-                    GlobalInstance.getStringResource(R.string.errorNoLocationFound),
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        P2pRouteRequest p2pRouteRequest = P2pRouteRequest.create();
-        p2pRouteRequest.setStartPoint(currentLocation);
-        p2pRouteRequest.setDestinationPoint(destination);
-        settingsManagerInstance.setP2pRouteRequest(p2pRouteRequest);
-
-        mainActivityController.openPlanRouteDialog(true);
-    }
-
-    private boolean isLocationSimulated(Point point) {
-        return positionManagerInstance.getSimulationEnabled()
-            && point != null
-            && point.equals(positionManagerInstance.getSimulatedLocation());
-    }
-
-    private void toggleLocationSimulation(Point point) {
-        boolean enableSimulation = ! isLocationSimulated(point);
-        if (enableSimulation) {
-            positionManagerInstance.setSimulatedLocation(point);
-        }
-        positionManagerInstance.setSimulationEnabled(enableSimulation);
-    }
-
-    private boolean isBearingSimulated(Segment segment) {
-        return deviceSensorManagerInstance.getSimulationEnabled()
-            && segment != null
-            && segment.getBearing().equals(deviceSensorManagerInstance.getSimulatedBearing());
-    }
-
-    private void toggleBearingSimulation(Segment segment) {
-            boolean enableSimulation = ! isBearingSimulated(segment);
-            if (enableSimulation) {
-                deviceSensorManagerInstance.setSimulatedBearing(segment.getBearing());
-            }
-            deviceSensorManagerInstance.setSimulationEnabled(enableSimulation);
     }
 
 
@@ -648,7 +711,11 @@ public class ObjectWithIdView extends LinearLayout {
         for (Map.Entry<Integer,String> entry : getAccessibilityActionMenuItemMap().entrySet()) {
             if (       entry.getKey() == MENU_ITEM_NAVIGATE_TO_THIS_POINT
                     || entry.getKey() == MENU_ITEM_SIMULATE_LOCATION
-                    || entry.getKey() == MENU_ITEM_SIMULATE_BEARING) {
+                    || entry.getKey() == MENU_ITEM_SIMULATE_BEARING
+                    || entry.getKey() == MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION
+                    || entry.getKey() == MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION
+                    || entry.getKey() == MENU_ITEM_OVERVIEW_PIN
+                    || entry.getKey() == MENU_ITEM_OVERVIEW_TRACK) {
                 continue;
             }
             // only add the subtab actions
@@ -676,18 +743,17 @@ public class ObjectWithIdView extends LinearLayout {
 
         // pin
         MenuItem menuItemOverviewPin = contextMenu.getMenu().add(
-                MENU_GROUP_2, MENU_ITEM_OVERVIEW_PIN, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPin));
+                MENU_GROUP_2, MENU_ITEM_OVERVIEW_PIN, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewPinned));
         menuItemOverviewPin.setCheckable(true);
-        menuItemOverviewPin.setChecked(
-                StaticProfile.pinnedObjectsWithId().containsObject(object));
+        menuItemOverviewPin.setChecked(object.isPinned());
 
         // track (only for points)
         if (object instanceof Point) {
             MenuItem menuItemOverviewTrack = contextMenu.getMenu().add(
-                    MENU_GROUP_2, MENU_ITEM_OVERVIEW_TRACK, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTrack));
+                    MENU_GROUP_2, MENU_ITEM_OVERVIEW_TRACK, orderId++, GlobalInstance.getStringResource(R.string.contextMenuItemOverviewTracked));
             menuItemOverviewTrack.setCheckable(true);
             menuItemOverviewTrack.setChecked(
-                    StaticProfile.trackedObjectsWithId().containsObject(object));
+                    ((Point) object).isTracked());
         }
 
         // simulation
@@ -696,13 +762,15 @@ public class ObjectWithIdView extends LinearLayout {
                     MENU_GROUP_2, MENU_ITEM_SIMULATE_LOCATION, orderId++,
                     GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdSimulateLocation));
             menuItemSimulateLocation.setCheckable(true);
-            menuItemSimulateLocation.setChecked(isLocationSimulated((Point) object));
+            menuItemSimulateLocation.setChecked(
+                    ((Point) object).isLocationSimulated());
         } else if (object instanceof Segment) {
             MenuItem menuItemSimulateBearing = contextMenu.getMenu().add(
                     MENU_GROUP_2, MENU_ITEM_SIMULATE_BEARING, orderId++,
                     GlobalInstance.getStringResource(R.string.contextMenuItemObjectWithIdSimulateBearing));
             menuItemSimulateBearing.setCheckable(true);
-            menuItemSimulateBearing.setChecked(isBearingSimulated((Segment) object));
+            menuItemSimulateBearing.setChecked(
+                    ((Segment) object).isBearingSimulated());
         }
 
         // exclude from routing
@@ -813,28 +881,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executeObjectMenuAction(Context context, ObjectWithId object, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_OVERVIEW_PIN
-                || menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
-
-            if (menuItemId == MENU_ITEM_OVERVIEW_PIN) {
-                if (StaticProfile.pinnedObjectsWithId().containsObject(object)) {
-                    StaticProfile.pinnedObjectsWithId().removeObject(object);
-                } else {
-                    StaticProfile.pinnedObjectsWithId().addObject(object);
-                }
-
-            } else if (menuItemId == MENU_ITEM_OVERVIEW_TRACK) {
-                if (StaticProfile.trackedObjectsWithId().containsObject(object)) {
-                    StaticProfile.trackedObjectsWithId().removeObject(object);
-                } else {
-                    StaticProfile.trackedObjectsWithId().addObject(object);
-                }
-            }
-
-            // update parent view
-            ViewChangedListener.sendProfileListChangedBroadcast();
-
-        } else if (menuItemId == MENU_ITEM_COLLECTIONS) {
+        if (menuItemId == MENU_ITEM_COLLECTIONS) {
             mainActivityController.openDialog(
                     UpdateObjectWithIdSelectedCollectionsDialog.newInstance(object));
 
@@ -851,6 +898,7 @@ public class ObjectWithIdView extends LinearLayout {
                 onRemoveObjectActionListener.onRemoveObjectActionClicked(object);
             }
             this.reset();
+            ViewChangedListener.sendProfileListChangedBroadcast();
 
         } else {
             return false;
@@ -862,13 +910,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executePointMenuAction(Context context, Point point, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_SIMULATE_LOCATION) {
-            toggleLocationSimulation(point);
-
-        } else if (menuItemId == MENU_ITEM_NAVIGATE_TO_THIS_POINT) {
-            navigateToThisPoint(point);
-
-        } else if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
+        if (menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_START_POINT
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_1
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_2
                 || menuItemId == MENU_ITEM_ROUTE_PLANNER_USE_AS_VIA_POINT_3
@@ -909,25 +951,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executeRouteMenuAction(Context context, Route route, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_LOAD_ROUTE_CURRENT_DIRECTION) {
-            mainActivityController.closeAllOpenDialogs();
-            MainActivity.loadRoute(context, route);
-
-        } else if (menuItemId == MENU_ITEM_LOAD_ROUTE_OPPOSITE_DIRECTION) {
-            Route reversedRoute = null;
-            try {
-                reversedRoute = Route.reverse(route);
-            } catch (JSONException e) {
-                Toast.makeText(
-                        context,
-                        GlobalInstance.getStringResource(R.string.messageCantReverseRoute),
-                        Toast.LENGTH_LONG).show();
-                return false;
-            }
-            mainActivityController.closeAllOpenDialogs();
-            MainActivity.loadRoute(context, reversedRoute);
-
-        } else if (menuItemId == MENU_ITEM_EXPORT_TO_GPX_FILE) {
+        if (menuItemId == MENU_ITEM_EXPORT_TO_GPX_FILE) {
             mainActivityController.openDialog(
                     ExportRouteToGpxFileDialog.newInstance(route));
 
@@ -941,10 +965,7 @@ public class ObjectWithIdView extends LinearLayout {
     private boolean executeSegmentMenuAction(Context context, Segment segment, MenuItem item) {
         int menuItemId = item.getItemId();
 
-        if (menuItemId == MENU_ITEM_SIMULATE_BEARING) {
-            toggleBearingSimulation(segment);
-
-        } else if (menuItemId == MENU_ITEM_EXCLUDE_FROM_ROUTING) {
+        if (menuItemId == MENU_ITEM_EXCLUDE_FROM_ROUTING) {
             if (StaticProfile.excludedRoutingSegments().containsObject(segment)) {
                 StaticProfile.excludedRoutingSegments().removeObject(segment);
             } else {

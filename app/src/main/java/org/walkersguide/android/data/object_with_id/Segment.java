@@ -127,6 +127,13 @@ public class Segment extends ObjectWithId implements Serializable {
                 Helper.getNullableAndPositiveIntegerFromJsonObject(inputData, KEY_WHEELCHAIR));
     }
 
+    public boolean isBearingSimulated() {
+        DeviceSensorManager deviceSensorManagerInstance = DeviceSensorManager.getInstance();
+        return deviceSensorManagerInstance.getSimulationEnabled()
+            && this.bearing.equals(deviceSensorManagerInstance.getSimulatedBearing());
+    }
+
+
     // mandatory
 
     public Bearing getBearing() {

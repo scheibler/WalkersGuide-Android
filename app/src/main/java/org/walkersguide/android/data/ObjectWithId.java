@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import org.walkersguide.android.sensor.PositionManager;
 import org.walkersguide.android.database.profile.Collection;
 import org.walkersguide.android.database.DatabaseProfile;
+import org.walkersguide.android.database.profile.StaticProfile;
 
 
 public abstract class ObjectWithId implements Serializable {
@@ -424,6 +425,18 @@ public abstract class ObjectWithId implements Serializable {
                 collection.addObject(this);
             }
         }
+    }
+
+
+    // pin
+
+    public boolean isPinned() {
+        return StaticProfile.pinnedObjectsWithId().containsObject(this);
+    }
+
+    public  void setPinned(boolean pinned) {
+        if (pinned) StaticProfile.pinnedObjectsWithId().addObject(this);
+        else StaticProfile.pinnedObjectsWithId().removeObject(this);
     }
 
 

@@ -5,5 +5,5 @@
         android:id="@+id/menuItemAnnounceWayAhead"
         android:title="@string/menuItemAnnounceWayAhead"
         android:checkable="true"
-        android:orderInCategory="4" />
+        android:orderInCategory="20" />
 </menu>

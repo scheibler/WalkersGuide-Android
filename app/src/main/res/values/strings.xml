@@ -371,9 +371,13 @@
     <!-- toolbar menu -->
     <string name="menuItemRefresh">Refresh</string>
     <string name="menuItemCancel">Cancel</string>
-    <string name="menuItemAutoUpdate">List auto update</string>
-    <string name="menuItemFilterResult">Filter by viewing direction</string>
     <string name="menuItemJumpToTop">Jump to top of list</string>
+    <string name="menuItemAutoUpdate">Auto update</string>
+    <string name="menuItemFilterResult">Filter by viewing direction</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnable">Enable both</string>
+    <string name="menuItemAutoUpdateAndFilterResultEnableCD">Enable auto update and viewing direction filter</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisable">Disable both</string>
+    <string name="menuItemAutoUpdateAndFilterResultDisableCD">Disable auto update and viewing direction filter</string>
 
     <!-- SimpleObjectListFragment -->
     <string name="fragmentEntrancesName">Entrances</string>
@@ -573,10 +577,6 @@
     <string name="switchShowActionButtonHint">Alternatively, long-press to open the context menu.</string>
     <string name="switchDisplayRemainsActive">Screen remains active, while the app is in use.</string>
     <string name="switchDisplayRemainsActiveHint">Disables the auto-lock screen feature during navigation.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProvider">Prefer the fused Location Provider for location determination.</string>
-    <string name="switchPreferFusedLocationProviderInsteadOfNetworkProviderHint">If enabled you get more precise location fixes especially within buildings.
-        But on some devices it may cause accuracy problems during navigation.
-        If so you should disable the fused location provider here.</string>
     <string name="buttonShakeIntensity">Shake intensity</string>
     <string name="buttonShakeIntensityHint">Shake to refresh the "Where am I" dialog and "Points" tab.</string>
     <string name="labelTTSSettingsHeader">Text to speech</string>
@@ -584,6 +584,10 @@
     <string name="labelDistanceAnnouncementInterval">Distance announcement interval</string>
     <string name="labelDistanceAnnouncementIntervalUnit">meters</string>
     <string name="buttonSpeechRate">Speech rate</string>
+    <string name="switchSpeakIntersectionStructure">Speak intersection structure</string>
+    <string name="switchSpeakIntersectionStructureHint">Appends the structure of an intersection to the navigation instructions for better orientation.\n
+        Example: Left: minor road, Straight: main road, Right: minor road.\n
+        This setting also applies to the Track tab once you approach a tracked intersection within a few meters.</string>
     <string name="switchKeepBluetoothHeadsetConnectionAlive">Keep Bluetooth headphone connection alive</string>
     <string name="switchKeepBluetoothHeadsetConnectionAliveHint">
         Some Bluetooth headphones enter sleep mode after a period of inactivity, and waking them up causes a noticeable
@@ -803,6 +807,7 @@
     <string name="removeProfileDialogTitle">Do you want to remove the profile %1$s?</string>
 
     <!-- profile context menu -->
+    <string name="contextMenuItemProfileShowList">Show list</string>
     <string name="contextMenuItemProfilePoiCategories">Point categories</string>
     <string name="contextMenuItemProfileCollections">Collections</string>
     <string name="contextMenuItemProfilePinShortcut">Add to launcher</string>
@@ -837,8 +842,10 @@
 
     <!-- common context menu entries -->
     <string name="contextMenuItemDetails">Details</string>
-    <string name="contextMenuItemOverviewPin">Pinned</string>
-    <string name="contextMenuItemOverviewTrack">Tracked</string>
+    <string name="contextMenuItemOverviewPinned">Pinned</string>
+    <string name="contextMenuItemOverviewUnpin">Unpin from overview</string>
+    <string name="contextMenuItemOverviewTracked">Tracked</string>
+    <string name="contextMenuItemOverviewUntrack">Stop tracking</string>
     <string name="contextMenuItemUserAnnotationAdd">Add annotation</string>
     <string name="contextMenuItemUserAnnotationEdit">Edit annotation</string>
     <string name="contextMenuItemEdit">Edit</string>
@@ -1081,7 +1088,7 @@
     <string name="labelOppositeDirection">Opposite direction</string>
     <string name="messageAlmostArrivedAtRouteStart">Almost at start point</string>
     <!-- format example: Shortly turn right at main street, high street -->
-    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s at %2$s</string>
+    <string name="messageAlmostArrivedAtRoutePoint">Shortly: %1$s at %2$s.</string>
     <string name="messageAlmostArrivedAtRouteDestination">Almost at destination point</string>
     <string name="messageArrivedAtRouteStart">Arrived at route start point.</string>
     <!-- format example: Arrived at point 8, Now turn right, Then 50 meters on high street -->

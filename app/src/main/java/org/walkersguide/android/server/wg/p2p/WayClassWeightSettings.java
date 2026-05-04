@@ -94,6 +94,15 @@ public class WayClassWeightSettings implements Serializable {
         return map;
     }
 
+    public static List<WayClassWeightSettings> allSettings() {
+        List<WayClassWeightSettings> wayClassWeightSettingsList = new ArrayList<>();
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createShortestRoute());
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createUrbanOnFoot());
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createUrbanByCar());
+        wayClassWeightSettingsList.add(WayClassWeightSettings.createHiking());
+        return wayClassWeightSettingsList;
+    }
+
 
     private String id, name;
     private Map<WayClassType,WayClassWeight> typeWeightMap;
