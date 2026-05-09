@@ -668,6 +668,26 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">All changes</string>
 
+    <string name="changesHeading3_4_0">Version 3.4.0</string>
+    <string-array name="changesList3_4_0">
+        <item>Date: May 10, 2026</item>
+        <item>- New: Choose between different route profiles such as "Shortest route" or "On foot in urban areas"
+            to customize the calculated route to your preferences. The latter prefers smaller streets and
+            accepts a detour. In the app settings, you can also create your own route profiles or edit
+            existing ones, as well as set a default route profile. Then you won\'t be asked every time
+            when calculating a route.</item>
+        <item>- New: Have the intersection layout announced during navigation. This gives you a better
+            idea of the streets to cross when approaching an intersection. This option is disabled by
+            default for now. If you want to try out the announcements, you can find the "Speak intersection
+            structure" switch in the app settings under the "Text to speech" section.</item>
+        <item>- New: TalkBack actions for frequently used context menu entries in the point list:
+            "Navigate to this point" and "Start simulation"</item>
+        <item>- New: Menu entry in the "More options" menu of the point list to toggle the "Auto-update"
+            and "Filter by viewing direction" functions together on or off.</item>
+        <item>- Fixed: Departure data for stops served by Germany\'s VVO provider is now loading correctly again.</item>
+        <item>- Fixed: Entered addresses are now formatted correctly again</item>
+    </string-array>
+
     <string name="changesHeading3_3_0">Version 3.3.0</string>
     <string-array name="changesList3_3_0">
         <item>Date: February 9, 2026</item>

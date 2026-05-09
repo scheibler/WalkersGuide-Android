@@ -11,7 +11,7 @@ import org.walkersguide.android.util.GlobalInstance;
 
 public class AnnouncementRadius implements Serializable {
     private static final long serialVersionUID = 1l;
-    private static final int[] values = new int[]{ 10, 20, 30, 50, 75, 100, 150, 200, 250, 500, 750, 1000 };
+    private static final int[] values = new int[]{ 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 500, 750, 1000 };
 
     public static ArrayList<AnnouncementRadius> values() {
         ArrayList<AnnouncementRadius> announcementRadiusList = new ArrayList<AnnouncementRadius>();

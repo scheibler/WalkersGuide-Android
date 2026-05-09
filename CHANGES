@@ -3,6 +3,39 @@ Change Log
 
 
 
+v3.4.0: 2026-05-10
+------------------
+
+- Route profiles:
+    * Control how routes are calculated
+    * Examples: "Shortest route", "Avoid highways", "Hiking trails", "By car"
+    * Create and save multiple profiles for different situations
+    * Choose your preferred default in the app's settings or select manually each time
+- Resolve post address:
+    * Update address long format, add extra name and line breaks
+    * Fix: Outdated attribute keys in address resolver response (nominatim)
+- Track points and profiles:
+    * Append intersection structure in distance mode (see below for details)
+    * New announcement radius 10, 15, 20, 25 and 30 meters: Mainly intended to announce intersections nearby
+    * Fix: In some cases the tracked-objects cache was not cleared correctly
+- Add accessibility actions:
+    * Navigate to this point and Simulate location/bearing
+    * Unpin and untrack
+    * Load route
+- Update settings fragment
+    * New option: Speak intersection structure
+      Appends the intersection structure to the "Shortly..." navigation instruction and to the
+      intersection name in tracking mode if nearby
+    * Remove option: network / fused location provider, not longer needed, fused location provider works fine.
+    * Put the hints in a separate text field below the setting because Talkback speaks the hint before the item text
+- ObjectListFragment: Add menu item to turn on/off "auto update" and "viewing direction" with one click
+- ProfileView: Add selected poi categories to the content description
+- Fix: Some translations regarding simulation and tracking
+- Fix: Departures from VVO provider could not be fetched
+  Update public-transport-enabler library to commit 5c45c9ac from 2026-04-18
+
+
+
 v3.3.0: 2026-02-09
 ------------------
 

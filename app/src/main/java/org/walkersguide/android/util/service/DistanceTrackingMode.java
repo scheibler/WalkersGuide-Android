@@ -122,9 +122,9 @@ public class DistanceTrackingMode {
             } else if (distanceToCurrentLocation > 50) {
                 factor = 1.0f;
             } else if (distanceToCurrentLocation > 25) {
-                factor = 0.75f;
+                factor = 0.66f;
             } else {
-                factor = 0.5f;
+                factor = 0.33f;
             }
 
             final int announcementDistanceInterval = Math.round(
@@ -138,6 +138,8 @@ public class DistanceTrackingMode {
     }
 
     private boolean isWithinBearing(Bearing bearingToObject, int distanceToObjectInMeters) {
+        if (distanceToObjectInMeters < 5) return true;     // gps is not precise enough to show an accurate bearing if closer than 5m
+
         final int minAngle = distanceToObjectInMeters < MIN_THRESHOLD_IN_METERS ? 240 : 300;
         final int maxAngle = distanceToObjectInMeters < MIN_THRESHOLD_IN_METERS ? 120 :  60;
         return bearingToObject

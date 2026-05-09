@@ -669,6 +669,27 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Todos los cambios</string>
 
+    <string name="changesHeading3_4_0">Versión 3.4.0</string>
+    <string-array name="changesList3_4_0">
+        <item>Fecha: 10.05.2026</item>
+        <item>- Nuevo: Elige entre diferentes perfiles de ruta como "Ruta más corta" o "A pie en zonas urbanas"
+            para adaptar la ruta calculada a tus preferencias. Este último prefiere calles más pequeñas y
+            acepta un desvío. En la configuración de la aplicación, también puedes crear tus propios perfiles
+            de ruta o editar los existentes, así como establecer un perfil de ruta predeterminado. Entonces
+            no se te preguntará cada vez al calcular una ruta.</item>
+        <item>- Nuevo: Escucha el anuncio de la disposición de la intersección durante la navegación. Esto
+            te da una mejor idea de las calles a cruzar cuando te acercas a una intersección. Esta opción
+            está desactivada por defecto por ahora. Si quieres probar los anuncios, puedes encontrar el
+            interruptor "Anunciar estructura de intersección" en la configuración de la aplicación en la
+            sección "Texto a voz".</item>
+        <item>- Nuevo: Acciones de TalkBack para entradas de menú contextual de uso frecuente en la lista
+            de puntos: "Navegar a este punto" e "Iniciar simulación"</item>
+        <item>- Nuevo: Entrada de menú en el menú "Más opciones" de la lista de puntos para activar o
+            desactivar juntas las funciones "Actualización automática" y "Filtrar por dirección de vista".</item>
+        <item>- Corregido: Los datos de salidas en las paradas del proveedor VVO de Alemania se cargan correctamente de nuevo.</item>
+        <item>- Corregido: Las direcciones ingresadas ahora se formatean correctamente nuevamente</item>
+    </string-array>
+
     <string name="changesHeading3_3_0">Version 3.3.0</string>
     <string-array name="changesList3_3_0">
         <item>Fecha: 9 de febrero de 2026</item>

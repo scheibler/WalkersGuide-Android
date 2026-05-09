@@ -658,6 +658,23 @@
     <!-- ChangelogDialog -->
     <string name="buttonOpenAllChanges">Alle Änderungen</string>
 
+    <string name="changesHeading3_4_0">Version 3.4.0</string>
+    <string-array name="changesList3_4_0">
+        <item>Datum: 10.05.2026</item>
+        <item>- Neu: Wähle zwischen verschiedenen Routenprofilen wie beispielsweise "Kürzeste Strecke" oder "Innerstädtisch zu Fuß",
+            um die berechnete Route deinen Wünschen anzupassen.  Letzteres bevorzugt kleinere Straßen und nimmt dafür einen Umweg
+            in Kauf. In den App-Einstellungen kannst du auch eigene Routenprofile anlegen oder die vorhandenen editieren, sowie
+            ein Standardroutenprofil festlegen. Dann wirst du bei der Berechnung der Route nicht mehr jedes Mal gefragt.</item>
+        <item>- Neu: Lass dir bei der Navigation auch den Kreuzungsaufbau ansagen. So bekommst du eine bessere Vorstellung vom den zu
+            querenden Straßen, wenn du dich einer Kreuzung näherst.  Diese Option ist vorerst standardmäßig deaktiviert.  Wenn du
+            die Ansagen ausprobieren möchtest, findest du den Schalter "Kreuzungsaufbau sprechen" in den App-Einstellungen im Abschnitt "Sprachausgabe".</item>
+        <item>- Neu: Talkback-Aktionen für häufig genutzte Kontextmenüeinträge in der Punktliste: "Zu diesem Punkt navigieren" und "Simulation starten"</item>
+        <item>- Neu: Menüeintrag im "Weitere Optionen" Menü der Punktliste, um die Funktionen "Auto-Update" und "Nach Blickrichtung
+            filtern" zusammen ein- bzw. auszuschalten.</item>
+        <item>- Behoben: Der VVO Provider liefert wieder Daten zu den nächsten Abfahrten an einer Haltestelle.</item>
+        <item>- Behoben: Eingegebene Adressen werden wieder korrekt formatiert</item>
+    </string-array>
+
     <string name="changesHeading3_3_0">Version 3.3.0</string>
     <string-array name="changesList3_3_0">
         <item>Datum: 9. Februar 2026</item>
